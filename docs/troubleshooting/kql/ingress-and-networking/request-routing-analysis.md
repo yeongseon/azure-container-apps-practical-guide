@@ -28,15 +28,23 @@ Use this query to trace ingress routing decisions such as path matching, revisio
 
 | Table | Schema Note |
 |---|---|
-| `ContainerAppSystemLogs_CL` | Legacy schema. If empty, try `ContainerAppSystemLogs` (non-`_CL`). |
+| `ContainerAppSystemLogs_CL` | This query uses the legacy Log Analytics schema (`_CL` table and `_s` columns). Translate both the table and column names before using a resource-specific schema. |
 
 ## Query Pipeline
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by app] --> B[Filter routing and path signals] --> C[Project revision and reason] --> D[Sort by time]
+    accTitle: Query legacy system logs for routing-related signals
+    accDescr: The query selects one app, keeps routing, path, traffic split, and revision terms, projects revision and reason context, and sorts the evidence from newest to oldest.
+
+    SOURCE[Legacy system logs<br/>ContainerAppSystemLogs_CL] --> APP[Select ContainerAppName_s]
+    APP --> SIGNALS[Keep route, path,<br/>traffic split, and revision terms]
+    SIGNALS --> CONTEXT[Project timestamp, revision,<br/>reason, and message]
+    CONTEXT --> RESULT[Order newest first]
 ```
+
+*Figure: The query finds routing-related platform text; it is not an end-to-end request trace. Validate actual request paths and selected replicas with ingress HTTP telemetry when that diagnostic category is enabled.*
 
 ## Query
 

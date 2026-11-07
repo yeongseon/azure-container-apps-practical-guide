@@ -28,15 +28,23 @@ Use this query to investigate ingress TLS configuration events such as certifica
 
 | Table | Schema Note |
 |---|---|
-| `ContainerAppSystemLogs_CL` | Legacy schema. If empty, try `ContainerAppSystemLogs` (non-`_CL`). |
+| `ContainerAppSystemLogs_CL` | This query uses the legacy Log Analytics schema (`_CL` table and `_s` columns). Translate both the table and column names before using a resource-specific schema. |
 
 ## Query Pipeline
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by app] --> B[Filter TLS and custom domain signals] --> C[Project revision and reason] --> D[Sort by time]
+    accTitle: Query legacy system logs for TLS and custom-domain signals
+    accDescr: The query selects one app, keeps TLS, certificate, custom-domain, SNI, hostname, and binding terms, projects revision and reason context, and sorts results from newest to oldest.
+
+    SOURCE[Legacy system logs<br/>ContainerAppSystemLogs_CL] --> APP[Select ContainerAppName_s]
+    APP --> SIGNALS[Keep TLS, certificate,<br/>SNI, hostname, and binding terms]
+    SIGNALS --> CONTEXT[Project timestamp, revision,<br/>reason, and message]
+    CONTEXT --> RESULT[Order newest first]
 ```
+
+*Figure: The pipeline locates platform messages related to TLS configuration. These rows do not reproduce the client-side handshake or prove which certificate a client received.*
 
 ## Query
 
