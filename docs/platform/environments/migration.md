@@ -12,8 +12,8 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-08
+  reviewer: agent
   core_claims:
     - claim: Workload profiles (v2) is the default environment type and is recommended for new Azure Container Apps environments.
       source: https://learn.microsoft.com/en-us/azure/container-apps/structure
@@ -65,13 +65,32 @@ Use this playbook for:
 <!-- diagram-id: parallel-environment-cutover -->
 ```mermaid
 flowchart TD
-    A[Inventory source environment] --> B[Create target environment]
-    B --> C[Redeploy apps with IaC]
-    C --> D[Validate ingress, identity, and dependencies]
-    D --> E[Cut DNS or upstream routing]
-    E --> F[Observe health and rollback window]
-    F --> G[Decommission source environment]
+    accTitle: Parallel Container Apps environment cutover
+    accDescr: Inventory the source, build and validate a separate target, then switch upstream routing while the source remains available for rollback. Decommission the source only after the observation window succeeds.
+
+    SOURCE[Source environment<br/>still serving traffic]
+    INVENTORY[Inventory apps, identities,<br/>networking, secrets, and DNS]
+    TARGET[Create target environment<br/>with required profiles and network]
+    DEPLOY[Redeploy apps and jobs<br/>from infrastructure as code]
+    VALIDATE[Validate ingress, identity,<br/>dependencies, and scaling]
+    CUTOVER[Switch DNS or<br/>upstream routing]
+    OBSERVE[Observe health through<br/>the rollback window]
+    ROLLBACK[Route traffic back<br/>to source]
+    RETIRE[Decommission source<br/>after evidence retention]
+
+    SOURCE --> INVENTORY
+    INVENTORY --> TARGET
+    TARGET --> DEPLOY
+    DEPLOY --> VALIDATE
+    VALIDATE -->|Failed validation| TARGET
+    VALIDATE -->|Passed validation| CUTOVER
+    CUTOVER --> OBSERVE
+    OBSERVE -->|Health regression| ROLLBACK
+    ROLLBACK --> SOURCE
+    OBSERVE -->|Stable window| RETIRE
 ```
+
+The source remains a live rollback target until validation and the post-cutover observation window both pass.
 
 ### Reference Bicep pattern for app recreation
 

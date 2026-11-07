@@ -37,13 +37,13 @@ pie title In-Scope Document Validation Status
 | [Acr Network Path Selection](../platform/networking/acr-network-path-selection.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
 | [Application Gateway Integration](../platform/networking/application-gateway-integration.md) | ✅ | ✅ Verified | 6/6 | 2026-11-07 |
 | [Components State Pubsub](../platform/dapr/components-state-pubsub.md) | ✅ | ✅ Verified | 4/4 | 2026-11-07 |
-| [Connected Environments Arc](../platform/hybrid/connected-environments-arc.md) | ✅ | ✅ Verified | 5/5 | 2026-07-18 |
-| [Consumption Plan](../platform/environments/consumption-plan.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
-| [Cost Optimization](../platform/reliability/cost-optimization.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
+| [Connected Environments Arc](../platform/hybrid/connected-environments-arc.md) | ✅ | ✅ Verified | 5/5 | 2026-11-08 |
+| [Consumption Plan](../platform/environments/consumption-plan.md) | ✅ | ✅ Verified | 4/4 | 2026-11-08 |
+| [Cost Optimization](../platform/reliability/cost-optimization.md) | ✅ | ✅ Verified | 5/5 | 2026-11-08 |
 | [Cpu Memory Scaler](../platform/scaling/cpu-memory-scaler.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
 | [Custom Scalers](../platform/scaling/custom-scalers.md) | ✅ | ✅ Verified | 2/2 | 2026-09-11 |
 | [Customer Managed Keys](../platform/security/customer-managed-keys.md) | ✅ | ✅ Verified | 4/4 | 2026-11-07 |
-| [Dedicated Gpu Profiles](../platform/environments/dedicated-gpu-profiles.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
+| [Dedicated Gpu Profiles](../platform/environments/dedicated-gpu-profiles.md) | ✅ | ✅ Verified | 4/4 | 2026-11-08 |
 | [Deployment](../platform/deployment.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
 | [Deployment Scenarios](../platform/deployment-scenarios.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
 | [Easy Auth](../platform/identity-and-secrets/easy-auth.md) | ✅ | ✅ Verified | 4/4 | 2026-11-07 |
@@ -55,7 +55,7 @@ pie title In-Scope Document Validation Status
 | [Http Scaler](../platform/scaling/http-scaler.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
 | [Image Security](../platform/security/image-security.md) | ✅ | ✅ Verified | 4/4 | 2026-11-07 |
 | [Index](../platform/security/index.md) | ✅ | ✅ Verified | 4/4 | 2026-11-07 |
-| [Index](../platform/environments/index.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
+| [Index](../platform/environments/index.md) | ✅ | ✅ Verified | 3/3 | 2026-11-08 |
 | [Index](../platform/networking/index.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Index](../platform/storage/index.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Index](../platform/architecture/index.md) | ✅ | ✅ Verified | 4/4 | 2026-11-07 |
@@ -68,26 +68,26 @@ pie title In-Scope Document Validation Status
 | [Jobs Vs Apps](../platform/jobs/jobs-vs-apps.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Key Vault](../platform/identity-and-secrets/key-vault.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Lifecycle](../platform/revisions/lifecycle.md) | ✅ | ✅ Verified | 3/3 | 2026-11-07 |
-| [Limits And Quotas](../platform/environments/limits-and-quotas.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
+| [Limits And Quotas](../platform/environments/limits-and-quotas.md) | ✅ | ✅ Verified | 4/4 | 2026-11-08 |
 | [Managed Identity](../platform/identity-and-secrets/managed-identity.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Manual Jobs](../platform/jobs/manual-jobs.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
-| [Migration](../platform/environments/migration.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
+| [Migration](../platform/environments/migration.md) | ✅ | ✅ Verified | 4/4 | 2026-11-08 |
 | [Mtls](../platform/security/mtls.md) | ✅ | ✅ Verified | 4/4 | 2026-11-07 |
 | [Network Isolation](../platform/security/network-isolation.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Networking And Cidr](../platform/environments/networking-and-cidr.md) | ✅ | ✅ Verified | 4/4 | 2026-11-07 |
-| [Plans And Workload Profiles](../platform/environments/plans-and-workload-profiles.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
+| [Plans And Workload Profiles](../platform/environments/plans-and-workload-profiles.md) | ✅ | ✅ Verified | 4/4 | 2026-11-08 |
 | [Private Endpoints](../platform/networking/private-endpoints.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
-| [Resource Relationships](../platform/architecture/resource-relationships.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
+| [Resource Relationships](../platform/architecture/resource-relationships.md) | ✅ | ✅ Verified | 4/4 | 2026-11-08 |
 | [Revision Modes](../platform/revisions/revision-modes.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Scaling Rules Reference](../platform/scaling/scaling-rules-reference.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
 | [Scheduled Jobs](../platform/jobs/scheduled-jobs.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Secrets](../platform/security/secrets.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Security Operations](../platform/identity-and-secrets/security-operations.md) | ✅ | ✅ Verified | 6/6 | 2026-11-07 |
 | [Service To Service](../platform/networking/service-to-service.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
-| [Sidecars And Init Containers](../platform/architecture/sidecars-and-init-containers.md) | ✅ | ✅ Verified | 5/5 | 2026-07-18 |
+| [Sidecars And Init Containers](../platform/architecture/sidecars-and-init-containers.md) | ✅ | ✅ Verified | 5/5 | 2026-11-08 |
 | [Traffic Split](../platform/revisions/traffic-split.md) | ✅ | ✅ Verified | 3/3 | 2026-11-07 |
 | [Vnet Integration](../platform/networking/vnet-integration.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
-| [Workload Profiles](../platform/environments/workload-profiles.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
+| [Workload Profiles](../platform/environments/workload-profiles.md) | ✅ | ✅ Verified | 4/4 | 2026-11-08 |
 
 ### Best Practices
 

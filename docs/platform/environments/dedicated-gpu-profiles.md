@@ -10,8 +10,8 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/quotas
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-08
+  reviewer: agent
   core_claims:
     - claim: Current Dedicated GPU profile names are NC24-A100, NC48-A100, and NC96-A100.
       source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
@@ -54,13 +54,25 @@ That means **T4 currently appears in Consumption GPU profiles, not in the Dedica
 <!-- diagram-id: gpu-profile-placement -->
 ```mermaid
 flowchart TD
-    ENV[Workload profiles environment] --> GP[Dedicated GPU profile]
-    GP --> APP1[Inference API]
-    GP --> APP2[Batch scoring worker]
-    APP1 --> N1[GPU-backed nodes]
-    APP2 --> N1
-    N1 --> B[Dedicated plan instance billing]
+    accTitle: Dedicated GPU workload profile placement
+    accDescr: A workload profiles environment contains a dedicated GPU profile backed by GPU nodes. Apps target the profile, replicas are placed on its nodes, and billing follows allocated profile instances rather than individual apps.
+
+    ENV[Workload profiles environment]
+    PROFILE[Dedicated GPU profile<br/>NC A100 family]
+    NODES[GPU profile instances<br/>dedicated nodes]
+    APPS[GPU-targeted apps and jobs]
+    REPLICAS[GPU workload replicas]
+    BILLING[Dedicated plan billing<br/>allocated profile instances]
+
+    ENV -.->|Contains| PROFILE
+    APPS -.->|Target profile| PROFILE
+    PROFILE -.->|Scales profile instances| NODES
+    APPS -->|Scale rules create| REPLICAS
+    NODES -.->|Compute placement| REPLICAS
+    NODES -.->|Metered as| BILLING
 ```
+
+The diagram shows placement and billing associations, not application request flow.
 
 ### When Dedicated GPU is the better fit
 

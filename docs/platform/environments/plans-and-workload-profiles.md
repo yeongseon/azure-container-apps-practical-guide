@@ -7,11 +7,12 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/structure
         - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/billing
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-08
+  reviewer: agent
   core_claims:
     - claim: 'Azure Container Apps features two different environment types: Workload profiles and Consumption-only.'
       source: https://learn.microsoft.com/en-us/azure/container-apps/structure
@@ -54,21 +55,41 @@ Current Microsoft Learn pages use these environment names:
 In practice:
 
 - A **Consumption-only (v1)** environment runs only on the **Consumption plan**.
-- A **Workload profiles (v2)** environment includes a built-in **Consumption** workload profile and can add **Dedicated** workload profiles.
+- A **Workload profiles (v2)** environment includes a built-in **Consumption** workload profile and can add **Dedicated**, Consumption GPU, and, where available, **Flexible** profiles.
+
+!!! caution "Learn uses plan and profile terminology differently"
+    The current [plan-types page](https://learn.microsoft.com/en-us/azure/container-apps/plans) and [billing page](https://learn.microsoft.com/en-us/azure/container-apps/billing) organize charges under Consumption and Dedicated plan labels.
+    The [workload-profile overview](https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview) separately lists Consumption, Dedicated, and Flexible (preview) profile types, and says Flexible combines consumption-style billing with a dedicated management fee. Because the public pages overlap these terms, this guide states the documented billing treatment for each profile instead of treating Flexible as either a third plan or a conventional Dedicated profile.
 
 <!-- diagram-id: one-environment-many-workload-profiles -->
 ```mermaid
 flowchart TD
-    ENV[Workload profiles environment] --> C[Consumption profile]
-    ENV --> D1[Dedicated profile D-series]
-    ENV --> D2[Dedicated profile E-series]
-    ENV --> G[GPU profile]
-    C --> CAPP1[Bursty API replicas]
-    C --> CAPP2[Scale-to-zero worker replicas]
-    D1 --> DAPP[Steady-state API replicas]
-    D2 --> MAPP[Memory-heavy replicas]
-    G --> GAPP[GPU inference replicas]
+    accTitle: One environment with multiple workload profiles
+    accDescr: A workload profiles environment contains one built-in Consumption profile and can add Dedicated, GPU, and Flexible preview profiles when supported. Each app or job targets one profile, and the profile determines its compute placement and documented billing treatment.
+
+    ENV[Workload profiles environment]
+    CONSUMPTION_PLAN[Consumption plan<br/>per-replica usage]
+    DEDICATED_PLAN[Dedicated plan<br/>profile-instance billing]
+    FLEX_BILLING[Flexible preview billing<br/>consumption-style usage plus<br/>dedicated management fee]
+    CONSUMPTION[Built-in Consumption profile<br/>bursty or idle-prone apps]
+    SERVERLESS_GPU[Consumption GPU profile<br/>serverless GPU apps]
+    DEDICATED[Dedicated profiles<br/>D, E, or dedicated GPU apps]
+    FLEX[Flexible profile preview<br/>single-tenant and no scale to zero]
+
+    ENV -.->|Supports| CONSUMPTION_PLAN
+    ENV -.->|Supports| DEDICATED_PLAN
+    ENV -.->|Supports where available| FLEX
+    CONSUMPTION_PLAN -.->|Built in| CONSUMPTION
+    CONSUMPTION_PLAN -.->|Optional where available| SERVERLESS_GPU
+    DEDICATED_PLAN -.->|Optional| DEDICATED
+    FLEX_BILLING -.->|Applies to| FLEX
+    CONSUMPTION ~~~ SPACER[ ]
+    SPACER ~~~ DEDICATED
+
+    style SPACER fill:transparent,stroke:transparent,color:transparent
 ```
+
+The diagram distinguishes profile placement from the two billing plans; Flexible is a preview workload profile type, not a third plan.
 
 ### Capability comparison
 
@@ -84,6 +105,7 @@ flowchart TD
 | Private endpoints on the environment | Yes | No |
 | Minimum subnet size for custom VNet | `/27` | `/23` |
 | GPU support | Yes, via Consumption GPU or Dedicated GPU profiles | No |
+| Flexible profile | Preview where available; requires its own networking and no-scale-to-zero planning | No |
 | Scale-to-zero | Yes on Consumption profile apps | Yes |
 | Replica ceiling per revision | Up to 1,000 configurable replicas, subject to quota and subnet realities | Up to 1,000 configurable replicas, subject to quota and subnet realities |
 
@@ -131,5 +153,7 @@ The Workload profiles blade on an existing v2 environment shows the built-in Con
 - [Compute and billing structures in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/structure)
 - [Consumption-only environment type in Azure Container Apps (legacy) (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/environment-type-consumption-only)
 - [Workload profiles in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview)
+- [Billing in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/billing)
 - [Networking in Azure Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
 - [Scaling in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
+- [Azure Container Apps plan types (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/plans)

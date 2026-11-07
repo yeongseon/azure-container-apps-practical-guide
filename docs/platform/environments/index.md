@@ -1,4 +1,5 @@
 ---
+description: Azure Container Apps environment decisions — environment types, networking, workload profiles, quotas, app placement, and migration boundaries.
 content_sources:
   diagrams:
     - id: environment-boundary-and-follow-on-decisions
@@ -10,8 +11,8 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/revisions
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-08
+  reviewer: agent
   core_claims:
     - claim: 'Azure Container Apps has two environment types: Workload profiles (v2) and Consumption-only (v1), with Workload profiles as the default.'
       source: https://learn.microsoft.com/en-us/azure/container-apps/structure
@@ -34,12 +35,33 @@ An Azure Container Apps environment is the shared boundary for networking, loggi
 <!-- diagram-id: environment-boundary-and-follow-on-decisions -->
 ```mermaid
 flowchart TD
-    A[Choose environment type] --> B[Choose networking model]
-    B --> C[Choose workload profiles]
-    C --> D[Place apps on profiles]
-    D --> E[Set revision and scale rules]
-    E --> F[Operate quotas and lifecycle]
+    accTitle: Environment boundary and follow-on design decisions
+    accDescr: Start by choosing the environment type and network because those choices shape available profiles and are difficult or impossible to change in place. Then place apps, configure revisions and scaling, and operate quotas and lifecycle.
+
+    TYPE[Choose environment type]
+    V2[Workload profiles environment<br/>default]
+    V1[Consumption-only environment<br/>legacy]
+    V2_NETWORK[Choose Azure-managed network<br/>or existing virtual network]
+    V1_NETWORK[Choose Azure-managed network<br/>or supported v1 virtual network]
+    PROFILES[Choose available profiles<br/>Consumption, Dedicated, or Flex preview]
+    V1_CONSUMPTION[Use the sole Consumption option]
+    APPS[Place apps and jobs<br/>on profiles]
+    RUNTIME[Configure revisions<br/>and scale rules]
+    OPERATE[Monitor quotas<br/>and lifecycle]
+
+    TYPE -->|Default| V2
+    TYPE -->|Legacy only| V1
+    V2 --> V2_NETWORK
+    V1 --> V1_NETWORK
+    V2_NETWORK --> PROFILES
+    V1_NETWORK --> V1_CONSUMPTION
+    PROFILES --> APPS
+    V1_CONSUMPTION --> APPS
+    APPS --> RUNTIME
+    RUNTIME --> OPERATE
 ```
+
+The branches make the placement constraint explicit: a Workload profiles environment can offer several profiles, while a Consumption-only environment leads directly to its sole Consumption option.
 
 ### What an environment controls
 

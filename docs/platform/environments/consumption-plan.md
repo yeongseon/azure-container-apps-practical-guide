@@ -6,18 +6,19 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/environment-type-consumption-only
+        - https://learn.microsoft.com/en-us/azure/container-apps/containers
         - https://learn.microsoft.com/en-us/azure/container-apps/billing
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-08
+  reviewer: agent
   core_claims:
     - claim: The Consumption-only environment type is a legacy option and Workload profiles (v2) is the default and recommended choice for new environments.
       source: https://learn.microsoft.com/en-us/azure/container-apps/environment-type-consumption-only
       verified: true
-    - claim: Apps running in a Consumption-only environment have access to 4 vCPUs with 8 GB of memory and no GPU access.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/environment-type-consumption-only
+    - claim: Microsoft Learn currently conflicts on the Consumption-only app ceiling; the environment-type page says 4 vCPUs and 8 GB, while the container allocation page gives a more specific maximum of 2 cores and 4 GiB for an app on the Consumption plan in a Consumption-only environment.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/containers
       verified: true
     - claim: Consumption plan billing is based on resource consumption billed in vCPU-seconds and GiB-seconds plus HTTP requests.
       source: https://learn.microsoft.com/en-us/azure/container-apps/billing
@@ -43,13 +44,29 @@ The Consumption-only environment runs apps only on the Consumption plan:
 <!-- diagram-id: consumption-only-execution-model -->
 ```mermaid
 flowchart TD
-    ENV[Consumption-only environment] --> APP1[Public API]
-    ENV --> APP2[Worker]
-    APP1 --> R1[Replica count scales on demand]
-    APP2 --> R2[Replica count can scale to zero]
-    R1 --> B1[vCPU-seconds + GiB-seconds]
-    R2 --> B2[Request-based billing]
+    accTitle: Consumption-only environment execution and billing model
+    accDescr: A legacy Consumption-only environment hosts apps on the Consumption plan. Scale rules change replica counts, including scale to zero, while running resources and external HTTP requests feed separate billing meters.
+
+    ENV[Consumption-only environment<br/>legacy v1]
+    PLAN[Consumption plan<br/>on-demand compute]
+    API[Ingress-enabled app]
+    WORKER[Event-driven worker]
+    API_SCALE[API replicas<br/>scale by demand]
+    WORKER_SCALE[Worker replicas<br/>can scale to zero]
+    RESOURCE_METER[Resource meter<br/>vCPU-seconds and GiB-seconds]
+    REQUEST_METER[Request meter<br/>external HTTP requests]
+
+    ENV -.->|Uses only| PLAN
+    PLAN -.->|Hosts| API
+    PLAN -.->|Hosts| WORKER
+    API -->|Scale rules| API_SCALE
+    WORKER -->|Scale rules| WORKER_SCALE
+    API_SCALE -.->|Running allocation| RESOURCE_METER
+    WORKER_SCALE -.->|Running allocation| RESOURCE_METER
+    API_SCALE -.->|Billable external requests| REQUEST_METER
 ```
+
+The dotted links describe placement and metering relationships; they are not request or data paths.
 
 ### Billing model
 
@@ -67,10 +84,15 @@ Microsoft Learn describes Consumption plan charges in three buckets:
 
 ### Characteristics and limitations
 
+!!! warning "Microsoft Learn currently conflicts on the per-app ceiling"
+    The [Consumption-only environment page](https://learn.microsoft.com/en-us/azure/container-apps/environment-type-consumption-only) says apps have access to **4 vCPUs and 8 GB** of memory.
+    The more specific [container allocation page](https://learn.microsoft.com/en-us/azure/container-apps/containers#vcpu-and-memory-allocation-requirements) says an app using the Consumption plan in a Consumption-only environment is limited to **2 cores and 4 GiB**.
+    Until Microsoft reconciles these pages, do not treat 4 vCPUs / 8 GB as an unqualified per-app ceiling; validate the accepted allocation in the target environment.
+
 | Area | Consumption-only (v1) behavior |
 |---|---|
 | Status | Legacy environment type |
-| Compute ceiling per app environment model | 4 vCPUs / 8 GiB memory |
+| Per-app compute ceiling | Conflicting Learn guidance: environment overview says 4 vCPUs / 8 GB; container allocation page says 2 cores / 4 GiB |
 | Dedicated SKUs | Not available |
 | GPUs | Not available |
 | UDR | Not supported |
@@ -116,5 +138,6 @@ Microsoft Learn now recommends using the built-in Consumption profile in a Workl
 ## Sources
 
 - [Consumption-only environment type in Azure Container Apps (legacy) (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/environment-type-consumption-only)
+- [Containers in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/containers)
 - [Billing in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/billing)
 - [Networking in Azure Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)

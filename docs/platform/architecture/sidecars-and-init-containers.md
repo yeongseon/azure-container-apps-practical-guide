@@ -9,8 +9,8 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/azure-resource-manager-api-spec
 content_validation:
   status: verified
-  last_reviewed: '2026-07-18'
-  reviewer: ai-agent
+  last_reviewed: 2026-11-08
+  reviewer: agent
   core_claims:
     - claim: In advanced scenarios a container app can run multiple containers, and the main app plus its sidecar containers are listed in the containers array of properties.template while init containers are listed in the initContainers array.
       source: https://learn.microsoft.com/en-us/azure/container-apps/containers
@@ -42,16 +42,31 @@ All containers in a container app run inside the same **replica**. Init containe
 <!-- diagram-id: replica-composition -->
 ```mermaid
 flowchart TD
+    accTitle: Container app replica startup and runtime composition
+    accDescr: Init containers run sequentially and must all succeed before the main and sidecar containers start. Once running, the main and sidecar containers share the replica network and can mount the same replica-scoped volume.
+
     subgraph REPLICA[Container App replica]
         direction TD
-        I1[initContainers 0<br/>run to completion] --> I2[initContainers 1<br/>run to completion]
-        I2 --> START{All init containers<br/>succeeded?}
-        START -->|Yes| MAIN[Main app container]
-        START -->|Yes| SIDE[Sidecar containers]
-        START -->|No| FAIL[Replica start blocked]
+        INIT1[Init container 1<br/>run to completion]
+        INIT2[Init container 2<br/>run to completion]
+        GATE{All init containers<br/>succeeded?}
+        BLOCKED[Replica startup blocked]
+        MAIN[Main app container]
+        SIDECAR[Sidecar container]
+        VOLUME[(Replica-scoped<br/>shared volume)]
+
+        INIT1 --> INIT2
+        INIT2 --> GATE
+        GATE -->|No| BLOCKED
+        GATE -->|Yes| MAIN
+        GATE -->|Yes| SIDECAR
+        MAIN <-->|Loopback traffic| SIDECAR
+        MAIN -.->|Mounted by| VOLUME
+        SIDECAR -.->|Mounted by| VOLUME
     end
-    MAIN <-->|localhost + shared volume| SIDE
 ```
+
+The flow separates the sequential startup gate from runtime sharing inside one replica; the volume links are associations, not network traffic.
 
 - **Init containers** are listed in the `initContainers` array of `properties.template`.
 - **Main and sidecar containers** are listed together in the `containers` array of `properties.template`.
@@ -91,13 +106,18 @@ Init containers perform initialization work — downloading data, running databa
 
 On the **Consumption plan**, the total CPU and memory of **all** containers in a container app (init containers count while they run, and the main plus sidecar containers count together) must add up to one of the supported combinations, such as `0.5` vCPU / `1.0Gi` or `1.0` vCPU / `2.0Gi`. Apps in a *Consumption only* environment are limited to a maximum of 2 cores and 4Gi.
 
+!!! warning "Microsoft Learn currently conflicts on the Consumption-only ceiling"
+    The more specific [container allocation table](https://learn.microsoft.com/en-us/azure/container-apps/containers#vcpu-and-memory-allocation-requirements) limits an app on the Consumption plan in a Consumption-only environment to **2 cores and 4 GiB**.
+    The separate [Consumption-only environment page](https://learn.microsoft.com/en-us/azure/container-apps/environment-type-consumption-only) instead says apps have access to **4 vCPUs and 8 GB**.
+    This page follows the container allocation rule for sizing, discloses the conflict, and recommends validating the accepted allocation rather than treating 4 vCPUs / 8 GB as an unqualified per-app ceiling.
+
 Plan the split deliberately: a sidecar consuming `0.25` vCPU leaves less for the primary container within the same replica budget. See [Platform Limits](../../reference/platform-limits.md) and [Container Design](../../best-practices/container-design.md).
 
 ## Failure behavior
 
 - If **any init container** fails (non-zero exit), the primary app container does not start and the replica fails to become ready.
 - If a **running container crashes**, Container Apps automatically restarts it.
-- Probes are scoped to the container they are defined on, so a failing readiness probe on one container affects only that container's traffic eligibility within the replica.
+- Probes are configured per container. Evaluate replica readiness with every container's probe behavior in mind rather than assuming a sidecar failure is isolated from the app.
 
 ## When to use multi-container vs separate apps
 
@@ -125,6 +145,7 @@ Plan the split deliberately: a sidecar consuming `0.25` vCPU leaves less for the
 ## Sources
 
 - [Microsoft Learn: Containers in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/containers)
+- [Microsoft Learn: Consumption-only environment type](https://learn.microsoft.com/en-us/azure/container-apps/environment-type-consumption-only)
 - [Microsoft Learn: Azure Container Apps ARM and YAML template specifications](https://learn.microsoft.com/en-us/azure/container-apps/azure-resource-manager-api-spec)
 - [Microsoft Learn: Health probes in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
 - [Microsoft Learn: Sidecar pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/sidecar)
