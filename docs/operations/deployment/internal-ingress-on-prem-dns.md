@@ -59,12 +59,12 @@ Configure on-premises name resolution to reach Azure Container Apps running in a
 - Container Apps Internal Environment deployed in Spoke VNet (apps accessible via environment static IP)
 - Optional inspection path through Azure Firewall or another NVA, if your network architecture requires forced inspection
 - On-premises DNS server with Conditional Forwarder capability
-- Custom internal domain controlled by your organization (e.g., `nhinvest.local`)
+- A subdomain of a DNS name your organization owns, delegated for private use (recommended), or another internal suffix approved by your DNS team
 
 Use the repository variable convention for the commands below, including `$RG`, `$APP_NAME`, `$ACA_ENV_NAME`, and `$LOCATION`, plus the VNet and subnet resource IDs for your deployment.
 
-!!! note "Synthetic example domain"
-    `nhinvest.local` is a synthetic example domain used throughout this guide. Replace it with your organization's internal DNS suffix in production.
+!!! note "Lab domain versus production DNS"
+    The reproduced lab used the synthetic name `nhinvest.local`. For production, prefer a delegated subdomain of a DNS name your organization owns, such as `apps.internal.example.com`, so namespace ownership is explicit. Avoid `.local` for new designs because clients commonly reserve it for multicast DNS.
 
 ## When to Use
 
@@ -87,6 +87,7 @@ flowchart TD
     accDescr: An on-premises client sends DNS to its DNS server, which conditionally forwards the query through private connectivity to an Azure DNS Private Resolver inbound endpoint. The resolver consults a linked private DNS zone and returns the environment static IP. Separately, the client opens TCP 443 and negotiates TLS with managed ingress at the internal load balancer address before the request reaches an active revision and replica. Optional firewall and route-table resources are associated controls, not Container Apps resources.
 
     subgraph ONPREM["On-premises network"]
+        direction TB
         CLIENT["User or system"]
         DNS_OP["On-premises DNS server"]
     end
@@ -94,37 +95,46 @@ flowchart TD
     PRIVATE_LINK["VPN or ExpressRoute<br/>private connectivity"]
 
     subgraph AZURE_VNET["Connected Azure virtual network"]
+        direction TB
         RESOLVER["DNS Private Resolver<br/>inbound endpoint"]
-        ZONE["Linked Private DNS zone<br/>custom domain A record"]
-        ENV_IP["Internal environment<br/>static IP"]
+        RESOLVER_SUBNET["Dedicated resolver<br/>endpoint subnet"]
+        ACA_SUBNET["Container Apps<br/>infrastructure subnet"]
     end
 
+    ZONE["Azure Private DNS zone<br/>custom domain A record"]
+
     subgraph ENV["Managed Container Apps environment"]
+        direction TB
         INGRESS["Managed ingress proxy<br/>TLS and request routing"]
         APP["Container app<br/>external app ingress"]
         REV_ACTIVE["Active revision<br/>immutable app version"]
         REPLICAS["Revision replicas<br/>running instances"]
     end
 
-    FIREWALL["Optional Azure Firewall or NVA"]
-    ROUTES["Optional route tables<br/>associated with selected subnets"]
+    FIREWALL["Optional firewall or NVA"]
+    DNS_ROUTES["Optional resolver-subnet<br/>route table"]
+    ACA_ROUTES["Optional infrastructure-subnet<br/>route table"]
 
     CLIENT -.->|"1  DNS query"| DNS_OP
     DNS_OP -.->|"2  Conditional forward<br/>UDP or TCP 53"| PRIVATE_LINK
     PRIVATE_LINK -.->|"3  DNS query"| RESOLVER
     RESOLVER -.->|"4  Consult linked zone"| ZONE
+    ZONE -.->|"Virtual network link"| AZURE_VNET
     ZONE -.->|"5  A answer: environment static IP"| RESOLVER
     RESOLVER -.->|"6  DNS response"| DNS_OP
     DNS_OP -.->|"7  IP answer"| CLIENT
 
-    CLIENT ==>|"8  TCP 443 over private connectivity"| ENV_IP
-    ENV_IP ==>|"9  TLS with hostname SNI"| INGRESS
+    CLIENT ==>|"8  TCP 443 toward environment static IP"| PRIVATE_LINK
+    PRIVATE_LINK ==>|"9  TLS ClientHello with hostname SNI"| INGRESS
     INGRESS ==>|"10  HTTPS request"| APP
     APP ==>|"11  Route traffic"| REV_ACTIVE
     REV_ACTIVE ==>|"12  Select ready replica"| REPLICAS
 
     FIREWALL -.->|"Optional inspection policy"| PRIVATE_LINK
-    ROUTES -.->|"Optional path association"| AZURE_VNET
+    RESOLVER -.-> RESOLVER_SUBNET
+    INGRESS -.-> ACA_SUBNET
+    DNS_ROUTES -.->|"Subnet association"| RESOLVER_SUBNET
+    ACA_ROUTES -.->|"Subnet association"| ACA_SUBNET
 
     LEGEND["Arrow key<br/>thick = TCP, TLS, or HTTPS transport<br/>dotted = DNS, optional policy, or association"]
 ```
@@ -199,8 +209,8 @@ az containerapp hostname add \
 !!! warning "Certificate required for HTTPS"
     Bind an SNI certificate that clients trust for the internal hostname. Free managed certificates require the documented public DigiCert validation path, so private-only names generally use an uploaded certificate or a certificate imported from Key Vault. Do not treat `--insecure` as a production trust configuration.
 
-!!! note "`.local` Domain Caveat"
-    Azure accepts `.local` domains in Private DNS Zones but issues a warning: "DNS names ending with `.local` are reserved for multicast DNS." This does not affect Azure-side resolution, but on-premises Linux clients using systemd-resolved may need explicit configuration to avoid mDNS conflicts. Consider using `.internal` or `.corp` suffixes instead if possible.
+!!! note "`.local` lab caveat"
+    The historical lab used `.local`, which clients commonly reserve for multicast DNS and which can require resolver-specific workarounds. Preserve that name only when reproducing the lab. For a new production design, use a delegated subdomain of a DNS name your organization owns.
 
 ```bash
 az containerapp hostname bind \
@@ -235,7 +245,7 @@ az network private-dns record-set a add-record \
     --resource-group $RG \
     --zone-name nhinvest.local \
     --record-set-name app \
-    --ipv4-address <aca-static-ip>
+    --ipv4-address "$ACA_STATIC_IP"
 ```
 
 | Command/Parameter | Purpose |
@@ -246,7 +256,7 @@ az network private-dns record-set a add-record \
 | `az network private-dns record-set a add-record` | Adds an A record to the zone |
 | `--zone-name` | Selects the private DNS zone |
 | `--record-set-name app` | Creates `app.nhinvest.local` |
-| `--ipv4-address <aca-static-ip>` | Container Apps Internal Environment static IP address |
+| `--ipv4-address` | Supplies the Container Apps internal environment static IP from `$ACA_STATIC_IP`. |
 
 ### Step 3: Link Private DNS Zone to Spoke VNet
 
@@ -280,7 +290,7 @@ az network vnet subnet create \
     --resource-group $RG \
     --vnet-name $SPOKE_VNET \
     --name snet-dns-resolver-inbound \
-    --address-prefixes 10.x.y.0/28 \
+    --address-prefixes "$DNS_RESOLVER_SUBNET_PREFIX" \
     --delegations Microsoft.Network/dnsResolvers
 
 # Create the Private DNS Resolver
@@ -305,7 +315,7 @@ az dns-resolver inbound-endpoint create \
 | `--resource-group` | Identifies the resource group for the VNet or resolver command |
 | `--vnet-name` | Identifies the VNet that receives the endpoint subnet |
 | `--name` | Names the subnet, resolver, or endpoint, depending on the command |
-| `--address-prefixes 10.x.y.0/28` | Minimum /28 required for resolver inbound endpoint |
+| `--address-prefixes` | Supplies the dedicated `/28` through `/24` endpoint subnet prefix from `$DNS_RESOLVER_SUBNET_PREFIX`. |
 | `--delegations Microsoft.Network/dnsResolvers` | Required delegation for resolver subnet |
 | `az dns-resolver create` | Creates the Private DNS Resolver resource |
 | `--location` | Places the resolver or endpoint in `$LOCATION` |
@@ -359,7 +369,7 @@ In the lab simulation, the on-premises VM sits in a Hub subnet. By default, Hub-
     [Observed] Effective routes on the on-prem VM NIC confirmed `User Active <spoke-cidr> → VirtualAppliance <firewall-ip>`, overriding the default VNetPeering route.
 
 !!! note "Production with S2S VPN"
-    In a real S2S VPN deployment, traffic from on-premises enters the Hub via VPN Gateway. The VPN Gateway's propagated routes and gateway transit settings handle routing to the firewall. This Hub-side UDR is specific to the **lab simulation** where a Hub VM acts as on-premises.
+    In a real S2S VPN deployment, traffic from on-premises enters Azure through VPN Gateway. Whether that traffic then traverses Azure Firewall depends on the gateway routing, BGP propagation, peering and gateway-transit settings, UDRs, and effective routes. The Hub-side UDR below is specific to the **lab simulation** where a Hub VM acts as on-premises.
 
 ```bash
 # Create route table for on-prem simulation subnet
@@ -555,7 +565,7 @@ nslookup app.<default-domain>.koreacentral.azurecontainerapps.io
 | Resolver returns `SERVFAIL` | Private DNS Zone not linked to Spoke VNet | Create VNet link (Step 3) |
 | Certificate error on HTTPS | Missing or mismatched TLS cert on custom domain | Bind correct certificate (Step 1) |
 | HTTP 404 through the environment internal load balancer | App ingress is internal, or hostname/routing does not match the target app | For direct VNet access, set app ingress to external; also verify the host binding and any environment-level HTTP route |
-| `.local` domain SERVFAIL on Linux clients | systemd-resolved treats `.local` as mDNS | Use `dig @<resolver-ip>` or configure systemd-resolved to exclude `.local` from mDNS. Consider `.internal` or `.corp` suffixes instead. |
+| `.local` domain SERVFAIL on Linux clients | systemd-resolved treats `.local` as mDNS | For lab reproduction, query the intended resolver explicitly or configure the client resolver; for production, prefer a delegated subdomain of a DNS name your organization owns. |
 | HTTPS times out but DNS works in the forced-inspection lab | Return traffic bypasses the stateful firewall | Use effective routes and firewall logs to restore symmetry for the participating subnets (Step 7) |
 | bind9 returns SERVFAIL for `.local` zone | DNSSEC validation fails on `.local` forwarded queries | Set `dnssec-validation no;` in bind9 `named.conf.options` |
 
@@ -593,7 +603,7 @@ nslookup app.<default-domain>.koreacentral.azurecontainerapps.io
 
     **Lab Limitations:**
 
-    - [Inferred] On-premises was simulated with a Hub VNet VM and UDR-based firewall routing, not a real S2S VPN or ExpressRoute connection. In production, the VPN Gateway handles on-premises routing natively.
+    - [Inferred] On-premises was simulated with a Hub VNet VM and UDR-based firewall routing, not a real S2S VPN or ExpressRoute connection. A production path must be validated from its actual gateway, BGP, peering, UDR, firewall, and effective-route configuration.
 
 ## See Also
 
