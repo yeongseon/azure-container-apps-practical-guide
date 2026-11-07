@@ -273,6 +273,8 @@ python3 scripts/diagram_inventory.py --write --base-commit "$(git rev-parse HEAD
 
 Batch owners edit `target`, `context.reader_intent`, and `migration` by key. These planning fields survive regeneration and unrelated diagram insertions or reordering because preservation matches exact keys. For a diagram without a stable `diagram-id`, however, editing the Mermaid body changes its content-anchored provisional key and drops those fields. Add a stable `diagram-id` before recording progress on an ID-less diagram. The current manifest has three migration-required records with provisional IDs.
 
+An owner marks a diagram migrated by setting `migration.state` to `completed` only after its stable `diagram-id`, current batch assignment, canonical `content_sources.diagrams[]` source references, literal Mermaid output, and any `target.base`, `target.extensions`, or `target.overlays` diagram-key references are final. For completed entries, `--check` blocks missing or competing owners, assignment drift, provisional or renamed IDs, absent target keys, missing `mslearn_url`/`url`/`based_on` references, and a Mermaid body hash that differs from the committed manifest. These checks do not apply to `not-started`, `in-progress`, or `exception` entries, so the existing pre-migration inventory remains incremental. The direct typed-Mermaid decision means “generated component output” is the literal source-visible fence recorded by `baseline.source_sha256`; this repository does not add a composition generator. App Service and Functions retain their own older scanner contracts and are not byte-identical synchronization targets.
+
 | Migration state | Meaning | `exception` |
 |---|---|---|
 | `not-started` | Migration has not begun. | `null` |
