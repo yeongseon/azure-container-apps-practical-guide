@@ -62,10 +62,10 @@ az containerapp env update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp env update` | Updates the managed environment logging configuration. |
-| `--name` | Selects the Container Apps environment. |
-| `--resource-group` | Selects the resource group. |
-| `--logs-destination` | Selects Azure Monitor so diagnostic settings can route environment logs. |
+| `az containerapp env update` | Changes the environment logging path before diagnostic export is configured. |
+| `--name` | Targets the Container Apps environment stored in `$ACA_ENV_NAME`. |
+| `--resource-group` | Scopes the logging update to the environment's resource group. |
+| `--logs-destination` | Selects Azure Monitor so environment log categories can be routed by diagnostic settings. |
 
 Example to route logs to Log Analytics:
 
@@ -79,11 +79,11 @@ az monitor diagnostic-settings create \
 
 | Command | Why it is used |
 |---|---|
-| `az monitor diagnostic-settings create` | Creates the diagnostic setting. |
-| `--name` | Names the diagnostic setting. |
-| `--resource` | Selects the managed environment resource. |
-| `--workspace` | Sets the destination Log Analytics workspace resource ID. |
-| `--logs` | Enables the `allLogs` category group. |
+| `az monitor diagnostic-settings create` | Creates the environment-level rule that exports Container Apps logs. |
+| `--name` | Assigns `aca-env-diagnostics` as the diagnostic setting name. |
+| `--resource` | Attaches the diagnostic setting to the managed environment identified by `$ENVIRONMENT_ID`. |
+| `--workspace` | Routes exported environment logs to the specified Log Analytics workspace. |
+| `--logs` | Enables every environment log category through the `allLogs` category group. |
 
 ### Portal view: confirm log destination on the environment
 

@@ -55,10 +55,10 @@ az containerapp logs show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp logs show` | Opens the container app log stream. |
-| `--name` | Selects the container app. |
-| `--resource-group` | Selects the resource group. |
-| `--follow` | Keeps the stream open for new records. |
+| `az containerapp logs show` | Opens a live stream for the app during active incident diagnosis. |
+| `--name` | Targets the Container App stored in `$APP_NAME`. |
+| `--resource-group` | Scopes the live stream to the app's resource group. |
+| `--follow` | Keeps the incident stream open as new container output arrives. |
 
 ### Portal view: Log stream blade
 
@@ -84,11 +84,11 @@ az containerapp logs show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp logs show` | Opens the container app log stream. |
-| `--name` | Selects the container app. |
-| `--resource-group` | Selects the resource group. |
-| `--revision` | Filters the stream to one revision. |
-| `--follow` | Keeps the stream open for new records. |
+| `az containerapp logs show` | Opens a live stream narrowed to the revision under investigation. |
+| `--name` | Targets the Container App stored in `$APP_NAME`. |
+| `--resource-group` | Scopes the revision stream to the app's resource group. |
+| `--revision` | Filters output to the `stable` revision instead of mixing records from active revisions. |
+| `--follow` | Keeps the revision stream open as new output arrives. |
 
 ```bash
 az containerapp logs show \
@@ -101,12 +101,12 @@ az containerapp logs show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp logs show` | Opens the container app log stream. |
-| `--name` | Selects the container app. |
-| `--resource-group` | Selects the resource group. |
-| `--container` | Filters to one container. |
-| `--replica` | Filters to one replica. |
-| `--follow` | Keeps the stream open for new records. |
+| `az containerapp logs show` | Opens a live stream for one failing container instance. |
+| `--name` | Targets the Container App stored in `$APP_NAME`. |
+| `--resource-group` | Scopes the replica stream to the app's resource group. |
+| `--container` | Filters output to the application container rather than sidecars. |
+| `--replica` | Filters output to the exact replica being diagnosed. |
+| `--follow` | Keeps the replica stream open as new output arrives. |
 
 Streaming is best for **current** output. Log Analytics is better when you need:
 

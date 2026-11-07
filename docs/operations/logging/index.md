@@ -48,9 +48,9 @@ az extension add --name containerapp --upgrade
 
 | Command | Why it is used |
 |---|---|
-| `az extension add` | Installs or updates an Azure CLI extension. |
-| `--name` | Selects the `containerapp` extension. |
-| `--upgrade` | Upgrades an existing extension installation. |
+| `az extension add` | Installs the Container Apps extension required for the logging checks on this page. |
+| `--name` | Identifies `containerapp` as the extension needed to inspect environment logging. |
+| `--upgrade` | Updates an existing installation so current logging commands and flags are available. |
 
 ## When to Use
 
@@ -125,11 +125,11 @@ az containerapp env show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp env show` | Reads the managed environment configuration. |
-| `--name` | Selects the Container Apps environment. |
-| `--resource-group` | Selects the resource group. |
-| `--query` | Projects the application logging configuration. |
-| `--output` | Returns structured JSON evidence. |
+| `az containerapp env show` | Reads the environment configuration to verify its active log destination. |
+| `--name` | Targets the Container Apps environment stored in `$ACA_ENV_NAME`. |
+| `--resource-group` | Scopes the lookup to the environment's resource group. |
+| `--query` | Projects only `appLogsConfiguration`, where the destination and workspace settings are stored. |
+| `--output` | Returns the logging configuration as structured JSON evidence. |
 
 Validate that the expected tables exist by running a short query against your workspace and testing both native and legacy names if needed.
 

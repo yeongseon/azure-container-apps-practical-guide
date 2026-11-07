@@ -46,11 +46,11 @@ az account show --output table
 
 | Command | Purpose |
 |---|---|
-| `az extension add` | Installs or updates an Azure CLI extension. |
-| `--name` | Selects the `containerapp` extension. |
-| `--upgrade` | Upgrades the extension if an older version is installed. |
+| `az extension add` | Installs the Container Apps extension required by the operations commands in this guide. |
+| `--name` | Identifies `containerapp` as the extension to install before operating the app. |
+| `--upgrade` | Updates an existing Container Apps extension so the documented subcommands are available. |
 | `az account show` | Confirms the active subscription and tenant before production operations. |
-| `--output` | Formats the account result as a table. |
+| `--output` | Formats the active account context as a table for a quick pre-operation check. |
 
 ## Main Content
 
@@ -84,16 +84,16 @@ az containerapp logs show --resource-group $RG --name $APP_NAME --type system --
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp show` | Reads the Container App configuration. |
-| `az containerapp revision restart` | Restarts a specific revision of the selected Container App. |
-| `az containerapp revision list` | Lists the app's revisions. |
-| `az containerapp logs show` | Streams system logs for the app. |
-| `--resource-group` | Selects the resource group. |
-| `--name` | Selects the container app. |
-| `--output` | Selects JSON or table output. |
-| `--type` | Selects the system log stream. |
-| `--follow` | Keeps the log stream open for new records. |
-| `--revision` | Selects the revision to restart. |
+| `az containerapp show` | Reads the app configuration for the initial operational inspection. |
+| `az containerapp revision restart` | Restarts the specified revision when an operator needs to recycle its replicas. |
+| `az containerapp revision list` | Lists revision health and state after the restart. |
+| `az containerapp logs show` | Streams platform events that explain revision and replica behavior. |
+| `--resource-group` | Scopes each app operation to the resource group stored in `$RG`. |
+| `--name` | Targets the Container App stored in `$APP_NAME`. |
+| `--output` | Returns full JSON for app inspection and a table for the revision check. |
+| `--type` | Chooses system logs because the check concerns platform and revision events. |
+| `--follow` | Keeps the system-log session open while the operator watches new events. |
+| `--revision` | Identifies the exact revision to restart rather than recycling an unspecified deployment. |
 
 ### Verification Steps
 
@@ -110,10 +110,10 @@ az containerapp show \
 | Command | Why it is used |
 |---|---|
 | `az containerapp show` | Reads the Container App configuration so the documented setting can be verified. |
-| `--name` | Selects the container app. |
-| `--resource-group` | Selects the resource group. |
-| `--query` | Projects the operational fields needed for the baseline. |
-| `--output` | Returns structured JSON evidence. |
+| `--name` | Targets the Container App whose baseline is being captured. |
+| `--resource-group` | Scopes the baseline lookup to the app's resource group. |
+| `--query` | Projects the environment, provisioning, and running-state fields needed for the baseline. |
+| `--output` | Preserves the projected baseline as structured JSON evidence. |
 
 Example output (PII masked):
 
@@ -186,12 +186,12 @@ az containerapp ingress traffic show \
 
 | Command | Purpose |
 |---|---|
-| `az containerapp show` | Captures the app's current identity and runtime state. |
-| `az containerapp ingress traffic show` | Records the current revision traffic weights. |
-| `--name` | Selects the container app. |
-| `--resource-group` | Selects the resource group. |
-| `--query` | Projects the baseline fields from the app resource. |
-| `--output` | Preserves structured JSON for comparison and rollback evidence. |
+| `az containerapp show` | Captures the app's current revision and runtime state before an operational change. |
+| `az containerapp ingress traffic show` | Records the pre-change revision traffic weights needed for rollback. |
+| `--name` | Targets the Container App whose pre-change state is being recorded. |
+| `--resource-group` | Scopes both snapshots to the app's resource group. |
+| `--query` | Projects the latest revision, provisioning state, and running state for baseline comparison. |
+| `--output` | Preserves both snapshots as structured JSON for comparison and rollback evidence. |
 
 ### Operational Ownership Checklist
 

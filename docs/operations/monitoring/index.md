@@ -98,11 +98,11 @@ az containerapp env show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp env show` | Reads the managed environment configuration. |
-| `--name` | Selects the Container Apps environment. |
-| `--resource-group` | Selects the resource group. |
-| `--query` | Projects the application logging configuration. |
-| `--output` | Returns structured JSON evidence. |
+| `az containerapp env show` | Reads the environment configuration to identify its monitoring destination. |
+| `--name` | Targets the Container Apps environment stored in `$ACA_ENV_NAME`. |
+| `--resource-group` | Scopes the destination lookup to the environment's resource group. |
+| `--query` | Projects `appLogsConfiguration`, including the active destination and workspace details. |
+| `--output` | Returns the environment logging path as structured JSON evidence. |
 
 Example output (PII scrubbed):
 
@@ -126,10 +126,10 @@ az monitor log-analytics query \
 
 | Command | Why it is used |
 |---|---|
-| `az monitor log-analytics query` | Runs a KQL query against a Log Analytics workspace. |
-| `--workspace` | Selects the Log Analytics workspace ID. |
-| `--analytics-query` | Supplies the KQL statement for recent application errors. |
-| `--output` | Formats the query result as a table. |
+| `az monitor log-analytics query` | Queries retained console logs for recent application errors. |
+| `--workspace` | Targets the Log Analytics workspace connected to the Container Apps environment. |
+| `--analytics-query` | Filters `$APP_NAME` console records for `ERROR` and limits the incident sample to 50 rows. |
+| `--output` | Formats the recent-error result as a table for operator review. |
 
 Microsoft Learn currently documents both schema patterns for Container Apps logs: the Container Apps log-monitoring article queries `ContainerAppConsoleLogs_CL`, while Azure Monitor table references document the native `ContainerAppConsoleLogs` table. Check your workspace schema first, then match the table and column names to that shape.
 
@@ -153,11 +153,11 @@ az monitor app-insights query \
 
 | Command | Why it is used |
 |---|---|
-| `az monitor app-insights query` | Queries Application Insights request telemetry. |
-| `--app` | Selects the Application Insights component. |
-| `--resource-group` | Selects the component's resource group. |
-| `--analytics-query` | Supplies the request aggregation query. |
-| `--output` | Formats the query result as a table. |
+| `az monitor app-insights query` | Queries request telemetry to summarize response codes for the app. |
+| `--app` | Targets the Application Insights component receiving this app's request telemetry. |
+| `--resource-group` | Scopes the telemetry query to the component's resource group. |
+| `--analytics-query` | Counts `$APP_NAME` requests by result code in five-minute bins. |
+| `--output` | Formats the request aggregation as a table for incident analysis. |
 
 Use container logs directly during active incidents:
 
@@ -171,11 +171,11 @@ az containerapp logs show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp logs show` | Retrieves current container console output. |
-| `--name` | Selects the container app. |
-| `--resource-group` | Selects the resource group. |
-| `--type` | Selects the console log stream. |
-| `--follow` | Returns available records without keeping a continuous stream open. |
+| `az containerapp logs show` | Retrieves a bounded snapshot of current application output during an incident. |
+| `--name` | Targets the Container App stored in `$APP_NAME`. |
+| `--resource-group` | Scopes the log snapshot to the app's resource group. |
+| `--type` | Chooses console logs because the check is for application output. |
+| `--follow` | Disables continuous streaming so the command returns the available incident sample. |
 
 Example output from the running revision:
 
@@ -200,12 +200,12 @@ az containerapp replica list \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp revision list` | Lists revisions so rollout state, traffic, and health can be verified. |
-| `az containerapp replica list` | Lists replicas and container readiness for one revision. |
-| `--name` | Selects the container app. |
-| `--resource-group` | Selects the resource group. |
-| `--revision` | Selects the revision whose replicas are listed. |
-| `--output` | Returns structured JSON evidence. |
+| `az containerapp revision list` | Lists rollout state, traffic, and health across the app's revisions. |
+| `az containerapp replica list` | Lists container readiness and restart state for the revision being investigated. |
+| `--name` | Targets the Container App stored in `$APP_NAME` for both health checks. |
+| `--resource-group` | Scopes both checks to the app's resource group. |
+| `--revision` | Narrows replica inspection to `ca-myapp--0000001`. |
+| `--output` | Preserves revision and replica health details as structured JSON evidence. |
 
 Example output (PII scrubbed):
 
@@ -255,11 +255,11 @@ az monitor app-insights query \
 
 | Command | Why it is used |
 |---|---|
-| `az monitor app-insights query` | Queries Application Insights dependency telemetry. |
-| `--app` | Selects the Application Insights component. |
-| `--resource-group` | Selects the component's resource group. |
-| `--analytics-query` | Supplies the dependency correlation query. |
-| `--output` | Formats the query result as a table. |
+| `az monitor app-insights query` | Queries dependency telemetry for end-to-end operation correlation. |
+| `--app` | Targets the Application Insights component receiving this app's dependency telemetry. |
+| `--resource-group` | Scopes the dependency query to the component's resource group. |
+| `--analytics-query` | Projects recent `$APP_NAME` operation IDs, targets, and result codes for trace correlation. |
+| `--output` | Formats the dependency sample as a table for cross-service diagnosis. |
 
 ## Verification Steps
 

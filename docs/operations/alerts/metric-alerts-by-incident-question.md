@@ -5,7 +5,8 @@ content_sources:
     - id: ops-metric-alerts-by-question-flow
       type: flowchart
       source: mslearn-adapted
-      mslearn_url: https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-types
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-types
 
 content_validation:
   status: verified
@@ -140,7 +141,7 @@ Before you commit a new metric-alert rule to production, confirm the metric is a
     ```bash
     az monitor metrics list \
       --resource "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.App/containerApps/$APP_NAME" \
-      --metric "CpuPercentage" \
+      --metrics "CpuPercentage" \
       --aggregation Average \
       --interval PT5M \
       --offset 2h
@@ -150,7 +151,7 @@ Before you commit a new metric-alert rule to production, confirm the metric is a
     |---|---|
     | `az monitor metrics list` | Retrieves recent `CpuPercentage` samples for the target container app to validate emission, aggregation, and threshold assumptions before alert creation. |
     | `--resource` | Targets the exact Container App resource whose metric stream you plan to alert on, so the dry run reflects the same scope the future alert rule will evaluate. |
-    | `--metric "CpuPercentage"` | Chooses the specific metric signal under review, which lets the operator confirm that this incident question maps to a real Container Apps metric instead of a guessed name. |
+    | `--metrics "CpuPercentage"` | Chooses the specific metric signal under review, which lets the operator confirm that this incident question maps to a real Container Apps metric instead of a guessed name. |
     | `--aggregation Average` | Tests the same rollup style an alert would use, which matters because averages can look healthy even when single spikes would have triggered a `Maximum`-based rule. |
     | `--interval PT5M` | Buckets the series into 5-minute windows so you can judge whether the alerting granularity is too coarse or too noisy for incident response. |
     | `--offset 2h` | Pulls a recent two-hour sample window, which is long enough to confirm the metric is emitting and to estimate a realistic threshold before you create the alert. |

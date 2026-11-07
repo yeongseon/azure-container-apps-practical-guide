@@ -50,10 +50,10 @@ az containerapp revision set-mode \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp revision set-mode` | Changes the app to multiple revision mode for explicit traffic control. |
-| `--name` | Selects the container app. |
-| `--resource-group` | Selects the resource group. |
-| `--mode` | Selects multiple revision mode. |
+| `az containerapp revision set-mode` | Enables explicit traffic control before routing users back to a known-good revision. |
+| `--name` | Targets the Container App being recovered. |
+| `--resource-group` | Scopes the recovery change to the app's resource group. |
+| `--mode` | Enables multiple revision mode so the operator can assign traffic to a chosen revision. |
 
 ```bash
 az containerapp ingress traffic set \
@@ -64,10 +64,10 @@ az containerapp ingress traffic set \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp ingress traffic set` | Updates revision traffic weights. |
-| `--name` | Selects the container app. |
-| `--resource-group` | Selects the resource group. |
-| `--revision-weight` | Routes all application traffic to the last known good revision. |
+| `az containerapp ingress traffic set` | Performs the rollback by replacing the app's revision traffic weights. |
+| `--name` | Targets the Container App being recovered. |
+| `--resource-group` | Scopes the traffic rollback to the app's resource group. |
+| `--revision-weight` | Routes 100 percent of application traffic to the last known-good revision. |
 
 ## Environment Recovery
 
@@ -200,14 +200,14 @@ az containerapp logs show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp revision list` | Lists revision health and state. |
-| `az containerapp ingress traffic show` | Shows current revision traffic weights. |
-| `az containerapp logs show` | Retrieves current console output. |
-| `--name` | Selects the container app. |
-| `--resource-group` | Selects the resource group. |
-| `--output` | Selects table or JSON output. |
-| `--type` | Selects console logs. |
-| `--follow` | Controls whether the command keeps following new records. |
+| `az containerapp revision list` | Checks whether the rollback target is active and healthy. |
+| `az containerapp ingress traffic show` | Confirms traffic is assigned to the intended recovery revision. |
+| `az containerapp logs show` | Retrieves application output after rollback for error verification. |
+| `--name` | Targets the Container App under recovery for all three checks. |
+| `--resource-group` | Scopes all recovery checks to the app's resource group. |
+| `--output` | Uses a table for revision triage and JSON for exact traffic weights. |
+| `--type` | Chooses console logs to inspect post-rollback application behavior. |
+| `--follow` | Disables continuous streaming so the verification command returns a bounded sample. |
 
 ### Recovery Exit Criteria
 

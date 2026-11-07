@@ -75,15 +75,15 @@ az monitor metrics alert create \
 
 | Command | Why it is used |
 |---|---|
-| `az monitor metrics alert create` | Creates the metric alert rule. |
-| `--name` | Names the alert rule. |
-| `--resource-group` | Selects the resource group that owns the rule. |
-| `--scopes` | Sets the monitored Container App resource ID. |
-| `--condition` | Defines the metric aggregation, signal, operator, and threshold. |
-| `--window-size` | Sets the period over which metric values are aggregated. |
-| `--evaluation-frequency` | Sets how often Azure Monitor evaluates the rule. |
-| `--severity` | Assigns the alert severity. |
-| `--action` | Associates the action group resource ID. |
+| `az monitor metrics alert create` | Creates the high-memory metric alert for the production Container App. |
+| `--name` | Assigns the stable rule name `aca-high-memory` for later inspection and tuning. |
+| `--resource-group` | Stores the alert rule in the resource group identified by `$RG`. |
+| `--scopes` | Targets the Container App whose working-set metric should be evaluated. |
+| `--condition` | Fires when average `WorkingSetBytes` exceeds the example threshold. |
+| `--window-size` | Aggregates memory samples over the five-minute incident window. |
+| `--evaluation-frequency` | Re-evaluates the memory condition every minute. |
+| `--severity` | Classifies the memory alert as severity 2 for the documented routing policy. |
+| `--action` | Sends fired alert instances to the on-call action group. |
 
 ### Portal view: Container App Alerts blade
 
@@ -137,11 +137,11 @@ az containerapp job execution list \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp revision list` | Lists revisions so rollout state, traffic, and health can be verified. |
-| `--name` | Selects the container app. |
-| `--resource-group` | Selects the resource group. |
-| `--output` | Returns structured JSON evidence. |
-| `az containerapp job execution list` | Lists recent executions for the selected Container Apps job. |
+| `az containerapp revision list` | Captures app revision state before deciding whether an alert reflects a rollout problem. |
+| `az containerapp job execution list` | Captures recent job outcomes before deciding whether a job-failure alert is actionable. |
+| `--name` | Targets `$APP_NAME` for the revision check and `$JOB_NAME` for the execution check. |
+| `--resource-group` | Scopes both pre-alert checks to the workload resource group. |
+| `--output` | Preserves both revision and job-execution evidence as structured JSON. |
 
 ```json
 [
@@ -291,12 +291,12 @@ az monitor activity-log alert create \
 
 | Command | Why it is used |
 |---|---|
-| `az monitor activity-log alert create` | Creates the activity log alert rule. |
-| `--name` | Names the alert rule. |
-| `--resource-group` | Selects the resource group that owns the rule. |
-| `--scope` | Sets the resource scope whose activity events are evaluated. |
-| `--condition` | Defines the matching activity-log fields. |
-| `--action-group` | Associates the action group resource ID. |
+| `az monitor activity-log alert create` | Creates a rule that detects administrative writes to the Container App. |
+| `--name` | Assigns `aca-config-change` as the rule name used by operators. |
+| `--resource-group` | Stores the activity-log rule in the resource group identified by `$RG`. |
+| `--scope` | Limits evaluation to control-plane events for the target Container App. |
+| `--condition` | Matches informational administrative `containerApps/write` events. |
+| `--action-group` | Routes matching configuration-change events to the on-call action group. |
 
 ## See Also
 
