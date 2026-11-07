@@ -374,9 +374,19 @@ def load_yaml(name: str):
 
 def resolve_anchor_timestamp(name: str, anchor_class: str):
     payload_anchors = {
+        "06-system-logs-pre-fix.json": (system_pre.get("window_end_utc"), "payload.window_end_utc"),
         "08-probe-response-pre-fix.json": (probe_pre_payload.get("captured_after_utc"), "payload.captured_after_utc"),
+        "11-probe-response-post-fix.json": (probe_post_payload.get("captured_after_utc"), "payload.captured_after_utc"),
+        "12-pe-nic-config-post-fix.json": (post_payload.get("capture_metadata", {}).get("post_window_start_utc"), "capture_metadata.post_window_start_utc"),
     }
     payload_value, payload_source = payload_anchors.get(name, (None, None))
+    if not payload_value:
+        if anchor_class == "pre":
+            payload_value = probe_pre_payload.get("captured_after_utc")
+            payload_source = "cohort.pre.probe_capture.captured_after_utc"
+        else:
+            payload_value = post_payload.get("capture_metadata", {}).get("post_window_start_utc")
+            payload_source = "cohort.post.capture_metadata.post_window_start_utc"
     if isinstance(payload_value, str) and payload_value:
         dt = parse_iso(payload_value)
         return {

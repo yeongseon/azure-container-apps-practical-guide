@@ -613,14 +613,17 @@ class KedaGateTests(unittest.TestCase):
 
 class EvaluationReplayTests(unittest.TestCase):
     batch_b_payload_anchors: Final = {
-        "acr-network-path-dns-forwarder-bypass": (
-            "08-probe-response-pre-fix.json",
-            "captured_after_utc",
-        ),
-        "acr-network-path-record-split-brain": (
-            "08-probe-response-pre-fix.json",
-            "captured_after_utc",
-        ),
+        "acr-network-path-dns-forwarder-bypass": {
+            "07-system-logs-pre-fix.json": ("pre_anchor_timestamps", "2026-06-29T00:52:42+00:00", "payload.window_end_utc"),
+            "08-probe-response-pre-fix.json": ("pre_anchor_timestamps", "2026-06-29T00:49:37+00:00", "payload.captured_after_utc"),
+            "12-recovery-surface-post-fix.json": ("post_anchor_timestamps", "2026-06-29T00:52:56+00:00", "capture_metadata.post_window_start_utc"),
+        },
+        "acr-network-path-record-split-brain": {
+            "06-system-logs-pre-fix.json": ("pre_anchor_timestamps", "2026-06-28T22:34:36+00:00", "payload.window_end_utc"),
+            "08-probe-response-pre-fix.json": ("pre_anchor_timestamps", "2026-06-28T22:34:36+00:00", "payload.captured_after_utc"),
+            "11-probe-response-post-fix.json": ("post_anchor_timestamps", "2026-06-28T22:36:42+00:00", "payload.captured_after_utc"),
+            "12-pe-nic-config-post-fix.json": ("post_anchor_timestamps", "2026-06-28T22:37:05+00:00", "capture_metadata.post_window_start_utc"),
+        },
     }
 
     @contextlib.contextmanager
@@ -774,7 +777,7 @@ class EvaluationReplayTests(unittest.TestCase):
                 self.assertIn("current raw input bytes differ from HEAD", result.stderr)
 
     def test_batch_b_payload_timestamps_override_shifted_baseline_anchors(self) -> None:
-        for name, (raw_name, raw_key) in self.batch_b_payload_anchors.items():
+        for name, anchors in self.batch_b_payload_anchors.items():
             with self.subTest(lab=name), self.replay_fixture(name) as lab:
                 gate14 = lab.parent / "committed-gates" / REPLAY_LABS[name][0][0]
                 baseline = json.loads(gate14.read_text())
@@ -796,15 +799,17 @@ class EvaluationReplayTests(unittest.TestCase):
                     check=False,
                 )
 
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                 emitted = json.loads((lab / "evidence" / REPLAY_LABS[name][0][0]).read_text())
-                raw = json.loads((lab / "evidence" / raw_name).read_text())
-                actual = emitted["sub_gates"][1]["observed_values"]["pre_anchor_timestamps"][raw_name]
-                expected = datetime.fromisoformat(raw[raw_key].replace("Z", "+00:00")).isoformat()
-                self.assertEqual(actual["timestamp_utc"], expected)
-                self.assertEqual(actual["time_source"], f"payload.{raw_key}")
+                observed = emitted["sub_gates"][1]["observed_values"]
+                for raw_name, (anchor_class, expected, source) in anchors.items():
+                    with self.subTest(lab=name, raw=raw_name):
+                        actual = observed[anchor_class][raw_name]
+                        self.assertEqual(actual["timestamp_utc"], expected)
+                        self.assertEqual(actual["time_source"], source)
 
     def test_batch_b_direct_invocation_ignores_local_gate_anchors(self) -> None:
-        for name, (raw_name, raw_key) in self.batch_b_payload_anchors.items():
+        for name, anchors in self.batch_b_payload_anchors.items():
             with self.subTest(lab=name), self.replay_fixture(name) as lab:
                 gate14 = lab / "evidence" / REPLAY_LABS[name][0][0]
                 local = json.loads(gate14.read_text())
@@ -824,12 +829,14 @@ class EvaluationReplayTests(unittest.TestCase):
                     check=False,
                 )
 
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                 emitted = json.loads(gate14.read_text())
-                raw = json.loads((lab / "evidence" / raw_name).read_text())
-                actual = emitted["sub_gates"][1]["observed_values"]["pre_anchor_timestamps"][raw_name]
-                expected = datetime.fromisoformat(raw[raw_key].replace("Z", "+00:00")).isoformat()
-                self.assertEqual(actual["timestamp_utc"], expected)
-                self.assertEqual(actual["time_source"], f"payload.{raw_key}")
+                observed = emitted["sub_gates"][1]["observed_values"]
+                for raw_name, (anchor_class, expected, source) in anchors.items():
+                    with self.subTest(lab=name, raw=raw_name):
+                        actual = observed[anchor_class][raw_name]
+                        self.assertEqual(actual["timestamp_utc"], expected)
+                        self.assertEqual(actual["time_source"], source)
 
 
 def load_tests(loader: unittest.TestLoader, _tests: unittest.TestSuite,
