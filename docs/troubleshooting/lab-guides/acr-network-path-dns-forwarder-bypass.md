@@ -245,7 +245,7 @@ ca-acrdnsfwd-<suffix>--0000001     True      100              Healthy        Pro
 !!! info "Phase B verifier scope"
     `bash labs/acr-network-path-dns-forwarder-bypass/verify.sh` is the hermetic Phase B evidence verifier. It replays the committed evidence cohort and does **not** validate a fresh Azure deployment.
 
-    Gate 14 through Gate 17 were originally emitted on 2026-06-29 and later re-evaluated offline from unchanged raw evidence. Their top-level `evaluated_at_utc` records each replay invocation, not a new evidence capture or current Azure validation date. Historical file-system anchors are reusable only after the replay guard proves the current tracked raw bytes still match the committed cohort; current raw-payload-derived values remain authoritative.
+    Gate 14 through Gate 17 were originally emitted on 2026-06-29 and later re-evaluated offline from unchanged raw evidence. Their top-level `evaluated_at_utc` records each replay invocation, not a new evidence capture or current Azure validation date. Only the `scripts/check_gate_replay.py` entry point supplies historical file-system anchors, after it proves the current tracked raw bytes still match the committed cohort; direct `verify.sh` runs do not read local gates as anchors, and current raw-payload-derived values remain authoritative.
 
 ### Falsify the hypothesis
 
