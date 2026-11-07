@@ -43,6 +43,8 @@ flowchart TD
 | [Platform Limits](platform-limits.md) | Check design boundaries and quota-sensitive architecture decisions | Architect, platform owner, SRE | Load planning, scaling strategy, pre-production review | Limit/constraint table for design and operations |
 | [Metrics](metrics.md) | Look up Azure Monitor metric IDs, dimensions, and percentage denominators for Container Apps | SRE, platform engineer, developer | Building alerts, dashboards, autoscale rules, KQL queries | Metric ID, aggregation, dimension, and CLI query template |
 | [Configuration Scope Matrix](configuration-scope-matrix.md) | Determine whether a setting is environment-, application-, or revision-scoped before changing it | Platform engineer, SRE, developer | Config changes, revision planning, change-impact review | Scope classification and revision-impact for each setting |
+| [Diagram Inventory](diagram-inventory.md) | Inspect the repository-wide diagram inventory, syntax breakdown, and migration batches | Architect, maintainer, contributor | Migration planning, visual audits | Validated counts, candidate genres, and manifest baseline |
+| [ADR: Diagram Composition](adr-diagram-composition.md) | Review architectural options and decisions for shared diagram composition | Architect, maintainer | Design review, strategy evaluation | Decision rationale, trade-off analysis, and risk mitigations |
 
 ## Quick navigation by task
 
@@ -69,6 +71,8 @@ flowchart TD
 | [Platform Limits](platform-limits.md) | Platform quotas, request/timeout constraints, storage behavior, and scale boundaries |
 | [Metrics](metrics.md) | Azure Monitor metric reference for Container Apps including percentage metric denominators and CLI query examples |
 | [Configuration Scope Matrix](configuration-scope-matrix.md) | Classifies each Container Apps setting as environment-, application-, or revision-scoped, with revision impact |
+| [Diagram Inventory](diagram-inventory.md) | Inventory of all technical diagrams, syntax distribution, exception records, and migration ownership batches |
+| [ADR: Diagram Composition](adr-diagram-composition.md) | Architecture decision record evaluating diagram reuse, topology composition, and toolchain strategy |
 
 ## Quick Links
 
