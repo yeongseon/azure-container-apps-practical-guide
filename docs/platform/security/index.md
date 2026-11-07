@@ -1,4 +1,5 @@
 ---
+description: Azure Container Apps security boundaries — ingress, authentication, Dapr mTLS, registry assessment, managed identity, and scoped role assignments.
 content_sources:
   diagrams:
     - id: security-architecture-overview
@@ -12,6 +13,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-containers-introduction
         - https://learn.microsoft.com/en-us/azure/role-based-access-control/overview
         - https://learn.microsoft.com/en-us/azure/container-apps/policy-reference
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration
     - id: no-ingress-not-http-addressable-event-driven
       type: flowchart
       source: self-generated
@@ -38,6 +40,8 @@ content_sources:
       type: flowchart
       source: mslearn-adapted
       based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/connect-apps
         - https://learn.microsoft.com/en-us/azure/container-apps/security
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
@@ -49,6 +53,7 @@ content_sources:
       type: flowchart
       source: mslearn-adapted
       based_on:
+        - https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-containers-deployment-overview
         - https://learn.microsoft.com/en-us/azure/container-apps/security
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
@@ -60,6 +65,8 @@ content_sources:
       type: flowchart
       source: mslearn-adapted
       based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-abac-repository-permissions
         - https://learn.microsoft.com/en-us/azure/container-apps/security
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
@@ -94,68 +101,61 @@ Azure Container Apps provides multiple layers of security — from network isola
 <!-- diagram-id: security-architecture-overview -->
 ```mermaid
 flowchart TB
-    subgraph External ["External Boundary"]
-        U[Internet Client]
-        AD[Microsoft Entra ID]
+    accTitle: Container Apps security boundaries and control responsibilities
+    accDescr: A reachable HTTPS caller uses managed ingress and an active revision. An app replica contains the optional Easy Auth sidecar and application code. Management RBAC, runtime identity grants, and registry assessment are separate control relationships, not packet-forwarding resources.
+    CLIENT["Caller allowed by<br/>environment and app exposure"]
+    DEPLOYER["Deployment principal"]
+    ARM["Azure Resource Manager<br/>management RBAC check"]
+    IDP["Configured identity provider"]
+    MI["App managed identity<br/>resource-specific permissions"]
+    KV["Azure Key Vault"]
+    ACR["Azure Container Registry"]
+    DEF["Defender for Cloud<br/>registry image assessment"]
+    subgraph ENV["Managed Container Apps environment"]
+        INGRESS["Managed ingress proxy<br/>TLS and request routing"]
+        APP["Container app<br/>logical grouping"]
+        REV_ACTIVE["Active revision<br/>immutable app version"]
+        subgraph REPLICAS["Revision replica — representative instance"]
+            AUTH["Easy Auth sidecar<br/>optional authentication layer"]
+            CODE["Application code<br/>workload authorization"]
+        end
     end
-
-    subgraph Azure ["Azure Subscription"]
-        subgraph Env ["Azure-managed Container Apps Environment"]
-            ING[Managed ingress proxy]
-            APP1[App: External Ingress]
-            APP2[App: Internal Ingress]
-            SC[Sidecar - Dapr mTLS]
-        end
-
-        subgraph VNet ["Customer Virtual Network"]
-            Subnet["Dedicated environment subnet relationship"]
-
-            subgraph PESubnet ["Private Endpoint Subnet"]
-                PE1["PE: Key Vault"]
-                PE2["PE: Storage"]
-                PE3["PE: ACR"]
-            end
-
-            FW[Azure Firewall / NVA]
-        end
-
-        subgraph Services ["Platform Services"]
-            KV[Azure Key Vault]
-            ACR[Azure Container Registry]
-            ST[Azure Storage]
-            DEF[Microsoft Defender for Containers]
-        end
-
-        RBAC[Azure RBAC]
-    end
-
-    U -- "1. HTTPS + TLS 1.2" --> ING
-    ING -- "2. Easy Auth / JWT" --> AD
-    ING --> APP1
-    APP1 -- "3. mTLS via Dapr" --> SC
-    SC --> APP2
-    APP1 -- "4. Managed Identity" --> PE1
-    APP1 -- "4. Managed Identity" --> PE2
-    ACR -- "5. Image Pull via MI" --> Env
-    DEF -- "6. Vulnerability findings" --> ACR
-    FW -- "7. Egress Filter" --> Env
-    RBAC -- "8. Control Plane" --> Env
+    DEPLOYER -->|"Management operation"| ARM
+    ARM -.->|"Authorized configuration"| APP
+    CLIENT ==>|"1 HTTPS / TLS 1.2 or 1.3"| INGRESS
+    INGRESS ==>|"2 Route to active revision"| REV_ACTIVE
+    REV_ACTIVE ==>|"3 Select replica; auth enabled here"| AUTH
+    AUTH ==>|"4 Forward if permitted"| CODE
+    AUTH -.->|"Provider / session configuration"| IDP
+    APP -.->|"Logical revision membership"| REV_ACTIVE
+    APP -.->|"Identity association"| MI
+    MI -.->|"Secret access grant"| KV
+    MI -.->|"Image pull grant"| ACR
+    DEF -.->|"Assessment scope"| ACR
+    LEGEND["Thick = request transport<br/>Thin = management operation<br/>Dotted = association or control<br/>No VNet or private endpoint placement implied"]
 ```
 
-Each numbered path represents a security control layer:
+*Figure: A security extension of the [architecture base](../architecture/index.md#architecture-at-a-glance), using its environment, ingress, app, revision, and replica vocabulary. The enabled-auth path is illustrative; Easy Auth is not part of the shared ingress proxy. Dotted resource grants neither transport requests nor prove network reachability.*
 
-| # | Layer | Control |
+| Area | Layer | Control |
 |---|---|---|
-| 1 | Transport | TLS 1.2 enforced at managed ingress |
-| 2 | Authentication | Easy Auth or custom JWT validation |
-| 3 | Service-to-service | mTLS via Dapr sidecar |
-| 4 | Resource access | Managed identity with least-privilege RBAC |
-| 5 | Image pull | Managed identity authentication to ACR |
-| 6 | Image integrity | Vulnerability scanning via Defender for Containers |
-| 7 | Egress | Outbound filtering via Azure Firewall or UDR |
-| 8 | Control plane | Azure RBAC for management operations |
+| Ingress | Transport | HTTPS terminates at managed ingress |
+| Replica | Authentication | Optional Easy Auth; application authorization still applies |
+| Service calls | Service-to-service | Dapr mTLS is a separate sidecar path, shown below |
+| Identity grants | Resource access | Least-privilege permissions, separate from networking |
+| Registry | Image pull | Managed identity authentication to ACR |
+| Assessment | Supply chain | Findings inform release governance, not automatic blocking |
+| Network | Egress | UDR selects a path; a firewall filters it (not shown) |
+| Management | Control plane | Azure RBAC for resource operations |
 
 ## Security Deep Dives
+
+Read each path as a separate security question:
+
+- **Reachability:** can the caller reach the selected ingress or dependency endpoint?
+- **Authentication:** which identity or certificate does the receiver establish?
+- **Authorization:** does the receiving service or application permit that identity's action?
+- **Supply chain:** has the release process reviewed the exact image reference?
 
 Use these focused pages when you need implementation details for a specific security domain:
 
@@ -249,28 +249,38 @@ For detailed networking configuration, see [Networking Overview](../networking/i
 
 ### Easy Auth (Built-in Authentication)
 
-Container Apps provides a built-in authentication layer (Easy Auth) that validates tokens before requests reach application code:
+For an external HTTP ingress-enabled app, Easy Auth runs as a sidecar on each replica. This sequence illustrates **Require authentication**, configured to reject unauthenticated requests with `401`, after sign-in has already established a session:
 
 <!-- diagram-id: container-apps-provides-a-built-in-authentication -->
 ```mermaid
 sequenceDiagram
+    accTitle: Easy Auth request and response sequence with authentication required
+    accDescr: After sign-in, ingress routes a request to a replica's Easy Auth sidecar. An authenticated request reaches application code, which makes workload authorization decisions. An unauthenticated request receives the configured 401 response from Easy Auth. Responses return through ingress.
     participant C as Client
-    participant E as Envoy Ingress
-    participant A as Easy Auth Middleware
-    participant App as Container App
+    participant E as Managed ingress
+    participant A as Easy Auth sidecar
+    participant App as Application code
 
-    C->>E: HTTPS Request
-    E->>A: Forward to auth layer
-    A->>A: Validate token with Entra ID
-    alt Token valid
-        A->>App: Forward authenticated request
-        App->>C: 200 OK
-    else Token invalid
-        A->>C: 401 Unauthorized
+    C->>E: HTTPS request with session credential
+    E->>A: Route to revision replica
+    A->>A: Validate authentication / session
+    alt Authenticated
+        A->>App: Forward request and identity headers
+        App->>App: Apply workload authorization
+        App-->>A: Application response
+        A-->>E: Relay response
+        E-->>C: Return response
+    else Unauthenticated
+        A-->>E: Configured 401 rejection
+        E-->>C: 401 Unauthorized
     end
 ```
 
+*Figure: Solid sequence arrows are requests or local processing; dashed arrows are responses. Sign-in/provider exchanges are omitted, not assumed to occur on every request. This typed sequence does not consume the topology base.*
+
 Easy Auth supports Microsoft Entra ID, Facebook, GitHub, Google, X, and custom OpenID Connect providers. The platform authentication middleware runs as a sidecar on each replica when enabled; the sequence above is a logical request flow rather than a physical claim that authentication is part of the ingress proxy.
+
+Unauthenticated handling can instead redirect to sign-in or return `403`. **Allow unauthenticated access** passes anonymous traffic to application code, so enabling Easy Auth alone is not equivalent to requiring authentication. Keep `allowInsecure` disabled and implement any finer role/claims authorization your workload needs.
 
 !!! tip "When to use Easy Auth vs custom auth"
     Use Easy Auth for standard identity provider flows with minimal code. Use custom JWT validation when you need fine-grained claims inspection, multi-tenant logic, or non-standard token formats.
@@ -286,26 +296,29 @@ Dapr service invocation provides automatic mTLS between Dapr sidecars for Dapr-e
 <!-- diagram-id: dapr-sidecar-enables-automatic-mtls-for -->
 ```mermaid
 flowchart TD
-    subgraph Env ["Container Apps Environment"]
-        subgraph A ["App A"]
-            A_APP[Application Code]
-            A_DAPR[Dapr Sidecar]
+    accTitle: Dapr service invocation encrypts the sidecar-to-sidecar hop
+    accDescr: Inside one managed environment, representative replicas of two Dapr-enabled apps contain application code and a Dapr sidecar. The caller uses the local Dapr API, sidecars communicate with automatic mTLS, and the callee sidecar calls its application on the configured app port. This is not the direct app-ingress path.
+    subgraph ENV["Managed Container Apps environment"]
+        subgraph A["App A — representative replica"]
+            A_APP["Application code A"]
+            A_DAPR["Dapr sidecar A"]
         end
-
-        subgraph B ["App B"]
-            B_DAPR[Dapr Sidecar]
-            B_APP[Application Code]
+        subgraph B["App B — representative replica"]
+            B_DAPR["Dapr sidecar B"]
+            B_APP["Application code B"]
         end
     end
-
-    A_APP -- "HTTP localhost" --> A_DAPR
-    A_DAPR -- "mTLS encrypted" --> B_DAPR
-    B_DAPR -- "HTTP localhost" --> B_APP
+    A_APP ==>|"Local Dapr API<br/>HTTP or gRPC"| A_DAPR
+    A_DAPR ==>|"Service invocation<br/>automatic mTLS"| B_DAPR
+    B_DAPR ==>|"Local app call<br/>configured appPort / protocol"| B_APP
+    LEGEND["Thick = invocation transport<br/>Logical hop view; proxy routing omitted<br/>mTLS is between sidecars, not local app hops"]
 ```
+
+*Figure: A minimal environment-boundary extension of the architecture base; the app/replica vocabulary is reused without inventing ingress or revision hops for Dapr. The sidecar channel is distinct from client certificates at HTTP ingress and from environment peer-to-peer encryption.*
 
 Key properties of Dapr mTLS in Container Apps:
 
-- Certificates are automatically rotated by the platform.
+- Dapr service invocation supplies automatic mTLS authentication and encryption between sidecars.
 - Encryption is transparent to application code — apps communicate over localhost to their sidecar.
 - mTLS applies to all Dapr-enabled service invocations within the environment.
 
@@ -320,7 +333,7 @@ Use managed identity for image pulls instead of admin credentials:
 
 | Method | Security Posture | Recommendation |
 |---|---|---|
-| Admin credentials | Shared password, no audit trail | Avoid in production |
+| Admin credentials | Shared registry credential; weak caller attribution | Avoid in production |
 | Service principal | Requires secret rotation | Acceptable with rotation policy |
 | Managed identity | Passwordless, auditable, auto-rotated | Recommended |
 
@@ -331,14 +344,27 @@ Microsoft Defender for Cloud vulnerability assessment can assess images stored i
 <!-- diagram-id: microsoft-defender-for-containers-provides-continuous -->
 ```mermaid
 flowchart TD
-    DEV[Developer] -- "Push image" --> ACR[Azure Container Registry]
-    ACR -- "Scan on push" --> DEF[Defender for Containers]
-    DEF -- "Vulnerability report" --> SEC[Security Team]
-    DEF -- "Review critical CVEs" --> POL[Promotion policy]
-    ACR -- "Pull approved image" --> ENV[Container Apps Environment]
+    accTitle: Registry assessment informs a separately implemented release gate
+    accDescr: A pipeline pushes an image to ACR. Defender assessment findings and security review inform a release decision. Only the approved branch updates the Container App image reference. Assessment does not itself deny deployment and does not replace registry authentication or readiness checks.
+    BUILD["Build pipeline"]
+    ACR["Azure Container Registry<br/>stored image"]
+    DEF["Defender for Cloud<br/>image vulnerability assessment"]
+    REVIEW["Security review<br/>findings + release criteria"]
+    GATE{"CI/CD promotion<br/>approved?"}
+    DEPLOY["Pipeline updates<br/>Container App image reference"]
+    HOLD["Hold release<br/>remediate or review exception"]
+    LEGEND["Thick = image upload transport<br/>Thin = workflow / decision<br/>Dotted = assessment evidence<br/>Gate is your release process, not native ACA blocking"]
+    BUILD ==>|"Push image"| ACR
+    ACR -.->|"Image assessed"| DEF
+    DEF -.->|"Findings"| REVIEW
+    REVIEW --> GATE
+    GATE -->|"Yes"| DEPLOY
+    GATE -->|"No"| HOLD
 ```
 
-Interpret this existing overview as an assessment-and-promotion concept rather than a literal enforcement path:
+*Figure: An assessment-and-promotion workflow, not a topology extension or an automatic Defender enforcement path. The subsequent authenticated image pull and startup checks are covered in [Image Security](image-security.md).*
+
+Interpret the controls separately:
 
 - **Registry assessment**: Defender for Cloud provides vulnerability assessment for images stored in ACR.
 - **Posture evidence**: security recommendations and findings help teams prioritize remediation.
@@ -369,13 +395,22 @@ Azure RBAC controls who can manage Container Apps resources at the control plane
 <!-- diagram-id: least-privilege-assignment-pattern -->
 ```mermaid
 flowchart TD
-    subgraph Roles ["RBAC Assignment Strategy"]
-        ADMIN[Platform Admin] -- "Contributor on RG" --> RG[Resource Group]
-        DEV[Developer] -- "Container Apps Contributor" --> APP[Container App]
-        SRE[SRE / Ops] -- "Monitoring Reader + Log Analytics Reader" --> MON[Monitoring Resources]
-        CI[CI/CD Pipeline] -- "Container Apps Contributor + AcrPush" --> DEPLOY[Deployment Scope]
-    end
+    accTitle: Separate deployment and runtime role assignments by resource scope
+    accDescr: A developer group and deployment principal can receive Container Apps Contributor on a particular app. The deployment principal separately needs a registry push role. The runtime managed identity instead receives secret-read permission on Key Vault. Dotted edges are role assignments, not data transport or containment.
+    DEV["Developer group"]
+    CI["CI/CD deployment principal"]
+    MI["App runtime managed identity"]
+    APP["Container App resource"]
+    ACR["ACR resource<br/>RBAC-only example"]
+    KV["Key Vault resource"]
+    LEGEND["Dotted = role assignment at named scope<br/>No request or image data flow shown<br/>Review inherited permissions and secret access"]
+    DEV -.->|"Container Apps Contributor"| APP
+    CI -.->|"Container Apps Contributor"| APP
+    CI -.->|"AcrPush"| ACR
+    MI -.->|"Key Vault Secrets User"| KV
 ```
+
+*Figure: A role-assignment association view, not an extension of the runtime topology. The app, ACR, and Key Vault are distinct scopes; a deployment role on the app does not grant registry push or Key Vault secret-read access. For ABAC-enabled ACR, use the corresponding repository roles instead of `AcrPush`.*
 
 Principles:
 
@@ -383,6 +418,7 @@ Principles:
 - Use custom roles when built-in roles are too broad.
 - Review role assignments quarterly — remove unused assignments.
 - Separate deployment permissions (CI/CD) from runtime permissions (managed identity).
+- `Container Apps Contributor` includes wildcard actions that allow `listSecrets`. Treat the diagram as a scoped example, not a claim that a broad built-in role is always least privilege; use a custom role when its permissions exceed the task.
 
 ### Portal view: Access control (IAM) blade
 
@@ -398,7 +434,7 @@ Principles:
 
 ### Encryption at Rest
 
-- Azure Container Apps uses platform-managed encryption for service-managed data and configuration.
+- Azure encryption-at-rest guidance uses platform-managed keys by default; do not infer an ACA environment CMK setting from Key Vault integration. See [Customer-Managed Keys](customer-managed-keys.md) for the documented support boundary.
 - Secrets stored in Container Apps configuration are encrypted at rest, but broad management roles can include secret-reading actions; review role definitions before assignment.
 - Key Vault references keep the source secret in Key Vault and let the app resolve it by managed identity. They are not the same as configuring customer-managed encryption keys for Container Apps service-managed storage.
 
@@ -416,7 +452,7 @@ Principles:
 
 Container Apps supports two secret storage patterns:
 
-1. **Platform secrets**: stored in Container Apps configuration, referenced as environment variables.
+1. **Platform secrets**: stored in Container Apps configuration, referenced as environment variables or mounted as files. A Secret volume mounts all app secrets when no selection is specified; explicit `secretRef` entries select individual secrets.
 2. **Key Vault references**: secrets resolved from Key Vault by using managed identity and exposed to the app through Container Apps secret configuration.
 
 !!! tip "Prefer Key Vault references for production"
@@ -428,13 +464,13 @@ For secret management details, see [Key Vault Integration](../identity-and-secre
 
 ### Azure Policy for Container Apps
 
-Azure Policy enforces organizational security standards:
+Choose Azure Policy definitions and effects that match the standard; not every policy is an enforcement gate. The current built-in catalog includes:
 
 - Require VNet integration for all environments.
-- Require managed identity (block admin credential usage for ACR).
+- Require managed identity enablement. This alone does **not** prove ACR uses that identity or that admin credentials are disabled.
 - Require HTTPS-only ingress.
 - Block external ingress for sensitive workloads.
-- Audit or deny insecure HTTP ingress by requiring HTTPS-only configuration.
+- Audit authentication enablement (`AuditIfNotExists`, not a deny gate).
 
 ### Audit and Monitoring
 
@@ -445,14 +481,14 @@ Security-relevant events are captured in:
 - **Application Insights**: request traces, dependency calls, exceptions.
 - **Identity-provider and application logs**: use the configured provider's sign-in evidence plus application or authentication diagnostics; do not assume every Easy Auth event appears in one log without configuring and verifying that source.
 
-!!! warning "Enable diagnostic settings"
-    Without diagnostic settings configured, security events are not retained beyond platform defaults. Configure Log Analytics workspace integration for all Container Apps environments.
+!!! warning "Verify the configured logging destination"
+    Environments can send logs directly to Log Analytics, route them through Azure Monitor diagnostic settings, or disable saved logs. Configure diagnostic settings when using the Azure Monitor destination and verify retention at the destination; do not infer retention from the live log stream.
 
 ## Advanced Topics
 
 - Zero-trust architecture patterns with internal environments and private endpoints end-to-end.
 - Workload identity federation for cross-cloud and GitHub Actions OIDC deployments.
-- Runtime security monitoring with Microsoft Defender for Cloud integration.
+- Defender for Cloud posture capabilities for Container Apps; do not infer AKS runtime-sensor coverage from ACR image assessment.
 - Network micro-segmentation using multiple environments with separate VNets.
 - Automated compliance scanning with Azure Policy initiatives.
 
@@ -487,3 +523,9 @@ Security-relevant events are captured in:
 - [Jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/jobs)
 - [Scaling in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
 - [Configure environment ingress and peer-to-peer encryption (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration)
+- [Dapr in Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview)
+- [Communicate between apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/connect-apps)
+- [Manage secrets and review role permissions (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)
+- [ACR repository permissions and ABAC (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-abac-repository-permissions)
+- [Log storage options (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/log-options)
+- [Defender for Containers deployment and registry assessment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-containers-deployment-overview)
