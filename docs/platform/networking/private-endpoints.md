@@ -73,7 +73,7 @@ flowchart TD
         TARGET_SUBNET["Target-side PE subnet<br/>dependency private endpoint NIC"]
     end
 
-    subgraph ENV["Managed Container Apps environment — logical boundary"]
+    subgraph ENV["Managed ACA environment (logical)"]
         INGRESS["Managed ingress proxy"]
         REV_ACTIVE["Active revision"]
         REPLICAS["Revision replicas"]
