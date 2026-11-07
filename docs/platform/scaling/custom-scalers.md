@@ -1,4 +1,5 @@
 ---
+description: Azure Container Apps custom scaling rules based on KEDA ScaledObject scalers, including type, metadata, authentication, and validation decisions.
 content_sources:
   diagrams:
     - id: custom-scaler-extension-path
@@ -44,12 +45,27 @@ template:
 <!-- diagram-id: custom-scaler-extension-path -->
 ```mermaid
 flowchart TD
-    A[Choose workload signal] --> B{Built-in rule enough?}
-    B -->|Yes| C[Use HTTP or resource rule]
-    B -->|No| D[Use custom KEDA scaler type]
-    D --> E[Provide metadata and auth]
-    E --> F[Test scaler behavior before production]
+    accTitle: Map a workload signal to a Container Apps scale rule
+    accDescr: Use an HTTP or TCP rule for ingress demand. Otherwise select a ScaledObject-based KEDA scaler, map its type and metadata, choose supported authentication, and validate scale behavior and replica limits before production.
+
+    SIGNAL[Identify the direct workload signal] --> INGRESS{HTTP requests or<br/>TCP connections?}
+    INGRESS -->|HTTP| HTTP[Use an HTTP rule]
+    INGRESS -->|TCP| TCP[Use a TCP rule]
+    INGRESS -->|No| SCALER[Select a ScaledObject-based<br/>KEDA scaler type]
+    SCALER --> MAP[Map scaler metadata into<br/>the custom rule]
+    MAP --> AUTH{Does the scaler require<br/>authentication?}
+    AUTH -->|No| LIMITS[Set minimum and maximum replicas]
+    AUTH -->|Yes| METHOD{Managed identity supported?}
+    METHOD -->|Yes| IDENTITY[Configure the rule identity]
+    METHOD -->|No| SECRET[Map trigger parameters<br/>to Container Apps secrets]
+    IDENTITY --> LIMITS
+    SECRET --> LIMITS
+    HTTP --> LIMITS
+    TCP --> LIMITS
+    LIMITS --> TEST[Validate scale-out, scale-in,<br/>and failure behavior]
 ```
+
+*Figure: Use built-in HTTP or TCP rules for ingress demand; otherwise map one ScaledObject-based scaler's metadata and supported authentication into a bounded custom rule.*
 
 ## What Microsoft Learn confirms
 

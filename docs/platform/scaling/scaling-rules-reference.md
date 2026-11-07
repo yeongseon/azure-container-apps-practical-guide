@@ -1,4 +1,5 @@
 ---
+description: Azure Container Apps scaling-rule reference for replica limits, HTTP and TCP thresholds, custom-rule timing, scale-to-zero, and rule evaluation.
 content_sources:
   diagrams:
     - id: scale-rule-evaluation-reference
@@ -8,6 +9,7 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
         - https://learn.microsoft.com/en-us/azure/container-apps/tutorial-scaling
+        - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
 content_validation:
   status: verified
   last_reviewed: 2026-09-11
@@ -25,6 +27,9 @@ content_validation:
     - claim: The documented default polling interval is 30 seconds and default cooldown period is 300 seconds for custom scale rules.
       source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
       verified: true
+    - claim: Apps running on the Flexible workload profile cannot scale to zero.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
+      verified: true
 ---
 # Scaling Rules Reference in Azure Container Apps
 
@@ -38,7 +43,7 @@ This page is a compact reference for the properties and default behaviors that m
 | `maxReplicas` | Upper bound per revision | `10` |
 | `rules` | Array of scale rules | n/a |
 | `pollingInterval` | Rule polling cadence for custom rules | `30` seconds |
-| `cooldownPeriod` | Scale-in cooldown for custom rules | `300` seconds |
+| `cooldownPeriod` | Custom-rule cooldown for the final 1→0 transition | `300` seconds |
 
 Documented limits:
 
@@ -47,13 +52,21 @@ Documented limits:
 <!-- diagram-id: scale-rule-evaluation-reference -->
 ```mermaid
 flowchart TD
-    A[Incoming traffic or backlog] --> B[Scale rules evaluate]
-    B --> C{Any rule condition met?}
-    C -->|Yes| D[Scale out begins]
-    C -->|No| E[Remain at current replicas or scale in]
-    D --> F[Replica count stays within minReplicas and maxReplicas]
-    E --> F
+    accTitle: Evaluate multiple scale rules within replica limits
+    accDescr: Each configured rule evaluates its own signal. The app begins scaling when the first condition of any rule is met, while the revision minimum and maximum constrain the resulting replica count. If no condition is met, later evaluations can retain or reduce replicas according to rule behavior.
+
+    SIGNAL[HTTP, TCP, resource,<br/>or event signals] --> RULES[Evaluate each configured rule]
+    RULES --> ANY{Has any rule condition<br/>been met?}
+    ANY -->|Yes| REQUEST[Begin scaling from the<br/>matching rule condition]
+    ANY -->|No| NO_UP[No scale-out request<br/>from the evaluated rules]
+    LIMITS[Revision minimum and<br/>maximum replicas] --> CLAMP[Constrain the requested count]
+    REQUEST --> CLAMP
+    CLAMP -.-> REPLICAS[Revision replicas]
+    NO_UP --> LATER[Later evaluations can retain<br/>replicas or request scale-in]
+    LATER -.-> REPLICAS
 ```
+
+*Figure: Multiple rules are evaluated independently; the app begins scaling when the first condition of any rule is met, and replica limits constrain the result. Dotted arrows show scaling control.*
 
 ## Rule shapes by category
 
@@ -69,6 +82,7 @@ flowchart TD
 - HTTP rules can scale to zero when `minReplicas` is `0`.
 - CPU and memory rules do **not** allow scale-to-zero.
 - Microsoft Learn also warns that apps without ingress and without a custom rule or `minReplicas >= 1` can scale to zero and have no incoming trigger to start back up.
+- Apps that use Dapr actors and apps on the Flexible workload profile cannot scale to zero.
 
 ## Multiple-rule evaluation
 
@@ -89,7 +103,7 @@ That means:
 | Warm interactive API | `minReplicas` | `1+` |
 | Dependency protection | `maxReplicas` | conservative cap |
 | Faster event response | scaler metadata threshold | lower backlog trigger |
-| Slower scale-in churn | `cooldownPeriod` | keep default unless tested |
+| Delay the final 1→0 transition for a custom rule | `cooldownPeriod` | keep default unless tested |
 
 !!! tip "Treat defaults as a starting point, not a production tuning recommendation"
     The documented defaults are safe references, but production settings should be based on latency SLOs, backlog objectives, and downstream capacity.
@@ -117,3 +131,4 @@ That means:
 
 - [Set scaling rules in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
 - [Tutorial: Scale an Azure Container Apps application (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/tutorial-scaling)
+- [Workload profiles in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview)

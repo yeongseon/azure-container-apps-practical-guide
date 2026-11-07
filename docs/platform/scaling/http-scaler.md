@@ -1,4 +1,5 @@
 ---
+description: Azure Container Apps HTTP scaling based on concurrent request pressure, including managed ingress, replica limits, scale-to-zero, and tuning guidance.
 content_sources:
   diagrams:
     - id: http-scaler-decision-loop
@@ -51,12 +52,21 @@ Documented defaults from Microsoft Learn:
 <!-- diagram-id: http-scaler-decision-loop -->
 ```mermaid
 flowchart TD
-    A[Incoming HTTP requests] --> B[Ingress measures concurrent load]
-    B --> C[HTTP scaler compares concurrentRequests threshold]
-    C --> D[Desired replica count]
-    D --> E[More or fewer revision replicas]
-    E --> F[Observed latency and throughput]
+    accTitle: Route HTTP requests while the platform evaluates concurrency
+    accDescr: Clients send requests through managed ingress to revision replicas. Separately, the HTTP scaling function evaluates concurrent request pressure and requests a replica count within configured limits. Responses return from the serving replicas through ingress.
+
+    CLIENT[HTTP client] ==> INGRESS[Managed ingress<br/>TLS and request routing]
+    INGRESS ==>|Routed requests| REPLICAS[Revision replicas]
+    REPLICAS ==>|Responses| INGRESS
+    INGRESS ==>|Responses| CLIENT
+    INGRESS -->|Concurrent request signal| SCALER[HTTP scaling function]
+    THRESHOLD[concurrentRequests target] --> SCALER
+    SCALER --> DESIRED[Requested replica count]
+    LIMITS[Minimum and maximum replicas] --> DESIRED
+    DESIRED -.-> REPLICAS
 ```
+
+*Figure: Thick arrows carry requests and responses through managed ingress; the concurrency signal follows a separate scaling path, and the dotted arrow is scaling control.*
 
 ## Cold start and scale-to-zero
 
@@ -104,9 +114,17 @@ az containerapp update \
   --scale-rule-metadata "concurrentRequests=50"
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Update the Container App configuration and create a revision when the changed property is revision-scoped. |
+| `--max-replicas` | Set the revision's upper replica bound. |
+| `--min-replicas` | Set the revision's lower replica bound. |
+| `--name` | Select the named extension or Container App. |
+| `--resource-group` | Select the resource group that contains the app. |
+| `--scale-rule-metadata` | Supply the scaler-specific threshold and source metadata. |
+| `--scale-rule-name` | Assign a stable name to the scale rule. |
+| `--scale-rule-type` | Select the HTTP, resource, or KEDA scaler type. |
+
 
 ## Portal view: Scale blade
 

@@ -79,7 +79,7 @@ pie title In-Scope Document Validation Status
 | [Private Endpoints](../platform/networking/private-endpoints.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
 | [Resource Relationships](../platform/architecture/resource-relationships.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
 | [Revision Modes](../platform/revisions/revision-modes.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
-| [Scaling Rules Reference](../platform/scaling/scaling-rules-reference.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
+| [Scaling Rules Reference](../platform/scaling/scaling-rules-reference.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
 | [Scheduled Jobs](../platform/jobs/scheduled-jobs.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Secrets](../platform/security/secrets.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Security Operations](../platform/identity-and-secrets/security-operations.md) | ✅ | ✅ Verified | 6/6 | 2026-11-07 |
@@ -110,7 +110,7 @@ pie title In-Scope Document Validation Status
 | [Networking](../best-practices/networking.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Reliability](../best-practices/reliability.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Revision Strategy](../best-practices/revision-strategy.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
-| [Scaling](../best-practices/scaling.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
+| [Scaling](../best-practices/scaling.md) | ✅ | ✅ Verified | 6/6 | 2026-09-11 |
 | [Security](../best-practices/security.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 
 ### Operations
