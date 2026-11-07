@@ -1,4 +1,5 @@
 ---
+description: Day-2 Azure Container Apps scaling procedures for replica limits, HTTP and event rules, scale-to-zero decisions, verification, and troubleshooting.
 content_sources:
   diagrams:
     - id: scaling-decision-framework
@@ -6,11 +7,11 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
-        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app#scale-triggers
+        - https://learn.microsoft.com/en-us/azure/container-apps/jobs
 ---
 # Scaling Operations
 
-This guide explains how to operate scaling in production, including manual replica control, KEDA-based autoscaling, and scale-to-zero behavior.
+This guide explains how to operate scaling in production, including replica floor and ceiling adjustments, KEDA-based autoscaling, and scale-to-zero behavior.
 
 ## Prerequisites
 
@@ -23,9 +24,9 @@ export APP_NAME="app-python-api-prod"
 export ACA_ENV_NAME="aca-env-prod"
 ```
 
-## Manual Scaling for Controlled Events
+## Adjust Replica Floors and Ceilings for Controlled Events
 
-Use manual scaling for maintenance windows or expected short-term load.
+Adjust the autoscaling floor and ceiling for maintenance windows or expected short-term load. Different minimum and maximum values still allow autoscaling within those bounds; they do not set a fixed replica count.
 
 ```bash
 az containerapp update \
@@ -35,9 +36,14 @@ az containerapp update \
   --max-replicas 10
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Update the Container App configuration and create a revision when the changed property is revision-scoped. |
+| `--max-replicas` | Set the revision's upper replica bound. |
+| `--min-replicas` | Set the revision's lower replica bound. |
+| `--name` | Select the named extension or Container App. |
+| `--resource-group` | Select the resource group that contains the app. |
+
 
 Check current replica settings:
 
@@ -49,9 +55,14 @@ az containerapp show \
   --output json
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Read the current Container App configuration. |
+| `--name` | Select the named extension or Container App. |
+| `--output` | Choose the command output format. |
+| `--query` | Project only the requested fields from the response. |
+| `--resource-group` | Select the resource group that contains the app. |
+
 
 ## KEDA Rule Operations
 
@@ -68,9 +79,17 @@ az containerapp update \
   --max-replicas 20
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Update the Container App configuration and create a revision when the changed property is revision-scoped. |
+| `--max-replicas` | Set the revision's upper replica bound. |
+| `--min-replicas` | Set the revision's lower replica bound. |
+| `--name` | Select the named extension or Container App. |
+| `--resource-group` | Select the resource group that contains the app. |
+| `--scale-rule-metadata` | Supply the scaler-specific threshold and source metadata. |
+| `--scale-rule-name` | Assign a stable name to the scale rule. |
+| `--scale-rule-type` | Select the HTTP, resource, or KEDA scaler type. |
+
 
 Example queue scaler operation (Azure Service Bus):
 
@@ -80,26 +99,37 @@ az containerapp update \
   --resource-group "$RG" \
   --scale-rule-name "sb-queue" \
   --scale-rule-type "azure-servicebus" \
-  --scale-rule-metadata "queueName=orders" "messageCount=50" "namespace=<servicebus-namespace>.servicebus.windows.net"
+  --scale-rule-metadata "queueName=orders" "messageCount=50" "namespace=<servicebus-namespace>"
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Update the Container App configuration and create a revision when the changed property is revision-scoped. |
+| `--name` | Select the named extension or Container App. |
+| `--resource-group` | Select the resource group that contains the app. |
+| `--scale-rule-metadata` | Supply the scaler-specific threshold and source metadata. |
+| `--scale-rule-name` | Assign a stable name to the scale rule. |
+| `--scale-rule-type` | Select the HTTP, resource, or KEDA scaler type. |
+
 
 Use Azure Monitor metrics to tune thresholds:
 
 ```bash
 az monitor metrics list \
   --resource "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.App/containerApps/$APP_NAME" \
-  --metric "Requests" \
+  --metrics "Requests" \
   --interval "PT1M" \
   --output table
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az monitor metrics ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
+| `az monitor metrics list` | Query Azure Monitor metrics for the selected resource. |
+| `--interval` | Set the metric aggregation interval. |
+| `--metrics` | Select the Azure Monitor metric to retrieve. |
+| `--output` | Choose the command output format. |
+| `--resource` | Select the Azure resource whose metrics are queried. |
+
 
 ## Scale-to-Zero Operations
 
@@ -113,9 +143,14 @@ az containerapp update \
   --max-replicas 10
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Update the Container App configuration and create a revision when the changed property is revision-scoped. |
+| `--max-replicas` | Set the revision's upper replica bound. |
+| `--min-replicas` | Set the revision's lower replica bound. |
+| `--name` | Select the named extension or Container App. |
+| `--resource-group` | Select the resource group that contains the app. |
+
 
 Use this mode only when cold start impact is acceptable.
 
@@ -128,9 +163,13 @@ az containerapp replica list \
   --output table
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp replica list ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp replica list` | List replicas for the selected Container App. |
+| `--name` | Select the named extension or Container App. |
+| `--output` | Choose the command output format. |
+| `--resource-group` | Select the resource group that contains the app. |
+
 
 ```bash
 az containerapp show \
@@ -140,9 +179,14 @@ az containerapp show \
   --output json
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Read the current Container App configuration. |
+| `--name` | Select the named extension or Container App. |
+| `--output` | Choose the command output format. |
+| `--query` | Project only the requested fields from the response. |
+| `--resource-group` | Select the resource group that contains the app. |
+
 
 Example output (PII masked):
 
@@ -169,14 +213,28 @@ Example output (PII masked):
 <!-- diagram-id: scaling-decision-framework -->
 ```mermaid
 flowchart TD
-    A[Traffic or Queue Increase] --> B{Workload Type}
-    B -->|HTTP interactive| C[HTTP concurrency rule]
-    B -->|Queue driven| D[Event scaler rule]
-    B -->|Scheduled batch| E[Container Apps Job]
-    C --> F[Set min/max replicas]
-    D --> F
-    E --> G[Set parallelism and retry]
+    accTitle: Choose an Azure Container Apps scaling model
+    accDescr: Continuous services use container apps, while finite work may use jobs. Apps select HTTP, TCP, or custom rules and set replica limits. Jobs select manual, schedule, or event triggers and configure execution controls.
+
+    START[Classify the unit of work] --> FINITE{Does each run finish?}
+    FINITE -->|No| APP[Container app]
+    FINITE -->|Yes| JOB_TRIGGER{How does the run start?}
+    APP --> APP_SIGNAL{Best direct demand signal?}
+    APP_SIGNAL -->|HTTP requests| HTTP[HTTP concurrency rule]
+    APP_SIGNAL -->|TCP connections| TCP[TCP connection rule]
+    APP_SIGNAL -->|Events or resource pressure| CUSTOM[Custom KEDA rule]
+    HTTP --> APP_LIMITS[Set minimum and maximum replicas]
+    TCP --> APP_LIMITS
+    CUSTOM --> APP_LIMITS
+    JOB_TRIGGER -->|On demand| MANUAL[Manual job]
+    JOB_TRIGGER -->|Cron schedule| SCHEDULE[Scheduled job]
+    JOB_TRIGGER -->|Event source| EVENT[Event-driven job<br/>ScaledJob-based custom rule]
+    MANUAL --> JOB_CONTROLS[Set timeout, retry, and parallelism]
+    SCHEDULE --> JOB_CONTROLS
+    EVENT --> JOB_CONTROLS
 ```
+
+*Figure: Choose a continuously running container app or a finite job first, then select the demand signal or job trigger and configure the corresponding limits.*
 
 | Symptom | Primary Knob | First Adjustment | Validation Signal |
 |---|---|---|---|
@@ -207,9 +265,14 @@ az containerapp logs show \
   --follow false
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Stream or retrieve logs for the selected Container App. |
+| `--follow` | Choose whether to keep following new log entries. |
+| `--name` | Select the named extension or Container App. |
+| `--resource-group` | Select the resource group that contains the app. |
+| `--type` | Select the system or console log stream. |
+
 
 ## Advanced Topics
 
@@ -224,4 +287,4 @@ az containerapp logs show \
 
 ## Sources
 - [Azure Container Apps scaling](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
-- [KEDA scalers reference (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/scale-app#scale-triggers)
+- [Jobs in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/jobs)

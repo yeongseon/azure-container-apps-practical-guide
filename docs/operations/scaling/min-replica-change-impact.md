@@ -1,4 +1,5 @@
 ---
+description: Operational guidance for lowering Azure Container Apps minimum replicas while verifying revision configuration, service health, convergence, and rollback.
 content_sources:
   references:
     - type: mslearn-adapted
@@ -18,19 +19,19 @@ content_validation:
   last_reviewed: 2026-05-18
   reviewer: agent
   core_claims:
-    - claim: Reducing minReplicas does not cause downtime — existing replicas continue serving until the autoscaler decides to terminate them.
+    - claim: Minimum and maximum replica values define the scale limits for each revision.
       source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
       verified: true
-    - claim: KEDA applies a cooldown period (default 300s) before scaling down replicas.
+    - claim: The documented custom-rule cooldown period applies only when scaling from the final replica to zero.
       source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
       verified: true
-    - claim: Changing minReplicas creates a new revision in single-revision mode, but does not restart existing replicas.
+    - claim: Revisions are immutable snapshots of a container app version.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
       verified: true
 ---
 # Min Replica Change Impact
 
-Reducing `minReplicas` (e.g., 100 → 50) is a common Day-2 operation for cost optimization. This page documents the actual runtime behavior, verified with a live Azure deployment.
+Reducing `minReplicas` (e.g., 100 → 50) is a common Day-2 operation for cost optimization. This page separates documented platform behavior from observations recorded during one live Azure deployment on 2026-05-18 in Korea Central.
 
 ## Prerequisites
 
@@ -47,7 +48,7 @@ Reducing `minReplicas` (e.g., 100 → 50) is a common Day-2 operation for cost o
 
 > **Does reducing `minReplicas` cause downtime?**
 
-**No.** The change is applied without restarting or immediately terminating existing replicas. The KEDA autoscaler evaluates current load and **gradually** scales down to the new minimum during its cooldown window.
+The recorded lab run observed no downtime and no immediate termination of the five existing replicas. Treat that as experiment evidence, not as a universal timing guarantee. Microsoft Learn documents that a custom rule's cooldown period applies only to the final transition from one replica to zero; it does **not** explain the observed five-to-two convergence time.
 
 ## Procedure
 
@@ -60,10 +61,13 @@ az containerapp update \
     --min-replicas 2
 ```
 
-| Command/Parameter | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp update` | Updates container app configuration |
-| `--min-replicas 2` | Sets the new minimum replica count |
+| `az containerapp update` | Update the Container App configuration and create a revision when the changed property is revision-scoped. |
+| `--min-replicas` | Set the revision's lower replica bound. |
+| `--name` | Select the named extension or Container App. |
+| `--resource-group` | Select the resource group that contains the app. |
+
 
 ### Monitor Replica Count
 
@@ -74,33 +78,43 @@ az containerapp replica list \
     --output table
 ```
 
-| Command/Parameter | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp replica list` | Lists the replicas currently backing the app so you can observe how quickly the platform converges after lowering or raising `minReplicas`. |
-| `--resource-group $RG` / `--name $APP_NAME` | Scopes the check to the workload whose minimum replica setting was just changed, avoiding confusion with other apps in the environment. |
-| `--output table` | Produces an operator-friendly view for checking replica count and instance identity during the post-change observation window. |
+| `az containerapp replica list` | List replicas for the selected Container App. |
+| `--name` | Select the named extension or Container App. |
+| `--output` | Choose the command output format. |
+| `--resource-group` | Select the resource group that contains the app. |
+
 
 ## Behavior Summary
 
 <!-- diagram-id: min-replica-change-flow -->
 ```mermaid
 flowchart TD
-    A[Admin changes minReplicas 5→2] --> B[New revision created]
-    B --> C[Existing 5 replicas continue serving]
-    C --> D{Traffic still active?}
-    D -->|Yes| E[Autoscaler maintains current count]
-    D -->|No| F[Cooldown period ~5min]
-    F --> G[Gradual scale-down begins]
-    G --> H[Reaches new min=2]
+    accTitle: Verify the impact of lowering minimum replicas
+    accDescr: An operator lowers the configured minimum, confirms the resulting revision configuration, and observes replica count and service health. Demand can keep the count above the new floor. The custom-rule cooldown applies only if scaling from one replica to zero.
+
+    CHANGE[Lower minimum replicas] --> CONFIG[Confirm the resulting revision<br/>has the intended scale limits]
+    CONFIG --> OBSERVE[Observe replica count,<br/>requests, and errors]
+    OBSERVE --> DEMAND{Does demand require more<br/>than the new minimum?}
+    DEMAND -->|Yes| ABOVE[Replica count can remain<br/>above the new floor]
+    DEMAND -->|No| CONVERGE[Autoscaler can converge<br/>toward the new floor]
+    ABOVE --> VERIFY{Service objective met?}
+    CONVERGE --> VERIFY
+    VERIFY -->|Yes| KEEP[Keep the change and monitor]
+    VERIFY -->|No| ROLLBACK[Restore the previous minimum]
 ```
 
-| Phase | Duration | Behavior |
+*Figure: Lowering the floor is an observe-and-rollback operation; demand may keep replicas above the new minimum, so verify both replica convergence and service health.*
+
+The following timings are observations from the 2026-05-18 Korea Central lab run described below, not platform guarantees:
+
+| Observed phase | Duration in this run | Observation |
 |---|---|---|
-| Configuration update | ~20s | CLI returns; new revision created |
-| Active traffic period | Indefinite | Replicas stay at current count (autoscaler evaluates load) |
-| Cooldown after traffic stops | ~5 min (KEDA default 300s) | No scale-down yet |
-| Gradual termination | 3–5 min | Replicas terminated one at a time with connection draining |
-| Steady state | — | Replica count = new minReplicas |
+| Configuration update | ~20 seconds | The CLI returned after the configuration update. |
+| Initial observation | ~5 minutes | Five replicas remained visible; the documented 300-second cooldown applies only to a final 1→0 transition and does not prove this delay. |
+| Convergence | ~3 additional minutes | The sampled counts changed from 5 to 4 and then to 2. The sampling does not establish a one-at-a-time termination contract or connection-draining behavior. |
+| End of observation | ~8 minutes total | Two replicas were visible, matching the new minimum in this run. |
 
 ## Validated Results
 
@@ -121,22 +135,26 @@ flowchart TD
     **Key Findings:**
 
     - [Observed] **Zero downtime** — all 120 requests during the min replica change returned HTTP 200.
-    - [Observed] Existing replicas are NOT immediately terminated. The autoscaler waits for the KEDA cooldown period (~5 min) before starting gradual scale-down.
-    - [Observed] Scale-down is gradual (5→4→2), not instant (5→2). Replicas are drained one at a time.
+    - [Observed] Existing replicas were not immediately terminated. Scale-down began after approximately five minutes in this run.
+    - [Not Proven] The custom-rule cooldown caused that delay. Microsoft Learn limits the cooldown behavior to the final transition from one replica to zero.
+    - [Observed] The sampled replica counts changed from 5→4→2 rather than directly from 5→2.
+    - [Not Proven] The platform always removes replicas one at a time or performs connection draining during this operation; the samples only establish the counts visible at collection time.
     - [Observed] Total time from change to reaching new minimum: approximately 8 minutes (with no traffic).
     - [Observed] If traffic is still active during the change, the autoscaler keeps replicas at the level needed to handle load, regardless of the new lower minimum.
 
-## Impact Assessment for Production (100 → 50)
+## Production Assessment Template (100 → 50)
 
-| Concern | Impact | Explanation |
+The lab outcome is useful evidence for planning, but it does not guarantee the same result for another app, revision, region, traffic pattern, or observation interval.
+
+| Concern | What the lab observed | Production decision |
 |---|---|---|
-| Immediate downtime | **None** | Existing replicas continue serving |
-| Request failures during change | **None** | No connection resets or 5xx |
-| Cold starts | **Possible later** | If traffic drops and stays low, only 50 replicas remain. Sudden spike needs scale-up time. |
-| Scaling speed back up | ~30s per replica | If load increases, KEDA scales up from 50 (not from 0) |
+| Immediate downtime | None during the sampled requests | Monitor availability and latency during the change; do not treat this run as a no-downtime guarantee. |
+| Request failures during change | Zero non-200 responses among 120 requests | Define an acceptable error budget and observe enough traffic to evaluate it. |
+| Reduced warm capacity | The run ended at its new floor | Model whether the lower floor can absorb expected demand while additional replicas start. |
+| Scaling speed back up | Measure for this workload | If load increases, the autoscaler can add replicas from the nonzero floor; Microsoft Learn does not promise a fixed per-replica startup time. |
 
 !!! warning "Peak Traffic Consideration"
-    If your service consistently needs 80+ replicas under normal load, reducing min to 50 means the autoscaler must scale up 30+ replicas on every traffic spike. Factor in the ~30s/replica scale-up time for your latency SLO.
+    If your service consistently needs 80+ replicas under normal load, reducing min to 50 means the autoscaler must add capacity during traffic spikes. Measure scale-out and application startup latency for your own workload instead of assuming a fixed per-replica time.
 
 !!! tip "Recommended Approach"
     1. Change min replicas during low-traffic window
@@ -154,11 +172,15 @@ az containerapp update \
     --min-replicas 5
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Update the Container App configuration and create a revision when the changed property is revision-scoped. |
+| `--min-replicas` | Set the revision's lower replica bound. |
+| `--name` | Select the named extension or Container App. |
+| `--resource-group` | Select the resource group that contains the app. |
 
-Scale-up to the previous minimum is immediate — new replicas start within ~30 seconds.
+
+After rollback, observe the replica count and service metrics until the previous floor is restored. Startup time depends on the workload and is not documented as a fixed platform duration.
 
 ## Verification
 

@@ -1,4 +1,5 @@
 ---
+description: Best practices for tuning Azure Container Apps scaling objectives, direct demand signals, replica limits, scale-to-zero, and production validation.
 content_sources:
   diagrams:
     - id: without-explicit-objectives-scaling-rules-become
@@ -15,6 +16,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
         - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
 content_validation:
   status: verified
   last_reviewed: 2026-09-11
@@ -34,6 +36,9 @@ content_validation:
       verified: true
     - claim: The default minimum number of replicas per revision is 0 and the default maximum number is 10.
       source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: true
+    - claim: Apps running on the Flexible workload profile cannot scale to zero.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
       verified: true
 ---
 # Scaling Best Practices for Azure Container Apps
@@ -59,9 +64,16 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --output table
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+| `az extension add` | Install or update an Azure CLI extension. |
+| `--name` | Select the named extension or Container App. |
+| `--upgrade` | Upgrade the extension if an older version is installed. |
+| `az containerapp show` | Read the current Container App configuration. |
+| `--output` | Choose the command output format. |
+| `--resource-group` | Select the resource group that contains the app. |
+| `az containerapp revision list` | List revisions for the Container App. |
+
 
 ## Recommended Practices
 
@@ -79,13 +91,18 @@ Without explicit objectives, scaling rules become arbitrary and unstable.
 <!-- diagram-id: without-explicit-objectives-scaling-rules-become -->
 ```mermaid
 flowchart TD
-    W[Workload Demand] --> K[KEDA Rule Evaluation]
-    K --> D[Desired Replicas]
-    D --> R[Running Replicas]
-    R --> U[User Experience and Queue Lag]
-    U --> O[Observability Feedback]
-    O --> K
+    accTitle: Scaling objectives create a measurable tuning loop
+    accDescr: Operators define a service objective, select a direct demand signal, configure a matching rule and replica bounds, then observe the outcome and tune the configuration as a feedback loop.
+
+    OBJECTIVE[Define the service objective] --> SIGNAL[Select a direct signal<br/>HTTP concurrency or event backlog]
+    SIGNAL --> RULE[Scale rule evaluation]
+    RULE --> LIMITS[Apply minimum and maximum replica bounds]
+    LIMITS --> OBSERVE[Observe latency, errors,<br/>and backlog age]
+    OBSERVE --> TUNE[Tune thresholds or bounds<br/>against the objective]
+    TUNE --> SIGNAL
 ```
+
+*Figure: Scaling is an evidence loop: start with an objective, choose its closest demand signal, bound the matching rule, and tune from measured outcomes.*
 
 ### Tune HTTP scaling with concurrency and response behavior in mind
 
@@ -108,9 +125,17 @@ az containerapp update \
   --scale-rule-metadata "concurrentRequests=50"
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Update the Container App configuration and create a revision when the changed property is revision-scoped. |
+| `--max-replicas` | Set the revision's upper replica bound. |
+| `--min-replicas` | Set the revision's lower replica bound. |
+| `--name` | Select the named extension or Container App. |
+| `--resource-group` | Select the resource group that contains the app. |
+| `--scale-rule-metadata` | Supply the scaler-specific threshold and source metadata. |
+| `--scale-rule-name` | Assign a stable name to the scale rule. |
+| `--scale-rule-type` | Select the HTTP, resource, or KEDA scaler type. |
+
 
 HTTP tuning guidance:
 
@@ -164,16 +189,18 @@ az containerapp update \
   --scale-rule-auth "connection=servicebus-connection"
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp update` | Adds a Service Bus-based autoscale rule to the app so replica count follows queue pressure instead of fixed capacity assumptions. |
-| `--min-replicas 0` / `--max-replicas 30` | Defines the cost floor and scale ceiling, balancing scale-to-zero savings against a hard limit that protects downstream dependencies from unbounded fan-out. |
-| `--scale-rule-metadata "queueName=orders" "namespace=$SERVICEBUS_NAMESPACE" "messageCount=25"` | Tells the scaler which queue to watch and how much backlog one replica group should tolerate before scaling out. |
-| `--scale-rule-auth "connection=servicebus-connection"` | Maps the scaler to the secret containing Service Bus connection details so KEDA can inspect the queue securely. |
+| `az containerapp update` | Update the Container App configuration and create a revision when the changed property is revision-scoped. |
+| `--max-replicas` | Set the revision's upper replica bound. |
+| `--min-replicas` | Set the revision's lower replica bound. |
+| `--name` | Select the named extension or Container App. |
+| `--resource-group` | Select the resource group that contains the app. |
+| `--scale-rule-auth` | Map scaler authentication parameters to Container Apps secrets. |
+| `--scale-rule-metadata` | Supply the scaler-specific threshold and source metadata. |
+| `--scale-rule-name` | Assign a stable name to the scale rule. |
+| `--scale-rule-type` | Select the HTTP, resource, or KEDA scaler type. |
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
 
 Threshold planning example:
 
@@ -195,12 +222,18 @@ az containerapp update \
   --scale-rule-auth "connection=storage-connection"
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp update` | Configures Storage Queue-driven autoscaling for batch workers so replica count grows only when queue backlog justifies more cost. |
-| `--min-replicas 0` / `--max-replicas 40` | Lets the worker scale to zero when idle while still setting a hard upper bound for burst processing and downstream protection. |
-| `--scale-rule-metadata "queueName=ingest" "queueLength=50" "accountName=$STORAGE_ACCOUNT"` | Identifies the queue to watch, the backlog target per scale decision, and the storage account that owns that queue. |
-| `--scale-rule-auth "connection=storage-connection"` | Connects the scaler to the secret containing Storage Queue credentials so the platform can inspect backlog securely. |
+| `az containerapp update` | Update the Container App configuration and create a revision when the changed property is revision-scoped. |
+| `--max-replicas` | Set the revision's upper replica bound. |
+| `--min-replicas` | Set the revision's lower replica bound. |
+| `--name` | Select the named extension or Container App. |
+| `--resource-group` | Select the resource group that contains the app. |
+| `--scale-rule-auth` | Map scaler authentication parameters to Container Apps secrets. |
+| `--scale-rule-metadata` | Supply the scaler-specific threshold and source metadata. |
+| `--scale-rule-name` | Assign a stable name to the scale rule. |
+| `--scale-rule-type` | Select the HTTP, resource, or KEDA scaler type. |
+
 
 Operational tuning tips:
 
@@ -227,27 +260,32 @@ Planning approach:
 
 ### Decide explicitly on scale-to-zero
 
-Scale-to-zero is ideal for intermittent workloads but can be harmful for strict latency APIs.
+Scale-to-zero can reduce idle usage for intermittent workloads, but it can be harmful for strict-latency APIs. It also requires a signal that can activate the app from zero; CPU and memory rules cannot do so. Apps on the Flexible workload profile and apps that use Dapr actors cannot scale to zero.
 
 | Criteria | `minReplicas: 0` | `minReplicas: 1+` |
 |---|---|---|
 | Idle cost | Zero runtime cost | Baseline cost persists |
-| Cold start | Yes — startup delay on first request | No — always warm |
+| Cold start | Possible startup delay on new demand | At least one replica remains available |
 | Best for | Event-driven, batch, admin tools | User-facing APIs, strict SLO |
-| Startup probe | Must tolerate full cold boot | Only on new revision deploy |
+| Startup probe | Must tolerate a full cold start | Still applies whenever a replica starts |
 | Queue processing | Acceptable lag on first message | Immediate processing |
 
 <!-- diagram-id: scale-to-zero-is-ideal-for-intermittent-workloads -->
 ```mermaid
 flowchart TD
-    Q{Latency SLO strict?}
-    Q -->|Yes| M1[minReplicas >= 1]
-    Q -->|No| Q2{Event-driven or batch?}
-    Q2 -->|Yes| M0[minReplicas = 0]
-    Q2 -->|No| Q3{Cold start < 3s?}
-    Q3 -->|Yes| M0
-    Q3 -->|No| M1
+    accTitle: Decide whether a container app should scale to zero
+    accDescr: First exclude configurations that cannot scale to zero. Then require an HTTP, TCP, or event signal that can activate the app, and finally compare cold-start behavior with the latency objective.
+
+    START[Evaluate scale-to-zero] --> BLOCKED{CPU or memory rule,<br/>Dapr actors, or Flexible profile?}
+    BLOCKED -->|Yes| WARM[Set minimum replicas to at least 1]
+    BLOCKED -->|No| WAKE{Can HTTP, TCP, or an event<br/>activate the app from zero?}
+    WAKE -->|No| WARM
+    WAKE -->|Yes| LATENCY{Cold-start latency fits<br/>the service objective?}
+    LATENCY -->|No| WARM
+    LATENCY -->|Yes| ZERO[Minimum replicas can be 0]
 ```
+
+*Figure: Scale-to-zero is available only when the profile and app features permit it, a rule can reactivate the app, and measured cold-start latency fits the service objective.*
 
 Use `min-replicas: 0` when:
 
@@ -268,9 +306,14 @@ az containerapp update \
   --max-replicas 15
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Update the Container App configuration and create a revision when the changed property is revision-scoped. |
+| `--max-replicas` | Set the revision's upper replica bound. |
+| `--min-replicas` | Set the revision's lower replica bound. |
+| `--name` | Select the named extension or Container App. |
+| `--resource-group` | Select the resource group that contains the app. |
+
 
 ### Mitigate cold starts for user-facing services
 
@@ -300,20 +343,26 @@ az containerapp update \
   --scale-rule-metadata "type=Utilization" "value=70"
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Update the Container App configuration and create a revision when the changed property is revision-scoped. |
+| `--name` | Select the named extension or Container App. |
+| `--resource-group` | Select the resource group that contains the app. |
+| `--scale-rule-metadata` | Supply the scaler-specific threshold and source metadata. |
+| `--scale-rule-name` | Assign a stable name to the scale rule. |
+| `--scale-rule-type` | Select the HTTP, resource, or KEDA scaler type. |
+
 
 !!! warning "Resource-only scaling can miss incoming bursts"
     CPU and memory often rise after queues or request concurrency already spike. Pair them with demand-proximate scalers for faster response.
 
 ### Understand scale rule interaction and effective behavior
 
-When multiple scale rules are configured, replica decisions are driven by the highest demanded scale outcome among active triggers.
+When multiple scale rules are configured, Microsoft Learn states that the app begins to scale once the first condition of any rule is met. Treat each rule as independently capable of initiating scale-out, then validate the resulting behavior under combined signals.
 
 Implications:
 
-- A single aggressive rule can dominate scaling.
+- Any rule whose condition is met can initiate scaling.
 - Inconsistent thresholds produce oscillation risk.
 - Validation must cover combined-rule behavior, not isolated rules.
 
@@ -330,7 +379,7 @@ Scaling must be load-tested as part of release validation.
 | Test Scenario | What to Measure | Pass Criteria |
 |---|---|---|
 | Steady-state normal load | Replica count stability | No oscillation, latency within SLO |
-| Sudden burst (2-5x peak) | Time to first scale-out | Scale-out within 30-60s |
+| Workload-defined burst magnitude | Time to first scale-out | Meets the measured scale-out objective defined for this workload |
 | Dependency slowdown | Replica growth vs error rate | No runaway scale-out |
 | Recovery after burst drops | Scale-in timing | Smooth cooldown, no premature termination |
 | Scale-from-zero (if enabled) | First request latency | Cold start within acceptable budget |
@@ -420,9 +469,13 @@ az containerapp update \
   --max-replicas 5
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Update the Container App configuration and create a revision when the changed property is revision-scoped. |
+| `--max-replicas` | Set the revision's upper replica bound. |
+| `--name` | Select the named extension or Container App. |
+| `--resource-group` | Select the resource group that contains the app. |
+
 
 ### Scaling governance checklist
 
@@ -494,3 +547,4 @@ Model safe replica ranges from downstream dependency limits (database connection
 - [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
 - [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
 - [Microsoft Learn source 4](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
+- [Workload profiles in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview)

@@ -1,4 +1,5 @@
 ---
+description: Event-driven Azure Container Apps scaling with KEDA custom rules, backlog signals, authentication choices, replica limits, and scale-to-zero behavior.
 content_sources:
   diagrams:
     - id: event-scaler-pattern
@@ -49,12 +50,21 @@ template:
 <!-- diagram-id: event-scaler-pattern -->
 ```mermaid
 flowchart TD
-    A[Queue or event backlog grows] --> B[KEDA custom scaler polls source]
-    B --> C[Desired replica count rises]
-    C --> D[Worker revision scales out]
-    D --> E[Backlog drains]
-    E --> F[Scale in toward minReplicas]
+    accTitle: Scale a worker app from event backlog
+    accDescr: A producer adds work to an event source. A custom KEDA scaler polls the source and requests a replica count within configured limits. Worker replicas consume events, and later polls can request scale-in as backlog drains.
+
+    PRODUCER[Event producer] ==> SOURCE[Queue or event source]
+    SOURCE -->|Backlog metric| SCALER[Custom KEDA scaler]
+    SCALER --> DESIRED[Requested replica count]
+    LIMITS[Minimum and maximum replicas] --> DESIRED
+    DESIRED -.-> WORKERS[Worker revision replicas]
+    SOURCE ==>|Events| WORKERS
+    WORKERS ==>|Acknowledgements or checkpoints| SOURCE
+    WORKERS --> DRAIN[Backlog decreases]
+    DRAIN --> SOURCE
 ```
+
+*Figure: Thick arrows carry events and acknowledgements; the scaler observes backlog separately, and the dotted arrow applies its requested replica count as scaling control.*
 
 ## Supported event-scaler families
 
@@ -79,12 +89,18 @@ az containerapp update \
   --scale-rule-auth "connection=servicebus-connection"
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp update` | Adds an event-driven scale rule to the app so replica count responds to Service Bus backlog instead of fixed manual scaling. |
-| `--min-replicas 0` / `--max-replicas 30` | Defines the lower and upper scale bounds, allowing scale-to-zero savings while capping burst expansion. |
-| `--scale-rule-type azure-servicebus` with `--scale-rule-metadata ...` | Selects the Service Bus scaler and specifies the queue, namespace, and backlog threshold that should trigger more replicas. |
-| `--scale-rule-auth "connection=servicebus-connection"` | Tells the scaler which secret-backed connection setting to use when authenticating to the queue. |
+| `az containerapp update` | Update the Container App configuration and create a revision when the changed property is revision-scoped. |
+| `--max-replicas` | Set the revision's upper replica bound. |
+| `--min-replicas` | Set the revision's lower replica bound. |
+| `--name` | Select the named extension or Container App. |
+| `--resource-group` | Select the resource group that contains the app. |
+| `--scale-rule-auth` | Map scaler authentication parameters to Container Apps secrets. |
+| `--scale-rule-metadata` | Supply the scaler-specific threshold and source metadata. |
+| `--scale-rule-name` | Assign a stable name to the scale rule. |
+| `--scale-rule-type` | Select the HTTP, resource, or KEDA scaler type. |
+
 
 ## Azure Queue Storage example
 
@@ -100,9 +116,18 @@ az containerapp update \
   --scale-rule-auth "connection=storage-connection"
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Update the Container App configuration and create a revision when the changed property is revision-scoped. |
+| `--max-replicas` | Set the revision's upper replica bound. |
+| `--min-replicas` | Set the revision's lower replica bound. |
+| `--name` | Select the named extension or Container App. |
+| `--resource-group` | Select the resource group that contains the app. |
+| `--scale-rule-auth` | Map scaler authentication parameters to Container Apps secrets. |
+| `--scale-rule-metadata` | Supply the scaler-specific threshold and source metadata. |
+| `--scale-rule-name` | Assign a stable name to the scale rule. |
+| `--scale-rule-type` | Select the HTTP, resource, or KEDA scaler type. |
+
 
 ## Identity options
 

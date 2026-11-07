@@ -1,4 +1,5 @@
 ---
+description: Azure Container Apps CPU and memory scaling rules, including their lagging-signal role, scale-to-zero limitation, configuration, and validation.
 content_sources:
   diagrams:
     - id: cpu-memory-scaler-positioning
@@ -55,11 +56,22 @@ template:
 <!-- diagram-id: cpu-memory-scaler-positioning -->
 ```mermaid
 flowchart TD
-    A[Workload demand rises] --> B[Request or queue pressure increases]
-    B --> C[CPU and memory usage increase later]
-    C --> D[Resource scaler requests more replicas]
-    D --> E[Revision returns toward utilization target]
+    accTitle: Position CPU and memory rules behind direct demand signals
+    accDescr: Runtime requests or queued work reach revision replicas before resource utilization rises. The CPU or memory rule evaluates only utilization and requests its own replica count. A separate HTTP or custom rule evaluates the direct demand signal and makes a separate request. Each request remains within configured limits.
+
+    DEMAND[Requests or queued work] --> REPLICAS[Revision replicas]
+    REPLICAS --> UTIL[Average CPU or memory utilization]
+    UTIL --> RESOURCE_RULE[CPU or memory rule]
+    RESOURCE_RULE --> RESOURCE_REQUEST[Resource rule's<br/>requested replica count]
+    DIRECT[HTTP concurrency or event backlog] --> DIRECT_RULE[Matching HTTP or custom rule]
+    DIRECT_RULE --> DIRECT_REQUEST[Direct rule's<br/>requested replica count]
+    LIMITS[Configured replica limits] --> RESOURCE_REQUEST
+    LIMITS --> DIRECT_REQUEST
+    RESOURCE_REQUEST -. scaling control .-> REPLICAS
+    DIRECT_REQUEST -. scaling control .-> REPLICAS
 ```
+
+*Figure: CPU or memory utilization feeds only the resource rule; HTTP concurrency or event backlog feeds its own matching rule. Dotted arrows are separate scaling-control requests, not a combined rule.*
 
 ## What Microsoft Learn confirms
 
@@ -77,7 +89,7 @@ What Learn does confirm is that workload profiles define the compute and billing
 - **Consumption**
 - **Dedicated**
 - **Consumption + Dedicated mix**
-- **Flex Consumption** preview behavior
+- **Flexible** profile preview behavior
 
 ## When to use CPU and memory rules
 
@@ -109,9 +121,17 @@ az containerapp update \
   --scale-rule-metadata "type=Utilization" "value=70"
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Update the Container App configuration and create a revision when the changed property is revision-scoped. |
+| `--max-replicas` | Set the revision's upper replica bound. |
+| `--min-replicas` | Set the revision's lower replica bound. |
+| `--name` | Select the named extension or Container App. |
+| `--resource-group` | Select the resource group that contains the app. |
+| `--scale-rule-metadata` | Supply the scaler-specific threshold and source metadata. |
+| `--scale-rule-name` | Assign a stable name to the scale rule. |
+| `--scale-rule-type` | Select the HTTP, resource, or KEDA scaler type. |
+
 
 ### Portal view: Scale blade (no-scale-to-zero lower bound)
 

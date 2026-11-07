@@ -1,4 +1,5 @@
 ---
+description: Azure Container Apps scaling concepts covering KEDA-powered rules, revision replicas, scale limits, direct workload signals, and API-worker patterns.
 content_sources:
   diagrams:
     - id: how-keda-based-scaling-works
@@ -39,14 +40,21 @@ This overview introduces the scaling model. Use the deep-dive pages for [HTTP Sc
 <!-- diagram-id: how-keda-based-scaling-works -->
 ```mermaid
 flowchart TD
-    M[Metric Source\nHTTP / Queue / Custom] --> K[KEDA Scaler]
-    K --> D[Desired Replica Count]
-    D --> R[Container App Revision Replicas]
-    R --> O[Observed Throughput/Latency]
-    O --> M
+    accTitle: Turn workload signals into revision replica decisions
+    accDescr: HTTP, TCP, resource, or event signals feed the corresponding platform scale rule. The rule requests a replica count within configured limits, and the platform adjusts revision replicas. Operators validate the resulting service behavior separately.
+
+    SIGNAL[HTTP, TCP, resource,<br/>or event signal] --> RULE[Matching scale rule]
+    RULE --> DESIRED[Requested replica count]
+    LIMITS[Minimum and maximum replicas] --> DESIRED
+    DESIRED -.-> REPLICAS[Revision replicas]
+    REPLICAS --> OUTCOME[Observed latency, throughput,<br/>resource use, or backlog]
+    OUTCOME --> REVIEW[Operator validation and tuning]
+    REVIEW --> RULE
 ```
 
-KEDA continuously evaluates rules and updates desired replica count within configured bounds.
+*Figure: A matching rule turns one workload signal into a bounded replica request; operators then tune the rule from measured service outcomes. The dotted arrow is scaling control.*
+
+Container Apps evaluates rules on the interval documented for each rule category and keeps requested replica counts within configured bounds. HTTP and TCP signals are calculated every 15 seconds; custom KEDA rules use a 30-second polling interval by default.
 
 !!! note "Scaling is revision-scoped"
     Scale decisions apply to the active revision(s) receiving traffic.
@@ -79,11 +87,24 @@ Think of these as your scaling guardrails:
 
 <!-- diagram-id: practical-example-api-worker-pattern -->
 ```mermaid
-graph TD
-    U[Users] --> API[API App\nminReplicas: 1]
-    API --> Q[Queue]
-    Q --> W[Worker App\nminReplicas: 0]
+flowchart TD
+    accTitle: Scale an API app and worker app independently
+    accDescr: Users send HTTP requests through managed ingress to API revision replicas. The API publishes work to an external queue. A custom scaler observes queue backlog and requests worker replica count, while worker replicas consume and acknowledge queued events.
+
+    USERS[Users] ==> INGRESS[Managed ingress<br/>TLS and request routing]
+    INGRESS ==>|Routed requests| API[API revision replicas<br/>minimum replicas at least 1]
+    API ==>|Responses| INGRESS
+    INGRESS ==>|Responses| USERS
+    API ==>|Enqueued work| QUEUE[Queue or event source]
+    QUEUE -->|Backlog metric| SCALER[Custom KEDA scaler]
+    SCALER --> DESIRED[Requested worker replica count]
+    WORKER_LIMITS[Worker minimum and maximum replicas] --> DESIRED
+    DESIRED -.-> WORKERS[Worker revision replicas]
+    QUEUE ==>|Events| WORKERS
+    WORKERS ==>|Acknowledgements or checkpoints| QUEUE
 ```
+
+*Figure: Thick arrows carry API requests, responses, and queued events; the API and worker scale independently, and the dotted worker arrow is scaling control.*
 
 - API keeps one warm replica for predictable latency.
 - Worker scales from zero when queue depth rises.
