@@ -8,7 +8,7 @@ The claim ceiling is deliberately narrow: this pack proves only what a single `k
 
 1. **H1 failure surface.** `01-app-spec-pre-fix.json` through `08-kql-console-logs-pre-fix.json` capture the triggered `appPort=8081` state, the active broken revision, the Dapr config, the still-healthy ingress response, the failing loopback Dapr invocation, system logs, the full pre-fix app spec, and Log Analytics context.
 2. **H2 recovery surface.** `09-dapr-config-post-fix.json` through `12-kql-recovery-summary-post-fix.json` capture the restored `appPort=8000` state, successful ingress response, recovered revision, and post-fix KQL reason summary.
-3. **Phase B overlay.** `verify.sh` writes Gate 14 through Gate 17 JSONs over the raw cohort without touching Azure.
+3. **Phase B overlay.** `verify.sh` writes Gate 14 through Gate 17 JSONs over the raw cohort without touching Azure. The gates were originally emitted on 2026-06-26 and later re-evaluated offline from the unchanged raw files. Each replay writes its own execution time as top-level `evaluated_at_utc`; that value is not a capture date and implies no new Azure observation.
 
 ## Gate overview
 

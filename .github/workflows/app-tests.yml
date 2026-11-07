@@ -81,6 +81,9 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install lab verifier dependencies
+        run: python3 -m pip install PyYAML
+
       - name: Detect absorbed strong/fallback gate predicates
         run: |
           python3 -m doctest scripts/detect_absorbed_predicates.py
@@ -122,6 +125,11 @@ jobs:
             16-positive-control-perturbation-validity-gate.json \
             17-bounded-coverage-uncertainty-gate.json \
             --verify-arg=--phase-b-only
+          python3 scripts/check_gate_replay.py dapr-integration \
+            14-cohort-integrity-gate.json \
+            15-h1-trigger-produces-failure-gate.json \
+            16-h2-fix-restores-recovery-gate.json \
+            17-bounded-falsification-gate.json
 
   bicep:
     name: Bicep Templates
