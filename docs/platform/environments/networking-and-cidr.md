@@ -6,25 +6,25 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
-        - https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks
         - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-manage-cli
         - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/managedenvironments
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: '2026-11-07'
+  reviewer: agent
   core_claims:
     - claim: Workload profiles environments require a minimum subnet size of /27 and Consumption-only environments require a minimum subnet size of /23.
       source: https://learn.microsoft.com/en-us/azure/container-apps/networking
       verified: true
-    - claim: When using the Workload profiles environment, the subnet must be delegated to Microsoft.App/environments, and Consumption-only should not delegate the subnet.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom
+    - claim: When using the Workload profiles environment, the subnet must be delegated to Microsoft.App/environments, and Consumption-only must not delegate the subnet.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks
       verified: true
     - claim: The infrastructure subnet resource ID is the subnet for infrastructure components and user application containers.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom
+      source: https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks
       verified: true
-    - claim: In the /27 planning example, Container Apps reserves 11 IP addresses, Consumption assigns IPs per replica, and Dedicated assigns IPs per VM node.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-manage-cli
+    - claim: For workload-profile environments, the current networking capacity table reports 18 available addresses in a /27, one IP per Dedicated node, and planning at one IP per 10 Consumption replicas.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks
       verified: true
 ---
 # Networking and CIDR
@@ -53,37 +53,46 @@ For custom VNets:
 
 Microsoft Learn also describes the `infrastructureSubnetId` as the subnet for **infrastructure components and user application containers**. In other words, the standard deployment model uses one customer-managed infrastructure subnet rather than separate customer-managed runtime and platform subnets.
 
-For the legacy Consumption-only environment, Learn also documents optional internal ranges such as `platformReservedCidr` and `dockerBridgeCidr` for platform networking.
+For the legacy Consumption-only environment, Learn also documents optional internal ranges such as `platformReservedCidr` and `dockerBridgeCidr` for platform networking. These are not extra customer-managed subnets.
+
+Choose the environment type before calculating usable subnet capacity:
 
 <!-- diagram-id: delegated-subnet-capacity-model -->
 ```mermaid
 flowchart TD
-    VNET[Customer VNet] --> SUBNET[Dedicated Container Apps subnet]
-    SUBNET --> INFRA[Reserved infrastructure IPs]
-    SUBNET --> NODE[Dedicated profile nodes]
-    SUBNET --> REPLICA[Consumption replicas]
-    INFRA --> ENV[Managed environment services]
-    NODE --> APP1[Dedicated profile apps]
-    REPLICA --> APP2[Consumption profile apps]
+    accTitle: Environment type determines subnet capacity planning
+    accDescr: First select workload profiles or legacy Consumption-only. Workload profiles require an exclusive delegated subnet of at least /27 and capacity for infrastructure, Consumption replicas and Dedicated nodes. Legacy Consumption-only requires at least /23 without delegation. The connectors are planning steps, not network traffic.
+    TYPE{"Custom VNet:<br/>which environment type?"}
+    TYPE -->|"Workload profiles"| WP["Exclusive subnet: /27 or larger<br/>Microsoft.App/environments delegation"]
+    TYPE -->|"Legacy Consumption-only"| LEGACY["Exclusive subnet: /23 or larger<br/>do not delegate"]
+    WP --> RESERVE["Account for infrastructure reservations"]
+    RESERVE --> PLAN["Budget one IP per 10 Consumption replicas<br/>and one IP per Dedicated node"]
+    PLAN --> OVERLAP["Add rollout and scale-out headroom"]
+    LEGACY --> LEGACYPLAN["Use legacy subnet allocation rules<br/>check non-overlapping internal ranges"]
 ```
+
+*Figure: Subnet-capacity planning flow. Thin arrows are design steps and branch choices, not packet transport or containment. A workload-profile environment can contain Consumption and Dedicated profiles; it is not the same as a legacy Consumption-only environment. No customer-managed nodes or hidden platform subnets are inferred.*
 
 ### IP allocation model
 
-Microsoft Learn's `/27` planning example is the key rule of thumb:
+Use the capacity table in the current **Configure Virtual Networks in Azure Container Apps Environments** article as the canonical planning source:
 
 - A `/27` subnet has **32 IPs total**.
-- **11 IP addresses are reserved** for Container Apps infrastructure.
-- That leaves **21 available IP addresses**.
+- The table subtracts **14 addresses** for Container Apps infrastructure, including the five addresses Azure reserves in every subnet.
+- That leaves **18 available IP addresses**.
 
-The same example then differentiates how those remaining IPs are consumed:
+The article differentiates how those available addresses are consumed in a workload-profile environment:
 
 | Placement model | IP pressure driver | Practical meaning |
 |---|---|---|
-| Consumption | Per replica | Replica count can become the limiting factor |
+| Consumption | One IP per 10 replicas for planning | Replica growth still consumes subnet capacity, but replicas share addresses |
 | Dedicated | Per VM node | Many replicas can share fewer node IPs |
 
 !!! note "Zero-downtime rollouts can increase temporary IP demand"
-    The CLI guidance explicitly notes that Consumption can need double IPs during zero-downtime deployment because the old revision remains until the new revision is healthy.
+    The canonical networking article accounts for the temporary doubling required by single-revision zero-downtime deployments. Size above the minimum for rollout and scale-out headroom.
+
+!!! warning "Microsoft Learn currently contains a conflicting CLI example"
+    The `workload-profiles-manage-cli` article still describes 11 reserved addresses, 21 available addresses, and one IP per Consumption replica for a workload-profile `/27`. That conflicts with the newer canonical networking capacity table, which reports 18 available addresses and plans one IP per 10 Consumption replicas. This guide follows the networking article for capacity planning and retains the CLI article only as a command workflow reference.
 
 ### Sizing guidance
 
@@ -104,7 +113,7 @@ The Networking blade on an environment created without a custom VNet is the cont
 
 [Inferred] The `This environment isn't integrated` text is consistent with this page's [Minimum subnet sizes](#minimum-subnet-sizes) table only applying once a custom VNet is in scope. The absence of a subnet resource ID or CIDR field on this blade appears to map to topics covered later in this page's [Delegation and subnet roles](#delegation-and-subnet-roles) and [IP allocation model](#ip-allocation-model) sections.
 
-[Not Proven] This image does not visualize the `infrastructureSubnetId` property described in this page's [Delegation and subnet roles](#delegation-and-subnet-roles) section, the `Microsoft.App/environments` delegation requirement, or the `platformReservedCidr` / `dockerBridgeCidr` legacy ranges. It does not visualize the `/27` vs `/23` minimum subnet sizes from this page's [Minimum subnet sizes](#minimum-subnet-sizes) table, the reserved 11 IP addresses, or the per-replica vs per-node IP allocation distinction from this page's [IP allocation model](#ip-allocation-model) section.
+[Not Proven] This image does not visualize the `infrastructureSubnetId` property described in this page's [Delegation and subnet roles](#delegation-and-subnet-roles) section, the `Microsoft.App/environments` delegation requirement, or the `platformReservedCidr` / `dockerBridgeCidr` legacy ranges. It does not visualize the `/27` vs `/23` minimum subnet sizes or the workload-profile capacity table described on this page.
 
 ## See Also
 
@@ -117,6 +126,6 @@ The Networking blade on an environment created without a custom VNet is the cont
 ## Sources
 
 - [Networking in Azure Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
-- [Integrate a virtual network with an Azure Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom)
+- [Configure virtual networks in Azure Container Apps environments (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks)
 - [Create a Container Apps environment with the Azure CLI (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-manage-cli)
 - [Microsoft.App/managedEnvironments template reference (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/templates/microsoft.app/managedenvironments)
