@@ -271,7 +271,7 @@ python3 scripts/diagram_inventory.py --write --base-commit "$(git rev-parse HEAD
 
 ### Migration Progress States
 
-Batch owners edit `target`, `context.reader_intent`, and `migration` by key; these planning fields survive body changes and regeneration.
+Batch owners edit `target`, `context.reader_intent`, and `migration` by key. These planning fields survive regeneration and unrelated diagram insertions or reordering because preservation matches exact keys. For a diagram without a stable `diagram-id`, however, editing the Mermaid body changes its content-anchored provisional key and drops those fields. Add a stable `diagram-id` before recording progress on an ID-less diagram. The current manifest has three migration-required records with provisional IDs.
 
 | Migration state | Meaning | `exception` |
 |---|---|---|

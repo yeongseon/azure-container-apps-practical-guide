@@ -893,7 +893,12 @@ def totals(diagrams: list[Record], exclusions: list[Record], visuals: list[Recor
 
 
 def preserve(current: Record, previous: Record) -> None:
-    """Keep human-reviewed interpretation while refreshing observed source facts."""
+    """Preserve planning fields on exact keys while refreshing observed source facts.
+
+    Stable diagram IDs keep their keys across body edits. An ID-less diagram's
+    content-anchored provisional key changes with its body, so its planning fields
+    are intentionally not carried to the new record.
+    """
     old = {d['key']: d for d in previous.get('diagrams', [])}
     for diagram in current['diagrams']:
         prior = old.get(diagram['key'])
