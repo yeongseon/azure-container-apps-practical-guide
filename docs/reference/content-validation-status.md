@@ -72,7 +72,7 @@ pie title In-Scope Document Validation Status
 | [Managed Identity](../platform/identity-and-secrets/managed-identity.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
 | [Manual Jobs](../platform/jobs/manual-jobs.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Migration](../platform/environments/migration.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
-| [Mtls](../platform/security/mtls.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
+| [Mtls](../platform/security/mtls.md) | ✅ | ✅ Verified | 4/4 | 2026-11-07 |
 | [Network Isolation](../platform/security/network-isolation.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Networking And Cidr](../platform/environments/networking-and-cidr.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
 | [Plans And Workload Profiles](../platform/environments/plans-and-workload-profiles.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
@@ -81,7 +81,7 @@ pie title In-Scope Document Validation Status
 | [Revision Modes](../platform/revisions/revision-modes.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
 | [Scaling Rules Reference](../platform/scaling/scaling-rules-reference.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
 | [Scheduled Jobs](../platform/jobs/scheduled-jobs.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
-| [Secrets](../platform/security/secrets.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
+| [Secrets](../platform/security/secrets.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Security Operations](../platform/identity-and-secrets/security-operations.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
 | [Service To Service](../platform/networking/service-to-service.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
 | [Sidecars And Init Containers](../platform/architecture/sidecars-and-init-containers.md) | ✅ | ✅ Verified | 5/5 | 2026-07-18 |
