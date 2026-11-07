@@ -6,17 +6,18 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
         - https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-connect-services
 content_validation:
   status: verified
-  last_reviewed: '2026-07-18'
-  reviewer: ai-agent
+  last_reviewed: 2026-11-07
+  reviewer: agent
   core_claims:
-    - claim: Dapr components in Azure Container Apps are resources defined at the environment level and are shared by the Dapr-enabled apps in that environment.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+    - claim: Dapr components in Azure Container Apps are environment-level resources that can be shared across container apps or scoped to specific container apps.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
       verified: true
     - claim: By default a Dapr component is loaded by every Dapr-enabled app in the environment, and the scopes property restricts a component to only the apps whose Dapr application IDs are listed.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+      source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-components
       verified: true
     - claim: For the most secure connection, Dapr components should use managed identity of the scoped container apps when supported, and use an Azure Key Vault secret store only when managed identity authentication isn't supported.
       source: https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-connect-services
@@ -33,25 +34,50 @@ Dapr building blocks such as state management and pub/sub are backed by **compon
 
 Unlike the Dapr *sidecar* setting (which is application-scoped), a Dapr **component** is defined at the **Container Apps environment level**. This lets multiple apps in the same environment share one broker or state store definition.
 
-By default, every Dapr-enabled app in the environment loads every component. The `scopes` property narrows a component to specific apps by listing their **Dapr application IDs** (`appId`) — not the container app resource names.
+By default, every Dapr-enabled app in the environment loads every deployed component. The `scopes` property narrows a component to specific apps by listing their **Dapr application IDs** (`appId`) — not the container app resource names.
 
 <!-- diagram-id: dapr-component-scoping -->
 ```mermaid
 flowchart TD
-    subgraph ENV[Container Apps Environment]
-        COMP["Dapr component<br/>pubsub (Service Bus)<br/>scopes: [order-service, shipping-service]"]
-        A["order-service<br/>(Dapr appId)"]
-        B["shipping-service<br/>(Dapr appId)"]
-        C["billing-service<br/>(Dapr appId)"]
+    accTitle: Environment-level Dapr component scoping and backend identity
+    accDescr: A Dapr pub-sub component is configured at the managed Container Apps environment level. Its scopes array lists the order-service and shipping-service Dapr application IDs, so those two apps load the component while billing-service does not. The scoped apps use their local Dapr sidecars to publish or receive messages through the component and a supported Service Bus backend. Their managed identities authenticate to the backend when configured and authorized. Thick arrows are runtime message operations, while dotted arrows are scope, loading, or identity relationships.
+
+    subgraph ENV["Managed Container Apps environment — logical boundary"]
+        COMPONENT["Dapr pub/sub component<br/>scopes: order-service, shipping-service"]
+
+        subgraph ORDER["Container app: order API"]
+            ORDER_APP["Application<br/>appId: order-service"]
+            ORDER_SIDE["Local Dapr sidecar"]
+            ORDER_APP ==>|"Publish message"| ORDER_SIDE
+        end
+
+        subgraph SHIPPING["Container app: shipping worker"]
+            SHIPPING_SIDE["Local Dapr sidecar"]
+            SHIPPING_APP["Application<br/>appId: shipping-service"]
+            SHIPPING_SIDE ==>|"Deliver message"| SHIPPING_APP
+        end
+
+        BILLING["Container app<br/>appId: billing-service"]
     end
 
-    COMP -->|in scope| A
-    COMP -->|in scope| B
-    COMP -.->|out of scope| C
+    IDENTITY["Managed identities<br/>of scoped container apps"]
+    BROKER[("Azure Service Bus<br/>supported pub/sub backend")]
+
+    COMPONENT -.->|"Loaded by scope"| ORDER_SIDE
+    COMPONENT -.->|"Loaded by scope"| SHIPPING_SIDE
+    COMPONENT -.->|"Not loaded<br/>appId absent from scopes"| BILLING
+    ORDER_SIDE ==>|"Publish via component"| BROKER
+    BROKER ==>|"Deliver via component"| SHIPPING_SIDE
+    IDENTITY -.->|"Identity used for<br/>backend authentication"| ORDER_SIDE
+    IDENTITY -.->|"Identity used for<br/>backend authentication"| SHIPPING_SIDE
+
+    LEGEND["Arrow key<br/>thick = runtime message operation<br/>dotted = scope, loading, or identity relationship"]
 ```
 
+*Figure: One environment-level pub/sub component is loaded only by the two Dapr application IDs in its `scopes` array. The backend and managed identities remain separate Azure resources rather than managed-environment internals.*
+
 !!! tip "Scope every production component"
-    Leaving `scopes` empty grants **all** Dapr-enabled apps access to the component. For least privilege, always list the exact `appId`s that need each state store, broker, or secret store.
+    Leaving `scopes` empty causes **all** Dapr-enabled apps in the environment to load the component. For least privilege, list the exact `appId`s that need each state store, broker, or secret store.
 
 ## Component Schema
 
@@ -59,7 +85,7 @@ Azure Container Apps uses a simplified Dapr component schema:
 
 | Field | Purpose |
 |---|---|
-| `componentType` | Dapr component type, e.g. `state.azure.cosmosdb`, `pubsub.azure.servicebus.queue` |
+| `componentType` | Supported Dapr component type, for example `state.azure.cosmosdb` or `pubsub.azure.servicebus.queues` |
 | `version` | Component API version, typically `v1` |
 | `initTimeout` | How long Dapr waits for the component to initialize |
 | `ignoreErrors` | Whether the sidecar continues if the component fails to load |
@@ -77,7 +103,7 @@ Never place connection strings or keys directly in component `metadata`. Azure C
 ```yaml
 # Example: Service Bus queue pub/sub component that authenticates
 # through a Key Vault secret store component
-componentType: pubsub.azure.servicebus.queue
+componentType: pubsub.azure.servicebus.queues
 version: v1
 secretStoreComponent: keyvault-secretstore
 metadata:
@@ -94,15 +120,15 @@ scopes:
 
 ## Choosing a State Store Backend
 
-State management gives your app durable key/value storage with optimistic concurrency. Common Azure-backed options:
+State management provides key/value persistence and concurrency operations through supported components. The current supported-component list distinguishes Tier 1 components from Tier 2 components:
 
 | Backend | When to use |
 |---|---|
-| Azure Cosmos DB | Global distribution, high throughput, low-latency key/value |
-| Azure Blob Storage | Simple, low-cost persistence for coarse-grained state |
-| Azure Table Storage | Cheap key/value at scale with simple queries |
-| Azure SQL / PostgreSQL / MySQL | Relational durability, existing database estate |
-| Redis | Fast, ephemeral or cache-like state |
+| Azure Cosmos DB | Tier 1 Azure state component |
+| Azure Blob Storage v1 | Tier 1 Azure state component |
+| Azure Table Storage | Tier 1 Azure state component |
+| Microsoft SQL Server | Tier 1 relational state component |
+| PostgreSQL / MySQL / Redis | Tier 2 state components; evaluate best-effort support before production use |
 
 State keys are namespaced by the app's `appId`, so two apps sharing a store do not overwrite each other's keys.
 
@@ -112,15 +138,15 @@ Pub/sub decouples publishers from subscribers using the competing-consumer patte
 
 | Broker | When to use |
 |---|---|
-| Azure Service Bus (queues/topics) | Enterprise messaging, ordering, sessions, dead-lettering |
-| Azure Event Hubs | High-volume event streaming and telemetry ingestion |
-| Redis Streams | Lightweight, low-latency messaging |
+| Azure Service Bus queues or topics | Tier 1 Azure messaging components |
+| Azure Event Hubs | Tier 1 Azure event-streaming component |
+| Apache Kafka or Redis Streams | Tier 2 components; evaluate best-effort support before production use |
 
 ### Durability Trade-offs
 
-- **At-least-once delivery**: brokers like Service Bus and Event Hubs redeliver on failure, so subscribers must be **idempotent**.
-- **Ordering**: use Service Bus sessions or Event Hubs partitions when strict ordering matters; plain topics do not guarantee global order.
-- **Scale-to-zero**: an app scaled to zero replicas is not consuming. Use a Dapr/KEDA-aware scale rule so queued messages wake the app.
+- **Delivery behavior**: verify the selected broker component's delivery contract and make subscriber processing safe for redelivery where applicable.
+- **Ordering**: verify ordering at the chosen broker and partitioning or session boundary rather than assuming global ordering.
+- **Scale-to-zero**: test how the selected event source, subscription, and scale rule reactivate a subscriber before relying on zero minimum replicas.
 
 ## Component Resiliency (Preview)
 
@@ -129,7 +155,7 @@ Dapr supports resiliency policies (timeouts, retries, and circuit breakers) appl
 ## Limitations
 
 - Components are shared at the environment level; isolate sensitive backends by using separate environments or strict `scopes`.
-- Not every upstream Dapr component is available; prefer the Azure-backed types validated for Container Apps.
+- Only the Dapr APIs and components listed as GA, Tier 1, or Tier 2 are supported; Tier 2 support is best effort.
 - Secret values must be referenced, not embedded, to pass security review.
 
 ## See Also
@@ -143,6 +169,7 @@ Dapr supports resiliency policies (timeouts, retries, and circuit breakers) appl
 ## Sources
 
 - [Dapr integration with Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview)
+- [Dapr components in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/dapr-components)
 - [Connect to other Azure or partner services via Dapr components](https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-connect-services)
 - [Dapr component resiliency (preview)](https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-resiliency)
 - [Manage secrets in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)
