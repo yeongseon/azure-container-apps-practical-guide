@@ -448,7 +448,7 @@ az containerapp revision copy \
 |---|---|
 | `az containerapp ingress traffic set` | Pins application traffic to the captured known-good revision before the canary is created. |
 | `az containerapp revision list` | Captures the active revision name used as the known-good traffic target. |
-| `az containerapp revision copy` | Explicitly creates a canary from the latest revision after the secret update. |
+| `az containerapp revision copy` | Explicitly creates a canary from the captured known-good revision after the secret update. |
 | `az containerapp revision set-mode` | Enables multiple active revisions so the known-good and canary revisions can run concurrently. |
 | `az containerapp secret set` | Updates the app-level secret to the selected Key Vault version; this command does not create a revision. |
 | `--from-revision` | Copies the captured known-good revision rather than whichever revision happens to be latest. |

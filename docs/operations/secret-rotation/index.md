@@ -196,10 +196,10 @@ az containerapp revision copy \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp revision copy` | Explicitly creates a revision from the latest revision after the app-level reference is updated; the preceding secret update does not create this revision. |
+| `az containerapp revision copy` | Explicitly creates a revision from the captured known-good revision after the app-level reference is updated; the preceding secret update does not create this revision. |
 | `az containerapp secret set` | Updates the app-level reference to the selected Key Vault version; this command does not create a revision. |
 | `--from-revision` | Copies the captured known-good revision rather than whichever revision happens to be latest. |
-| `--name` | Selects the Container App whose latest revision is copied. |
+| `--name` | Selects the Container App whose captured known-good revision is copied. |
 | `--resource-group` | Selects the resource group containing the app. |
 | `--revision-suffix` | Assigns a unique suffix to the copied revision so operators can identify the rotation rollout target. |
 | `--secrets` | Defines or updates the named app-level secret. |
