@@ -83,10 +83,10 @@ flowchart TD
     ADDRESS -.->|"Ingress address"| INGRESS
     CLIENT ==>|"3  TCP 443 to destination<br/>4  TLS ClientHello with SNI"| INGRESS
     CERT -.->|"Certificate selection"| INGRESS
-    INGRESS ==>|"5  Route HTTPS by traffic rule"| REV_ACTIVE
+    INGRESS ==>|"5  Route request by traffic rule<br/>after TLS termination"| REV_ACTIVE
     REV_ACTIVE ==>|"6  Select ready replica"| REPLICAS
 
-    LEGEND["Arrow key<br/>thick = TCP, TLS, or HTTPS transport<br/>dotted = DNS or certificate-selection relationship"]
+    LEGEND["Arrow key<br/>thick = client transport or runtime request path<br/>dotted = DNS or certificate-selection relationship"]
 ```
 
 *Figure: DNS resolution, TCP establishment, TLS/SNI certificate selection, and application routing are separate stages. The runtime portion consumes the reviewed `ENV` → `INGRESS` → `REV_ACTIVE` → `REPLICAS` base path without presenting an IP address, DNS answer, or certificate selection as a transport hop.*
