@@ -60,10 +60,10 @@ az account show --output table
 | Command / Parameter | Purpose |
 |---|---|
 | `az extension add` | Installs or upgrades the Container Apps extension required by the examples. |
-| `--name` | Selects the resource named by the command for this check. |
+| `--name` | Identifies the `containerapp` CLI extension to install or upgrade. |
 | `--upgrade` | Replaces an older Container Apps extension with the current installed version. |
 | `az account show` | Shows the active Azure subscription and tenant before the review commands run. |
-| `--output` | Returns the result in the format needed by this review step. |
+| `--output` | Formats the active account details as a table for the prerequisite check. |
 
 ## Recommended Practices
 
@@ -163,11 +163,11 @@ az containerapp env show \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp env show` | Reads the selected Container Apps environment settings for the documented cost or reliability check. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--output` | Returns the result in the format needed by this review step. |
-| `--query` | Extracts only the fields needed for this documented verification. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `az containerapp env show` | Reads the workload-profile configuration that determines the environment's compute cost model. |
+| `--name` | Identifies the Container Apps environment whose profiles are being compared. |
+| `--output` | Emits the workload-profile array as JSON for profile-by-profile review. |
+| `--query` | Selects `properties.workloadProfiles` from the environment resource. |
+| `--resource-group` | Locates the environment in the production resource group. |
 
 Inspect an app's active profile and requested resources:
 
@@ -181,11 +181,11 @@ az containerapp show \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show` | Reads the selected Container App settings for the documented verification. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--output` | Returns the result in the format needed by this review step. |
-| `--query` | Extracts only the fields needed for this documented verification. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `az containerapp show` | Reads the app's assigned profile, resource requests, and replica bounds for cost comparison. |
+| `--name` | Identifies the Container App being evaluated across profile types. |
+| `--output` | Emits the selected cost inputs as a JSON object. |
+| `--query` | Projects workload profile, CPU, memory, and minimum and maximum replica values. |
+| `--resource-group` | Locates the app in the production resource group. |
 
 Practical decision pattern:
 
@@ -208,11 +208,11 @@ az containerapp update \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update` | Updates the selected Container App configuration. |
+| `az containerapp update` | Enables scale-to-zero for the sporadic Consumption workload. |
 | `--max-replicas` | Caps app scale-out at the documented replica count. |
 | `--min-replicas` | Sets the app replica floor used for the latency or cost decision. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--name` | Identifies the sporadic Container App being optimized for idle cost. |
+| `--resource-group` | Locates that app in the production resource group. |
 
 For this Consumption example, when minimum replicas are zero:
 
@@ -232,11 +232,11 @@ az containerapp update \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update` | Updates the selected Container App configuration. |
+| `az containerapp update` | Keeps one warm replica for the latency-sensitive API while bounding scale-out. |
 | `--max-replicas` | Caps app scale-out at the documented replica count. |
 | `--min-replicas` | Sets the app replica floor used for the latency or cost decision. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--name` | Identifies the latency-sensitive Container App. |
+| `--resource-group` | Locates that app in the production resource group. |
 
 !!! warning "Do not optimize cost by breaking SLO"
     If your API has hard latency objectives, forcing `--min-replicas 0` can make tail latency unacceptable. Optimize elsewhere first (resource sizing, image startup, scaling thresholds).
@@ -269,11 +269,11 @@ az containerapp show \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show` | Reads the selected Container App settings for the documented verification. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--output` | Returns the result in the format needed by this review step. |
-| `--query` | Extracts only the fields needed for this documented verification. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `az containerapp show` | Reads the configured minimum replica floor that creates always-on cost. |
+| `--name` | Identifies the Container App being checked for baseline replica cost. |
+| `--output` | Emits the minimum replica count as plain text for quick comparison. |
+| `--query` | Selects `properties.template.scale.minReplicas` from the app resource. |
+| `--resource-group` | Locates the app in the production resource group. |
 
 ### Right-size CPU and memory intentionally
 
@@ -297,11 +297,11 @@ az containerapp show \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show` | Reads the selected Container App settings for the documented verification. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--output` | Returns the result in the format needed by this review step. |
-| `--query` | Extracts only the fields needed for this documented verification. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `az containerapp show` | Reads configured CPU and memory before right-sizing the app. |
+| `--name` | Identifies the Container App being reviewed for resource waste. |
+| `--output` | Emits the configured resource object as JSON for sizing analysis. |
+| `--query` | Selects the first container's CPU and memory resource configuration. |
+| `--resource-group` | Locates the app in the production resource group. |
 
 Apply a smaller footprint safely:
 
@@ -315,11 +315,11 @@ az containerapp update \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update` | Updates the selected Container App configuration. |
+| `az containerapp update` | Applies the smaller CPU and memory footprint chosen from load measurements. |
 | `--cpu` | Sets the measured CPU allocation for each app replica. |
 | `--memory` | Sets the measured memory allocation for each app replica. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--name` | Identifies the Container App being right-sized. |
+| `--resource-group` | Locates that app in the production resource group. |
 
 Then validate health and throughput before further reduction.
 
@@ -346,10 +346,10 @@ az acr show \
 | Command / Parameter | Purpose |
 |---|---|
 | `az acr show` | Reads the selected registry properties for the SKU review. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--output` | Returns the result in the format needed by this review step. |
-| `--query` | Extracts only the fields needed for this documented verification. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--name` | Identifies the registry whose SKU and endpoint are being reviewed. |
+| `--output` | Emits the projected registry properties as JSON for the SKU comparison. |
+| `--query` | Projects registry name, SKU, and login server from the resource. |
+| `--resource-group` | Locates the registry in the production resource group. |
 
 Operational implications:
 
@@ -371,9 +371,9 @@ az acr repository show-tags \
 | Command / Parameter | Purpose |
 |---|---|
 | `az acr repository show-tags` | Lists recent tags in the selected registry repository for retention review. |
-| `--name` | Selects the resource named by the command for this check. |
+| `--name` | Identifies the registry containing the `orders-api` repository. |
 | `--orderby` | Sorts tags from newest to oldest for the retention review. |
-| `--output` | Returns the result in the format needed by this review step. |
+| `--output` | Formats the recent tag list as a table for retention review. |
 | `--repository` | Selects the image repository whose tag retention is being reviewed. |
 | `--top` | Limits the review to the most recent records. |
 
@@ -400,11 +400,11 @@ az containerapp env show \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp env show` | Reads the selected Container Apps environment settings for the documented cost or reliability check. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--output` | Returns the result in the format needed by this review step. |
-| `--query` | Extracts only the fields needed for this documented verification. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `az containerapp env show` | Reads the environment's logging destination and workspace configuration for ingestion-cost review. |
+| `--name` | Identifies the Container Apps environment whose log linkage is being inspected. |
+| `--output` | Emits the logging configuration as JSON for workspace review. |
+| `--query` | Selects `properties.appLogsConfiguration` from the environment resource. |
+| `--resource-group` | Locates the environment in the production resource group. |
 
 Example KQL to estimate noisy categories:
 
@@ -445,9 +445,9 @@ az containerapp list \
 | Command / Parameter | Purpose |
 |---|---|
 | `az containerapp list` | Lists apps in the resource group so environment sharing can be evaluated. |
-| `--output` | Returns the result in the format needed by this review step. |
-| `--query` | Extracts only the fields needed for this documented verification. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--output` | Formats the candidate app inventory as a table for consolidation review. |
+| `--query` | Filters apps by environment ID and projects ingress and minimum-replica fields. |
+| `--resource-group` | Limits the inventory to the resource group that contains the shared environment. |
 
 ### Understand idle environment cost
 
@@ -471,11 +471,11 @@ az containerapp env show \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp env show` | Reads the selected Container Apps environment settings for the documented cost or reliability check. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--output` | Returns the result in the format needed by this review step. |
-| `--query` | Extracts only the fields needed for this documented verification. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `az containerapp env show` | Reads environment state and topology fields that can imply continuing platform or networking cost. |
+| `--name` | Identifies the Container Apps environment under idle-cost review. |
+| `--output` | Emits the selected environment state as JSON for periodic review. |
+| `--query` | Projects environment name, region, provisioning state, and zone-redundancy setting. |
+| `--resource-group` | Locates the environment in the production resource group. |
 
 ### Budget guardrails with Azure Cost Management
 
@@ -496,7 +496,7 @@ az consumption usage list \
 | Command / Parameter | Purpose |
 |---|---|
 | `az consumption usage list` | Lists recent subscription usage records for an initial cost review. |
-| `--output` | Returns the result in the format needed by this review step. |
+| `--output` | Formats recent subscription usage records as a table for the cost snapshot. |
 | `--top` | Limits the review to the most recent records. |
 
 Export cost data regularly and tag resources for cost allocation:
@@ -510,7 +510,7 @@ az group update \
 | Command / Parameter | Purpose |
 |---|---|
 | `az group update` | Adds cost-allocation tags to the selected resource group. |
-| `--name` | Selects the resource named by the command for this check. |
+| `--name` | Identifies the resource group receiving cost-allocation tags. |
 | `--set` | Writes the documented cost-allocation tags on the resource group. |
 
 !!! tip "Governance pattern"
@@ -550,11 +550,11 @@ az containerapp show \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show` | Reads the selected Container App settings for the documented verification. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--output` | Returns the result in the format needed by this review step. |
-| `--query` | Extracts only the fields needed for this documented verification. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `az containerapp show` | Captures the app's profile, replica bounds, CPU, and memory as the cost-tuning baseline. |
+| `--name` | Identifies the Container App entering the tuning workflow. |
+| `--output` | Emits the baseline cost inputs as a JSON object for comparison after changes. |
+| `--query` | Projects profile, minimum and maximum replicas, CPU, and memory from the app resource. |
+| `--resource-group` | Locates the app in the production resource group. |
 
 ### Cost anti-patterns to avoid during optimization
 

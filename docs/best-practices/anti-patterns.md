@@ -58,10 +58,10 @@ az account show --output table
 | Command / Parameter | Purpose |
 |---|---|
 | `az extension add` | Installs or upgrades the Container Apps extension required by the examples. |
-| `--name` | Selects the resource named by the command for this check. |
+| `--name` | Identifies the `containerapp` CLI extension to install or upgrade. |
 | `--upgrade` | Replaces an older Container Apps extension with the current installed version. |
 | `az account show` | Shows the active Azure subscription and tenant before the review commands run. |
-| `--output` | Returns the result in the format needed by this review step. |
+| `--output` | Formats the active account details as a table for the prerequisite check. |
 
 ## Recommended Practices
 
@@ -100,10 +100,10 @@ az containerapp update \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update` | Updates the selected Container App configuration. |
+| `az containerapp update` | Deploys the mutable `latest` tag to illustrate the release anti-pattern. |
 | `--image` | Selects the exact container image tag deployed by this example. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--name` | Identifies the Container App receiving the mutable image tag. |
+| `--resource-group` | Locates that app in the production resource group. |
 
 Better pattern:
 
@@ -116,10 +116,10 @@ az containerapp update \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update` | Updates the selected Container App configuration. |
+| `az containerapp update` | Deploys an immutable version tag for reproducible revisions and rollback. |
 | `--image` | Selects the exact container image tag deployed by this example. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--name` | Identifies the Container App receiving the versioned image. |
+| `--resource-group` | Locates that app in the production resource group. |
 
 ### 2) Unnecessarily large container images
 
@@ -157,10 +157,10 @@ az containerapp update \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update` | Updates the selected Container App configuration. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
-| `--yaml` | Applies the YAML template that contains the documented app configuration. |
+| `az containerapp update` | Applies the template that defines explicit startup, readiness, and liveness probes. |
+| `--name` | Identifies the Container App whose probe configuration is being corrected. |
+| `--resource-group` | Locates that app in the production resource group. |
+| `--yaml` | Loads the probe definitions from `containerapp-probes.yaml`. |
 
 !!! note "Probe design"
     Readiness should represent dependency readiness for serving traffic. Liveness should represent process health, not external dependency state.
@@ -180,10 +180,10 @@ az containerapp update \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update` | Updates the selected Container App configuration. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
-| `--set-env-vars` | Adds or updates the documented environment variable; `secretref:` resolves a Container Apps secret. |
+| `az containerapp update` | Demonstrates the unsafe direct database credential in an environment variable. |
+| `--name` | Identifies the Container App receiving the unsafe plain-text value. |
+| `--resource-group` | Locates that app in the production resource group. |
+| `--set-env-vars` | Sets `DATABASE_URL` directly, illustrating the secret-exposure anti-pattern. |
 
 Better pattern using platform secret abstraction:
 
@@ -202,11 +202,11 @@ az containerapp update \
 | Command / Parameter | Purpose |
 |---|---|
 | `az containerapp secret set` | Creates or updates the named Container Apps secret values. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--name` | Identifies the Container App that will own `db-connection`. |
+| `--resource-group` | Locates that app in the production resource group. |
 | `--secrets` | Creates or updates the named secret value referenced by the app. |
-| `az containerapp update` | Updates the selected Container App configuration. |
-| `--set-env-vars` | Adds or updates the documented environment variable; `secretref:` resolves a Container Apps secret. |
+| `az containerapp update` | Replaces the direct database value with a Container Apps secret reference. |
+| `--set-env-vars` | Sets `DATABASE_URL` to resolve `secretref:db-connection` at runtime. |
 
 ### 5) Using ACR admin credentials instead of managed identity
 
@@ -230,8 +230,8 @@ az containerapp identity assign \
 | Command / Parameter | Purpose |
 |---|---|
 | `az containerapp identity assign` | Assigns a managed identity to the selected Container App. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--name` | Identifies the Container App that receives the managed identity. |
+| `--resource-group` | Locates that app in the production resource group. |
 | `--system-assigned` | Enables the app-owned system-assigned managed identity. |
 
 ### 6) `minReplicas=0` on latency-sensitive APIs
@@ -249,10 +249,10 @@ az containerapp update \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update` | Updates the selected Container App configuration. |
+| `az containerapp update` | Allows the latency-sensitive API to scale to zero, illustrating the cold-start anti-pattern. |
 | `--min-replicas` | Sets the app replica floor used for the latency or cost decision. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--name` | Identifies the latency-sensitive Container App. |
+| `--resource-group` | Locates that app in the production resource group. |
 
 Better pattern:
 
@@ -266,11 +266,11 @@ az containerapp update \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update` | Updates the selected Container App configuration. |
+| `az containerapp update` | Keeps one warm replica while allowing bounded scale-out for the API. |
 | `--max-replicas` | Caps app scale-out at the documented replica count. |
 | `--min-replicas` | Sets the app replica floor used for the latency or cost decision. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--name` | Identifies the latency-sensitive Container App. |
+| `--resource-group` | Locates that app in the production resource group. |
 
 ### 7) Expecting progressive-delivery controls from single revision mode
 
@@ -342,8 +342,8 @@ az containerapp create \
 | `--environment` | Selects the Container Apps environment that hosts the app or job. |
 | `--image` | Selects the exact container image tag deployed by this example. |
 | `--ingress` | Makes the example app externally reachable through managed ingress. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--name` | Assigns the externally reachable app's resource name. |
+| `--resource-group` | Creates the app in the production resource group. |
 | `--target-port` | Routes managed ingress to the application listener on port 8000. |
 
 Validate ingress state:
@@ -358,11 +358,11 @@ az containerapp show \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show` | Reads the selected Container App settings for the documented verification. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--output` | Returns the result in the format needed by this review step. |
-| `--query` | Extracts only the fields needed for this documented verification. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `az containerapp show` | Reads the app configuration to verify that managed ingress is present. |
+| `--name` | Identifies the externally consumed Container App. |
+| `--output` | Emits the ingress object as JSON for configuration review. |
+| `--query` | Selects `properties.configuration.ingress` from the app resource. |
+| `--resource-group` | Locates the app in the production resource group. |
 
 ### 11) Using Container Apps for persistent local-state workloads
 
@@ -395,11 +395,11 @@ az containerapp show \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show` | Reads the selected Container App settings for the documented verification. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--output` | Returns the result in the format needed by this review step. |
-| `--query` | Extracts only the fields needed for this documented verification. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `az containerapp show` | Reads configured CPU and memory before right-sizing the app. |
+| `--name` | Identifies the Container App being reviewed for over-provisioning. |
+| `--output` | Emits the resource settings as JSON for comparison with measured usage. |
+| `--query` | Selects the first container's configured resource object. |
+| `--resource-group` | Locates the app in the production resource group. |
 
 Better approach:
 
@@ -457,10 +457,10 @@ az containerapp job create \
 | `az containerapp job create` | Creates the database-migration job with its execution limits and image. |
 | `--environment` | Selects the Container Apps environment that hosts the app or job. |
 | `--image` | Selects the exact container image tag deployed by this example. |
-| `--name` | Selects the resource named by the command for this check. |
+| `--name` | Assigns the controlled database-migration job name. |
 | `--replica-retry-limit` | Prevents an unsafe automatic rerun of the migration job. |
 | `--replica-timeout` | Limits each migration-job replica to the documented execution window. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--resource-group` | Creates the migration job in the production resource group. |
 | `--trigger-type` | Selects manual execution for the controlled migration job. |
 
 ### 15) Ignoring scale rule interaction and precedence
@@ -491,11 +491,11 @@ az containerapp show \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show` | Reads the selected Container App settings for the documented verification. |
-| `--name` | Selects the resource named by the command for this check. |
-| `--output` | Returns the result in the format needed by this review step. |
-| `--query` | Extracts only the fields needed for this documented verification. |
-| `--resource-group` | Selects the resource group containing the resource under review. |
+| `az containerapp show` | Reads the app's complete scaling configuration for scaler-interaction review. |
+| `--name` | Identifies the Container App whose scale rules are being inspected. |
+| `--output` | Emits the scale configuration as JSON for rule-by-rule review. |
+| `--query` | Selects `properties.template.scale`, including replica bounds and custom rules. |
+| `--resource-group` | Locates the app in the production resource group. |
 
 ### Anti-pattern severity and impact matrix
 
