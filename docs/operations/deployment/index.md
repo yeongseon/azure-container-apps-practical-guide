@@ -1,4 +1,5 @@
 ---
+description: Azure Container Apps deployment workflows for source, artifact, image, and infrastructure-as-code releases with revision-aware guardrails.
 hide:
   - toc
 content_sources:
@@ -7,7 +8,9 @@ content_sources:
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/
+        - https://learn.microsoft.com/en-us/azure/container-apps/containerapp-up
+        - https://learn.microsoft.com/en-us/azure/container-apps/deploy-artifact
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
     - id: deployment-workflow-and-release-guardrails
       type: flowchart
       source: mslearn-adapted
@@ -55,25 +58,36 @@ This guide summarizes practical deployment workflows for Azure Container Apps ac
 
 ## Deployment Methods
 
-Azure Container Apps supports four deployment methods:
+This guide compares four deployment entry paths. CI/CD can orchestrate any of them rather than forming a fifth platform deployment primitive.
 
 <!-- diagram-id: deployment-methods -->
 ```mermaid
-flowchart LR
-    subgraph "Source-Based"
-        A[Source Code<br/>--source] --> B[Cloud Build]
-        C[Artifact<br/>--artifact] --> B
-    end
-    subgraph "Image-Based"
-        D[Container Image<br/>--image] --> E[Pull from Registry]
-    end
-    subgraph "IaC"
-        F[Bicep / ARM] --> G[Declarative Deploy]
-    end
-    B --> H[New Revision]
-    E --> H
-    G --> H
+flowchart TD
+    accTitle: Deployment entry paths into an Azure Container App
+    accDescr: An operator or CI pipeline selects source, Java artifact, prebuilt image, or infrastructure as code. Source and artifact paths build an image before deployment, while image and infrastructure paths reference an image directly. A revision-scope template change creates a new revision.
+    ACTOR["Operator or CI/CD pipeline"]
+    SOURCE["Local source<br/>az containerapp up --source"]
+    ARTIFACT["Java artifact<br/>az containerapp up --artifact"]
+    IMAGE["Prebuilt image<br/>create or update --image"]
+    IAC["Bicep or ARM<br/>declarative deployment"]
+    BUILD["Build image<br/>and publish to registry"]
+    APPLY["Apply Container App<br/>configuration and image reference"]
+    APP["Container app"]
+    REVISION["New revision only when<br/>revision-scope template changes"]
+    ACTOR --> SOURCE
+    ACTOR --> ARTIFACT
+    ACTOR --> IMAGE
+    ACTOR --> IAC
+    SOURCE --> BUILD
+    ARTIFACT --> BUILD
+    BUILD --> APPLY
+    IMAGE --> APPLY
+    IAC --> APPLY
+    APPLY --> APP
+    APP -.->|"Revision-scope change"| REVISION
 ```
+
+*Figure: The paths differ in where image build and configuration control occur. Deploying does not always create a revision; only revision-scope changes do.*
 
 ### Source Code Deployment
 
@@ -88,9 +102,14 @@ az containerapp up \
   --source "./apps/python"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp up ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp up` | Builds or selects an image and deploys a Container App. |
+| `--environment` | Selects the Container Apps environment. |
+| `--location` | Selects the Azure region. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group. |
+| `--source` | Selects the local source directory to build and deploy. |
 
 !!! tip "When to use source deploy"
     Best for rapid prototyping and development. The platform auto-detects the language runtime and builds the image for you.
@@ -108,9 +127,14 @@ az containerapp up \
   --artifact "./target/myapp.jar"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp up --artifact` | Deploys a Java artifact (JAR/WAR) without requiring a Dockerfile. |
+| `az containerapp up` | Builds or selects an image and deploys a Container App. |
+| `--artifact` | Selects the local Java artifact to deploy. |
+| `--environment` | Selects the Container Apps environment. |
+| `--location` | Selects the Azure region. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group. |
 
 Supported artifact types:
 
@@ -142,9 +166,15 @@ az containerapp update \
   --image "$ACR_NAME.azurecr.io/$APP_NAME:$IMAGE_TAG"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az acr build` | Builds an image in Azure Container Registry and pushes the tagged result. |
+| `--file` | Selects the Dockerfile used for the build. |
+| `--image` | Selects the container image or output image tag. |
+| `--registry` | Selects the Azure Container Registry. |
+| `az containerapp update` | Updates the existing Container App. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group. |
 
 Prefer immutable tags for release traceability, and maintain a stable alias tag only for non-production testing.
 
@@ -159,9 +189,12 @@ az deployment group create \
   --parameters "baseName=myapp" "location=$LOCATION"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az deployment group create ...` | Deploys the Bicep or ARM template into the target resource group. |
+| `az deployment group create` | Deploys a Bicep or ARM template to a resource group. |
+| `--parameters` | Supplies template parameter values. |
+| `--resource-group` | Selects the resource group. |
+| `--template-file` | Selects the Bicep or ARM template file. |
 
 Use `what-if` before production applies:
 
@@ -172,9 +205,12 @@ az deployment group what-if \
   --parameters "baseName=myapp" "location=$LOCATION"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az deployment group what-if ...` | Previews resource changes before deployment. |
+| `az deployment group what-if` | Previews resource-group deployment changes. |
+| `--parameters` | Supplies template parameter values. |
+| `--resource-group` | Selects the resource group. |
+| `--template-file` | Selects the Bicep or ARM template file. |
 
 !!! warning "Run what-if before production IaC applies"
     `az deployment group what-if` should be mandatory for production environments to prevent accidental networking, identity, or ingress drift.
@@ -214,9 +250,12 @@ az containerapp ingress traffic set \
   --revision-weight "$APP_NAME--new-rev=20" "$APP_NAME--stable-rev=80"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp ingress traffic set` | Splits traffic between revisions by percentage for progressive rollout. |
+| `az containerapp ingress traffic set` | Sets revision or label traffic weights. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group. |
+| `--revision-weight` | Assigns traffic percentages by revision name. |
 
 ### Deployment Labels (Preview)
 
@@ -231,9 +270,13 @@ az containerapp revision label add \
   --revision "$APP_NAME--new-rev"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp revision label add` | Assigns a named label to a specific revision for dedicated URL routing. |
+| `az containerapp revision label add` | Assigns a revision label to a specific revision. |
+| `--label` | Sets the revision label name. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group. |
+| `--revision` | Selects a specific revision. |
 
 The labeled revision becomes accessible at `<label>.<app-fqdn>` for testing before promoting traffic.
 
@@ -250,9 +293,12 @@ az containerapp ingress traffic set \
   --revision-weight "$APP_NAME--stable-rev=100"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp ingress traffic set` | Routes 100% traffic back to the stable revision for quick rollback. |
+| `az containerapp ingress traffic set` | Sets revision or label traffic weights. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group. |
+| `--revision-weight` | Assigns traffic percentages by revision name. |
 
 ### Reactivate a Deactivated Revision
 
@@ -265,9 +311,12 @@ az containerapp revision activate \
   --revision "$APP_NAME--stable-rev"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp revision activate` | Reactivates a previously deactivated revision so it can receive traffic. |
+| `az containerapp revision activate` | Activates a specific revision. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group. |
+| `--revision` | Selects a specific revision. |
 
 ### Redeploy a Known-Good Image
 
@@ -278,9 +327,12 @@ az containerapp update \
   --image "$ACR_NAME.azurecr.io/$APP_NAME:last-known-good"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update --image` | Redeploys the app with a known-good image tag to create a new stable revision. |
+| `az containerapp update` | Updates the existing Container App. |
+| `--image` | Selects the container image or output image tag. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group. |
 
 ## Inactive Revision Cleanup
 
@@ -293,27 +345,38 @@ az containerapp update \
   --max-inactive-revisions 5
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update --max-inactive-revisions` | Sets the maximum number of inactive revisions to retain. |
+| `az containerapp update` | Updates the existing Container App. |
+| `--max-inactive-revisions` | Sets the maximum retained inactive revisions. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group. |
 
 !!! tip "Revision cleanup"
     Setting `--max-inactive-revisions` automatically purges the oldest inactive revisions when the count exceeds the limit. This does not affect active revisions receiving traffic.
 
 ## Deployment Workflow and Release Guardrails
 
+The gated workflow below requires **multiple revision mode** with ingress traffic pinned to the stable revision. Single revision mode automatically moves traffic after platform readiness succeeds, so it cannot hold the candidate behind the later smoke-test and SLO gate.
+
 <!-- diagram-id: deployment-workflow-and-release-guardrails -->
 ```mermaid
 flowchart TD
-    A[Commit Merged] --> B[Build and Test]
-    B --> C[Push Immutable Image to ACR]
-    C --> D[Deploy New Revision]
-    D --> E[Run Health and SLO Checks]
-    E --> F{Healthy?}
-    F -->|Yes| G[Promote Traffic]
-    F -->|No| H[Rollback Traffic]
-    H --> I[Open Incident and Fix]
+    accTitle: Gate a revision release before traffic promotion
+    accDescr: In multiple revision mode with traffic pinned to stable, a merged change is tested and published as an immutable image, then deployed as a zero-traffic revision candidate. Startup and readiness must succeed before release checks. Failed readiness leaves the stable route in place; failed release checks keep or restore stable traffic; passed checks permit controlled promotion.
+    MODE["Multiple revision mode<br/>stable traffic pinned"] --> COMMIT["Merge reviewed change"]
+    COMMIT --> BUILD["Build, test, scan,<br/>and publish immutable image"]
+    BUILD --> DEPLOY["Deploy revision candidate<br/>with stable route retained"]
+    DEPLOY --> READY{"Startup and readiness<br/>checks succeed?"}
+    READY -->|"No"| BLOCK["Keep existing route<br/>inspect failed candidate"]
+    READY -->|"Yes"| VALIDATE["Run smoke tests and<br/>revision-specific SLO checks"]
+    VALIDATE --> GATE{"Release gates pass?"}
+    GATE -->|"No"| ROLLBACK["Restore stable traffic<br/>open incident and fix"]
+    GATE -->|"Yes"| PROMOTE["Promote traffic<br/>in controlled steps"]
+    PROMOTE --> CONFIDENCE["Observe confidence window<br/>retain rollback path"]
 ```
+
+*Figure: Platform readiness and operator-defined release gates are separate decisions in multiple revision mode. Do not configure this flow with `latestRevision: true`; keep ingress traffic pinned to the stable revision until the later gate approves promotion.*
 
 | Deployment Method | Strength | Tradeoff | Best Operational Use |
 |---|---|---|---|
@@ -358,9 +421,17 @@ az containerapp revision list \
   --output table
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az acr build ...` | Builds and pushes the container image to Azure Container Registry. |
+| `az acr build` | Builds an image in Azure Container Registry and pushes the tagged result. |
+| `--file` | Selects the Dockerfile used for the build. |
+| `--image` | Selects the container image or output image tag. |
+| `--registry` | Selects the Azure Container Registry. |
+| `az containerapp update` | Updates the existing Container App. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group. |
+| `az containerapp revision list` | Lists revisions for the selected Container App. |
+| `--output` | Selects the command output format. |
 
 ### Post-Deployment Acceptance Checks
 
@@ -377,9 +448,15 @@ az containerapp ingress traffic show \
   --output table
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Reads Container App logs. |
+| `--follow` | Controls whether log output continues streaming. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group. |
+| `--type` | Selects the log type. |
+| `az containerapp ingress traffic show` | Shows the current ingress traffic allocation. |
+| `--output` | Selects the command output format. |
 
 ## See Also
 

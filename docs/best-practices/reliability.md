@@ -85,13 +85,20 @@ Do not reuse one endpoint for all three unless behavior is intentionally identic
 <!-- diagram-id: do-not-reuse-one-endpoint-for -->
 ```mermaid
 flowchart TD
-    S[Container Start] --> SP[Startup Probe]
-    SP -->|Pass| R[Readiness Probe]
-    R -->|Pass| T[Traffic Eligible]
-    R -->|Fail| NT[No Traffic]
-    T --> L[Liveness Probe]
-    L -->|Fail Threshold Reached| RS[Container Restart]
+    accTitle: Keep startup, readiness, and liveness as separate reliability signals
+    accDescr: Startup protects bootstrap and can restart a container after its failure threshold. Once startup succeeds, readiness controls whether requests reach the replica while liveness independently decides whether the running process should restart.
+    START["Container process starts"] --> STARTUP["Startup endpoint<br/>bootstrap complete?"]
+    STARTUP -->|"Failure threshold"| RESTART["Restart container"]
+    STARTUP -->|"Success"| RUNNING["Normal probe phase"]
+    RUNNING --> READY["Readiness endpoint<br/>can serve now?"]
+    RUNNING --> LIVE["Liveness endpoint<br/>process healthy?"]
+    READY -->|"Success"| ELIGIBLE["Replica eligible<br/>for requests"]
+    READY -->|"Failure"| REMOVE["Remove replica<br/>from request routing"]
+    LIVE -->|"Success"| RUNNING
+    LIVE -->|"Failure threshold"| RESTART
 ```
+
+*Figure: The three probe types answer different questions. Separate endpoints are a design recommendation when those questions require different checks; Microsoft Learn does not require three distinct paths.*
 
 Operational guidance:
 

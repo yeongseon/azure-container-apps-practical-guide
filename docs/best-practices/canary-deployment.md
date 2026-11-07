@@ -39,16 +39,22 @@ Canary is useful when you want production confidence without a binary full cutov
 <!-- diagram-id: staged-canary-promotion -->
 ```mermaid
 flowchart TD
-    A[Deploy canary revision] --> B[Route 5 percent]
-    B --> C[Check health and telemetry]
-    C --> D{Pass gates?}
-    D -->|Yes| E[Increase to 20 percent]
-    E --> F[Re-check gates]
-    F --> G{Pass gates?}
-    G -->|Yes| H[Promote to 100 percent]
-    D -->|No| I[Rollback to stable]
-    G -->|No| I
+    accTitle: Promote a canary revision through measured traffic stages
+    accDescr: In multiple revision mode, a new canary first becomes ready with no production traffic. Managed ingress then sends a small weighted share to it. Failed release gates restore all traffic to stable; passed gates increase the canary share until promotion is complete.
+    STABLE["Stable revision<br/>serves production"] --> DEPLOY["Deploy canary revision<br/>with zero traffic"]
+    DEPLOY --> READY{"Startup and readiness<br/>checks succeed?"}
+    READY -->|"No"| HOLD["Do not shift traffic<br/>investigate canary"]
+    READY -->|"Yes"| WEIGHT["Set ingress weights<br/>stable 95; canary 5"]
+    WEIGHT --> OBSERVE["Measure revision-specific<br/>health, errors, and latency"]
+    OBSERVE --> GATE{"Release gates pass?"}
+    GATE -->|"No"| ROLLBACK["Restore stable 100<br/>canary 0"]
+    GATE -->|"Yes"| COMPLETE{"Canary at 100?"}
+    COMPLETE -->|"No"| INCREASE["Increase canary weight<br/>weights still total 100"]
+    INCREASE --> OBSERVE
+    COMPLETE -->|"Yes"| PROMOTE["Observe confidence window<br/>then retire stable"]
 ```
+
+*Figure: Traffic weights are ingress configuration and must total 100 percent. The percentages are operator-selected rollout stages, not service defaults.*
 
 ## Recommended Practices
 
@@ -68,9 +74,12 @@ az containerapp ingress traffic set \
   --revision-weight "$APP_NAME--stable=95" "$APP_NAME--canary=5"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp ingress traffic set` | Sets revision or label traffic weights. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group. |
+| `--revision-weight` | Assigns traffic percentages by revision name. |
 
 ### 2. Put metric gates between increments
 
@@ -105,9 +114,12 @@ az containerapp ingress traffic set \
   --revision-weight "$APP_NAME--stable=0" "$APP_NAME--canary=100"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp ingress traffic set` | Sets revision or label traffic weights. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group. |
+| `--revision-weight` | Assigns traffic percentages by revision name. |
 
 ### 5. Use infrastructure code for the baseline, not each promotion step
 

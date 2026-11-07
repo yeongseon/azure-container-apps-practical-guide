@@ -6,11 +6,14 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/containers
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
     - id: probe-design-in-container-apps-should
       type: flowchart
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/containers
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
 content_validation:
   status: verified
   last_reviewed: 2026-09-11
@@ -54,32 +57,44 @@ az acr show --name "$ACR_NAME" --resource-group "$RG" --output table
 az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --output table
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+| `az extension add` | Installs or updates an Azure CLI extension. |
+| `--name` | Selects the named Azure resource. |
+| `--upgrade` | Upgrades the extension when an older version exists. |
+| `az account show` | Shows the active Azure account context. |
+| `--output` | Selects the command output format. |
+| `az acr show` | Shows the selected Azure Container Registry. |
+| `--resource-group` | Selects the resource group. |
+| `az containerapp env show` | Shows the selected Container Apps environment. |
 
 ## Recommended Practices
 
 ### Design for the Azure Container Apps execution model
 
-In Azure Container Apps, revision readiness gates traffic and scaler behavior. Container design directly affects whether revisions become healthy, scale correctly, and recover quickly.
+In Azure Container Apps, startup and readiness results contribute to whether a new revision becomes ready for traffic. Container design directly affects whether revisions become healthy, scale correctly, and recover quickly.
 
 Use these design assumptions:
 
-1. Every deployment creates a revision candidate.
-2. A revision must pass startup and readiness checks before it can safely carry production traffic.
+1. A revision-scope template change creates a revision candidate.
+2. A new revision becomes ready after provisioning, scaling, and successful startup and readiness checks on its replicas.
 3. Bad container defaults (slow startup, missing probe path, unhandled SIGTERM, noisy logs) become deployment incidents.
 
 <!-- diagram-id: bad-container-defaults-slow-startup-missing -->
 ```mermaid
 flowchart TD
-    B[Build Image] --> R[Create Revision]
-    R --> S[Container Starts]
-    S --> P[Startup and Readiness Probes]
-    P -->|Pass| T[Traffic Eligible]
-    P -->|Fail| F[Revision Failed]
-    T --> O[Observe Logs and Metrics]
+    accTitle: Move a revision candidate through startup and readiness gates
+    accDescr: An immutable image and revision-scope configuration create a revision candidate. Replicas start and run startup and readiness probes. Passing replicas allow the revision to become ready for routing; failures keep the candidate from promotion while the previous route can remain in place.
+    IMAGE["Build and publish<br/>immutable image"] --> REV["Apply revision-scope change<br/>create revision candidate"]
+    REV --> START["Provision and start<br/>revision replicas"]
+    START --> PROBES["Run startup and<br/>readiness probes"]
+    PROBES --> READY{"Required replicas ready?"}
+    READY -->|"No"| BLOCK["Do not promote candidate<br/>inspect logs and probe events"]
+    READY -->|"Yes"| ROUTE["Revision ready<br/>eligible for routing"]
+    ROUTE --> OBSERVE["Observe revision-level<br/>logs, metrics, and requests"]
 ```
+
+*Figure: Probe success is part of revision readiness; it is not the only step. Routing behavior then depends on revision mode and traffic configuration.*
 
 ### Multi-stage builds to reduce pull and cold-start time
 
@@ -181,22 +196,27 @@ Probe design in Container Apps should represent actual lifecycle intent.
 
 | Probe Type | Purpose | Endpoint Design | Failure Effect |
 |---|---|---|---|
-| **Startup** | Protect slow initialization from premature restart | Return 200 after all boot tasks complete | Container restarted before ready |
-| **Readiness** | Control when traffic can reach the revision | Return 200 only when serving is safe | Traffic sent to unready replica |
-| **Liveness** | Restart hung processes after running state | Return 200 if process loop is healthy | Stuck replica stays in rotation |
+| **Startup** | Protect slow initialization from premature restart | Return 200 after all boot tasks complete | Container restarts after the failure threshold |
+| **Readiness** | Control when traffic can reach the revision | Return 200 only when serving is safe | Replica is removed from routing; the revision appears unhealthy when any replica fails readiness |
+| **Liveness** | Restart hung processes after running state | Return 200 if process loop is healthy | Container restarts after the failure threshold |
 
 <!-- diagram-id: probe-design-in-container-apps-should -->
 ```mermaid
 flowchart TD
-    S[Container Starts] --> SP[Startup Probe]
-    SP -->|Pass| RP[Readiness Probe]
-    SP -->|Fail x threshold| RS[Container Restarted]
-    RP -->|Pass| TR[Traffic Routed]
-    RP -->|Fail| NR[No Traffic]
-    TR --> LP[Liveness Probe]
-    LP -->|Pass| TR
-    LP -->|Fail x threshold| RS
+    accTitle: Use each health probe for its distinct lifecycle decision
+    accDescr: The startup probe protects initialization and restarts the container after its failure threshold. After startup succeeds, readiness controls request eligibility while liveness independently decides whether the running container must restart.
+    START["Container process starts"] --> STARTUP["Startup probe<br/>bootstrap complete?"]
+    STARTUP -->|"Failure threshold"| RESTART["Restart container"]
+    STARTUP -->|"Success"| RUNNING["Normal probe phase"]
+    RUNNING --> READY["Readiness probe<br/>safe to serve now?"]
+    RUNNING --> LIVE["Liveness probe<br/>process responsive?"]
+    READY -->|"Success"| TRAFFIC["Replica eligible<br/>for requests"]
+    READY -->|"Failure"| NOTRAFFIC["Remove replica<br/>from request routing"]
+    LIVE -->|"Success"| RUNNING
+    LIVE -->|"Failure threshold"| RESTART
 ```
+
+*Figure: Readiness and liveness serve different decisions after startup; they are not sequential transport hops. Probe paths may be separate when their health criteria differ.*
 
 Use a YAML template for probes (the probe-specific CLI flags are not supported in current `az containerapp create`).
 
@@ -254,9 +274,21 @@ az containerapp update \
   --yaml "probes.yaml"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp create ...` | Creates the Container App with the documented image, ingress, scale, and environment settings. |
+| `az containerapp create` | Creates the Container App with the specified runtime configuration. |
+| `--environment` | Selects the Container Apps environment. |
+| `--image` | Selects the container image or output image tag. |
+| `--ingress` | Sets the app ingress visibility. |
+| `--max-replicas` | Sets the maximum replica count. |
+| `--min-replicas` | Sets the minimum replica count. |
+| `--name` | Selects the named Azure resource. |
+| `--registry-identity` | Selects the identity used to authenticate to the registry. |
+| `--registry-server` | Selects the container registry server. |
+| `--resource-group` | Selects the resource group. |
+| `--target-port` | Sets the application ingress target port. |
+| `az containerapp update` | Updates the existing Container App. |
+| `--yaml` | Applies configuration from the selected YAML file. |
 
 Probe tuning guidance:
 
@@ -302,9 +334,14 @@ az containerapp revision list \
   --output table
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Shows the selected Container App configuration. |
+| `--name` | Selects the named Azure resource. |
+| `--query` | Projects selected fields from the command response. |
+| `--resource-group` | Selects the resource group. |
+| `az containerapp revision list` | Lists revisions for the selected Container App. |
+| `--output` | Selects the command output format. |
 
 ### Implement SIGTERM-aware graceful shutdown
 
@@ -395,11 +432,15 @@ az containerapp update \
   --replace-env-vars "DB_PASSWORD=secretref:db-password" "API_KEY=secretref:api-key"
 ```
 
-| Command | Purpose |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp secret set ...` | Creates two platform-managed secrets so credentials are stored outside the revision template and can be rotated without rebuilding the image. |
-| `az containerapp update ... --set-env-vars ... --replace-env-vars ...` | Applies non-sensitive settings as plain environment variables while remapping the sensitive ones to `secretref:` values, which is the separation pattern this section recommends. |
-| `--replace-env-vars "DB_PASSWORD=secretref:db-password" "API_KEY=secretref:api-key"` | Replaces any existing plain-text definitions for those variables so the container reads secrets from the Container Apps secret store instead of stale revision config. |
+| `az containerapp secret set` | Creates or updates Container App secrets. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group. |
+| `--secrets` | Supplies secret names and values. |
+| `az containerapp update` | Updates the existing Container App. |
+| `--replace-env-vars` | Replaces the complete environment-variable set. |
+| `--set-env-vars` | Adds or updates environment variables. |
 
 Separation policy:
 
@@ -437,12 +478,12 @@ az containerapp update \
   --image "$IMAGE_NAME"
 ```
 
-| Command | Purpose |
+| Command / Parameter | Purpose |
 |---|---|
-| `export IMAGE_TAG=...` / `export IMAGE_NAME=...` | Derives an immutable image reference from the current Git commit so the deployed revision can be traced back to a specific source version. |
-| `docker build --tag "$IMAGE_NAME" .` | Produces the exact runtime image that the later Container Apps revision will reference, keeping local build output aligned with the immutable tag policy. |
-| `docker push "$IMAGE_NAME"` | Publishes that tagged image to ACR before the app update, which avoids pointing a revision at an image that does not exist in the registry yet. |
-| `az containerapp update --image "$IMAGE_NAME"` | Tells Container Apps to create a new revision from the immutable image you just built and pushed, instead of relying on a mutable tag such as `latest`. |
+| `az containerapp update` | Updates the existing Container App. |
+| `--image` | Selects the container image or output image tag. |
+| `--name` | Selects the named Azure resource. |
+| `--resource-group` | Selects the resource group. |
 
 ### Validate container behavior before revision promotion
 

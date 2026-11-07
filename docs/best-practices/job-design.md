@@ -38,13 +38,25 @@ Jobs concentrate work into short windows. That makes mistakes expensive:
 <!-- diagram-id: resilient-job-design-loop -->
 ```mermaid
 flowchart TD
-    A[Define bounded unit of work] --> B[Make writes idempotent]
-    B --> C[Add timeout and retry guardrails]
-    C --> D[Emit structured logs and traces]
-    D --> E[Measure success rate and duration]
-    E --> F[Adjust resources and parallelism]
-    F --> A
+    accTitle: Design a Container Apps Job for safe retries and measurable outcomes
+    accDescr: A bounded, idempotent unit of work runs with explicit timeout, retry, parallelism, and completion settings. A failed replica retries only within its limit; an exhausted execution is recorded for investigation or controlled replay. Telemetry feeds later tuning.
+    UNIT["Define bounded<br/>unit of work"] --> IDEMPOTENT["Make writes idempotent<br/>for at-least-once processing"]
+    IDEMPOTENT --> POLICY["Set replica timeout, retry limit,<br/>parallelism, and completion count"]
+    POLICY --> EXECUTE["Start execution replicas<br/>emit correlation telemetry"]
+    EXECUTE --> REPLICA{"Replica succeeds<br/>before timeout?"}
+    REPLICA -->|"No"| RETRY{"Replica retries remain?"}
+    RETRY -->|"Yes"| EXECUTE
+    RETRY -->|"No"| FAILED["Replica failed<br/>execution fails"]
+    REPLICA -->|"Yes"| COMPLETE{"Successful replicas reach<br/>completion count?"}
+    COMPLETE -->|"No"| EXECUTE
+    COMPLETE -->|"Yes"| SUCCESS["Record successful execution"]
+    FAILED --> MEASURE["Measure duration, failures,<br/>retries, and dependency load"]
+    SUCCESS --> MEASURE
+    MEASURE --> TUNE["Tune resources and policy<br/>without breaking idempotency"]
+    TUNE --> UNIT
 ```
+
+*Figure: `replicaRetryLimit` retries a failed replica, `replicaTimeout` bounds each replica's completion time, and `replicaCompletionCount` determines when the execution succeeds. Exhausting a failed replica's retries leads to execution failure; application design supplies idempotency, correlation, and safe replay behavior.*
 
 ## Recommended Practices
 

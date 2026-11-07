@@ -20,9 +20,9 @@ content_sources:
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/networking
         - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
-        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
+        - https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
     - id: choose-vnet-integration-when-private-networking
       type: flowchart
       source: mslearn-adapted
@@ -240,15 +240,34 @@ false
 
 ### How traffic split really behaves with Envoy
 
-Traffic weights are applied at ingress and route requests to active revisions.
+In multiple revision mode, traffic weights on app ingress distribute requests from the main app URL across active revisions. The configured weights must total 100 percent.
 
 <!-- diagram-id: traffic-weights-are-applied-at-ingress -->
 ```mermaid
-graph TD
-    C[Client Request] --> V[Envoy]
-    V -->|90%| R1[Revision A]
-    V -->|10%| R2[Revision B]
+flowchart TD
+    accTitle: Apply revision traffic weights at managed ingress
+    accDescr: A client sends requests to the main app URL. Managed ingress reads the app traffic configuration and routes a weighted share to each active revision. Revision labels provide separate revision-specific URLs and are not transport hops in this weighted path.
+    CLIENT["Client"]
+    CONFIG["App ingress traffic configuration<br/>revision A 90; revision B 10"]
+    subgraph ENV["Managed Container Apps environment"]
+        INGRESS["Managed ingress"]
+        APP["Container app<br/>multiple revision mode"]
+        REVA["Active revision A"]
+        REVB["Active revision B"]
+        REPLICASA["Revision A replicas"]
+        REPLICASB["Revision B replicas"]
+    end
+    CONFIG -.->|"Configure weights"| INGRESS
+    APP -.->|"Logical grouping"| REVA
+    APP -.->|"Logical grouping"| REVB
+    CLIENT ==>|"Requests to main app URL"| INGRESS
+    INGRESS ==>|"90 percent share"| REVA
+    INGRESS ==>|"10 percent share"| REVB
+    REVA ==>|"Serve requests"| REPLICASA
+    REVB ==>|"Serve requests"| REPLICASB
 ```
+
+*Figure: Thick arrows are request transport; dotted arrows are configuration or logical grouping. Percentages describe distribution over requests, not a fixed sequence or per-minute guarantee.*
 
 Operational implications:
 
