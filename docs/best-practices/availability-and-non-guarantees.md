@@ -16,7 +16,7 @@ content_validation:
   last_reviewed: 2026-11-08
   reviewer: agent
   core_claims:
-    - claim: Microsoft Learn documents that Container Apps performs replica placement via a platform scheduler across physical hosts, but does not document any per-replica node-placement contract or operator-facing control that would let an operator pin N replicas to N distinct physical nodes.
+    - claim: Microsoft Learn does not document a per-replica physical-host placement contract or an operator-facing control for pinning Container Apps replicas to distinct physical hosts.
       source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
       verified: true
     - claim: In a zone-redundant environment, Container Apps automatically schedules app replicas across availability zones, and Microsoft recommends at least two minimum replicas to ensure distribution across multiple zones.
@@ -87,15 +87,15 @@ Each subsection follows the pattern **Practice → Non-guarantee disclosure → 
 
 ### Claim 1: Replica node spread is best-effort, not guaranteed
 
-**Practice**: Set `minReplicas` to the number of independent failure domains you require, set CPU and memory `requests` and `limits` explicitly, and design the workload to tolerate the loss of any single replica.
+**Practice**: Size the replica floor for the capacity and load that must remain available during failures, retain the documented minimum of two replicas for distribution across multiple zones in a zone-redundant environment, and design the workload to tolerate individual replica loss. If the requirement is hard physical separation, use a platform offering explicit placement controls rather than inferring separation from replica count.
 
 **Non-guarantee disclosure**: Container Apps places replicas on physical hosts using a platform scheduler. The Microsoft Learn article on [reliability in Container Apps](https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps) documents that the scheduler distributes replicas across physical hosts; the article on [scaling in Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/scale-app) is the source for `minReplicas` / `maxReplicas` semantics. Neither article documents a per-replica node-placement contract or an operator-facing control that pins specific replicas to specific physical hosts. The absence-of-documentation framing is the binding one: an operator cannot point at a Microsoft Learn page that promises `N` replicas will land on `N` distinct nodes, so a production design that depends on that assumption is unsupported by the public platform contract. Explicit resource requests and limits give the scheduler more information for placement decisions, but they do not introduce a published placement guarantee.
 
 **Remediation pattern**:
 
 1. Set CPU and memory `requests` and `limits` explicitly on every container (do not rely on defaults). Explicit resource shape helps the scheduler make placement decisions, but Microsoft Learn does not describe it as a precondition for zone redundancy.
-2. Use `minReplicas >= 2` and pair it with a client-side retry layer (SDK retry policy, API gateway retry, or CDN-level retry). Single-replica designs have no failure-domain budget regardless of platform behavior.
-3. If the workload genuinely requires hard-isolated node placement (e.g., compliance requirement for physical separation), Container Apps is not the right platform — escalate to Azure Kubernetes Service with explicit node pool and anti-affinity rules.
+2. In a zone-redundant environment, retain `minReplicas >= 2` for the documented multi-zone distribution recommendation, then increase the floor according to measured surviving-capacity and peak-load requirements. Pair this design with a client-side retry layer (SDK retry policy, API gateway retry, or CDN-level retry).
+3. If the workload genuinely requires hard physical separation, choose a platform offering explicit placement controls. Container Apps does not expose a documented control that can prove this requirement from replica count alone.
 4. Add an alert on the [`Replicas` metric](../reference/metrics/container-app-metrics.md#replicas-replica-count) for the app dropping below `minReplicas` for more than one bucket. This is a **count-based secondary symptom alert**: the metric does not directly observe physical-host placement, so it cannot detect hidden host co-tenancy when the replica count stays at or above the floor. Use it to catch the subset of scheduler-driven re-placement events that take the count below `minReplicas`, not as proof of node spread.
 
 **Lab evidence**: A focused lab for Claim 1 is tracked separately in [issue #202](https://github.com/yeongseon/azure-container-apps-practical-guide/issues/202) and is not yet published. The planned lab uses `boot_id` and uptime monotonicity as proxy signals to compare Consumption-profile and Dedicated-D8-profile replica distribution at scale. When the lab ships, this cross-link will land here and the page-level `content_sources` justification will be updated to list it.
@@ -125,7 +125,7 @@ Each subsection follows the pattern **Practice → Non-guarantee disclosure → 
 **Remediation pattern**:
 
 1. Configure `terminationGracePeriodSeconds` to bracket the application's drain time, and ensure the application drains in-flight work before the grace period expires. In-flight requests that have not completed by the end of the grace period surface as client-visible failures. Container Apps follows the standard container-runtime lifecycle for graceful shutdown; the exact signal semantics are a runtime detail and are not the subject of a public contract specific to Container Apps.
-2. Configure `minReplicas` high enough that the loss of all replicas on a single physical host still leaves at least one replica serving traffic. With `minReplicas=3` and worst-case 2-of-3 co-tenancy (per Claim 1), the surviving 1 replica must absorb 100% of the load for the duration of the restart.
+2. Configure `minReplicas` so the replicas expected to remain available during a documented failure scenario can carry the required load with measured headroom. Do not use an assumed number of replicas per physical host in this calculation because Container Apps does not expose or guarantee that placement.
 3. Implement client-side retry with jitter for calls whose failure has user-visible impact. Correlate restart timestamps with maintenance history, application changes, and platform health; escalate when impact is unexplained or exceeds documented behavior.
 4. Configure an alert on the [`Replicas` metric](../reference/metrics/container-app-metrics.md#replicas-replica-count) dropping below `minReplicas` for more than 60 seconds. This is a **count-based secondary symptom alert**: the metric does not directly observe physical-host placement, so it can only catch a clustered restart that takes the replica count below the floor. A clustered restart that stays at or above `minReplicas` (because the platform replaces replicas as fast as it restarts them) will not trigger this alert.
 
@@ -171,7 +171,7 @@ Each anti-pattern below maps to one of the five claims above. The pattern is **a
 
 **Consequence**: A single physical-host fault takes out more than one replica simultaneously; surviving replicas absorb a load spike they were not capacity-planned for, and may themselves fail.
 
-**Fix**: Set `requests` and `limits` explicitly (improves scheduler placement), set `minReplicas` to at least one more than the failure-domain budget you require, and add a client-side retry layer.
+**Fix**: Set `requests` and `limits` explicitly, retain at least two minimum replicas for documented multi-zone distribution in a zone-redundant environment, and increase the floor based on surviving-capacity and peak-load tests. Add a client-side retry layer, and use a platform with explicit placement controls when hard physical separation is required.
 
 ### Mistake 2: Treating zone redundancy as zero-impact failover
 
@@ -213,7 +213,7 @@ Run this checklist before depending on any of the five contracts in production.
 
 - [ ] CPU and memory `requests` are set explicitly on every container (not relying on platform defaults).
 - [ ] CPU and memory `limits` are set explicitly on every container.
-- [ ] `minReplicas` is at least 2 (preferably 3 in a 3-zone region).
+- [ ] In a zone-redundant environment, `minReplicas` is at least 2, with any higher floor justified by surviving-capacity and peak-load tests rather than an assumed host count.
 - [ ] A secondary count-based alert is configured on the `Replicas` metric dropping below `minReplicas` (acknowledged: this alert cannot detect hidden host co-tenancy when the replica count stays at or above the floor).
 - [ ] A client-side retry layer (SDK retry, API gateway retry, or CDN retry) is in place.
 
@@ -229,7 +229,7 @@ Run this checklist before depending on any of the five contracts in production.
 
 - [ ] Application drains in-flight work in response to container-termination signals before the grace period expires.
 - [ ] `terminationGracePeriodSeconds` is set to bracket the application's drain time.
-- [ ] `minReplicas` is high enough that a 2-of-N co-tenant loss still leaves at least one replica serving traffic.
+- [ ] `minReplicas` is sized from the required surviving capacity and measured load for documented failure scenarios, without assuming a physical-host co-tenancy pattern.
 - [ ] A secondary count-based alert is configured on the `Replicas` metric for any sustained drop below `minReplicas` (acknowledged: this alert only catches clustered restarts that take the count below the floor; the metric does not directly observe physical-host placement).
 - [ ] The platform maintenance schedule is checked when investigating clustered restart events.
 
