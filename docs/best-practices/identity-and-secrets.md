@@ -8,6 +8,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
         - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
         - https://learn.microsoft.com/en-us/azure/container-apps/authentication
+        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
     - id: use-managed-identity-entra-authentication
       type: flowchart
       source: mslearn-adapted
@@ -15,6 +16,8 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
         - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
         - https://learn.microsoft.com/en-us/azure/container-apps/authentication
+        - https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication-managed-identity
 content_validation:
   status: verified
   last_reviewed: 2026-09-11
@@ -93,9 +96,12 @@ az containerapp identity assign \
   --system-assigned
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity assign` | Runs `az containerapp identity assign` for this documented operation. |
+| `--name` | Selects the named resource for this operation. |
+| `--resource-group` | Selects the resource group containing the resource. |
+| `--system-assigned` | Enables the system-assigned managed identity. |
 
 Verify principal creation:
 
@@ -107,9 +113,13 @@ az containerapp show \
   --output tsv
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Runs `az containerapp show` for this documented operation. |
+| `--name` | Selects the named resource for this operation. |
+| `--output` | Chooses the response format for operator inspection. |
+| `--query` | Projects the relevant property from the command response. |
+| `--resource-group` | Selects the resource group containing the resource. |
 
 Expected output format:
 
@@ -128,9 +138,12 @@ az identity create \
   --location "$LOCATION"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az identity create ...` | Creates a user-assigned managed identity for image pulls or runtime access. |
+| `az identity create` | Runs `az identity create` for this documented operation. |
+| `--location` | Selects the Azure region for the resource. |
+| `--name` | Selects the named resource for this operation. |
+| `--resource-group` | Selects the resource group containing the resource. |
 
 Attach to app:
 
@@ -141,9 +154,12 @@ az containerapp identity assign \
   --user-assigned "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-aca-shared-pull"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity assign` | Runs `az containerapp identity assign` for this documented operation. |
+| `--name` | Selects the named resource for this operation. |
+| `--resource-group` | Selects the resource group containing the resource. |
+| `--user-assigned` | Assigns the specified user-assigned managed identity. |
 
 Governance pattern:
 
@@ -153,7 +169,7 @@ Governance pattern:
 
 ### Managed identity for ACR pull (never admin credentials)
 
-Disable ACR admin account in production and grant AcrPull to identity.
+Disable the ACR admin account in production and grant the identity the pull role that matches the registry's role-assignment mode. Use `AcrPull` for a registry that uses RBAC Registry Permissions. An ABAC-enabled registry does not honor `AcrPull`; use `Container Registry Repository Reader` and, when repository-level restriction is required, an ABAC condition.
 
 Get principal ID:
 
@@ -165,10 +181,13 @@ export PRINCIPAL_ID=$(az containerapp show \
   --output tsv)
 ```
 
-| Command | Purpose |
+| Command / Parameter | Purpose |
 |---|---|
-| `export PRINCIPAL_ID=$(az containerapp show ...)` | Captures the managed identity's Microsoft Entra object ID so later RBAC commands grant pull access to the app identity instead of to a human account or shared secret. |
-| `--query "identity.principalId" --output tsv` | Extracts only the principal ID value, which is the exact input `az role assignment create` expects for the `--assignee-object-id` parameter. |
+| `az containerapp show` | Runs `az containerapp show` for this documented operation. |
+| `--name` | Selects the named resource for this operation. |
+| `--output` | Chooses the response format for operator inspection. |
+| `--query` | Projects the relevant property from the command response. |
+| `--resource-group` | Selects the resource group containing the resource. |
 
 Get ACR resource ID:
 
@@ -180,12 +199,15 @@ export ACR_ID=$(az acr show \
   --output tsv)
 ```
 
-| Command | Purpose |
+| Command / Parameter | Purpose |
 |---|---|
-| `export ACR_ID=$(az acr show ...)` | Stores the registry resource ID that Azure RBAC uses as the scope for `AcrPull`, keeping the permission narrowly bound to the target ACR. |
-| `--query "id" --output tsv` | Returns the full ARM resource ID as a plain string so it can be passed directly into the role assignment command without manual editing. |
+| `az acr show` | Runs `az acr show` for this documented operation. |
+| `--name` | Selects the named resource for this operation. |
+| `--output` | Chooses the response format for operator inspection. |
+| `--query` | Projects the relevant property from the command response. |
+| `--resource-group` | Selects the resource group containing the resource. |
 
-Assign pull role:
+Assign the pull role for an RBAC-only registry:
 
 ```bash
 az role assignment create \
@@ -195,9 +217,15 @@ az role assignment create \
   --scope "$ACR_ID"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az role assignment create ...` | Grants the required Azure RBAC role at the documented scope. |
+| `az role assignment create` | Runs `az role assignment create` for this documented operation. |
+| `--assignee-object-id` | Selects the managed identity principal receiving the role. |
+| `--assignee-principal-type` | Declares the assignee principal type. |
+| `--role` | Selects the Azure RBAC role to assign. |
+| `--scope` | Restricts the operation to the named Azure resource scope. |
+
+For an ABAC-enabled registry, replace `AcrPull` with `Container Registry Repository Reader` and define the repository condition separately. Do not assign both roles as a generic workaround.
 
 Update app registry auth mode:
 
@@ -209,11 +237,13 @@ az containerapp registry set \
   --identity "system"
 ```
 
-| Command | Purpose |
+| Command / Parameter | Purpose |
 |---|---|
 | `az containerapp registry set` | Switches the app's image-pull configuration from secret-based registry auth to managed identity-based auth. |
-| `--server "$ACR_NAME.azurecr.io"` | Points the setting at the specific ACR login server the app pulls from, which matters when a workload uses more than one registry. |
-| `--identity "system"` | Tells Container Apps to present the app's system-assigned identity during image pulls, matching the RBAC setup from the previous step. |
+| `--identity` | Selects the managed identity used for authentication. |
+| `--name` | Selects the named resource for this operation. |
+| `--resource-group` | Selects the resource group containing the resource. |
+| `--server` | Selects the Azure Container Registry login server. |
 
 Validate repositories in the registry (PII scrubbed):
 
@@ -223,10 +253,11 @@ az acr repository list \
   --output json
 ```
 
-| Command | Purpose |
+| Command / Parameter | Purpose |
 |---|---|
-| `az acr repository list --name "$ACR_NAME" --output json` | Verifies that the registry is reachable and contains the expected repositories before you cut over image-pull authentication or troubleshoot missing images. |
-| `--output json` | Produces a machine-readable inventory that is easy to redact and compare during operational reviews. |
+| `az acr repository list` | Runs `az acr repository list` for this documented operation. |
+| `--name` | Selects the named resource for this operation. |
+| `--output` | Chooses the response format for operator inspection. |
 
 ```json
 [
@@ -263,9 +294,12 @@ az containerapp secret set \
   --secrets "db-password=keyvaultref:https://<key-vault-name>.vault.azure.net/secrets/sql-admin-password,identityref:system"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+| `az containerapp secret set` | Runs `az containerapp secret set` for this documented operation. |
+| `--name` | Selects the named resource for this operation. |
+| `--resource-group` | Selects the resource group containing the resource. |
+| `--secrets` | Defines or updates the named app-level secret. |
 
 Map secret to environment variable:
 
@@ -276,9 +310,12 @@ az containerapp update \
   --set-env-vars "DB_PASSWORD=secretref:db-password"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Runs `az containerapp update` for this documented operation. |
+| `--name` | Selects the named resource for this operation. |
+| `--resource-group` | Selects the resource group containing the resource. |
+| `--set-env-vars` | Adds or updates revision-scope environment variables. |
 
 ### Separate secret and config data clearly
 
@@ -310,9 +347,12 @@ az containerapp update \
   "STORAGE_TOKEN=secretref:storage-token"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Runs `az containerapp update` for this documented operation. |
+| `--name` | Selects the named resource for this operation. |
+| `--resource-group` | Selects the resource group containing the resource. |
+| `--set-env-vars` | Adds or updates revision-scope environment variables. |
 
 ### Scope identities per app unless sharing is required
 
@@ -332,16 +372,30 @@ Shared identity acceptable cases:
 
 ### Dapr secret store component pattern
 
-If you use Dapr, centralize runtime secret retrieval with a secret store component.
+If you use Dapr, centralize runtime secret retrieval with a secret store component. The component configuration tells the Dapr sidecar how to reach Key Vault; it is not another runtime proxy. The application calls the local Dapr secrets API, and the sidecar obtains an identity token before it requests the secret from Key Vault.
 
 <!-- diagram-id: if-you-use-dapr-centralize-runtime -->
 ```mermaid
-graph TD
-    A[Container App] --> D[Dapr Sidecar]
-    D --> S[Secret Store Component]
-    S --> K[Azure Key Vault]
-    A -.managed identity.-> E[Microsoft Entra ID]
+flowchart TD
+    accTitle: Dapr secret retrieval with managed identity
+    accDescr: The application calls its local Dapr sidecar. A secret store component configures the sidecar, which obtains a managed identity token from Microsoft Entra ID and then requests the secret from Key Vault. Key Vault returns the secret to the sidecar, which returns it to the application.
+    APP["Container app revision"]
+    DAPR["Dapr sidecar<br/>local secrets API"]
+    COMPONENT["Dapr secret store component<br/>Key Vault configuration"]
+    IDENTITY["Managed identity principal"]
+    ENTRA["Microsoft Entra ID"]
+    KV["Azure Key Vault"]
+    COMPONENT -.->|"Configures component access"| DAPR
+    IDENTITY -.->|"Identity associated with app"| DAPR
+    APP ==>|"Local secret request"| DAPR
+    DAPR ==>|"Token request"| ENTRA
+    ENTRA ==>|"Access token"| DAPR
+    DAPR ==>|"HTTPS secret request with token"| KV
+    KV ==>|"Secret value response"| DAPR
+    DAPR ==>|"Secret response"| APP
 ```
+
+*Figure: Runtime secret-retrieval flow. Thick arrows are request or response transport; dotted arrows are configuration or identity associations. Key Vault, Microsoft Entra ID, and the managed identity are separate Azure resources or identity objects, not components inside the Container Apps runtime. Dapr service invocation between two Dapr-enabled apps uses sidecar mTLS; this secrets-API flow does not claim that every direct application call is Dapr-protected.*
 
 Operational benefits:
 
@@ -349,51 +403,79 @@ Operational benefits:
 - Supports policy-driven component configurations.
 - Reduces duplicated secret access logic in app code.
 
-### Rotate secrets without downtime using revisions
+### Rotate secrets with an explicit refresh or rollout action
 
-Use revision-based rollout, not in-place mutation under load.
+Choose the path that matches the secret reference:
 
-Recommended sequence:
+- **Versionless Key Vault reference:** Add the new Key Vault version. Container Apps retrieves the latest value within 30 minutes and automatically restarts active revisions that consume the secret through environment variables. Validate those restarted revisions; no `secret set` command or canary revision is required for the platform refresh path.
+- **Inline value or version-pinned Key Vault reference:** Update the app-level secret, then restart every active revision that must consume the new value. The secret update itself creates no revision.
+- **Optional canary rollout:** First enable multiple-revision mode and pin 100% of ingress traffic to the current revision. After an inline or version-pinned update, explicitly copy that revision with a unique suffix, smoke test the copy through its revision-specific endpoint, shift traffic gradually, and deactivate the old revision after the soak period. A canary is an operator-selected rollout strategy, not an automatic consequence of `secret set`.
 
-1. Add new secret version in Key Vault.
-2. Update Container App secret reference.
-3. Create new revision with updated env mapping.
-4. Smoke test revision endpoint.
-5. Shift traffic gradually.
-6. Deactivate old revision after soak period.
-
-Set new secret reference and create revision:
+The following example updates a version-pinned reference and explicitly creates a canary revision. It assumes ingress is enabled and `SQL_PASSWORD=secretref:sql-password` is already present in the revision template. Capture the current active revision before changing modes, enable multiple-revision mode, and pin traffic to that named revision so copying it cannot move application traffic automatically:
 
 ```bash
+export OLD_REVISION=$(az containerapp revision list \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --query "[?properties.active].name | [0]" \
+  --output tsv)
+
+az containerapp revision set-mode \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --mode multiple
+
+az containerapp ingress traffic set \
+  --name "$APP_NAME" \
+  --resource-group "$RG" \
+  --revision-weight "$OLD_REVISION=100"
+
 az containerapp secret set \
   --name "$APP_NAME" \
   --resource-group "$RG" \
-  --secrets "sql-password=keyvaultref:https://<key-vault-name>.vault.azure.net/secrets/sql-password,identityref:system"
+  --secrets "sql-password=keyvaultref:https://<key-vault-name>.vault.azure.net/secrets/sql-password/<version>,identityref:system"
 
-az containerapp update \
+export ROTATION_SUFFIX="secret-$(date -u +%Y%m%d%H%M%S)"
+
+az containerapp revision copy \
   --name "$APP_NAME" \
   --resource-group "$RG" \
-  --set-env-vars "SQL_PASSWORD=secretref:sql-password"
+  --from-revision "$OLD_REVISION" \
+  --revision-suffix "$ROTATION_SUFFIX"
 ```
 
-| Command | Purpose |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp secret set ...` | Updates the secret source to the new Key Vault version so the next revision can reference the rotated credential without embedding the value in the image or manifest. |
-| `az containerapp update ... --set-env-vars "SQL_PASSWORD=secretref:sql-password"` | Creates a new revision that binds the application variable to the refreshed secret reference, which gives you a safe rollout point for rotation validation. |
+| `az containerapp ingress traffic set` | Pins application traffic to the captured known-good revision before the canary is created. |
+| `az containerapp revision list` | Captures the active revision name used as the known-good traffic target. |
+| `az containerapp revision copy` | Explicitly creates a canary from the latest revision after the secret update. |
+| `az containerapp revision set-mode` | Enables multiple active revisions so the known-good and canary revisions can run concurrently. |
+| `az containerapp secret set` | Updates the app-level secret to the selected Key Vault version; this command does not create a revision. |
+| `--from-revision` | Copies the captured known-good revision rather than whichever revision happens to be latest. |
+| `--mode` | Selects multiple-revision mode for controlled traffic allocation. |
+| `--name` | Selects the Container App whose app-level secret is updated. |
+| `--output` | Returns the captured revision name as plain text. |
+| `--query` | Selects the current active revision name before the mode change. |
+| `--resource-group` | Selects the resource group containing the app. |
+| `--revision-suffix` | Assigns a unique suffix to the canary revision used for validation and traffic shifting. |
+| `--revision-weight` | Pins 100% of application traffic to the captured known-good revision. |
+| `--secrets` | Sets the version-pinned Key Vault URI and the identity used to resolve it. |
 
-Then route traffic:
+After the copied revision is healthy, smoke test its revision-specific endpoint. Then route a controlled share of application traffic to its actual revision name:
 
 ```bash
 az containerapp ingress traffic set \
   --name "$APP_NAME" \
   --resource-group "$RG" \
-  --revision-weight "${APP_NAME}--new=20" "${APP_NAME}--old=80"
+  --revision-weight "${APP_NAME}--${ROTATION_SUFFIX}=20" "$OLD_REVISION=80"
 ```
 
-| Command | Purpose |
+| Command / Parameter | Purpose |
 |---|---|
 | `az containerapp ingress traffic set` | Shifts only a controlled percentage of requests to the revision using the rotated secret, which lowers blast radius while you validate the new credential. |
-| `--revision-weight "${APP_NAME}--new=20" "${APP_NAME}--old=80"` | Keeps most traffic on the last known-good revision during the soak period, making rollback immediate if the new secret or identity binding is wrong. |
+| `--name` | Selects the named resource for this operation. |
+| `--resource-group` | Selects the resource group containing the resource. |
+| `--revision-weight` | Sets the traffic percentage for each named revision. |
 
 ### Apply Azure RBAC least privilege for managed identity
 
@@ -422,25 +504,46 @@ az role assignment create \
   --scope "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/<key-vault-name>"
 ```
 
-| Command | Purpose |
+| Command / Parameter | Purpose |
 |---|---|
 | `az role assignment create` | Grants the Container App identity the minimum Azure RBAC permission it needs to read secrets from Key Vault. |
-| `--assignee-object-id "$PRINCIPAL_ID"` | Applies the role to the app's managed identity rather than to a broader group or user principal. |
-| `--role "Key Vault Secrets User"` | Chooses a read-only secret retrieval role instead of a broader vault management role, which aligns with least-privilege guidance. |
-| `--scope "/subscriptions/.../vaults/<key-vault-name>"` | Narrows the grant to one vault so other Key Vaults in the resource group do not inherit unnecessary access. |
+| `--assignee-object-id` | Selects the managed identity principal receiving the role. |
+| `--assignee-principal-type` | Declares the assignee principal type. |
+| `--role` | Selects the Azure RBAC role to assign. |
+| `--scope` | Restricts the operation to the named Azure resource scope. |
 
 ### Cross-resource authentication patterns (SQL, Storage, Key Vault)
 
-Use managed identity + Entra authentication end to end.
+Use managed identity and Microsoft Entra authentication end to end. Token issuance and target authorization are separate decisions: Microsoft Entra ID issues a token for the requested resource audience, while each dependency evaluates that token and the principal's data-plane grant. Azure SQL database permissions are not Azure RBAC data roles.
 
 <!-- diagram-id: use-managed-identity-entra-authentication -->
 ```mermaid
 flowchart TD
-    APP[Container App] --> ENTRA[Microsoft Entra ID]
-    ENTRA --> SQL[Azure SQL]
-    ENTRA --> STG[Azure Storage]
-    ENTRA --> KV[Azure Key Vault]
+    accTitle: Managed identity authentication to protected dependencies
+    accDescr: A Container Apps revision requests a token from Microsoft Entra ID for a target dependency. The revision sends an authenticated protocol-appropriate request to Azure SQL, Storage, or Key Vault. Each resource evaluates its own data-plane authorization and returns its response directly to the revision.
+    APP["Container app revision"]
+    IDENTITY["Managed identity principal"]
+    ENTRA["Microsoft Entra ID<br/>token issuer"]
+    subgraph TARGETS["External protected resources"]
+        SQL["Azure SQL<br/>database user and grants"]
+        STORAGE["Azure Storage<br/>Azure RBAC data role"]
+        KV["Azure Key Vault<br/>Azure RBAC data role"]
+    end
+    IDENTITY -.->|"Identity associated with app"| APP
+    APP ==>|"Token request for target audience"| ENTRA
+    ENTRA ==>|"Access token"| APP
+    IDENTITY -.->|"Database grant"| SQL
+    IDENTITY -.->|"Role assignment"| STORAGE
+    IDENTITY -.->|"Role assignment"| KV
+    APP ==>|"Authenticated protocol request"| SQL
+    SQL ==>|"Dependency response"| APP
+    APP ==>|"Authenticated protocol request"| STORAGE
+    STORAGE ==>|"Dependency response"| APP
+    APP ==>|"HTTPS secret request"| KV
+    KV ==>|"Secret value response"| APP
 ```
+
+*Figure: Managed-identity authentication separates token transport from authorization. Thick arrows carry token or dependency requests and responses; dotted arrows show identity and authorization associations. The protected resources remain external to the Container Apps runtime, and every response originates from the resource that serves it.*
 
 Practical pattern by dependency:
 
@@ -453,7 +556,7 @@ Practical pattern by dependency:
 Use this checklist before release:
 
 - Identity type decision recorded per app.
-- ACR pull uses managed identity, not username/password.
+- ACR pull uses managed identity, not username/password, with `AcrPull` for RBAC-only registries or `Container Registry Repository Reader` plus an optional repository condition for ABAC-enabled registries.
 - Secret inventory exists with owner and rotation cadence.
 - Key Vault references used for high-value rotated secrets.
 - RBAC scope is resource-level wherever possible.
@@ -465,8 +568,8 @@ Use this checklist before release:
 When a credential leak is suspected:
 
 1. Rotate secret at source (Key Vault or backing service).
-2. Force new revision with updated secret mapping.
-3. Shift traffic to clean revision.
+2. For a versionless Key Vault reference, verify the documented refresh and automatic restart; for an inline or pinned update, restart active revisions or explicitly copy a canary revision.
+3. If using a canary, validate it and shift traffic to the clean revision.
 4. Revoke old role assignments if identity compromise is suspected.
 
 List current role assignments for principal:
@@ -478,9 +581,12 @@ az role assignment list \
   --output table
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az role assignment list ...` | Lists Azure RBAC assignments to verify access or diagnose conflicts. |
+| `az role assignment list` | Runs `az role assignment list` for this documented operation. |
+| `--all` | Includes all matching resources rather than the default subset. |
+| `--assignee` | Selects the principal whose role assignments are listed. |
+| `--output` | Chooses the response format for operator inspection. |
 
 List app secrets metadata (names only):
 
@@ -491,9 +597,12 @@ az containerapp secret list \
   --output table
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp secret list ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+| `az containerapp secret list` | Runs `az containerapp secret list` for this documented operation. |
+| `--name` | Selects the named resource for this operation. |
+| `--output` | Chooses the response format for operator inspection. |
+| `--resource-group` | Selects the resource group containing the resource. |
 
 ### Anti-patterns to avoid
 
@@ -501,7 +610,7 @@ az containerapp secret list \
 - Assigning broad Contributor roles for data access scenarios.
 - Sharing one identity for all microservices and all data stores.
 - Embedding secrets directly in YAML committed to source control.
-- Rotating secrets without creating a new revision and validation window.
+- Updating an inline or version-pinned secret without restarting consuming revisions or explicitly deploying a canary when an independently testable rollout is required.
 
 ## Advanced Topics
 
@@ -527,9 +636,15 @@ az role assignment list \
   --output table
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Runs `az containerapp show` for this documented operation. |
+| `az role assignment list` | Runs `az role assignment list` for this documented operation. |
+| `--name` | Selects the named resource for this operation. |
+| `--output` | Chooses the response format for operator inspection. |
+| `--query` | Projects the relevant property from the command response. |
+| `--resource-group` | Selects the resource group containing the resource. |
+| `--scope` | Restricts the operation to the named Azure resource scope. |
 
 ### Verify managed identity surfaces in Azure Portal
 
@@ -568,3 +683,6 @@ az role assignment list \
 - [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)
 - [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/authentication)
 - [Microsoft Learn source 4](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
+- [Authenticate to ACR with managed identity](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication-managed-identity)
+- [Azure role assignments](https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments)
+- [Dapr integration in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview)
