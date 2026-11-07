@@ -162,10 +162,10 @@ az containerapp update \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update` | Updates the existing Container App configuration. |
-| `--name` | Selects the named Azure resource. |
-| `--resource-group` | Selects the resource group that contains the resource. |
-| `--yaml` | Applies the app template from the selected YAML file. |
+| `az containerapp update` | Updates the selected Container App configuration. |
+| `--name` | Selects the resource named by the command for this check. |
+| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--yaml` | Applies the YAML template that contains the documented app configuration. |
 
 ### Graceful shutdown with SIGTERM and termination grace
 
@@ -197,10 +197,10 @@ az containerapp update \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update` | Updates the existing Container App configuration. |
-| `--name` | Selects the named Azure resource. |
-| `--resource-group` | Selects the resource group that contains the resource. |
-| `--yaml` | Applies the app template from the selected YAML file. |
+| `az containerapp update` | Updates the selected Container App configuration. |
+| `--name` | Selects the resource named by the command for this check. |
+| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--yaml` | Applies the YAML template that contains the documented app configuration. |
 
 !!! note "Coordinate grace period with upstream timeout"
     If load balancer, gateway, or client timeout is shorter than termination grace, requests may still fail despite clean SIGTERM handling.
@@ -234,10 +234,10 @@ az containerapp env show \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp env show` | Reads the selected Container Apps environment configuration. |
-| `--name` | Selects the named Azure resource. |
-| `--output` | Chooses the output format for review or scripting. |
-| `--resource-group` | Selects the resource group that contains the resource. |
+| `az containerapp env show` | Reads the selected Container Apps environment settings for the documented cost or reliability check. |
+| `--name` | Selects the resource named by the command for this check. |
+| `--output` | Returns the result in the format needed by this review step. |
+| `--resource-group` | Selects the resource group containing the resource under review. |
 
 ### Multi-region deployment pattern for critical APIs
 
@@ -363,10 +363,10 @@ az containerapp revision list \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp revision list` | Lists revisions for the selected Container App. |
-| `--name` | Selects the named Azure resource. |
-| `--output` | Chooses the output format for review or scripting. |
-| `--resource-group` | Selects the resource group that contains the resource. |
+| `az containerapp revision list` | Lists revisions for rollout and reliability review. |
+| `--name` | Selects the resource named by the command for this check. |
+| `--output` | Returns the result in the format needed by this review step. |
+| `--resource-group` | Selects the resource group containing the resource under review. |
 
 Immediate rollback example:
 
@@ -379,10 +379,10 @@ az containerapp ingress traffic set \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp ingress traffic set` | Sets revision traffic weights for the selected Container App. |
-| `--name` | Selects the named Azure resource. |
-| `--resource-group` | Selects the resource group that contains the resource. |
-| `--revision-weight` | Assigns traffic percentages by revision name. |
+| `az containerapp ingress traffic set` | Routes all app traffic to the specified known-good revision. |
+| `--name` | Selects the resource named by the command for this check. |
+| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--revision-weight` | Assigns 100 percent of app traffic to the named stable revision. |
 
 !!! warning "Do not deactivate stable revision too early"
     Keeping at least one proven revision active dramatically reduces mean time to recover during bad deployments.
@@ -432,11 +432,11 @@ az containerapp logs show \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp logs show` | Reads Container App logs for incident triage. |
-| `--follow` | Controls whether log output continues streaming. |
-| `--name` | Selects the named Azure resource. |
-| `--resource-group` | Selects the resource group that contains the resource. |
-| `--type` | Selects console or system logs. |
+| `az containerapp logs show` | Reads current platform system logs for incident triage. |
+| `--follow` | Returns the current log sample without opening a continuous stream. |
+| `--name` | Selects the resource named by the command for this check. |
+| `--resource-group` | Selects the resource group containing the resource under review. |
+| `--type` | Selects Container Apps system logs rather than console logs. |
 
 ### Disaster recovery considerations for Container Apps
 
@@ -519,12 +519,12 @@ az containerapp ingress traffic show \
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show` | Reads the selected Container App configuration. |
-| `--name` | Selects the named Azure resource. |
-| `--output` | Chooses the output format for review or scripting. |
-| `--query` | Projects the fields needed for the documented verification. |
-| `--resource-group` | Selects the resource group that contains the resource. |
-| `az containerapp ingress traffic show` | Shows the current revision traffic allocation. |
+| `az containerapp show` | Reads the selected Container App settings for the documented verification. |
+| `--name` | Selects the resource named by the command for this check. |
+| `--output` | Returns the result in the format needed by this review step. |
+| `--query` | Extracts only the fields needed for this documented verification. |
+| `--resource-group` | Selects the resource group containing the resource under review. |
+| `az containerapp ingress traffic show` | Shows the current revision traffic allocation during containment. |
 
 ### Verify reliability surfaces in Azure Portal
 
@@ -564,22 +564,22 @@ az containerapp revision list \
 
 az monitor metrics list \
   --resource "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.App/containerApps/$APP_NAME" \
-  --metric "CpuUsage" "MemoryUsage" \
+  --metrics "CpuUsage" "MemoryUsage" \
   --interval "PT5M" \
   --aggregation "Average"
 ```
 
 | Command / Parameter | Purpose |
 |---|---|
-| `az containerapp revision list` | Lists revisions for the selected Container App. |
-| `--name` | Selects the named Azure resource. |
-| `--output` | Chooses the output format for review or scripting. |
-| `--resource-group` | Selects the resource group that contains the resource. |
-| `az monitor metrics list` | Reads selected Azure Monitor metrics for the Container App resource. |
-| `--aggregation` | Selects the aggregation applied to metric values. |
-| `--interval` | Sets the metric time-grain interval. |
-| `--metric` | Selects the metric names to return. |
-| `--resource` | Selects the complete Azure resource ID for the metric query. |
+| `az containerapp revision list` | Lists revisions for rollout and reliability review. |
+| `--name` | Selects the resource named by the command for this check. |
+| `--output` | Returns the result in the format needed by this review step. |
+| `--resource-group` | Selects the resource group containing the resource under review. |
+| `az monitor metrics list` | Reads CPU and memory metrics for the selected Container App resource. |
+| `--aggregation` | Returns average values for the selected metrics. |
+| `--interval` | Aggregates metric samples into five-minute time grains. |
+| `--metrics` | Requests the CPU and memory metrics used by the recurring audit. |
+| `--resource` | Selects the complete Container App resource ID for Azure Monitor. |
 
 ## Common Mistakes / Anti-Patterns
 

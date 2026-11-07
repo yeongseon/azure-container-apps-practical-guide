@@ -44,7 +44,7 @@ When an operator's mental model exceeds the documented contract, the failure mod
 
 - "My zone-redundant app had dropped requests during an AZ fault — Container Apps must be broken." (Claim 2: automatic zone distribution does not prevent every in-flight request from timing out.)
 - "I set `minReplicas=3` so I should always have 3 replicas running across 3 nodes." (Claim 1: node spread is not guaranteed.)
-- "All my replicas restarted at the same time — that can't be normal." (Claim 3: planned maintenance can cluster restarts.)
+- "Several replicas restarted close together — was this maintenance or an unexplained incident?" (Claim 3: Learn does not publish per-app restart-spreading behavior, so correlate and investigate.)
 - "I have probes configured, so my rolling rollout should produce zero 5xx." (Claim 4: probe correctness gates transients, not the rollout mechanism alone.)
 - "Microsoft sells this as enterprise-grade — that means 99.99% on a single region." (Claim 5: Microsoft Learn explicitly directs higher SLO targets to multi-region.)
 
@@ -118,29 +118,29 @@ Each subsection follows the pattern **Practice → Non-guarantee disclosure → 
 
 ### Claim 3: Microsoft Learn does not publish a restart-spreading guarantee for planned maintenance
 
-**Practice**: Treat planned maintenance as an event whose timing-distribution of replica restarts is **not contractually bounded** by Microsoft Learn. Design the application to handle the worst-case operator-side interpretation (multiple replicas of the same app restarting within a short time window) and design the client to retry those restarts.
+**Practice**: Treat the timing distribution of replica restarts during maintenance as undocumented at the per-app level. Build resilience for restart events, but treat clustered restarts as evidence to correlate with maintenance history and investigate rather than as documented normal behavior.
 
-**Non-guarantee disclosure**: The Microsoft Learn article on [planned maintenance](https://learn.microsoft.com/en-us/azure/container-apps/planned-maintenance) documents the platform's overall maintenance schedule and windowing. The article does not publish a per-app guarantee that replica restarts during a single maintenance event are spread out in time, nor does it expose per-replica node placement (per Claim 1). The [reliability article](https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps) notes that maintenance is staged to minimize interruption, but staging is described at the platform level and does not constitute a published per-app restart-spreading contract. The binding framing is documentation-absence: an operator cannot point at a Microsoft Learn page that rules out clustered restarts within a single maintenance event, so a production design must treat the clustered case as possible.
+**Non-guarantee disclosure**: The Microsoft Learn article on [planned maintenance](https://learn.microsoft.com/en-us/azure/container-apps/planned-maintenance) documents maintenance windows and says the update system is designed to minimize application impact. It does not publish a per-app restart-spreading guarantee or document clustered restarts as expected behavior. This is a bounded absence-of-contract statement, not evidence that a clustered event was maintenance or that support escalation is inappropriate.
 
 **Remediation pattern**:
 
 1. Configure `terminationGracePeriodSeconds` to bracket the application's drain time, and ensure the application drains in-flight work before the grace period expires. In-flight requests that have not completed by the end of the grace period surface as client-visible failures. Container Apps follows the standard container-runtime lifecycle for graceful shutdown; the exact signal semantics are a runtime detail and are not the subject of a public contract specific to Container Apps.
 2. Configure `minReplicas` high enough that the loss of all replicas on a single physical host still leaves at least one replica serving traffic. With `minReplicas=3` and worst-case 2-of-3 co-tenancy (per Claim 1), the surviving 1 replica must absorb 100% of the load for the duration of the restart.
-3. Implement client-side retry with jitter for any call whose failure has user-visible impact. Maintenance-driven restarts are a normal platform event, not an incident to escalate.
+3. Implement client-side retry with jitter for calls whose failure has user-visible impact. Correlate restart timestamps with maintenance history, application changes, and platform health; escalate when impact is unexplained or exceeds documented behavior.
 4. Configure an alert on the [`Replicas` metric](../reference/metrics/container-app-metrics.md#replicas-replica-count) dropping below `minReplicas` for more than 60 seconds. This is a **count-based secondary symptom alert**: the metric does not directly observe physical-host placement, so it can only catch a clustered restart that takes the replica count below the floor. A clustered restart that stays at or above `minReplicas` (because the platform replaces replicas as fast as it restarts them) will not trigger this alert.
 
 **Lab evidence**: The [Zone Redundancy Best-Effort Lab](../troubleshooting/lab-guides/zone-redundancy-best-effort.md) uses operator-driven `revision restart` as a proxy for the planned-maintenance restart pattern. Under the operator-driven perturbation, the lab observed `MaxReplacementFraction=1.0` and clustered churn (multiple replicas replaced within seconds), demonstrating that the scheduler is capable of producing the clustered-restart pattern. The lab does NOT directly observe a real platform maintenance event — that would require a coincident maintenance window during the 24h baseline, which did not occur. Per the lab's evidence-integrity discipline, Claim 3's platform-initiated case is `[Strongly Suggested]`, not `[Observed]`. The lab's measurement infrastructure is identical to Claim 2's; the perturbation type and the failure-mode framing differ.
 
 ### Claim 4: Rolling rollout transient masking depends on probe correctness, not on the rollout mechanism alone
 
-**Practice**: Configure startup, readiness, and liveness probes against a dedicated `/healthz` (or equivalent) endpoint that is **distinct** from the workload endpoint. Validate probe correctness with a perturbation-tolerance load harness, not with single-shot health checks.
+**Practice**: Give startup, readiness, and liveness probes purpose-specific semantics. Use separate endpoints when they answer different questions; sharing one endpoint is acceptable only when its semantics are intentionally correct for every probe type. Validate probe correctness with a perturbation-tolerance load harness, not with single-shot health checks.
 
 **Non-guarantee disclosure**: The Microsoft Learn article on [revisions](https://learn.microsoft.com/en-us/azure/container-apps/revisions) states that a new revision is considered ready only after it provisions successfully, scales to match the previous revision's replica count, and **all replicas pass startup and readiness probes**. The article does NOT say that the rolling-rollout mechanism alone masks client-visible 5xx. The masking is a consequence of correctly-configured probes gating traffic. If probes return 200 before the application is actually ready to serve the workload path, the platform will route traffic to a not-yet-warm replica regardless of the rollout strategy, and client-visible 5xx will result.
 
 **Remediation pattern**:
 
-1. Probes must target a path that returns 200 ONLY when the application is ready to serve the workload. Using `/` (the workload path) as the probe path is the most common operator misconfiguration: it returns 200 as soon as the HTTP server binds, before any application-level warm-up completes.
-2. Configure `initialDelaySeconds` on the startup probe to bracket the application's actual cold-start time, including any framework warm-up, JIT compilation, and connection-pool initialization. Underspecified `initialDelaySeconds` causes the probe to flap, the platform to mark the replica as failed, and traffic to be routed inconsistently.
+1. The readiness path must return success only when the replica can serve incoming requests. Startup and liveness paths should separately represent successful initialization and continued process health unless one shared endpoint intentionally satisfies all three meanings.
+2. Size the startup-probe retry window from `initialDelaySeconds` plus the repeated attempts governed by `periodSeconds` and `failureThreshold`. Do not require `initialDelaySeconds` alone to cover the full cold start.
 3. Test the rollout with a constant-arrival-rate load harness (k6 or equivalent), at a target RPS that consumes nontrivial headroom on the replica. A single-shot `curl` after deploy does not exercise the load path; the rollout could produce a 5-second 5xx burst that the single-shot check misses entirely.
 4. Bucket alerting on `err_pct` at 10-second granularity. Default platform alerting is at minute granularity; sub-minute rollout transients are invisible at that resolution. The KQL pack's falsification query (Q5 in the [Startup-Degraded Bucketed 5xx KQL Pack](../troubleshooting/kql/scaling-and-replicas/startup-degraded-bucketed-5xx.md)) is the canonical bucket-level alerting pattern.
 
@@ -183,11 +183,11 @@ Each anti-pattern below maps to one of the five claims above. The pattern is **a
 
 ### Mistake 3: Conflating clustered replica restart with platform outage
 
-**Assumption**: Multiple replicas restarting within a 60-second window indicates a platform incident.
+**Assumption**: Multiple replicas restarting within a short window proves either planned maintenance or a platform incident.
 
-**Consequence**: Time is wasted chasing a non-existent platform bug instead of running the relevant operator-side check (e.g., correlating the restart timestamp with the published platform maintenance schedule).
+**Consequence**: The event is prematurely normalized or escalated without correlating maintenance history, revision changes, application logs, and Azure Service Health.
 
-**Fix**: First check whether the timestamps align with a documented platform maintenance event. If yes, the clustered restart is consistent with the documented maintenance schedule — operator-side remediation is in-flight-request draining within `terminationGracePeriodSeconds` and a higher `minReplicas`, not a support ticket.
+**Fix**: Correlate timestamps with the environment's maintenance history and other evidence. Even when timing overlaps a maintenance event, investigate customer impact; contact support when the cause remains unexplained or the impact exceeds documented behavior.
 
 ### Mistake 4: Using the workload path `/` as the health probe path
 
@@ -195,7 +195,7 @@ Each anti-pattern below maps to one of the five claims above. The pattern is **a
 
 **Consequence**: The probe returns 200 as soon as the HTTP listener binds (before warm-up completes), the platform marks the replica as ready, traffic is routed in, and the workload path returns 5xx because the app is not actually warm yet. The 5xx burst lasts seconds and is invisible at minute-granularity alerting.
 
-**Fix**: Implement a dedicated `/healthz` endpoint that returns 200 ONLY when the application is genuinely ready (warm-up done, downstream dependencies reachable, JIT compilation complete). Configure all three probes against `/healthz`, not `/`. Test with a perturbation-tolerance load harness.
+**Fix**: Implement purpose-specific probe endpoints, such as `/health/startup`, `/health/ready`, and `/health/live`, when their checks differ. Reuse one endpoint only when the same success semantics are deliberately valid for startup, readiness, and liveness. Test with a perturbation-tolerance load harness.
 
 ### Mistake 5: Assuming a single-region zone-redundant deployment hits four-nines availability
 
@@ -235,9 +235,9 @@ Run this checklist before depending on any of the five contracts in production.
 
 ### For Claim 4 (rolling rollout):
 
-- [ ] Probes target a dedicated `/healthz` (or equivalent) endpoint, not the workload path `/`.
-- [ ] All three probes (startup, readiness, liveness) target the same dedicated health path.
-- [ ] `/healthz` returns 200 ONLY when the application is genuinely ready to serve the workload.
+- [ ] Each probe endpoint implements the purpose of its probe type; shared endpoints are used only when their semantics are intentionally identical.
+- [ ] The readiness endpoint returns success only when the replica can serve incoming requests.
+- [ ] The startup retry window accounts for `initialDelaySeconds`, `periodSeconds`, and `failureThreshold`.
 - [ ] Rolling rollout is tested with a constant-arrival-rate load harness at a target RPS that consumes nontrivial headroom on the replica.
 - [ ] Bucket-level (10-second) alerting on `err_pct` is configured during rollout windows.
 - [ ] The [Startup-Degraded Transient Failure Lab](../troubleshooting/lab-guides/startup-degraded-transient-failure.md) and its [companion KQL pack](../troubleshooting/kql/scaling-and-replicas/startup-degraded-bucketed-5xx.md) have been reviewed.
