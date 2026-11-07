@@ -79,16 +79,29 @@ Choose Jobs when each event batch should map to a discrete run. Choose apps when
 <!-- diagram-id: jobs-vs-apps-decision-tree -->
 ```mermaid
 flowchart TD
-    A[New workload] --> B{Must stay available for inbound requests?}
-    B -->|Yes| C[Use Container App]
-    B -->|No| D{Does work have a clear finish boundary?}
-    D -->|No| C
-    D -->|Yes| E{Do you want a discrete execution record and replay model?}
-    E -->|Yes| F[Use Container Apps Job]
-    E -->|No| G{Will a warm continuous worker improve throughput materially?}
-    G -->|Yes| C
-    G -->|No| F
+    accTitle: Jobs versus apps decision tree
+    accDescr: Selects a continuously running Container App for inbound requests or warm workers and a Container Apps Job for finite work with a discrete execution record.
+
+    WORK[New workload]
+    INBOUND{Must it stay available for inbound requests?}
+    APP[Use a Container App]
+    FINITE{Does the work have a clear finish boundary?}
+    HISTORY{Need a discrete execution record and replay?}
+    JOB[Use a Container Apps Job]
+    WARM{Does a warm continuous worker materially help?}
+
+    WORK --> INBOUND
+    INBOUND -->|Yes| APP
+    INBOUND -->|No| FINITE
+    FINITE -->|No| APP
+    FINITE -->|Yes| HISTORY
+    HISTORY -->|Yes| JOB
+    HISTORY -->|No| WARM
+    WARM -->|Yes| APP
+    WARM -->|No| JOB
 ```
+
+Ingress requests are a runtime concern for Container Apps, not Jobs. Configuration-time validation and trigger setup are not part of the runtime request path.
 
 ## Portal View: Container App Job as a Distinct Resource Type
 

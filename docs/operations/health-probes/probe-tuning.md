@@ -58,12 +58,37 @@ Microsoft Learn recommends tuning probe settings around real startup behavior ra
 <!-- diagram-id: probe-debugging-loop -->
 ```mermaid
 flowchart TD
-    A[Probe failures observed] --> B[Inspect system logs]
-    B --> C[Check endpoint and startup timing]
-    C --> D[Adjust probe thresholds]
-    D --> E[Deploy new revision]
-    E --> F[Compare readiness and restart behavior]
+    accTitle: Probe debugging loop
+    accDescr: Shows an evidence-first loop that identifies the failing probe, validates its endpoint and timing, changes one setting, deploys a revision, and compares readiness and restart behavior.
+
+    OBSERVE[Observe failed probe and revision state]
+    LOGS[Correlate system and console logs]
+    TYPE[Identify the failing probe]
+    START[Measure initialization time]
+    READY[Verify traffic-readiness endpoint]
+    LIVE[Verify running-process health endpoint]
+    CONFIG[Check path, port, protocol, and timing]
+    CHANGE[Change one probe setting]
+    DEPLOY[Deploy a new revision]
+    COMPARE[Compare with the expected health window]
+    KEEP[Keep the setting and continue monitoring]
+
+    OBSERVE --> LOGS
+    LOGS --> TYPE
+    TYPE -->|Startup| START
+    TYPE -->|Readiness| READY
+    TYPE -->|Liveness| LIVE
+    START --> CONFIG
+    READY --> CONFIG
+    LIVE --> CONFIG
+    CONFIG --> CHANGE
+    CHANGE --> DEPLOY
+    DEPLOY --> COMPARE
+    COMPARE -->|No| OBSERVE
+    COMPARE -->|Yes| KEEP
 ```
+
+This loop separates evidence collection from configuration changes. It avoids widening every threshold when the real fault is an incorrect path, port, protocol, or application dependency.
 
 ## Verification
 

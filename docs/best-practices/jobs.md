@@ -65,9 +65,11 @@ az account show --output table
 
 | Command | Purpose |
 |---|---|
-| `export RG=...`, `ACA_ENV_NAME=...`, `APP_NAME=...`, `ACR_NAME=...`, `LOCATION=...`, `JOB_NAME=...` | Defines the shared environment, registry, and job variables used by the examples so every job command points at the same operational context. |
-| `az extension add --name "containerapp" --upgrade` | Makes sure the jobs subcommands and latest flags are available before you create, update, or start Container Apps jobs. |
-| `az account show --output table` | Confirms the active Azure account context so you do not create or inspect jobs in the wrong subscription. |
+| `az extension add` | Installs or upgrades the Azure CLI extension. |
+| `az account show` | Runs the documented Azure CLI operation. |
+| `--name` | Selects the target resource by name. |
+| `--upgrade` | Upgrades the installed Azure CLI extension. |
+| `--output` | Selects the command output format. |
 
 ## Recommended Practices
 
@@ -122,9 +124,16 @@ az containerapp job create \
   --image "$ACR_NAME.azurecr.io/jobs/orders-reconcile:v1.0.0"
 ```
 
-| Command | Why it is used |
+| Command | Purpose |
 |---|---|
-| `az containerapp job create ...` | Creates, updates, starts, or inspects a Container Apps job. |
+| `az containerapp job create` | Creates a Container Apps job definition. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
+| `--environment` | Selects the Container Apps environment for the job. |
+| `--trigger-type` | Selects the job trigger type. |
+| `--replica-timeout` | Sets the maximum time allowed for a replica to complete. |
+| `--replica-retry-limit` | Sets how many times a failed replica can be retried. |
+| `--image` | Selects the container image for the job template. |
 
 Start execution on demand:
 
@@ -134,9 +143,11 @@ az containerapp job start \
   --resource-group "$RG"
 ```
 
-| Command | Why it is used |
+| Command | Purpose |
 |---|---|
-| `az containerapp job start ...` | Creates, updates, starts, or inspects a Container Apps job. |
+| `az containerapp job start` | Starts a new job execution. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
 
 #### Scheduled trigger (predictable recurring runs)
 
@@ -162,9 +173,17 @@ az containerapp job create \
   --image "$ACR_NAME.azurecr.io/jobs/orders-reconcile:v1.0.0"
 ```
 
-| Command | Why it is used |
+| Command | Purpose |
 |---|---|
-| `az containerapp job create ...` | Creates, updates, starts, or inspects a Container Apps job. |
+| `az containerapp job create` | Creates a Container Apps job definition. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
+| `--environment` | Selects the Container Apps environment for the job. |
+| `--trigger-type` | Selects the job trigger type. |
+| `--cron-expression` | Sets the five-field UTC cron schedule. |
+| `--replica-timeout` | Sets the maximum time allowed for a replica to complete. |
+| `--replica-retry-limit` | Sets how many times a failed replica can be retried. |
+| `--image` | Selects the container image for the job template. |
 
 !!! note "Cron timezone"
     Store and document cron expectations in UTC to avoid daylight saving ambiguity. Add business-local translation in your runbook.
@@ -184,14 +203,28 @@ az containerapp job create \
   --scale-rule-name "orders-queue" \
   --scale-rule-type "azure-servicebus" \
   --scale-rule-metadata "queueName=orders" "messageCount=50" "namespace=<servicebus-namespace>.servicebus.windows.net" \
+  --secrets "servicebus-connection=<SERVICE_BUS_CONNECTION_STRING>" \
+  --scale-rule-auth "connection=servicebus-connection" \
   --replica-timeout 900 \
   --replica-retry-limit 3 \
   --image "$ACR_NAME.azurecr.io/jobs/orders-reconcile:v1.0.0"
 ```
 
-| Command | Why it is used |
+| Command | Purpose |
 |---|---|
-| `az containerapp job create ...` | Creates, updates, starts, or inspects a Container Apps job. |
+| `az containerapp job create` | Creates a Container Apps job definition. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
+| `--environment` | Selects the Container Apps environment for the job. |
+| `--trigger-type` | Selects the job trigger type. |
+| `--scale-rule-name` | Names the event-driven scale rule. |
+| `--scale-rule-type` | Selects the event scaler type. |
+| `--scale-rule-metadata` | Supplies scaler-specific trigger metadata. |
+| `--secrets` | Stores the Service Bus connection string as a job secret. |
+| `--scale-rule-auth` | Maps the scaler's `connection` authentication parameter to the job secret. |
+| `--replica-timeout` | Sets the maximum time allowed for a replica to complete. |
+| `--replica-retry-limit` | Sets how many times a failed replica can be retried. |
+| `--image` | Selects the container image for the job template. |
 
 ### Tune timeout and retry limits as SLO controls
 
@@ -214,9 +247,13 @@ az containerapp job update \
   --replica-retry-limit 2
 ```
 
-| Command | Why it is used |
+| Command | Purpose |
 |---|---|
-| `az containerapp job update ...` | Creates, updates, starts, or inspects a Container Apps job. |
+| `az containerapp job update` | Updates the selected job definition. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
+| `--replica-timeout` | Sets the maximum time allowed for a replica to complete. |
+| `--replica-retry-limit` | Sets how many times a failed replica can be retried. |
 
 Failure-classification pattern:
 
@@ -256,26 +293,54 @@ az containerapp job create \
 
 | Command | Purpose |
 |---|---|
-| `az containerapp job create` | Defines a manual job template that fans work out across multiple replicas instead of serializing the entire batch on one execution path. |
-| `--parallelism 4` | Allows four replicas to run at once, which is appropriate only when the workload can be partitioned safely. |
-| `--replica-completion-count 4` | Requires all four shard replicas to succeed before the execution is marked complete, matching the "all partitions are mandatory" guidance in this section. |
-| `--replica-timeout 1800` | Caps how long each shard can run before the platform treats it as stuck, which prevents runaway executions from consuming unbounded spend. |
+| `az containerapp job create` | Creates a Container Apps job definition. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
+| `--environment` | Selects the Container Apps environment for the job. |
+| `--trigger-type` | Selects the job trigger type. |
+| `--parallelism` | Sets the maximum replicas that run concurrently per execution. |
+| `--replica-completion-count` | Sets the successful replica count required for execution success. |
+| `--replica-timeout` | Sets the maximum time allowed for a replica to complete. |
+| `--image` | Selects the container image for the job template. |
 
 <!-- diagram-id: image-acr-name-azurecr-io-jobs-orders-reconcile-v1-0-0 -->
 ```mermaid
 flowchart TD
-    A[Execution Triggered] --> B[Replica 1]
-    A --> C[Replica 2]
-    A --> D[Replica 3]
-    A --> E[Replica 4]
-    B --> F{All required completions reached?}
-    C --> F
-    D --> F
-    E --> F
-    F -->|Yes| G[Execution Succeeded]
-    F -->|No and retries remain| H[Retry Failed Partitions]
-    H --> F
+    accTitle: Parallel job completion decision
+    accDescr: Shows four replicas running in parallel, successful replicas contributing to the completion count, and a failed replica being retried only while its retry limit and execution timeout allow.
+
+    EXEC[Job execution starts]
+    R1[Replica 1]
+    R2[Replica 2]
+    R3[Replica 3]
+    R4[Replica 4]
+    RESULT{Replica result}
+    COUNT{replicaCompletionCount reached?}
+    RETRY{Retry failed replica?}
+    RETRY_FAILED[Retry failed replica<br/>Preserve successes]
+    FAILED[Execution fails]
+    WAIT[Wait for required successful replicas]
+    SUCCEEDED[Execution succeeds]
+
+    EXEC --> R1
+    EXEC --> R2
+    EXEC --> R3
+    EXEC --> R4
+    R1 --> RESULT
+    R2 --> RESULT
+    R3 --> RESULT
+    R4 --> RESULT
+    RESULT -->|Succeeded| COUNT
+    RESULT -->|Failed| RETRY
+    RETRY -->|Allowed| RETRY_FAILED
+    RETRY_FAILED --> RESULT
+    RETRY -->|No| FAILED
+    COUNT -->|No| WAIT
+    WAIT --> RESULT
+    COUNT -->|Yes| SUCCEEDED
 ```
+
+`replicaRetryLimit` is the maximum number of times to retry a **failed replica**; it is not a count of failed partitions. `replicaCompletionCount` is the number of replicas that must complete successfully for the execution to succeed, and it must not exceed `parallelism`. The execution timeout takes precedence if it expires before retries finish.
 
 ### Exit code conventions and error handling contracts
 
@@ -318,9 +383,13 @@ az containerapp job show \
   --output tsv
 ```
 
-| Command | Why it is used |
+| Command | Purpose |
 |---|---|
-| `az containerapp job show ...` | Creates, updates, starts, or inspects a Container Apps job. |
+| `az containerapp job show` | Shows the selected job definition. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
+| `--query` | Filters the command result with a JMESPath expression. |
+| `--output` | Selects the command output format. |
 
 !!! tip "Startup budget"
     If job average runtime is short, image pull and startup can dominate total execution time. A 30-second startup penalty on a 60-second job can increase cost and delay by 50 percent or more.
@@ -340,8 +409,10 @@ az containerapp job identity assign \
 
 | Command | Purpose |
 |---|---|
-| `az containerapp job identity assign` | Enables a managed identity on the job so each execution can authenticate to Azure dependencies without embedded credentials. |
-| `--system-assigned` | Uses a lifecycle-bound identity that is created and deleted with the job, which is a simple default for single-job ownership. |
+| `az containerapp job identity assign` | Assigns a managed identity to the job. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
+| `--system-assigned` | Enables a system-assigned managed identity. |
 
 Inspect principal ID for role assignment workflows:
 
@@ -355,8 +426,11 @@ az containerapp job show \
 
 | Command | Purpose |
 |---|---|
-| `az containerapp job show --query "identity.principalId" --output tsv` | Extracts the job identity's principal ID so you can apply least-privilege RBAC on Storage, Service Bus, or Key Vault for this job workflow. |
-| `--name "$JOB_NAME"` / `--resource-group "$RG"` | Ensures the role-assignment lookup uses the exact job definition you just enabled for identity-based access. |
+| `az containerapp job show` | Shows the selected job definition. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
+| `--query` | Filters the command result with a JMESPath expression. |
+| `--output` | Selects the command output format. |
 
 Identity patterns:
 
@@ -392,9 +466,12 @@ az containerapp job execution list \
   --output table
 ```
 
-| Command | Why it is used |
+| Command | Purpose |
 |---|---|
-| `az containerapp job execution ...` | Creates, updates, starts, or inspects a Container Apps job. |
+| `az containerapp job execution list` | Lists executions of the selected job. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
+| `--output` | Selects the command output format. |
 
 Show execution logs:
 
@@ -404,9 +481,11 @@ az containerapp job logs show \
   --resource-group "$RG"
 ```
 
-| Command | Why it is used |
+| Command | Purpose |
 |---|---|
-| `az containerapp job logs ...` | Creates, updates, starts, or inspects a Container Apps job. |
+| `az containerapp job logs show` | Shows logs for the selected job. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
 
 KQL: success/failure trend by job over 24 hours:
 
@@ -457,6 +536,13 @@ az containerapp job update \
   --cron-expression "*/15 * * * *"
 ```
 
+| Command | Purpose |
+|---|---|
+| `az containerapp job update` | Updates the selected job definition. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
+| `--cron-expression` | Sets the five-field UTC cron schedule. |
+
 Schedule design checklist:
 
 | Question | Action |
@@ -480,16 +566,32 @@ Use a consistent lifecycle runbook for every production job:
 <!-- diagram-id: final-status-published-to-dashboard-alert-channel -->
 ```mermaid
 stateDiagram-v2
-    [*] --> Triggered
-    Triggered --> Running
-    Running --> Succeeded: exit 0
-    Running --> Failed: non-zero exit
-    Failed --> Retrying: retryable + limit not reached
-    Retrying --> Running
-    Failed --> TerminalFailed: no retries
+    accTitle: Job execution status model
+    accDescr: Uses the current management API status names and separates platform-reported execution status from the operator action that publishes terminal results to dashboards and alerts.
+
+    state "Processing" as Processing
+    state "Running" as Running
+    state "Degraded" as Degraded
+    state "Stopped" as Stopped
+    state "Failed" as Failed
+    state "Succeeded" as Succeeded
+    state "Unknown" as Unknown
+
+    [*] --> Processing
+    Processing --> Running
+    Processing --> Unknown
+    Running --> Degraded
+    Degraded --> Running
+    Running --> Succeeded
+    Running --> Failed
+    Running --> Stopped
+    Running --> Unknown
     Succeeded --> [*]
-    TerminalFailed --> [*]
+    Failed --> [*]
+    Stopped --> [*]
 ```
+
+The status labels match the current `JobExecutionRunningState` management API values. Retry behavior belongs to failed replicas inside an execution; `Retrying` and `TerminalFailed` are therefore not presented as platform execution statuses. Treat `Unknown` as nonterminal and keep polling the execution API. Publish only terminal `Succeeded`, `Failed`, or `Stopped` results to the dashboard and alert channel as a separate observability action.
 
 ### Production hardening checklist for jobs
 

@@ -4,7 +4,7 @@ content_sources:
     - id: event-driven-job-flow
       type: flowchart
       source: self-generated
-      justification: Synthesized from repository event-driven job examples and Microsoft Learn Jobs/scale guidance while the exact scaler support matrix remained unconfirmed.
+      justification: Synthesized from the documented event-trigger and scaling lifecycle without asserting support for an unverified scaler matrix.
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/jobs
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app#jobs
@@ -44,6 +44,8 @@ az containerapp job create \
   --scale-rule-name "orders-queue" \
   --scale-rule-type "azure-servicebus" \
   --scale-rule-metadata "queueName=orders" "messageCount=10" "namespace=<servicebus-namespace>.servicebus.windows.net" \
+  --secrets "servicebus-connection=<SERVICE_BUS_CONNECTION_STRING>" \
+  --scale-rule-auth "connection=servicebus-connection" \
   --replica-timeout 900 \
   --replica-retry-limit 2 \
   --image "$IMAGE_NAME"
@@ -51,35 +53,42 @@ az containerapp job create \
 
 | Command | Purpose |
 |---|---|
-| `export RG=...`, `ACA_ENV_NAME=...`, `JOB_NAME=...`, `IMAGE_NAME=...` | Defines the environment, job name, and immutable image used by the event-driven example so the creation command is repeatable. |
-| `az containerapp job create --trigger-type "Event"` | Creates a job that starts discrete executions only when the scaler sees available work, instead of running a worker continuously. |
-| `--scale-rule-type "azure-servicebus"` with `--scale-rule-metadata ...` | Configures Service Bus queue depth as the trigger signal, including which queue to watch and the backlog threshold that should start executions. |
-| `--replica-timeout 900` / `--replica-retry-limit 2` | Bounds execution length and retry behavior so transient failures can recover without letting a bad event source spin forever. |
+| `az containerapp job create` | Creates a Container Apps job definition. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
+| `--environment` | Selects the Container Apps environment for the job. |
+| `--trigger-type` | Selects the job trigger type. |
+| `--scale-rule-name` | Names the event-driven scale rule. |
+| `--scale-rule-type` | Selects the event scaler type. |
+| `--scale-rule-metadata` | Supplies scaler-specific trigger metadata. |
+| `--secrets` | Stores the Service Bus connection string as a job secret. |
+| `--scale-rule-auth` | Maps the scaler's `connection` authentication parameter to the job secret. |
+| `--replica-timeout` | Sets the maximum time allowed for a replica to complete. |
+| `--replica-retry-limit` | Sets how many times a failed replica can be retried. |
+| `--image` | Selects the container image for the job template. |
 
 ### Event sources and scaler support
 
-The repository already uses Azure Service Bus as the clearest event-driven Jobs example. Broader scaler support should be treated carefully until you verify the current Jobs-specific support matrix.
+Event-driven jobs can create custom scaling rules from KEDA scalers that support the `ScaledJob` specification. Azure Service Bus is the concrete example on this page, but the same model can apply to other compatible event sources.
 
-| Topic | Conservative guidance |
+| Topic | Guidance |
 |---|---|
-| Safest documented example in this guide | Azure Service Bus |
-| Other likely candidates | Storage Queue, Event Hubs, Kafka, and other KEDA-backed sources may be possible, but verify current Jobs support explicitly |
-| Operational rule | Do not assume feature parity with continuously running Container Apps |
+| Scaler model | Use a KEDA scaler that supports `ScaledJob`. |
+| Example in this guide | Azure Service Bus with scaler metadata and secret-backed authentication. |
+| Operational rule | Verify the selected scaler's metadata and authentication requirements before deployment. |
 
-!!! warning "Jobs scaler coverage was not fully re-verified"
-    The source-collection run did not complete with direct quotes for the exact event-scaler matrix specific to Jobs.
-    Verify the current Container Apps Jobs documentation before you assume that every scaler available to apps is also supported for event-driven Jobs.
+!!! warning "Verify each scaler contract"
+    `ScaledJob` compatibility does not make metadata and authentication interchangeable across scalers. Check the selected KEDA scaler specification and configure every required metadata and authentication value.
 
 ### Polling interval and scale rules
 
-Event-driven Jobs depend on the scaler configuration to decide when new executions are created. In practice, the two most important operator inputs are:
+Event-driven Jobs depend on the scaler configuration to decide when new executions are created. Container Apps polls the event source every 30 seconds by default; configure `pollingInterval` (CLI: `--polling-interval`) when the workload needs a different interval. The other important operator inputs are:
 
 - Threshold metadata such as queue length or lag
 - Authentication details that let the scaler inspect the source
 
-!!! warning "Polling interval details depend on the scaler"
-    This guide does not assert a universal polling interval for all event-driven Jobs.
-    Confirm the current scaler-specific defaults and tunables before you use queue-latency SLOs or cost projections.
+!!! warning "Validate latency assumptions"
+    The job-level polling default is 30 seconds, but source behavior and scaler metadata still affect when a threshold is observed. Validate the complete scaler configuration before using polling behavior in queue-latency SLOs or cost projections.
 
 ### Authentication choices
 
@@ -108,13 +117,42 @@ Use an event-driven Container App when:
 <!-- diagram-id: event-driven-job-flow -->
 ```mermaid
 flowchart TD
-    A[Event source backlog or lag rises] --> B[KEDA-style scale rule evaluates metadata]
-    B --> C[Container Apps creates job execution]
-    C --> D[Execution starts one or more replicas]
-    D --> E[Replica pulls a bounded work unit]
-    E --> F[Replica exits after processing]
-    F --> G[Execution recorded for replay and monitoring]
+    accTitle: Event-driven job flow
+    accDescr: Shows an event source being polled by a configured scale rule, the platform creating executions, replicas processing bounded work, and execution outcomes being retained for operations.
+
+    SOURCE[Event source]
+    AUTH[Job secret with Service Bus connection]
+    RULE[Configured scale rule]
+    PLATFORM[Container Apps Jobs control]
+    EXEC[Create job execution]
+    REPLICAS[Start replicas up to parallelism]
+    RESULT[Evaluate required successful completions]
+    RETRY{Retry failed replica?}
+    RETRY_FAILED[Retry failed replica<br/>Preserve successes]
+    SUCCESS[Execution succeeds]
+    FAIL[Execution fails]
+    HISTORY[Execution history and monitoring]
+
+    RULE -->|Poll event source| SOURCE
+    SOURCE -->|Backlog or metric| RULE
+    RULE -.->|Maps connection to secret ref| AUTH
+    RULE -.->|Authenticated access| SOURCE
+    RULE -->|Trigger threshold met| PLATFORM
+    PLATFORM --> EXEC
+    EXEC --> REPLICAS
+    REPLICAS ==>|Pull bounded work| SOURCE
+    SOURCE ==>|Work item| REPLICAS
+    REPLICAS --> RESULT
+    RESULT -->|Count met| SUCCESS
+    RESULT -->|Failed replica| RETRY
+    RETRY -->|Allowed| RETRY_FAILED
+    RETRY_FAILED --> RESULT
+    RETRY -->|No| FAIL
+    SUCCESS --> HISTORY
+    FAIL --> HISTORY
 ```
+
+The thick arrows are work transport between the event source and running replicas. Scaler authentication is a dotted authorization dependency, while threshold evaluation and execution creation are control actions rather than runtime request traffic.
 
 ### Portal view of an event-driven job
 

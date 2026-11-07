@@ -6,6 +6,7 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-health-probe-failures
         - https://learn.microsoft.com/en-us/azure/container-apps/revisions
 content_validation:
   status: verified
@@ -50,14 +51,42 @@ Configure startup, liveness, and readiness probes in your Container App template
 <!-- diagram-id: configure-startup-liveness-and-readiness-probes -->
 ```mermaid
 flowchart TD
-    U[User Traffic] --> R[Readiness Probe]
-    P[Platform Runtime] --> L[Liveness Probe]
-    S[Container Startup] --> ST[Startup Probe]
-    R --> D[Receives Requests]
-    L --> E[Restart Decision]
+    accTitle: Configure startup, liveness, and readiness probes
+    accDescr: Separates platform probe evaluation from the runtime request path through managed ingress and shows how failed probes affect replica recovery and traffic readiness.
+
+    REPLICA[Revision replica starts]
+    STARTUP[Evaluate startup probe]
+    STARTUP_BUDGET{Startup failureThreshold exhausted?}
+    LIVE[Evaluate liveness probe]
+    LIVE_BUDGET{Liveness failureThreshold exceeded?}
+    READY[Evaluate readiness probe]
+    READY_FAILURE[Source-conflicted unhealthy or not-ready<br/>recovery behavior]
+    MONITOR[Continue liveness monitoring]
+    RECOVER[Platform restarts affected replica]
+    INGRESS[Managed ingress]
+    SERVE[Ready replica]
+
+    REPLICA --> STARTUP
+    STARTUP -->|Failure| STARTUP_BUDGET
+    STARTUP_BUDGET -->|No| STARTUP
+    STARTUP_BUDGET -->|Yes| RECOVER
+    STARTUP -->|Yes| LIVE
+    STARTUP -->|Yes| READY
+    LIVE -->|No| LIVE_BUDGET
+    LIVE_BUDGET -->|No| LIVE
+    LIVE_BUDGET -->|Yes| RECOVER
+    LIVE -->|Yes| MONITOR
+    MONITOR --> LIVE
+    READY -->|No| READY_FAILURE
+    RECOVER --> REPLICA
+    READY -->|Yes| INGRESS
+    INGRESS ==>|Routed request| SERVE
+    SERVE ==>|Response| INGRESS
 ```
 
-HTTP probes can include dependency-aware logic, but they should reflect the health signal you actually want the platform to act on. Microsoft Learn notes that HTTP probes "let you implement custom logic to check the status of application dependencies before reporting a healthy status," so keep basic process health separate from stricter dependency checks when you don't want every downstream failure to block readiness.
+The thick arrows are the runtime request and response path. Probe evaluation and replica recovery are platform actions, not request hops. Microsoft Learn's health-probes reference says that a failed readiness probe makes the revision appear unhealthy and Container Apps restarts the affected replica until it becomes healthy or the failure threshold is exceeded. The troubleshooting page describes the traffic symptom more narrowly as a container that might be marked not ready. Because those sources do not establish a threshold-before-restart ordering, the readiness branch ends at an explicitly source-conflicted recovery node rather than inventing an order.
+
+HTTP probes can include dependency-aware logic, but they should reflect the health signal you actually want the platform to act on. Microsoft Learn notes that HTTP probes "let you implement custom logic to check the status of application dependencies before reporting a healthy status," so keep basic process health separate from stricter dependency checks when you don't want every downstream failure to affect replica recovery.
 
 ```bash
 az containerapp update \
@@ -68,12 +97,10 @@ az containerapp update \
 
 | Command | Purpose |
 |---|---|
-| `az containerapp update --yaml "./infra/containerapp-health.yaml"` | Applies a full health-related configuration payload in one operation, which is safer than piecemeal flag edits when you are changing multiple probes or related settings together. |
-| `--yaml "./infra/containerapp-health.yaml"` | Uses a declarative file as the source of truth for probe settings so recovery changes are reviewable and repeatable. |
-
-| Command | Why it is used |
-|---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the selected container app. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
+| `--yaml` | Applies configuration from the specified YAML file. |
 
 Validate environment and platform-level status:
 
@@ -87,9 +114,11 @@ az resource show \
 
 | Command | Purpose |
 |---|---|
-| `az resource show` | Reads the managed environment resource directly so you can verify platform-level state before assuming the problem is isolated to one app revision. |
-| `--resource-type "Microsoft.App/managedEnvironments"` | Forces the query to the Container Apps environment resource, which is the right scope for environment-wide health or provisioning checks. |
-| `--name "$ACA_ENV_NAME"` | Uses the environment variable referenced throughout the page so app-level recovery and environment-level validation stay aligned. |
+| `az resource show` | Shows the selected Azure resource. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
+| `--resource-type` | Selects the Azure resource type to inspect. |
+| `--name` | Selects the target resource by name. |
+| `--output` | Selects the command output format. |
 
 ## Portal View: Revision State Before Recovery Actions
 
@@ -116,8 +145,10 @@ az containerapp revision restart \
 
 | Command | Purpose |
 |---|---|
-| `az containerapp revision restart` | Restarts one specific revision when the failure appears transient, allowing you to recover replicas without changing traffic assignments or redeploying the app. |
-| `--revision "${APP_NAME}--stable"` | Limits the action to the affected revision so you do not unnecessarily disrupt other active revisions in multiple-revision mode. |
+| `az containerapp revision restart` | Restarts the selected revision. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
+| `--revision` | Selects the revision to restart. |
 
 For persistent failures, roll traffic back to a healthy revision (see revisions guide).
 
@@ -145,9 +176,12 @@ az containerapp revision list \
   --output table
 ```
 
-| Command | Why it is used |
+| Command | Purpose |
 |---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+| `az containerapp revision list` | Lists revisions for the selected container app. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
+| `--output` | Selects the command output format. |
 
 Review system logs for probe failures:
 
@@ -159,9 +193,13 @@ az containerapp logs show \
   --follow false
 ```
 
-| Command | Why it is used |
+| Command | Purpose |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Shows logs for the selected container app. |
+| `--name` | Selects the target resource by name. |
+| `--resource-group` | Selects the resource group that contains the target resource. |
+| `--type` | Selects the requested log type. |
+| `--follow` | Controls whether log output streams continuously. |
 
 Example output (PII masked):
 
@@ -199,4 +237,5 @@ Example output (PII masked):
 
 ## Sources
 - [Azure Container Apps health probes](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
+- [Troubleshoot health probe failures](https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-health-probe-failures)
 - [Azure Container Apps revisions (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
