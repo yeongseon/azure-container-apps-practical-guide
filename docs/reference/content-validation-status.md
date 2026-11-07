@@ -42,7 +42,7 @@ pie title In-Scope Document Validation Status
 | [Cost Optimization](../platform/reliability/cost-optimization.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
 | [Cpu Memory Scaler](../platform/scaling/cpu-memory-scaler.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
 | [Custom Scalers](../platform/scaling/custom-scalers.md) | ✅ | ✅ Verified | 2/2 | 2026-09-11 |
-| [Customer Managed Keys](../platform/security/customer-managed-keys.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
+| [Customer Managed Keys](../platform/security/customer-managed-keys.md) | ✅ | ✅ Verified | 4/4 | 2026-11-07 |
 | [Dedicated Gpu Profiles](../platform/environments/dedicated-gpu-profiles.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
 | [Deployment](../platform/deployment.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
 | [Deployment Scenarios](../platform/deployment-scenarios.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
@@ -53,7 +53,7 @@ pie title In-Scope Document Validation Status
 | [Execution Lifecycle](../platform/jobs/execution-lifecycle.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Health Recovery](../platform/reliability/health-recovery.md) | ✅ | ✅ Verified | 5/5 | 2026-09-11 |
 | [Http Scaler](../platform/scaling/http-scaler.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
-| [Image Security](../platform/security/image-security.md) | ✅ | ✅ Verified | 4/4 | 2026-09-11 |
+| [Image Security](../platform/security/image-security.md) | ✅ | ✅ Verified | 4/4 | 2026-11-07 |
 | [Index](../platform/security/index.md) | ✅ | ✅ Verified | 4/4 | 2026-11-07 |
 | [Index](../platform/environments/index.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
 | [Index](../platform/networking/index.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
@@ -64,7 +64,7 @@ pie title In-Scope Document Validation Status
 | [Index](../platform/revisions/index.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
 | [Index](../platform/jobs/index.md) | ✅ | ✅ Verified | 3/3 | 2026-07-18 |
 | [Ingress](../platform/networking/ingress.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
-| [Ingress Client Certificates](../platform/security/ingress-client-certificates.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
+| [Ingress Client Certificates](../platform/security/ingress-client-certificates.md) | ✅ | ✅ Verified | 3/3 | 2026-11-07 |
 | [Jobs Vs Apps](../platform/jobs/jobs-vs-apps.md) | ✅ | ✅ Verified | 2/2 | 2026-07-18 |
 | [Key Vault](../platform/identity-and-secrets/key-vault.md) | ✅ | ✅ Verified | 5/5 | 2026-11-07 |
 | [Lifecycle](../platform/revisions/lifecycle.md) | ✅ | ✅ Verified | 3/3 | 2026-09-11 |
