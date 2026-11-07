@@ -838,6 +838,31 @@ class EvaluationReplayTests(unittest.TestCase):
                         self.assertEqual(actual["timestamp_utc"], expected)
                         self.assertEqual(actual["time_source"], source)
 
+    def test_batch_b_gate_14_describes_mixed_anchor_semantics(self) -> None:
+        for name, anchors in self.batch_b_payload_anchors.items():
+            with self.subTest(lab=name), self.replay_fixture(name) as lab:
+                result = subprocess.run(
+                    ["bash", "verify.sh"],
+                    cwd=lab,
+                    env={key: value for key, value in os.environ.items() if key != "GATE_REPLAY_BASELINE_DIR"},
+                    capture_output=True,
+                    text=True,
+                    timeout=60,
+                    check=False,
+                )
+
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                gate14 = json.loads((lab / "evidence" / REPLAY_LABS[name][0][0]).read_text())
+                subgate = gate14["sub_gates"][1]
+                self.assertIn("Direct payload timestamps plus phase-boundary proxies", subgate["claim"])
+                self.assertIn("guarded historical fallback", subgate["predicate"])
+                observed = subgate["observed_values"]
+                for anchor_class in ("pre_anchor_timestamps", "post_anchor_timestamps"):
+                    for raw_name, anchor in observed[anchor_class].items():
+                        expected_kind = "direct_payload" if raw_name in anchors else "phase_proxy"
+                        with self.subTest(lab=name, raw=raw_name):
+                            self.assertEqual(anchor["anchor_kind"], expected_kind)
+
 
 def load_tests(loader: unittest.TestLoader, _tests: unittest.TestSuite,
                _pattern: str | None) -> unittest.TestSuite:

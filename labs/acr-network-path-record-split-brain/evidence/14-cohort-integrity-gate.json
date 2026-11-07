@@ -57,7 +57,7 @@
       "sub_gate": "a_canonical_raw_files_present_and_parse"
     },
     {
-      "claim": "Every per-file UTC anchor stays inside one coherent capture window and every post-fix anchor is later than every pre-fix anchor.",
+      "claim": "Direct payload timestamps plus phase-boundary proxies place every raw file inside one coherent capture envelope; guarded historical fallback is used only when explicitly supplied and no current payload anchor is available.",
       "claim_level": "Measured",
       "evidence_files": [
         "labs/acr-network-path-record-split-brain/evidence/01-app-spec-pre-fix.json",
@@ -82,64 +82,76 @@
           "01-app-spec-pre-fix.json": {
             "timestamp_utc": "2026-06-28T22:34:36+00:00",
             "time_source": "cohort.pre.probe_capture.captured_after_utc",
-            "raw_epoch": "2026-06-28T22:34:36Z"
+            "raw_epoch": "2026-06-28T22:34:36Z",
+            "anchor_kind": "phase_proxy"
           },
           "02-revision-list-pre-fix.json": {
             "timestamp_utc": "2026-06-28T22:34:36+00:00",
             "time_source": "cohort.pre.probe_capture.captured_after_utc",
-            "raw_epoch": "2026-06-28T22:34:36Z"
+            "raw_epoch": "2026-06-28T22:34:36Z",
+            "anchor_kind": "phase_proxy"
           },
           "03-private-dns-record-list-pre-fix.json": {
             "timestamp_utc": "2026-06-28T22:34:36+00:00",
             "time_source": "cohort.pre.probe_capture.captured_after_utc",
-            "raw_epoch": "2026-06-28T22:34:36Z"
+            "raw_epoch": "2026-06-28T22:34:36Z",
+            "anchor_kind": "phase_proxy"
           },
           "04-pe-nic-config-pre-fix.json": {
             "timestamp_utc": "2026-06-28T22:34:36+00:00",
             "time_source": "cohort.pre.probe_capture.captured_after_utc",
-            "raw_epoch": "2026-06-28T22:34:36Z"
+            "raw_epoch": "2026-06-28T22:34:36Z",
+            "anchor_kind": "phase_proxy"
           },
           "05-acr-public-access-pre-fix.json": {
             "timestamp_utc": "2026-06-28T22:34:36+00:00",
             "time_source": "cohort.pre.probe_capture.captured_after_utc",
-            "raw_epoch": "2026-06-28T22:34:36Z"
+            "raw_epoch": "2026-06-28T22:34:36Z",
+            "anchor_kind": "phase_proxy"
           },
           "06-system-logs-pre-fix.json": {
             "timestamp_utc": "2026-06-28T22:34:36+00:00",
             "time_source": "payload.window_end_utc",
-            "raw_epoch": "2026-06-28T22:34:36Z"
+            "raw_epoch": "2026-06-28T22:34:36Z",
+            "anchor_kind": "direct_payload"
           },
           "07-containerapp-spec-pre-fix.yaml": {
             "timestamp_utc": "2026-06-28T22:34:36+00:00",
             "time_source": "cohort.pre.probe_capture.captured_after_utc",
-            "raw_epoch": "2026-06-28T22:34:36Z"
+            "raw_epoch": "2026-06-28T22:34:36Z",
+            "anchor_kind": "phase_proxy"
           },
           "08-probe-response-pre-fix.json": {
             "timestamp_utc": "2026-06-28T22:34:36+00:00",
             "time_source": "payload.captured_after_utc",
-            "raw_epoch": "2026-06-28T22:34:36Z"
+            "raw_epoch": "2026-06-28T22:34:36Z",
+            "anchor_kind": "direct_payload"
           }
         },
         "post_anchor_timestamps": {
           "09-private-dns-record-list-post-fix.json": {
             "timestamp_utc": "2026-06-28T22:37:05+00:00",
             "time_source": "cohort.post.capture_metadata.post_window_start_utc",
-            "raw_epoch": "2026-06-28T22:37:05Z"
+            "raw_epoch": "2026-06-28T22:37:05Z",
+            "anchor_kind": "phase_proxy"
           },
           "10-revision-list-post-fix.json": {
             "timestamp_utc": "2026-06-28T22:37:05+00:00",
             "time_source": "cohort.post.capture_metadata.post_window_start_utc",
-            "raw_epoch": "2026-06-28T22:37:05Z"
+            "raw_epoch": "2026-06-28T22:37:05Z",
+            "anchor_kind": "phase_proxy"
           },
           "11-probe-response-post-fix.json": {
             "timestamp_utc": "2026-06-28T22:36:42+00:00",
             "time_source": "payload.captured_after_utc",
-            "raw_epoch": "2026-06-28T22:36:42Z"
+            "raw_epoch": "2026-06-28T22:36:42Z",
+            "anchor_kind": "direct_payload"
           },
           "12-pe-nic-config-post-fix.json": {
             "timestamp_utc": "2026-06-28T22:37:05+00:00",
             "time_source": "capture_metadata.post_window_start_utc",
-            "raw_epoch": "2026-06-28T22:37:05Z"
+            "raw_epoch": "2026-06-28T22:37:05Z",
+            "anchor_kind": "direct_payload"
           }
         },
         "sorted_anchor_sequence": [
@@ -552,7 +564,7 @@
           "fallback_used": false
         }
       },
-      "predicate": "All configured post-fix file birth-times (falling back to mtime when birth-time is unavailable) are strictly later than all configured pre-fix file anchors, and the total window is <= 1800 seconds on the strong path or <= 5400 seconds on the fallback path.",
+      "predicate": "Every post-fix direct payload timestamp or phase-boundary proxy is strictly later than every pre-fix anchor; guarded historical fallback is eligible only through an explicitly supplied replay baseline, and the total envelope is <= 1800 seconds on the strong path or <= 5400 seconds on the fallback path.",
       "result": "pass",
       "sub_gate": "b_every_per_file_utc_anchor_falls_within_one_bounded_window"
     },
@@ -702,5 +714,5 @@
     "utc_window_span_strong_seconds_max": 1800,
     "utc_window_span_fallback_seconds_max": 5400
   },
-  "evaluated_at_utc": "2026-11-07T05:12:13Z"
+  "evaluated_at_utc": "2026-11-07T05:26:31Z"
 }

@@ -389,11 +389,13 @@ def resolve_anchor_timestamp(name: str, anchor_class: str):
             payload_source = "cohort.post.capture_metadata.post_window_start_utc"
     if isinstance(payload_value, str) and payload_value:
         dt = parse_iso(payload_value)
+        anchor_kind = "direct_payload" if name in payload_anchors else "phase_proxy"
         return {
             "timestamp": dt,
             "timestamp_utc": dt.isoformat(),
             "time_source": payload_source,
             "raw_epoch": payload_value,
+            "anchor_kind": anchor_kind,
         }
     if EXISTING_GATE14 is not None:
         observed = EXISTING_GATE14.get("sub_gates", [{} ,{}])[1].get("observed_values", {})
@@ -406,6 +408,7 @@ def resolve_anchor_timestamp(name: str, anchor_class: str):
                 "timestamp_utc": prior["timestamp_utc"],
                 "time_source": prior.get("time_source", "mtime"),
                 "raw_epoch": prior.get("raw_epoch"),
+                "anchor_kind": "guarded_historical",
             }
     stat = (EVIDENCE_DIR / name).stat()
     birthtime = getattr(stat, "st_birthtime", None)
@@ -416,6 +419,7 @@ def resolve_anchor_timestamp(name: str, anchor_class: str):
             "timestamp_utc": dt.isoformat(),
             "time_source": "birthtime",
             "raw_epoch": birthtime,
+            "anchor_kind": "filesystem_fallback",
         }
     dt = datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc)
     return {
@@ -423,6 +427,7 @@ def resolve_anchor_timestamp(name: str, anchor_class: str):
         "timestamp_utc": dt.isoformat(),
         "time_source": "mtime",
         "raw_epoch": stat.st_mtime,
+        "anchor_kind": "filesystem_fallback",
     }
 
 
@@ -914,7 +919,7 @@ gate14 = {
             "sub_gate": "a_canonical_raw_files_present_and_parse",
         },
         {
-            "claim": "Every per-file UTC anchor stays inside one coherent capture window and every post-fix anchor is later than every pre-fix anchor.",
+            "claim": "Direct payload timestamps plus phase-boundary proxies place every raw file inside one coherent capture envelope; guarded historical fallback is used only when explicitly supplied and no current payload anchor is available.",
             "claim_level": "Measured",
             "evidence_files": [repo_rel(name) for name in RAW_FILES],
             "observed_values": {
@@ -922,15 +927,15 @@ gate14 = {
                 "utc_window_end": utc_window_end.isoformat(),
                 "utc_window_span_seconds": utc_window_span_seconds,
                 "monotonic_ordering_holds": monotonic_ordering_holds,
-                "pre_anchor_timestamps": {name: {"timestamp_utc": info["timestamp_utc"], "time_source": info["time_source"], "raw_epoch": info["raw_epoch"]} for name, info in pre_anchor_infos.items()},
-                "post_anchor_timestamps": {name: {"timestamp_utc": info["timestamp_utc"], "time_source": info["time_source"], "raw_epoch": info["raw_epoch"]} for name, info in post_anchor_infos.items()},
+                "pre_anchor_timestamps": {name: {"timestamp_utc": info["timestamp_utc"], "time_source": info["time_source"], "raw_epoch": info["raw_epoch"], "anchor_kind": info["anchor_kind"]} for name, info in pre_anchor_infos.items()},
+                "post_anchor_timestamps": {name: {"timestamp_utc": info["timestamp_utc"], "time_source": info["time_source"], "raw_epoch": info["raw_epoch"], "anchor_kind": info["anchor_kind"]} for name, info in post_anchor_infos.items()},
                 "sorted_anchor_sequence": sorted_anchor_sequence,
                 "strict_pairwise_order_checks": monotonic_pairs,
                 "strong": {"holds": strong_temporal, "max_span_seconds": 1800},
                 "fallback": {"holds": fallback_temporal, "max_span_seconds": 5400},
                 "time_source_summary": time_source_summary,
             },
-            "predicate": "All configured post-fix file birth-times (falling back to mtime when birth-time is unavailable) are strictly later than all configured pre-fix file anchors, and the total window is <= 1800 seconds on the strong path or <= 5400 seconds on the fallback path.",
+            "predicate": "Every post-fix direct payload timestamp or phase-boundary proxy is strictly later than every pre-fix anchor; guarded historical fallback is eligible only through an explicitly supplied replay baseline, and the total envelope is <= 1800 seconds on the strong path or <= 5400 seconds on the fallback path.",
             "result": "pass" if subgate_14b_pass else "fail",
             "sub_gate": "b_every_per_file_utc_anchor_falls_within_one_bounded_window",
         },
