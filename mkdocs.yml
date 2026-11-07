@@ -101,6 +101,7 @@ validation:
 not_in_nav: |
   /reference/metrics.md
   /reference/diagram-inventory.md
+  /reference/portal-capture-inventory.md
   /reference/adr-diagram-composition.md
 
 nav:
@@ -558,7 +559,6 @@ nav:
     - reference/index.md
     - Content Validation: reference/content-validation-status.md
     - Validation Status: reference/validation-status.md
-    - Portal Capture Inventory: reference/portal-capture-inventory.md
     - CLI Reference: reference/cli-reference.md
     - Environment Variables: reference/environment-variables.md
     - Platform Limits: reference/platform-limits.md
