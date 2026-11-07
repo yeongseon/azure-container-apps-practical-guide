@@ -5,7 +5,7 @@
     "rules_sha256": "3b512de53bdbc26f4dab9725a271a73fd3a79ac8623a0083b7e4fc94d3667f64",
     "scanner": {
       "path": "scripts/diagram_inventory.py",
-      "sha256": "931657890945b247dec9843f6c8b2c212d44d8b2f04c3308bd6fd2038960881f",
+      "sha256": "eb83539385ed659d4026a2c0ef3e3a78c9a439f38a74e20c05200b85e44e138f",
       "version": "1.1.0"
     }
   },
