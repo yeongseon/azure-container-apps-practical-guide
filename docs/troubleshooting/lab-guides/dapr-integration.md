@@ -361,6 +361,8 @@ Resource group `rg-aca-lab-dapr` in `koreacentral`, Container App `ca-labdapr-5n
 - `[Observed]` `11-revision-list-post-fix.json` records the post-fix capture window as `active: true`, `healthState: Healthy`, and `runningState: Running`.
 - `[Measured]` `15-h1-trigger-produces-failure-gate.json`, `16-h2-fix-restores-recovery-gate.json`, and `17-bounded-falsification-gate.json` all pass in the committed offline verifier.
 
+The gates were originally emitted on 2026-06-26 and later re-evaluated offline from the unchanged raw cohort. Their top-level `evaluated_at_utc` records the replay invocation, not a new evidence capture or Azure validation date.
+
 ### Historical reproduction (helloworld image, 2026-06-03)
 
 Resource group `rg-aca-lab-dapr` in `koreacentral`, Container App `ca-labdapr-bh2uom`, Dapr `appId: dapr-labdapr-bh2uom`, active revision `ca-labdapr-bh2uom--xafdl2m`, single-revision mode. Azure CLI 2.71.0 with `containerapp` extension; the `az containerapp update --dapr-app-port` form rejected the flag in both the trigger and restore directions, so both mutations were applied with `az containerapp dapr enable --dapr-app-port <PORT>` (see CLI 2.71.0 workaround above).

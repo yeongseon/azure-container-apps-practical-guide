@@ -27,6 +27,8 @@ labs/dapr-integration/
 
 See [`evidence/README.md`](evidence/README.md) for the file-by-file tour and Gate 14-17 summary.
 
+Gate 14 through Gate 17 were originally emitted on 2026-06-26 and later re-evaluated offline from the unchanged raw cohort. Each replay records its own execution time in top-level `evaluated_at_utc`, not a capture date; no new Azure run or validation is implied.
+
 ## Reproducibility
 
 | Command | Why it is used |
