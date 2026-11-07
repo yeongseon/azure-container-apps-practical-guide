@@ -28,7 +28,7 @@ The claim ceiling is deliberately narrow: this pack proves only what a single li
 1. **Baseline sanity.** `fix-and-capture.sh` confirms `/probe` returns `first_class=private` before H1; this baseline is intentionally not committed because the canonical 12-file pack centers the H1/H2 contrast.
 2. **H1 failure surface.** `01-app-spec-pre-fix.json` through `08-probe-response-pre-fix.json` capture the broken window after dnsmasq is switched to `server=8.8.8.8` and the workload `/probe` converges on `first_class=public`.
 3. **H2 recovery surface.** `09-dnsmasq-config-post-fix.json` through `12-recovery-surface-post-fix.json` capture the restored dnsmasq upstream, unchanged DNS/PE/app surface, and the recovered `/probe` response returning `first_class=private`.
-4. **Phase B overlay.** `verify.sh` writes Gate 14 through Gate 17 JSONs over the raw cohort without touching Azure.
+4. **Phase B overlay.** `verify.sh` writes Gate 14 through Gate 17 JSONs over the raw cohort without touching Azure. The gates were originally emitted on 2026-06-29 and later re-evaluated offline from unchanged raw files. Every replay writes its invocation time as top-level `evaluated_at_utc`; this is not a capture date and does not establish a current Azure replay or validation date.
 
 ## Gate overview
 
@@ -42,7 +42,7 @@ The claim ceiling is deliberately narrow: this pack proves only what a single li
 - The pack captures one live Azure reproduction in `koreacentral`; it is not a statistical sample.
 - `07-system-logs-pre-fix.json` is an explicit Log Analytics query payload whose `rows` list is intentionally empty across the H1+H2 window; emptiness is the evidence.
 - `08-probe-response-pre-fix.json` and `12-recovery-surface-post-fix.json.probe_capture` preserve every retry attempt explicitly so the verifier never overclaims instantaneous convergence.
-- Gate 14 uses file-system UTC anchors (`birthtime`, falling back to `mtime`) so reruns are byte-stable and explicit about the time source for each file.
+- Gate 14 reuses the originally emitted file-system UTC anchors (`birthtime`, falling back to `mtime`) only when the replay runner has first proved that every current tracked raw evidence file is byte-identical to the committed cohort. Raw-payload-derived values remain authoritative.
 - The pack does not prove exact DNS timing, exact retry counts, broken-window control-plane fresh pulls, byte-identical backend HTTP bodies, or TLS cipher-suite identity. Those ceilings are carried explicitly in Gate 17 `cohort_binding_note.explicit_drops`.
 
 ## File index
