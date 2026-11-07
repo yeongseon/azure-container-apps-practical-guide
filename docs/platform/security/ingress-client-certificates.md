@@ -10,8 +10,8 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/2025-01-01/containerapps
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-07
+  reviewer: agent
   core_claims:
     - claim: Ingress passes the client certificate to the container app if clientCertificateMode is set to require or accept.
       source: https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization
@@ -25,7 +25,7 @@ content_validation:
 ---
 # Ingress Client Certificates
 
-Use ingress client certificate authentication when Azure Container Apps should require or accept a caller certificate at the edge and forward certificate details to your application for authorization decisions.
+Use ingress client certificate mode when Azure Container Apps should require or accept a caller certificate at the edge and forward certificate details to your application. Requiring certificate presentation is not proof that the caller is trusted: application code must validate the certificate and authorize the request.
 
 ## Prerequisites
 
@@ -47,23 +47,40 @@ export LOCATION="koreacentral"
 
 - Partner or B2B APIs that require certificate-based caller authentication.
 - APIs fronted by enterprise proxies or gateways that already manage client certificates.
-- Workloads that need the app to inspect certificate subject, issuer, or thumbprint after ingress validation.
+- Workloads that need the app to inspect and validate a certificate subject, issuer, thumbprint, or trust chain after ingress forwards it.
 
 <!-- diagram-id: aca-client-cert-ingress-flow -->
 ```mermaid
 flowchart TD
-    Client[Client with certificate] --> TLS[Ingress TLS handshake]
-    TLS --> Envoy[Managed Envoy ingress]
-    Envoy --> Header[XFCC header]
-    Header --> App[Container App code]
-    App --> Decision[Allow or reject]
+    accTitle: Certificate presentation and application trust validation are separate gates
+    accDescr: In require mode the managed ingress proxy requires a client certificate. Requests with a certificate are forwarded with X-Forwarded-Client-Cert to app code, which validates certificate trust and authorizes the caller. A presented certificate alone does not establish trust. Missing certificates are rejected before app handling.
+    CLIENT["Client"]
+    INGRESS["Managed ingress proxy<br/>TLS; mode = require"]
+    PRESENT{"Client certificate<br/>presented?"}
+    EDGE_REJECT["Ingress rejects request<br/>before app handling"]
+    APP["Application code<br/>parse forwarded certificate"]
+    TRUST{"Certificate trusted and<br/>caller authorized by app?"}
+    ALLOW["App handles request"]
+    DENY["App rejects request<br/>for example, HTTP 403"]
+    LEGEND["Thick = request transport<br/>Thin = decision / processing<br/>XFCC is metadata on the request, not a network hop"]
+
+    CLIENT ==>|"HTTPS + client certificate"| INGRESS
+    INGRESS --> PRESENT
+    PRESENT -->|"No"| EDGE_REJECT
+    PRESENT -.->|"Yes: permit forwarding"| INGRESS
+    INGRESS ==>|"Only after presentation gate<br/>request + X-Forwarded-Client-Cert"| APP
+    APP --> TRUST
+    TRUST -->|"Yes"| ALLOW
+    TRUST -->|"No"| DENY
 ```
+
+*Figure: A gate/processing view for `require`, not a topology-base extension. `accept` permits a missing certificate; `ignore` does not forward it. Neither certificate presence nor a parsed header substitutes for application trust validation.*
 
 ## Procedure
 
 ### 1. Enable external ingress
 
-If the app does not already have external ingress, enable it first.
+For callers outside the environment, publish the app at the environment boundary using external app ingress. This does not by itself create public internet access: an internal environment still has no public endpoint. Keep HTTP ingress on the intended application port.
 
 ```bash
 az containerapp ingress enable \
@@ -75,11 +92,15 @@ az containerapp ingress enable \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp ingress enable ...` | Enables ingress for workloads that must receive inbound traffic. |
+| `az containerapp ingress enable` | Enables app ingress. |
+| `--name` | Selects the container app. |
+| `--resource-group` | Selects its resource group. |
+| `--type` | Publishes the app at the environment boundary with `external`. |
+| `--target-port` | Routes to the application listener on port 8000. |
 
 ### 2. Require client certificates
 
-Microsoft Learn currently documents client certificate mode through the container app template or an ARM-style PATCH. Use `require` for strict enforcement.
+Microsoft Learn documents the setting on the app's **Networking → Ingress** blade as well as in templates and an ARM PATCH. Use `require` to enforce certificate presentation on all requests; still validate trust in app code.
 
 ```bash
 export APP_ID=$(az containerapp show \
@@ -104,16 +125,25 @@ az rest \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the app resource ID. |
+| `--name` | Selects the container app. |
+| `--resource-group` | Selects its resource group. |
+| `--query` | Extracts `id`. |
+| `--output` | Returns the ID as TSV for `APP_ID`. |
+| `az rest` | Patches the app through ARM. |
+| `--method` | Uses the PATCH method. |
+| `--uri` | Targets the app using the stable 2025-01-01 API. |
+| `--body` | Sets `configuration.ingress.clientCertificateMode`. |
 
 ### 3. Use ARM or Bicep for repeatable configuration
 
 ```bicep
+// Fragment: supply appName, location, environmentId, and imageName as parameters.
 resource app 'Microsoft.App/containerApps@2025-01-01' = {
   name: appName
   location: location
   properties: {
-    managedEnvironmentId: environmentId
+    environmentId: environmentId
     configuration: {
       ingress: {
         external: true
@@ -172,7 +202,13 @@ az containerapp ingress cors enable \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp ingress cors ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp ingress cors enable` | Configures browser cross-origin behavior, separately from certificate mode. |
+| `--name` | Selects the container app. |
+| `--resource-group` | Selects its resource group. |
+| `--allowed-origins` | Allows the specified browser origin. |
+| `--allowed-methods` | Allows GET and POST requests. |
+| `--allowed-headers` | Allows the listed request headers. |
+| `--allow-credentials` | Enables credentialed CORS responses. |
 
 #### Portal view: environment Networking blade (scope boundary)
 
@@ -198,7 +234,11 @@ az containerapp show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the app's certificate mode. |
+| `--name` | Selects the container app. |
+| `--resource-group` | Selects its resource group. |
+| `--query` | Extracts `clientCertificateMode`. |
+| `--output` | Returns an unquoted TSV value. |
 
 Expected output:
 
@@ -223,19 +263,26 @@ curl --include \
 
 | Command | Purpose |
 |---|---|
-| `export FQDN=$(az containerapp show ...)` | Reads the app's ingress hostname from the deployed resource so the certificate test targets the real Container Apps endpoint instead of a hardcoded URL that may drift across environments. |
-| `--query "properties.configuration.ingress.fqdn" --output tsv` | Extracts only the public FQDN string, which makes it easy to reuse in the subsequent `curl` request without manual cleanup. |
-| `curl --include --cert "./client.pem" --key "./client.key" "https://${FQDN}/cert-info"` | Exercises the full client-certificate path end to end by presenting the client cert and key during TLS negotiation, then shows the HTTP response headers so you can distinguish ingress rejection from application-level authorization failure. |
+| `az containerapp show` | Reads the app's ingress hostname; it is not necessarily public. |
+| `--name` | Selects the container app. |
+| `--resource-group` | Selects its resource group. |
+| `--query` | Extracts the app ingress FQDN. |
+| `--output` | Returns TSV for the `FQDN` variable. |
+| `curl` | Calls a test route that your application must implement. |
+| `--include` | Prints response headers. |
+| `--cert` | Supplies the test client certificate. |
+| `--key` | Supplies its local private key; never publish this file. |
 
-Expected outcomes:
+These are test expectations for your implementation, not live results collected for this page. Run from a client that can reach the environment, and also test with no certificate and an untrusted certificate:
 
 - `200 OK` when the client certificate is accepted and the app authorizes it.
 - `403` from the app when the certificate reaches the app but fails your policy.
-- `403` or TLS handshake failure before the app when ingress is set to `require` and no certificate is supplied.
+- Rejection before app handling when `require` is set and no certificate is supplied. Record the actual TLS/HTTP outcome rather than assuming a universal status code.
+- An untrusted but presented certificate must not receive protected content; the application trust policy must reject it.
 
 ### Inspect the forwarded header in app logs
 
-Confirm that the app logs the presence of `X-Forwarded-Client-Cert`, then parse the leaf certificate rather than trusting the raw header string.
+Confirm that the app records certificate presence and its authorization outcome without logging raw certificate/header material or private keys. Parse the leaf certificate and validate it rather than trusting the raw header string. Ingress overwrites a client-supplied `X-Forwarded-Client-Cert` header on this path.
 
 ## Rollback / Troubleshooting
 
@@ -258,7 +305,10 @@ az rest \
 
 | Command | Why it is used |
 |---|---|
-| `az rest ...` | Calls an Azure Resource Manager endpoint that is not covered by a higher-level CLI command. |
+| `az rest` | Relaxes certificate presentation through ARM. |
+| `--method` | Uses PATCH. |
+| `--uri` | Targets the app resource at the specified API version. |
+| `--body` | Sets certificate mode to `ignore`; reassess the security impact first. |
 
 Troubleshooting checklist:
 
@@ -281,3 +331,5 @@ Troubleshooting checklist:
 - [Ingress for your app in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to)
 - [Microsoft.App/containerApps@2025-01-01 template reference (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/templates/microsoft.app/2025-01-01/containerapps)
 - [Configure CORS in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/cors)
+- [Use mTLS and the Portal ingress setting (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/mtls)
+- [Azure CLI CORS command reference (Microsoft Learn)](https://learn.microsoft.com/en-us/cli/azure/containerapp/ingress/cors)

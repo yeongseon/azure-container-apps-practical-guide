@@ -10,16 +10,17 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/revisions
         - https://learn.microsoft.com/en-us/azure/container-apps/security
         - https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-containers-azure-overview
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-abac-repository-permissions
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-07
+  reviewer: agent
   core_claims:
     - claim: Azure Container Apps can pull images from a private Azure Container Registry by using a managed identity instead of registry credentials.
       source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
       verified: true
-    - claim: To use managed identity with a registry, the identity must be enabled on the app and assigned the AcrPull role on the registry.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/containers
+    - claim: The Container Apps managed-identity pull guidance requires an identity enabled on the app and AcrPull on an RBAC-only registry; ABAC-enabled registries do not honor AcrPull.
+      source: https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-abac-repository-permissions
       verified: true
     - claim: Changes to the container app template, including container image changes, are revision-scope changes that create a new revision.
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
@@ -49,7 +50,9 @@ For ACR, the recommended security posture is managed identity.
 Requirements documented by Microsoft Learn:
 
 - Enable the managed identity on the container app.
-- Assign the identity the `AcrPull` role on the registry.
+- Configure the registry to use that identity (`identity: system` or the user-assigned identity resource ID).
+- Assign `AcrPull` for a registry in **RBAC Registry Permissions** mode. ABAC-enabled registries do not honor `AcrPull`; use **Container Registry Repository Reader** with appropriate repository conditions instead, following the [ACR permissions guidance](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-abac-repository-permissions). Verify pull access before rollout.
+- Allow ARM-audience tokens on ACR, as required by the Container Apps managed-identity pull guide.
 - Do not configure a username and password when using managed identity.
 
 !!! tip "Managed identity is the preferred ACR authentication path"
@@ -83,21 +86,46 @@ Container Apps treats image changes as revision-scope configuration. That means 
 <!-- diagram-id: image-pull-auth-and-activation-flow -->
 ```mermaid
 flowchart TD
-    A[Revision-scope image change] --> B[New revision created]
-    B --> C[Container Apps checks registry config]
-    C --> D{Authentication method}
-    D --> E[Public registry pull]
-    D --> F[Private registry username and password]
-    D --> G[ACR managed identity + AcrPull]
-    E --> H[Image manifest and layers pulled]
-    F --> H
-    G --> H
-    H --> I[Revision activates]
+    accTitle: Image pull prerequisites and revision readiness decisions
+    accDescr: An image-reference template change creates a revision. Registry reachability and the chosen authentication method must permit pulling before container startup. A successful image pull still requires startup and readiness checks; failures require stage-specific diagnosis.
+
+    CHANGE["Template image-reference change<br/>creates a new revision"]
+    REACH{"Registry DNS and<br/>HTTPS reachable?"}
+    METHOD{"Configured pull method?"}
+    PUBLIC["Public registry<br/>anonymous pull"]
+    CRED["Private registry<br/>username + passwordSecretRef"]
+    MI["ACR managed identity<br/>identity selected + pull role"]
+    AUTH{"Registry permits<br/>the requested pull?"}
+    PULL["Retrieve image<br/>manifest and layers"]
+    START["Start containers"]
+    HEALTH{"Startup and readiness<br/>checks pass?"}
+    READY["Ready for rollout<br/>traffic follows revision mode"]
+    FAIL["Diagnose the failed stage<br/>DNS, network, auth, image, or probes"]
+    LEGEND["Thin arrows = decisions and lifecycle<br/>Not a network packet trace<br/>Image pull alone does not prove readiness"]
+
+    CHANGE --> REACH
+    REACH -->|"Yes"| METHOD
+    REACH -->|"No"| FAIL
+    METHOD -->|"Anonymous"| PUBLIC
+    METHOD -->|"Stored credentials"| CRED
+    METHOD -->|"Managed identity"| MI
+    PUBLIC --> AUTH
+    CRED --> AUTH
+    MI --> AUTH
+    AUTH -->|"Yes"| PULL
+    AUTH -->|"No"| FAIL
+    PULL --> START
+    PULL -.->|"Missing image or download failure"| FAIL
+    START --> HEALTH
+    HEALTH -->|"Yes"| READY
+    HEALTH -->|"No"| FAIL
 ```
+
+*Figure: A decision/lifecycle view, not a topology-base extension. Registry access, image availability, and healthy startup are separate gates; a registry authorization result is not an image response.*
 
 Security implications:
 
-- A mutable tag can cause a new revision to pick up a different image than you expect.
+- Container Apps checks for an image version whenever a container starts (`always` pull policy). A mutable tag can therefore change the bytes used by a later start, not just by a new revision. Prefer a digest or immutable release tag.
 - Broken registry auth blocks revision startup.
 - Revision health validation should be part of image promotion, not an afterthought.
 
@@ -145,7 +173,7 @@ That means the security control is primarily:
 | Control | Native Container Apps surface | ACR / governance surface |
 |---|---|---|
 | Registry authentication | Yes | N/A |
-| Managed identity for ACR pull | Yes | Requires AcrPull on ACR |
+| Managed identity for ACR pull | Yes | Requires a pull role appropriate to the registry's permissions mode |
 | Vulnerability scanning | No documented native Container Apps scanner | Yes, via Defender for Containers on ACR |
 | Source allow-listing | No documented native Container Apps allow-list feature | Policy / governance pattern |
 | Private network path to registry | Indirectly, through environment networking | ACR private endpoints and DNS |
@@ -155,7 +183,7 @@ That means the security control is primarily:
 Use this as the platform baseline:
 
 1. Store production images in **Azure Container Registry**.
-2. Use **managed identity + AcrPull** for image pulls.
+2. Use **managed identity + a registry-mode-appropriate pull role** for image pulls.
 3. Treat image changes as **revision rollouts** and validate revision health.
 4. Enable **Defender for Containers** for ACR image scanning.
 5. Use **policy and CI/CD governance** to restrict image sources.
@@ -177,3 +205,4 @@ For the operational side of pull failures, registry DNS, and rollout troubleshoo
 - [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
 - [Security in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/security)
 - [Microsoft Defender for Containers overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-containers-azure-overview)
+- [ACR repository permissions and ABAC (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-abac-repository-permissions)
