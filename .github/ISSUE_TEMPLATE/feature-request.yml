@@ -35,3 +35,35 @@ body:
       placeholder: Platform engineers deploying...
     validations:
       required: false
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence or rationale
+      description: Link current sources, user scenario, and as-of date; if exploratory, say the claim is unverified.
+      placeholder: Current page ...; observed ...; or proposed scenario ...
+    validations:
+      required: true
+  - type: textarea
+    id: affected-scope
+    attributes:
+      label: Scope and exclusions
+      description: Concrete deliverables, target paths/areas, and what is explicitly out of scope.
+      placeholder: Add ... to ...; exclude ...
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: Objective outcomes and reviewable artifacts; avoid generic 'looks good' criteria.
+      placeholder: "- [ ] A specific observable outcome"
+    validations:
+      required: true
+  - type: textarea
+    id: verification-plan
+    attributes:
+      label: Verification plan
+      description: How the resulting change can be checked and where results should be recorded.
+      placeholder: Test or manual review procedure ...
+    validations:
+      required: true

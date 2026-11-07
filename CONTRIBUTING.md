@@ -73,4 +73,10 @@ The check enforces the syntax and nothing else. A title is `type`, an optional `
 
 The remaining wording guidance (English, a lowercase first word, no priority, size, status, or owner markers) is a review expectation that the check does not verify.
 
-Issue titles are not enforced. Anyone can open an issue without knowing this convention; maintainers adjust the title during triage.
+Issue titles are a review expectation. Maintainers can clarify titles during triage; the new-issue quality check warns about missing structure rather than blocking issue creation.
+
+## Writing Actionable Issues
+
+Before opening a bug, documentation, feature, or decision/tracker issue, search for an existing parent or duplicate. Use the appropriate form under `.github/ISSUE_TEMPLATE/` and provide: problem/impact, evidence with source and as-of date, affected scope and exclusions, measurable acceptance criteria, and a verification/closure plan. A manual decision can use a decision record or confirmed external action in place of code tests. Do not invent verification dates, Azure executions, screenshots, approvals or numeric baselines; mark unknowns explicitly. Link child work to its parent and prefer small reviewable increments.
+
+The same rules apply to API-created and agent-authored issues. See `AGENTS.md` (Issue Quality Contract) for type-specific evidence integrity and PII requirements. The new-issue quality workflow detects missing structural information, but human review remains necessary for technical correctness. Existing open issues are audited selectively under #419 rather than bulk rewritten.
