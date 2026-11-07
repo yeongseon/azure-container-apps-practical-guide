@@ -284,16 +284,16 @@ REL = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
 LAB_README_PATH = Path(os.environ["LAB_README_PATH"])
 LAB_GUIDE_PATH = Path(os.environ["LAB_GUIDE_PATH"])
 EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
-BASELINE_EVIDENCE_DIR = Path(os.environ.get("GATE_REPLAY_BASELINE_DIR", EVIDENCE_DIR))
+BASELINE_EVIDENCE_DIR = os.environ.get("GATE_REPLAY_BASELINE_DIR")
 
 EXISTING_GATE14 = None
-existing_gate14_path = BASELINE_EVIDENCE_DIR / "14-cohort-integrity-gate.json"
-if existing_gate14_path.exists():
-    try:
-        EXISTING_GATE14 = json.loads(existing_gate14_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        EXISTING_GATE14 = None
-
+if BASELINE_EVIDENCE_DIR:
+    existing_gate14_path = Path(BASELINE_EVIDENCE_DIR) / "14-cohort-integrity-gate.json"
+    if existing_gate14_path.exists():
+        try:
+            EXISTING_GATE14 = json.loads(existing_gate14_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            EXISTING_GATE14 = None
 RAW_FILES = [
     "01-app-spec-pre-fix.json",
     "02-revision-list-pre-fix.json",
