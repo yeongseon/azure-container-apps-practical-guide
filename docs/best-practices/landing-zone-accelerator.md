@@ -8,27 +8,32 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/scenarios/app-platform/container-apps/landing-zone-accelerator
         - https://learn.microsoft.com/en-us/azure/architecture/example-scenario/serverless/microservices-with-container-apps
         - https://github.com/Azure/aca-landing-zone-accelerator
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom
+        - https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall
+        - https://learn.microsoft.com/en-us/azure/container-apps/waf-app-gateway
 content_validation:
   status: verified
-  last_reviewed: '2026-07-18'
+  last_reviewed: '2026-11-07'
   reviewer: agent
   core_claims:
-    - claim: "The Azure Container Apps landing zone accelerator organizes guidance across four design areas: identity and access management, network topology and connectivity, security/governance/compliance, and management and monitoring"
-      source: https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/scenarios/app-platform/container-apps/landing-zone-accelerator
+    - claim: Internal Container Apps environments have no public endpoint and use an internal load balancer.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
       verified: true
-    - claim: "The recommended enterprise architecture deploys Container Apps into a custom virtual network with internal ingress and no public endpoint, fronted by Application Gateway with a Web Application Firewall"
-      source: https://learn.microsoft.com/en-us/azure/architecture/example-scenario/serverless/microservices-with-container-apps
+    - claim: Application Gateway with WAF can front an internal Container Apps environment using the app FQDN as its backend target.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/waf-app-gateway
       verified: true
     - claim: "A custom virtual network lets you apply network security groups and user-defined routing through Azure Firewall, which the automatically generated Microsoft-managed virtual network does not allow"
       source: https://learn.microsoft.com/en-us/azure/architecture/example-scenario/serverless/microservices-with-container-apps
       verified: true
-    - claim: "The built-in external ingress feature cannot be placed behind a WAF or DDoS Protection plan, so web-facing workloads should be fronted with Application Gateway or Azure Front Door"
-      source: https://learn.microsoft.com/en-us/azure/architecture/example-scenario/serverless/microservices-with-container-apps
+    - claim: UDR-based controlled egress is supported only in workload-profile environments.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall
       verified: true
 ---
 # Container Apps Landing Zone Accelerator
 
-The Azure Container Apps landing zone accelerator (LZA) is an open-source collection of architectural guidance and a reference implementation that helps enterprises deploy Container Apps at scale inside an Azure landing zone. This page explains how to adopt the LZA for Container Apps and how its guidance maps to the environment, networking, identity, and compliance patterns elsewhere in this guide.
+The Azure Container Apps landing zone accelerator (LZA) is a historical open-source reference implementation for deploying Container Apps inside an Azure landing zone. Microsoft has deprecated the former Cloud Adoption Framework LZA article and directs readers to current Azure Architecture Center and Well-Architected guidance. Use this page to assess the repository's internal-environment baseline, not as a promise that its defaults remain current or supported.
 
 For general Azure landing zone theory (management groups, subscription topology, platform vs application landing zones), see the [Cloud Adoption Framework](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/landing-zone/) and the sibling [Azure Architecture Practical Guide](https://github.com/yeongseon/azure-architecture-practical-guide). This page stays Container Apps-specific.
 
@@ -42,39 +47,67 @@ The LZA reduces that fragmentation by providing:
 - **Infrastructure-as-code** (Bicep and Terraform) that provisions the whole topology, so environments are reproducible and reviewable.
 - **Design-area guidance** that aligns each cross-cutting concern with the centralized platform services an enterprise already runs.
 
-The accelerator works both as **greenfield** design guidance and as a **brownfield** assessment baseline for teams already running containers.
+The repository can still inform a greenfield design or a brownfield assessment, but review every component and default against current product documentation before adoption.
 
 ## Reference Architecture
 
-The LZA "internal environment secure baseline" scenario deploys Container Apps into a spoke virtual network with private ingress, fronted by Application Gateway with a Web Application Firewall (WAF), and egress-controlled through Azure Firewall.
+This view adapts the accelerator's internal-environment baseline: a custom VNet integration, private environment entry through Application Gateway with WAF, and UDR-controlled outbound traffic through Azure Firewall. It is a selected baseline, not the topology of every Container Apps deployment. The historical LZA Learn URL now redirects to the Architecture Center microservices migration article, whose initial example uses a Microsoft-managed network; its recommended network hardening is distinct from that initial example.
 
 <!-- diagram-id: aca-lza-reference-architecture -->
 ```mermaid
 flowchart TD
-    U[Internet client] --> AGW[Application Gateway + WAF<br/>Standard Public IP + DDoS]
-    subgraph Hub[Hub VNet]
-        AFW[Azure Firewall<br/>egress control + UDR]
-        BAS[Azure Bastion]
+    accTitle: Selected internal-environment landing zone baseline
+    accDescr: A gateway in the spoke VNet forwards allowed requests to managed ingress in a logical internal Container Apps environment. Replicas use private dependency endpoints and route internet egress through the hub firewall. DNS zones, route tables, policies and public IP resources are associated resources outside VNet boundaries.
+    CLIENT["Internet client"]
+    subgraph SPOKE["Spoke VNet"]
+        subgraph GWSUBNET["Gateway subnet"]
+            AGW["Application Gateway + WAF<br/>forward allowed requests only"]
+        end
+        SUBNET["Environment subnet<br/>workload profiles; delegated"]
+        subgraph PESUBNET["Endpoint subnet"]
+            PE["ACR and Key Vault<br/>private endpoint NICs"]
+        end
     end
-    subgraph Spoke[Spoke VNet]
-        AGW --> ACAENV[Container Apps environment<br/>internal ingress only]
-        ACAENV --> APPS[Container apps<br/>zone-redundant replicas]
-        APPS --> PE[Private endpoints]
+    subgraph ENV["Managed Container Apps environment"]
+        INGRESS["Managed ingress proxy<br/>internal environment endpoint"]
+        APP["Entry app<br/>external app ingress"]
+        REV_ACTIVE["Active revision"]
+        REPLICAS["Revision replicas"]
     end
-    PE --> ACR[Azure Container Registry]
-    PE --> KV[Azure Key Vault]
-    APPS -->|UDR default route| AFW
-    APPS --> LAW[Log Analytics workspace]
-    ACAENV --> POL[Azure Policy<br/>built-in + custom]
+    subgraph HUB["Hub VNet"]
+        subgraph FWSUBNET["AzureFirewallSubnet"]
+            FW["Azure Firewall<br/>forward allowed egress only"]
+        end
+    end
+    RT["Route table"]
+    DNS["Private DNS zones"]
+    PIP["Gateway public IP"]
+    SERVICES["Azure Container Registry<br/>and Key Vault resources"]
+    INTERNET["Allowed internet dependencies"]
+    CLIENT ==>|"HTTPS"| AGW
+    AGW ==>|"If allowed: HTTPS to app FQDN"| INGRESS
+    INGRESS ==>|"Route request"| REV_ACTIVE
+    APP -.->|"Logical grouping"| REV_ACTIVE
+    REV_ACTIVE ==>|"Serve request"| REPLICAS
+    ENV -.->|"VNet integration"| SUBNET
+    REPLICAS ==>|"Key Vault request"| PE
+    PE -.->|"Private Link association"| SERVICES
+    REPLICAS ==>|"Internet egress via hub peering"| FW
+    FW ==>|"If allowed: forward"| INTERNET
+    RT -.->|"Subnet association; firewall next hop"| SUBNET
+    DNS -.->|"VNet link"| SPOKE
+    PIP -.->|"Frontend association"| AGW
 ```
 
-The reference implementation's core components include the Container Apps environment, hub-spoke virtual networks, Azure Container Registry, Azure Bastion, Azure Firewall, user-defined routing, Application Gateway with WAF, a DDoS-protected Standard public IP, Key Vault, private endpoints, private DNS zones, a Log Analytics workspace, and Azure Policy assignments (built-in and custom).
+*Figure: Network-focused extension of the [architecture base](../platform/architecture/index.md#managed-environment-ingress-revisions-and-scaling). Thick arrows carry requests; dotted arrows are resource associations or logical grouping. The environment is a logical Azure-managed boundary, not a hidden customer-managed cluster. Hub/spoke connectivity and effective routes must be configured; Private Link requests do not automatically traverse the firewall. The runtime private request shown is to Key Vault; ACR's endpoint is included as a dependency association only, not a claim that running replicas pull their own images.*
+
+The accelerator also includes management and governance components such as Azure Bastion, Log Analytics, and Azure Policy assignments; these are omitted from this network view. Firewall Policy, NSGs, route tables, DNS zones, and public IPs are independent Azure resources, not VNet-contained workloads. Private DNS must resolve service names to private endpoint addresses, and managed-identity permissions must separately authorize access. Review the current accelerator implementation rather than assuming all optional resources or SKU defaults are deployed in every scenario.
 
 ## Recommended Practices
 
-### Organize guidance around the four design areas
+### Review the four operational concerns
 
-The LZA structures every decision into four design areas. Map each to the corresponding page in this guide when you implement it.
+Use this guide's four concern groups to review the baseline. The table is a local navigation aid, not a claim that the redirected Learn article still publishes the former four-area LZA taxonomy.
 
 | Design area | What it covers | Related guidance |
 |---|---|---|
@@ -85,11 +118,11 @@ The LZA structures every decision into four design areas. Map each to the corres
 
 ### Deploy into a custom virtual network
 
-Provide a custom virtual network when you create the environment. Only a custom VNet lets you apply network security groups and user-defined routing through Azure Firewall; the automatically generated, Microsoft-managed virtual network cannot be manipulated this way. Over-provision the environment subnet so it always has enough IP addresses for future replicas and jobs.
+Provide a custom virtual network when you create the environment. The Microsoft-managed network cannot be customized with your NSGs or egress firewall routes. UDR-based egress requires a workload-profile environment. Its exclusive subnet must be `/27` or larger and delegated to `Microsoft.App/environments`; legacy Consumption-only requires `/23` or larger without delegation and does not support UDR egress. Size for infrastructure reservations, expected scale and revision overlap rather than treating a minimum as production capacity.
 
 ### Front public ingress with a WAF
 
-The built-in external ingress feature cannot be placed behind a WAF or included in a DDoS Protection plan. For web-facing workloads, disable public ingress and front the app with [Application Gateway](https://learn.microsoft.com/en-us/azure/container-apps/waf-app-gateway) or [Azure Front Door](https://learn.microsoft.com/en-us/azure/container-apps/how-to-integrate-with-azure-front-door). Keep back-end services on internal ingress only.
+Managed ingress alone is not a WAF. For this baseline, use an internal environment and front the entry app with [Application Gateway](https://learn.microsoft.com/en-us/azure/container-apps/waf-app-gateway). Set that entry app to **external app ingress** so the gateway can reach its private environment endpoint. Keep downstream services on internal app ingress and exclude them from environment-level HTTP route targets. [Azure Front Door with Private Link](https://learn.microsoft.com/en-us/azure/container-apps/how-to-integrate-with-azure-front-door) is a separate design option; review its environment private endpoint prerequisites instead of treating it as the same App Gateway path.
 
 ### Prefer managed identities over secrets
 
@@ -101,12 +134,12 @@ Apply Azure Policy (built-in and custom) to the workload's resource group to enf
 
 ### Design for availability zones
 
-Deploy zone-redundant resources (Container Apps environment, Application Gateway, Standard public IP) across availability zones. Set the minimum replica count for nontransient apps to at least one replica per availability zone so replicas distribute across zones under normal operation.
+Enable zone redundancy on supported resources where the region and SKU allow it, and set a nonzero minimum replica count for latency-sensitive apps. Do not infer one replica per zone from `minReplicas`: Container Apps does not expose replica-to-zone placement as a customer scheduling contract.
 
 ## Common Mistakes / Anti-Patterns
 
-- **Relying on the Microsoft-managed VNet for enterprise workloads.** It blocks NSGs and egress firewalling. Always supply a custom VNet for landing-zone deployments.
-- **Exposing apps through built-in public ingress without a WAF.** This leaves web-facing workloads unprotected from layer-7 attacks and outside DDoS Protection.
+- **Relying on the Microsoft-managed VNet when enterprise controls require NSGs or custom routes.** Supply a custom VNet for this landing-zone baseline.
+- **Exposing an internet-facing app without a reviewed layer-7 protection design.** Use an appropriate WAF-capable edge where the threat model requires it; assess DDoS protection separately.
 - **Sharing one Container Apps environment across unrelated workloads.** Any app or job in an environment can reach any internal-ingress service in it. Segment workloads into separate environments.
 - **Storing long-lived secrets in code or config instead of using managed identities.** It increases credential-leak risk and operational toil.
 - **Undersizing the environment subnet.** Running out of IP addresses blocks scale-out of replicas and jobs.
@@ -120,7 +153,7 @@ Deploy zone-redundant resources (Container Apps environment, Application Gateway
 - [ ] **Azure Policy** assignments are applied to the workload resource group.
 - [ ] Egress is routed through **Azure Firewall** via user-defined routes.
 - [ ] Private endpoints and private DNS zones are configured for **ACR and Key Vault**.
-- [ ] Zone-redundant resources are enabled and **minimum replicas ≥ 1 per availability zone**.
+- [ ] Zone redundancy is enabled where supported, and replica minimums are based on availability and cold-start requirements without assuming per-zone placement.
 - [ ] The environment subnet is **over-provisioned** for future replica and job growth.
 - [ ] The whole topology is deployed via **infrastructure as code**, with infra and app pipelines separated.
 - [ ] Logs and metrics flow to a **centralized Log Analytics workspace**.
@@ -145,3 +178,7 @@ Deploy zone-redundant resources (Container Apps environment, Application Gateway
 - [Protect Azure Container Apps with Application Gateway and Web Application Firewall (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/waf-app-gateway)
 - [Integrate Azure Container Apps with Azure Front Door (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/how-to-integrate-with-azure-front-door)
 - [Azure Container Apps landing zone accelerator reference implementation (GitHub)](https://github.com/Azure/aca-landing-zone-accelerator)
+- [Networking (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Ingress overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview)
+- [Vnet custom (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom)
+- [Use azure firewall (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall)

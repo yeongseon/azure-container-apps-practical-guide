@@ -8,6 +8,14 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
         - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
         - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
+        - https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
+        - https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall
+        - https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions
+        - https://learn.microsoft.com/en-us/azure/container-apps/cors
+        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to
     - id: traffic-weights-are-applied-at-ingress
       type: flowchart
       source: mslearn-adapted
@@ -22,6 +30,14 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
         - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
         - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
+        - https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
+        - https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall
+        - https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions
+        - https://learn.microsoft.com/en-us/azure/container-apps/cors
+        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to
     - id: a-common-enterprise-pattern-is-controlled
       type: flowchart
       source: mslearn-adapted
@@ -29,10 +45,18 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
         - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
         - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
+        - https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
+        - https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall
+        - https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions
+        - https://learn.microsoft.com/en-us/azure/container-apps/cors
+        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to
 content_validation:
   status: verified
-  last_reviewed: '2026-07-04'
-  reviewer: ai-agent
+  last_reviewed: '2026-11-07'
+  reviewer: agent
   core_claims:
     - claim: The network type of a Container Apps environment can't be changed after the environment is created.
       source: https://learn.microsoft.com/en-us/azure/container-apps/networking
@@ -84,21 +108,21 @@ export LOCATION="koreacentral"
 
 Treat ingress as an application contract:
 
-- **External ingress**: internet or external clients can reach the app endpoint.
-- **Internal ingress**: only workloads with network reachability to the environment can call the app endpoint.
-- **No ingress**: app is invoked through events, jobs, queues, or sidecar/service mesh paths.
+- **External app ingress**: publishes the app at the environment's inbound endpoint. Internet access also requires an external environment with public network access enabled; in an internal environment this endpoint is private.
+- **Internal app ingress**: the app's own FQDN is directly reachable only within the same environment, not from arbitrary VNet clients. An environment-level HTTP route can still expose an internal app as a route target; exclude it from those routes when isolation is required.
+- **No ingress**: disables the app's ingress endpoint; suitable for workers that consume queues or events. Dapr invocation is a separate opt-in path, not an ingress setting.
 
 Use this table before creating or updating an app:
 
 | Workload Type | Recommended Ingress | Why |
 |---|---|---|
-| Public API | External | Client traffic must enter via managed Envoy |
-| Internal API | Internal | Keep east-west private, no public endpoint |
+| Public API | External | Publish at managed ingress; choose the environment boundary separately |
+| Internal API | Internal | Keep direct app ingress environment-scoped |
 | Queue processor | None | Reduces attack surface and accidental exposure |
 | Admin tooling endpoint | Internal + access-controlled path | Avoid exposing privileged operations |
 
 !!! warning "Do not use external ingress as a default"
-    Every external endpoint becomes an internet boundary requiring TLS, WAF posture, abuse protection, and certificate lifecycle ownership.
+    External app ingress is not synonymous with public internet exposure. Where the environment permits public access, review TLS, WAF posture, abuse protection, and certificate lifecycle ownership.
 
 ### External ingress pattern for controlled public entry
 
@@ -106,15 +130,29 @@ Use one entry app for public traffic, and keep downstream services internal.
 
 <!-- diagram-id: use-one-entry-app-for-public -->
 ```mermaid
-graph TD
-    U[Internet Client] --> D[Custom Domain]
-    D --> E[Envoy Ingress]
-    E --> P[Public API Container App]
-    P --> I1[Internal Orders App]
-    P --> I2[Internal Catalog App]
-    I1 --> DB[(Private Data Service)]
-    I2 --> DB
+flowchart TD
+    accTitle: One public entry app with environment-scoped backends
+    accDescr: Public HTTPS reaches managed ingress in an externally accessible environment, then an entry app revision and its replicas. The entry calls internal orders and catalog apps. DNS binding is configuration, not a transport hop.
+    CLIENT["Internet client"]
+    DNS["Custom domain DNS"]
+    subgraph ENV["Managed Container Apps environment"]
+        INGRESS["Managed ingress proxy<br/>external environment; public access enabled"]
+        APP["Entry container app<br/>external app ingress"]
+        REV_ACTIVE["Active revision"]
+        REPLICAS["Entry revision replicas"]
+        ORDERS["Orders app<br/>internal app ingress"]
+        CATALOG["Catalog app<br/>internal app ingress"]
+    end
+    DNS -.->|"Name binding"| INGRESS
+    CLIENT ==>|"HTTPS to entry hostname"| INGRESS
+    INGRESS ==>|"Route entry requests"| REV_ACTIVE
+    APP -.->|"Logical grouping"| REV_ACTIVE
+    REV_ACTIVE ==>|"Serve request"| REPLICAS
+    REPLICAS ==>|"Internal HTTP call"| ORDERS
+    REPLICAS ==>|"Internal HTTP call"| CATALOG
 ```
+
+*Figure: Public-entry extension of the [architecture base](../platform/architecture/index.md#managed-environment-ingress-revisions-and-scaling). Thick arrows carry requests; dotted arrows show DNS configuration or logical grouping. Backend ingress routing is collapsed into the app nodes, not bypassed. Custom DNS is not a packet-forwarding service. Exclude the backends from environment-level HTTP routes if they must remain environment-scoped; private data-service access additionally needs its own DNS, route, and authorization design.*
 
 Create or update with explicit ingress controls:
 
@@ -130,9 +168,17 @@ az containerapp create \
   --max-replicas 10
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp create ...` | Creates the Container App with the documented image, ingress, scale, and environment settings. |
+| `az containerapp create` | Creates an app with explicit ingress, image and scaling settings. |
+| `--name` | Selects the named resource for this operation. |
+| `--resource-group` | Selects the resource group containing the resource. |
+| `--environment` | Selects the existing Container Apps environment. |
+| `--image` | Uses the explicitly versioned container image. |
+| `--target-port` | Sets the port on which the application listens. |
+| `--ingress` | Selects app ingress visibility relative to the environment. |
+| `--min-replicas` | Keeps the specified minimum number of replicas running. |
+| `--max-replicas` | Caps the number of replicas for scale-out. |
 
 Operational notes:
 
@@ -156,9 +202,17 @@ az containerapp create \
   --max-replicas 20
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp create ...` | Creates the Container App with the documented image, ingress, scale, and environment settings. |
+| `az containerapp create` | Creates an app with explicit ingress, image and scaling settings. |
+| `--name` | Selects the named resource for this operation. |
+| `--resource-group` | Selects the resource group containing the resource. |
+| `--environment` | Selects the existing Container Apps environment. |
+| `--image` | Uses the explicitly versioned container image. |
+| `--target-port` | Sets the port on which the application listens. |
+| `--ingress` | Selects app ingress visibility relative to the environment. |
+| `--min-replicas` | Keeps the specified minimum number of replicas running. |
+| `--max-replicas` | Caps the number of replicas for scale-out. |
 
 Validate ingress exposure:
 
@@ -170,9 +224,13 @@ az containerapp show \
   --output tsv
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Runs this resource-specific configuration or inspection step. |
+| `--name` | Selects the named resource for this operation. |
+| `--resource-group` | Selects the resource group containing the resource. |
+| `--query` | Projects the relevant property from the command response. |
+| `--output` | Chooses the response format for operator inspection. |
 
 Expected output:
 
@@ -196,7 +254,7 @@ Operational implications:
 
 - Weight is probabilistic over many requests, not strict per minute.
 - During low traffic, observed percentages can be noisy.
-- Session affinity is replica-level stickiness for HTTP ingress. It can skew per-replica load observations for sticky clients, but it is not a control for revision-level weighted traffic split or canary routing.
+- Session affinity is replica-level stickiness for HTTP ingress in **single revision mode only**. It is not a control for multiple-revision weighted traffic splitting or canary routing.
 
 Set weighted traffic intentionally:
 
@@ -207,9 +265,12 @@ az containerapp ingress traffic set \
   --revision-weight "${APP_NAME}--rev-a=90" "${APP_NAME}--rev-b=10"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp ingress traffic set` | Runs this resource-specific configuration or inspection step. |
+| `--name` | Selects the named resource for this operation. |
+| `--resource-group` | Selects the resource group containing the resource. |
+| `--revision-weight` | Assigns traffic percentages to the named revisions. |
 
 Best practice rollout sequence:
 
@@ -226,13 +287,19 @@ Choose VNet integration when private networking requirements are explicit.
 <!-- diagram-id: choose-vnet-integration-when-private-networking -->
 ```mermaid
 flowchart TD
-    A[Need private connectivity?] -->|No| B[Managed environment without VNet integration]
-    A -->|Yes| C[Need private dependencies or restricted egress?]
-    C -->|Yes| D[VNet-integrated environment]
-    C -->|No| E[Re-evaluate requirement and simplify]
-    D --> F[Plan subnet sizes and UDR strategy]
-    F --> G[Implement private DNS and endpoint routes]
+    accTitle: Decide whether to supply a custom VNet
+    accDescr: Private dependencies, Application Gateway, NSGs or custom egress require a custom VNet. Without those needs a managed network can suffice. For a custom VNet choose an environment type, reserve an exclusive subnet, and plan ingress and DNS separately.
+    NEED{"Need private dependencies,<br/>App Gateway, NSGs or custom egress?"}
+    NEED -->|"No"| MANAGED["Consider managed network<br/>internet-accessible dependencies"]
+    NEED -->|"Yes"| CUSTOM["Supply custom VNet<br/>at environment creation"]
+    CUSTOM --> TYPE{"Environment type?"}
+    TYPE -->|"Workload profiles"| WP["Exclusive subnet: /27 or larger<br/>delegate to Microsoft.App/environments"]
+    TYPE -->|"Legacy Consumption-only"| LEGACY["Exclusive subnet: /23 or larger<br/>no delegation; no UDR or NAT egress"]
+    WP --> PLAN["Plan IP headroom, DNS,<br/>ingress and egress routes"]
+    LEGACY --> PLAN
 ```
+
+*Figure: A decision flow, not a packet trace. Thin arrows mean planning choices. Minimum sizes are environment-type-specific floors, not recommended production capacity; the Consumption profile in a workload-profile environment is not the legacy Consumption-only environment.*
 
 Use VNet integration when any of the following is true:
 
@@ -248,12 +315,13 @@ Avoid premature VNet integration when:
 
 ### Internal-only environment pattern for microservices
 
-For highly private architectures, create an environment where all apps are internal.
+For highly private architectures, create an **internal environment**. This is separate from each app's ingress visibility.
 
 Pattern:
 
-- Place only internal ingress apps in the environment.
-- Expose the system through API Management, Application Gateway, or a separate edge app.
+- Set the gateway-facing app to **external app ingress**, so the gateway can reach it through the environment's internal load balancer.
+- Keep downstream services on internal app ingress and out of environment-level HTTP route targets.
+- Expose the system through a network-connected API Management instance, Application Gateway, or a separate edge app with a private path to the entry app.
 - Keep direct internet traffic away from service workloads.
 
 Reference check command:
@@ -266,20 +334,24 @@ az containerapp env show \
   --output tsv
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
+| `az containerapp env show` | Runs this resource-specific configuration or inspection step. |
+| `--name` | Selects the named resource for this operation. |
+| `--resource-group` | Selects the resource group containing the resource. |
+| `--query` | Projects the relevant property from the command response. |
+| `--output` | Chooses the response format for operator inspection. |
 
 ### AppGW to Internal CAE NSG design pattern
 
 When an internal Container Apps environment is fronted by Application Gateway, the NSG on the workload profile subnet is a frequent cause of "backend Unhealthy" symptoms that surface at the gateway with no matching Container Apps ingress or system log entry.
 
-The mistake to avoid: pinning the NSG rule **Destination** to the environment's `staticIp`. That value is the internal load balancer frontend VIP — it is the address written into the private DNS A records for the environment default domain, and the address to which the container app FQDN resolves through the linked Private DNS Zone. It is not a valid Destination match for an NSG rule on the workload profile subnet (replicas run on subnet NICs, not on the VIP, so an NSG rule pinned to `staticIp` never matches replica-bound traffic), and it is not what Application Gateway targets in its backend pool directly — Application Gateway targets the container app FQDN and lets DNS resolve to `staticIp` at request time, which preserves SNI handling and Host-header rewriting.
+Use the documented subnet-based NSG rules rather than assuming the environment's `staticIp` covers every required destination. That value is the internal load balancer frontend VIP used in private DNS A records. Configure the Application Gateway backend with the app FQDN and the documented HTTPS host-name override. This separates DNS and TLS settings from subnet-level filtering, without assuming undocumented replica NIC or load-balancer translation behavior.
 
 Correct destination pattern:
 
-- **Destination = workload profile subnet CIDR** (for example `10.0.2.0/23`), not the environment `staticIp`.
-- **Source = AppGW subnet CIDR** (for example `10.0.1.0/24`).
+- **Destination = workload profile subnet range**, using the range actually assigned to the environment subnet.
+- **Source = Application Gateway subnet range**.
 - **Destination ports = 443 and 31443** for HTTPS ingress, or **80 and 31080** for HTTP. The `31443` and `31080` ports are the edge proxy ports behind the internal load balancer and must be reachable from the AppGW subnet.
 - **Separate rule for Azure LB health probes**: Source = service tag `AzureLoadBalancer`, Destination ports = `30000-32767`.
 
@@ -293,24 +365,45 @@ az containerapp env show \
   --output tsv
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp env show ... --query "properties.staticIp"` | Returns the environment's internal load balancer frontend VIP. Use this value in the private DNS A records that back the environment default domain — never as an NSG Destination on the workload profile subnet, and never as an Application Gateway backend pool target directly (target the container app FQDN, which resolves to this value through the linked Private DNS Zone). |
+| `az containerapp env show` | Runs this resource-specific configuration or inspection step. |
+| `--name` | Selects the named resource for this operation. |
+| `--resource-group` | Selects the resource group containing the resource. |
+| `--query` | Projects the relevant property from the command response. |
+| `--output` | Chooses the response format for operator inspection. |
 
 See [Application Gateway Integration](../platform/networking/application-gateway-integration.md) for the full VNet layout and NSG rule set, and the [AppGW to Internal Azure Container Apps NSG Destination playbook](../troubleshooting/playbooks/ingress-and-networking/appgw-to-internal-aca-nsg-destination.md) for the diagnosis and fix flow.
 
 ### Egress control with UDR and firewall patterns
 
-A common enterprise pattern is controlled outbound internet access through Azure Firewall or NVA.
+A common enterprise pattern is controlled outbound internet access through Azure Firewall or an NVA. UDR-based egress requires a **workload-profile environment** with custom VNet integration; legacy Consumption-only environments do not support it.
 
 <!-- diagram-id: a-common-enterprise-pattern-is-controlled -->
 ```mermaid
-graph TD
-    A[Container App Replica] --> R[Subnet Route Table]
-    R --> F[Azure Firewall]
-    F --> I[Internet]
-    F --> P[Private Endpoint Services]
+flowchart TD
+    accTitle: Route outbound traffic through a firewall, not a route-table resource
+    accDescr: A route table is associated with the environment subnet and selects Azure Firewall as next hop. Replicas send outbound requests to the firewall, which forwards only allowed traffic. Private endpoint routing is a separate design.
+    subgraph VNET["Customer VNet"]
+        SUBNET["Environment subnet<br/>workload profiles; delegated"]
+        subgraph FWSUBNET["AzureFirewallSubnet"]
+            FW["Azure Firewall<br/>forward allowed traffic only"]
+        end
+    end
+    subgraph ENV["Managed Container Apps environment"]
+        REPLICAS["Revision replicas"]
+    end
+    RT["Route table<br/>default route: firewall private IP"]
+    POLICY["Firewall Policy<br/>required dependency allow rules"]
+    INTERNET["Allowed internet endpoint"]
+    ENV -.->|"Integrates"| SUBNET
+    RT -.->|"Associated"| SUBNET
+    POLICY -.->|"Policy association"| FW
+    REPLICAS ==>|"Outbound request; UDR next hop"| FW
+    FW ==>|"If allowed: forward request"| INTERNET
 ```
+
+*Figure: Outbound extension of the environment/replica vocabulary. Thick arrows carry requests; dotted arrows are configuration associations. A route table does not forward packets, and Firewall Policy is not inside a VNet. Denied traffic stops at the firewall. A default internet route does not prove that more-specific private-endpoint traffic traverses the firewall; validate those effective routes separately.*
 
 Operational checklist:
 
@@ -337,7 +430,7 @@ For outbound private access:
 
 For private inbound exposure:
 
-- Prefer internal ingress and private network reachability.
+- Choose an internal environment with external app ingress for VNet callers, or a supported environment private endpoint with public network access disabled. Internal app ingress alone does not publish the app to VNet clients.
 - Front with private-capable gateway if centralized ingress is required.
 
 Quick DNS validation from operations workstation:
@@ -349,11 +442,12 @@ az network private-dns record-set a list \
   --output table
 ```
 
-| Command | Purpose |
+| Command / Parameter | Purpose |
 |---|---|
-| `az network private-dns record-set a list` | Lists the A records in the Private DNS zone so you can confirm that private-endpoint name resolution exists before blaming Container Apps networking. |
-| `--zone-name "privatelink.database.windows.net"` | Focuses the check on the SQL private-link zone used by the example, which is the DNS surface most likely to break outbound private connectivity. |
-| `--output table` | Produces an operator-friendly view for quick workstation validation of record names and private IP targets. |
+| `az network private-dns record-set a list` | Runs this resource-specific configuration or inspection step. |
+| `--resource-group` | Selects the resource group containing the resource. |
+| `--zone-name` | Selects the private DNS zone to inspect. |
+| `--output` | Chooses the response format for operator inspection. |
 
 ### Service-to-service communication: Dapr vs direct HTTP
 
@@ -378,10 +472,12 @@ az containerapp update \
   --set-env-vars "ORDERS_BASE_URL=http://ca-orders-internal"
 ```
 
-| Command | Purpose |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update --set-env-vars "ORDERS_BASE_URL=http://ca-orders-internal"` | Shows the direct-call pattern: inject the peer service endpoint into app config so the workload can call another internal Container App without adding Dapr sidecars. |
-| `ORDERS_BASE_URL=http://ca-orders-internal` | Makes the destination URL explicit in configuration, which keeps service-to-service routing simple but also leaves retries, discovery behavior, and resilience in application code. |
+| `az containerapp update` | Runs this resource-specific configuration or inspection step. |
+| `--name` | Selects the named resource for this operation. |
+| `--resource-group` | Selects the resource group containing the resource. |
+| `--set-env-vars` | Adds or updates the peer service URL in application configuration. |
 
 Dapr-enabled app update pattern:
 
@@ -394,9 +490,14 @@ az containerapp update \
   --dapr-app-port 8000
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Runs this resource-specific configuration or inspection step. |
+| `--name` | Selects the named resource for this operation. |
+| `--resource-group` | Selects the resource group containing the resource. |
+| `--enable-dapr` | Enables the Dapr sidecar for this app. |
+| `--dapr-app-id` | Sets the Dapr service invocation identifier. |
+| `--dapr-app-port` | Sets the port the Dapr sidecar uses to reach the app. |
 
 ### CORS configuration without accidental overexposure
 
@@ -420,9 +521,15 @@ az containerapp ingress cors enable \
   --allow-credentials true
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp ingress cors ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp ingress cors enable` | Runs this resource-specific configuration or inspection step. |
+| `--name` | Selects the named resource for this operation. |
+| `--resource-group` | Selects the resource group containing the resource. |
+| `--allowed-origins` | Restricts browser cross-origin access to these origins. |
+| `--allowed-methods` | Lists the HTTP methods permitted by the CORS policy. |
+| `--allowed-headers` | Lists request headers permitted by the CORS policy. |
+| `--allow-credentials` | Permits credentials for the explicitly allowed origins. |
 
 !!! warning "CORS is not authentication"
     CORS controls browser behavior, not API authorization. Keep identity checks in the app or gateway.
@@ -448,11 +555,14 @@ az containerapp hostname add \
   --hostname "api.contoso.com"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp hostname add ...` | Manages custom hostname bindings for ingress. |
+| `az containerapp hostname add` | Runs this resource-specific configuration or inspection step. |
+| `--name` | Selects the named resource for this operation. |
+| `--resource-group` | Selects the resource group containing the resource. |
+| `--hostname` | Selects the custom hostname to add or validate. |
 
-Create and bind managed certificate:
+Request a managed certificate (this command does not bind it to the hostname):
 
 ```bash
 az containerapp env certificate create \
@@ -462,9 +572,15 @@ az containerapp env certificate create \
   --validation-method "CNAME"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp env certificate ...` | Manages certificates bound to Container Apps environment or hostnames. |
+| `az containerapp env certificate create` | Requests a managed certificate; a separate hostname bind is still required. |
+| `--resource-group` | Selects the resource group containing the resource. |
+| `--name` | Selects the named resource for this operation. |
+| `--hostname` | Selects the custom hostname to add or validate. |
+| `--validation-method` | Uses CNAME-based domain ownership validation. |
+
+After issuance, use the [managed certificate workflow](https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates) to bind the certificate with `az containerapp hostname bind`. A hostname entry or a certificate-create request alone does not establish a working HTTPS binding.
 
 Verify hostname binding state:
 
@@ -475,9 +591,12 @@ az containerapp hostname list \
   --output table
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp hostname list ...` | Manages custom hostname bindings for ingress. |
+| `az containerapp hostname list` | Runs this resource-specific configuration or inspection step. |
+| `--name` | Selects the named resource for this operation. |
+| `--resource-group` | Selects the resource group containing the resource. |
+| `--output` | Chooses the response format for operator inspection. |
 
 ### Session affinity considerations with revisions and scaling
 
@@ -491,7 +610,7 @@ Use session affinity only when all are true:
 
 Operational risks:
 
-- Replica-level measurements for sticky clients become biased; revision-level canary traffic still follows configured weighted routing across request populations.
+- Session affinity is supported only in single revision mode with HTTP ingress; do not combine it with a multiple-revision weighted canary.
 - Uneven replica utilization increases tail latency.
 - Failover can disrupt sticky clients abruptly.
 
@@ -559,9 +678,14 @@ az containerapp revision list \
   --output table
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Runs this resource-specific configuration or inspection step. |
+| `az containerapp revision list` | Runs this resource-specific configuration or inspection step. |
+| `--name` | Selects the named resource for this operation. |
+| `--resource-group` | Selects the resource group containing the resource. |
+| `--query` | Projects the relevant property from the command response. |
+| `--output` | Chooses the response format for operator inspection. |
 
 !!! tip "Pattern: Use Custom Internal Domains for On-Premises DNS Integration"
     When on-premises DNS policy prohibits Conditional Forwarders for external domains (e.g., `*.azurecontainerapps.io`), bind a custom internal domain (e.g., `app.nhinvest.local`) to your Container Apps app and create the corresponding Private DNS Zone A record pointing to the Container Apps environment's static IP. This lets on-prem DNS forward only internal domains to Azure Private DNS Resolver.
@@ -604,4 +728,11 @@ az containerapp revision list \
 - [Microsoft Learn source 1](https://learn.microsoft.com/en-us/azure/container-apps/networking)
 - [Microsoft Learn source 2](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview)
 - [Microsoft Learn source 3](https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns)
-- [Microsoft Learn source 4](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Firewall integration (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration)
+- [Use azure firewall (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall)
+- [Sticky sessions (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions)
+- [Cors (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/cors)
+- [Dapr overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview)
+- [Custom domains certificates (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates)
+- [Custom domains managed certificates (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates)
+- [Ingress how to (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to)
