@@ -30,7 +30,7 @@ There is real downstream reuse to coordinate, but it is not one uniform graph:
 
 - Ingress has two current occurrences, `docs/platform/networking/ingress.md#ingress-decision-tree` and `docs/platform/networking/ingress.md#ingress-request-lifecycle`, owned by #424. They need the environment-to-ingress-to-revision vocabulary while retaining their decision and lifecycle purposes.
 - Egress has three current occurrences owned by #425: `managed-identity-acr-egress-dependencies`, `nat-gateway-architecture`, and `route-outbound-traffic-through-azure-firewall`. They reuse environment and dependency boundaries, not an inbound request path.
-- Revision pages contain four current occurrences under `docs/platform/revisions/`: two state diagrams and two graph/flowchart diagrams. Reuse applies to revision and replica names and to traffic relationships; state and decision semantics remain typed rather than being converted to topology.
+- Revision pages contain five current occurrences under `docs/platform/revisions/`: two state diagrams and three graph/flowchart diagrams. Reuse applies to revision and replica names and to traffic relationships; state and decision semantics remain typed rather than being converted to topology.
 - ACR has six current occurrences: the `acr-path-choice` decision diagram plus five lab `architecture` diagrams for Paths A through E. Issues #427 through #431 each own one lab architecture occurrence. These views reuse an ACA-to-ACR dependency vocabulary while keeping DNS, routing, transport, identity, and image-pull outcomes separate.
 
 The decision must reduce drift without relocating unchanged Azure resource boundaries, turning every diagram into a topology, or drawing undocumented ACA-managed Kubernetes internals.
