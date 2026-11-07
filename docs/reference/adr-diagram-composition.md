@@ -125,6 +125,26 @@ If a later owner proposes composition for a bounded family, the proposal must be
 
 #401 owns only the two merged-manifest base occurrences. It may align their direct Mermaid declarations around environment, ingress, revision, replica, workload-profile, and control/data-flow vocabulary. It must preserve each diagram's separate question: `architecture-overview` is the product mental model, while `control-data-plane` distinguishes management configuration from runtime behavior. Shared vocabulary does not require identical graphs.
 
+#### Local usage notes for the ACA base
+
+The #401 implementation keeps the reusable contract in direct Mermaid. Extensions consume stable node IDs and labels rather than including a generated or copied base fence:
+
+| Stable node ID | Required label and meaning | Extension rule |
+|---|---|---|
+| `ARM` | Azure Resource Manager | Management operations only; do not present this as request traffic. |
+| `RP` | Container Apps resource provider | Connect to the managed environment only as a labeled conceptual control flow, not a network trace. |
+| `ENV` | Managed Container Apps environment | Treat the subgraph as an Azure-managed logical boundary; do not place undocumented nodes, pods, or the whole environment inside a customer VNet. |
+| `INGRESS` | Managed Envoy ingress — TLS and request routing | Ingress extensions may add accessibility or traffic weights while preserving the environment boundary. |
+| `APP` | Container app — logical grouping | This groups revisions; it is not a hidden Kubernetes namespace or customer network boundary. |
+| `REV_ACTIVE` | Active revision — immutable app version | Revision extensions may add another revision, label, or lifecycle state without redefining the environment. |
+| `REPLICAS` | Revision replicas — running instances | Replica nodes remain logical runtime instances, not customer-managed pods or virtual machines. |
+| `PROFILES` | Selected workload profile — compute placement | Keep the label type-neutral as supported profile types evolve; show placement as a logical relationship, not request flow. |
+| `SCALE` | KEDA-powered scale decisions — logical platform function | Show scale input and desired replica count separately from ingress traffic. |
+
+`architecture-overview` is the full product mental model. Its ingress/revision and scaling/workload-profile branches demonstrate two extensions of the managed environment base. `control-data-plane` repeats only the nodes needed for its diagnostic question and adds a normal request path plus a text-labelled, dashed failure/evidence overlay. Future pages reuse the minimum relevant IDs, labels, relative boundary placement, and arrow meanings; they do not copy the complete overview verbatim merely to claim composition.
+
+The local arrow vocabulary is also stable: thick arrows are runtime request/response paths, including every hop on weighted canary traffic; ordinary solid arrows are management operations or scale inputs; and dotted arrows are conceptual platform control or fault-investigation relationships. Every figure includes a text legend, and fault semantics include `FAULT`, `SYMPTOM`, `EVIDENCE`, and `NEXT DECISION` labels so color is never the only carrier of meaning.
+
 ### #424 and #425 Networking
 
 #424 consumes the ingress adapter by keeping environment accessibility, app ingress visibility, managed ingress, revision routing, and replica targets distinct. External app ingress must not automatically imply public internet reachability; the environment's accessibility and public-network configuration remain separate.

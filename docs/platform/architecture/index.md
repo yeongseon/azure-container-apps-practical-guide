@@ -1,27 +1,34 @@
 ---
+description: Azure Container Apps architecture — management and runtime planes, managed ingress, revisions, replicas, workload profiles, and scaling.
 content_sources:
   diagrams:
     - id: architecture-overview
       type: flowchart
       source: self-generated
-      justification: Synthesized from Microsoft Learn pages on Container Apps overview, environments, networking, scaling, revisions, and Dapr integration
+      justification: Logical product topology synthesized from Microsoft Learn; managed internals are intentionally represented as documented platform boundaries rather than physical Kubernetes or VNet placement.
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/overview
         - https://learn.microsoft.com/en-us/azure/container-apps/environment
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
         - https://learn.microsoft.com/en-us/azure/container-apps/revisions
-        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview
     - id: control-data-plane
       type: flowchart
       source: self-generated
-      justification: Synthesized from Microsoft Learn pages distinguishing management operations from runtime traffic
+      justification: Logical control and runtime paths with a failure overlay synthesized from documented Azure resource configuration, ingress, revision, replica, and scaling behavior.
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/azure-resource-manager-api-spec
         - https://learn.microsoft.com/en-us/azure/container-apps/environment
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/revisions
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
+  last_reviewed: 2026-11-07
   reviewer: agent
   core_claims:
     - claim: Azure Container Apps is powered by KEDA for autoscaling.
@@ -43,81 +50,125 @@ Azure Container Apps is a serverless container platform built on a managed, Kube
 
 ## Architecture at a Glance
 
+### Managed environment, ingress, revisions, and scaling
+
+**Takeaway:** Azure Resource Manager configures the service, while the managed environment routes requests and scales logical revision replicas without exposing the underlying Kubernetes infrastructure.
+
 <!-- diagram-id: architecture-overview -->
 ```mermaid
 flowchart TD
-    Deploy["Developer or CI/CD pipeline"]
-    Client["Client or API consumer"]
-    Events["Event sources<br/>Queues, Event Hubs, timers"]
+    accTitle: Azure Container Apps logical base topology
+    accDescr: Management requests pass through Azure Resource Manager and the Container Apps resource provider. In the managed environment, Envoy ingress routes requests to active revisions and their replicas, while KEDA-powered scale decisions change replica count within the selected workload profile.
 
-    subgraph Control["Control plane"]
+    DEPLOYER["Deployer<br/>Portal, CLI, IaC"]
+    CLIENT["Request caller"]
+    SIGNAL["Scale signal<br/>HTTP or event metric"]
+
+    subgraph MGMT["Azure management plane"]
         ARM["Azure Resource Manager"]
         RP["Container Apps resource provider"]
     end
 
-    subgraph Env["Container Apps environment"]
-        Ingress["Envoy ingress proxy<br/>TLS termination and routing"]
-        Scale["KEDA-based autoscaling"]
-        Profiles["Workload profiles<br/>Consumption or Dedicated"]
-
-        subgraph App["Container App"]
-            RevA["Revision A<br/>Replicas"]
-            RevB["Revision B<br/>Replicas"]
-            Dapr["Dapr sidecar<br/>optional"]
-        end
+    subgraph ENV["Managed Container Apps environment"]
+        INGRESS["Managed Envoy ingress<br/>TLS and request routing"]
+        PROFILES["Selected workload profile<br/>compute placement"]
+        SCALE["KEDA-powered scale decisions<br/>logical platform function"]
+        APP["Container app<br/>logical grouping"]
+        REV_ACTIVE["Active revision<br/>immutable app version"]
+        REPLICAS["Revision replicas<br/>running instances"]
+        REV_CANARY["Canary revision<br/>optional extension"]
+        CANARY_REPLICAS["Canary replicas<br/>running instances"]
     end
 
-    Logs["Azure Monitor<br/>Log Analytics"]
-    Services["External services<br/>Databases, storage, APIs"]
+    DEPLOYER -->|"1  Management request"| ARM
+    ARM -->|"2  Resource operation"| RP
+    RP -.->|"3  Apply desired state"| APP
 
-    Deploy --> ARM --> RP
-    RP --> Env
-    Client --> Ingress
-    Ingress --> RevA
-    Ingress -. "weighted traffic" .-> RevB
-    Events --> Scale
-    Scale --> RevA
-    Scale --> RevB
-    Profiles --> RevA
-    Profiles --> RevB
-    RevA -. "sidecar" .- Dapr
-    RevA --> Services
-    RevA --> Logs
+    CLIENT ==>|"A  HTTPS request"| INGRESS
+    INGRESS ==>|"B  Normal traffic"| REV_ACTIVE
+    REV_ACTIVE ==>|"C  Serve request"| REPLICAS
+
+    INGRESS ==>|"Optional weighted traffic"| REV_CANARY
+    REV_CANARY ==>|"Serve request"| CANARY_REPLICAS
+
+    SIGNAL -->|"Scale input"| SCALE
+    SCALE -.->|"Desired replica count"| REV_ACTIVE
+    PROFILES -.->|"Compute placement"| REPLICAS
+    PROFILES -.->|"Compute placement"| CANARY_REPLICAS
+    APP -.-> REV_ACTIVE
+    APP -.-> REV_CANARY
+
+    LEGEND["Arrow key<br/>thick = runtime request<br/>solid = management or scale input<br/>dotted = logical platform control"]
 ```
 
-- The control plane starts when you deploy or update a container app through Azure Resource Manager, the Azure portal, the CLI, Bicep, or Terraform.
-- The data plane starts when traffic reaches the environment's HTTP edge proxy, which terminates TLS and routes requests to the active revision and its replicas.
-- The environment is the secure boundary for your apps and manages shared platform responsibilities such as workload placement, upgrades, failover, and resource balancing.
-- Revisions are immutable deployment snapshots, so a single app can have multiple versions active at the same time for testing or weighted traffic rollout.
-- Scaling is event-driven: HTTP traffic, TCP connections, CPU or memory thresholds, and external event sources can all influence replica count through the platform's KEDA-powered scaling model.
+*Figure: Logical ACA base with ingress/revision and scaling/workload-profile extensions. The boundary is intentionally logical: it does not place hidden cluster nodes or pods in a customer VNet.*
+
+- **Base path:** `ENV` → `INGRESS` → `REV_ACTIVE` → `REPLICAS` is the stable managed environment/ingress/revision/replica vocabulary used by extension diagrams.
+- **Ingress and revision extension:** `REV_CANARY` and `CANARY_REPLICAS` show optional weighted routing without redefining the base path.
+- **Scaling extension:** `SIGNAL` → `SCALE` and `PROFILES` → `REPLICAS` separate scale input and logical scale decisions from request traffic and compute placement.
+- **Boundary rule:** The diagram does not imply that revisions or replicas are customer-managed Azure resources, Kubernetes pods, or nodes. It also makes no claim that the managed environment is physically inside a customer VNet.
 
 ## Control Plane vs Data Plane
+
+### Configuration, runtime behavior, and a failure branch
+
+**Takeaway:** Follow management evidence for rejected configuration, but follow ingress, revision, replica, and scale evidence when a deployed app fails at runtime.
 
 <!-- diagram-id: control-data-plane -->
 ```mermaid
 flowchart TD
-    subgraph CP["Control plane<br/>What you configure"]
-        A1["Azure Portal, CLI, ARM, Bicep"]
-        A2["App creation and deletion"]
-        A3["Revision deployment"]
-        A4["Scaling rules"]
-        A5["Identity and RBAC assignment"]
-        A6["Networking and ingress config"]
+    accTitle: Azure Container Apps management and runtime diagnostic paths
+    accDescr: The management path configures a managed environment. The normal runtime path sends a request through managed Envoy ingress to an active revision and ready replicas. A dashed fault branch shows the symptom, evidence, and next check when no replica is ready.
+
+    CONFIG["Desired configuration<br/>app, ingress, scale rules"]
+    CALLER["Request caller"]
+    SIGNAL["Scale signal"]
+
+    subgraph MGMT["Azure management plane"]
+        ARM["Azure Resource Manager"]
+        RP["Container Apps resource provider"]
     end
 
-    subgraph DP["Data plane<br/>What runs at runtime"]
-        B1["Envoy ingress proxy"]
-        B2["Container execution<br/>Replicas"]
-        B3["KEDA scale decisions"]
-        B4["Dapr service invocation"]
-        B5["Log and metric collection"]
-        B6["Health probes"]
+    subgraph ENV["Managed Container Apps environment"]
+        INGRESS["Managed Envoy ingress<br/>TLS and request routing"]
+        SCALE["KEDA-powered scale decisions<br/>logical platform function"]
+        APP["Container app<br/>logical grouping"]
+        REV_ACTIVE["Active revision<br/>immutable app version"]
+        REPLICAS["Ready revision replicas<br/>running instances"]
     end
 
-    CP --> DP
+    RESPONSE["Successful response"]
+    FAULT["FAULT: no ready replica<br/>request cannot complete"]
+    SYMPTOM["SYMPTOM<br/>5xx or unavailable response"]
+    EVIDENCE["EVIDENCE<br/>revision running state,<br/>system logs, probe results"]
+    NEXT["NEXT DECISION<br/>check image start and probes<br/>before changing routing"]
+
+    CONFIG -->|"Management request"| ARM
+    ARM -->|"Resource operation"| RP
+    RP -.->|"Apply desired state"| APP
+
+    CALLER ==>|"Normal request path"| INGRESS
+    INGRESS ==>|"Route traffic"| REV_ACTIVE
+    REV_ACTIVE ==>|"Select ready replica"| REPLICAS
+    REPLICAS ==>|"Return"| RESPONSE
+
+    SIGNAL -->|"Scale input"| SCALE
+    SCALE -.->|"Desired replica count"| REV_ACTIVE
+    APP -.-> REV_ACTIVE
+
+    REV_ACTIVE -.->|"FAULT branch"| FAULT
+    FAULT -.-> SYMPTOM
+    SYMPTOM -.-> EVIDENCE
+    EVIDENCE -.-> NEXT
+
+    LEGEND["Arrow key<br/>thick = runtime request/response<br/>solid = management or scale input<br/>dotted = logical control or fault investigation"]
 ```
 
-Understanding the split between management and runtime behavior helps you troubleshoot faster. If an app cannot be created, updated, or granted access, the problem usually starts in the control plane. If the app deploys successfully but returns 5xx responses, fails health probes, or scales unexpectedly, the problem is usually in the data plane.
+*Figure: The second typed view consumes the same `ARM`, `RP`, `ENV`, `INGRESS`, `REV_ACTIVE`, `REPLICAS`, and `SCALE` vocabulary, then adds a diagnostic overlay instead of copying the complete overview graph.*
+
+The normal path and failure overlay differ by both line pattern and explicit text, so meaning does not depend on color. The overlay is a diagnostic model, not proof that every 5xx response has the same cause: verify revision state, system logs, and probe results before concluding that no replica is ready.
+
+Understanding the split between management and runtime behavior helps you troubleshoot faster. If an app cannot be created, updated, or granted access, begin with management operations. If the app deploys successfully but returns 5xx responses, fails health probes, or scales unexpectedly, investigate the runtime path and its evidence.
 
 | Operation | Plane | Why it belongs there |
 |---|---|---|
