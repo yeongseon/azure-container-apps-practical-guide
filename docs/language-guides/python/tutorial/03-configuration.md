@@ -5,13 +5,15 @@ content_sources:
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/containers
-        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
     - id: configuration-flow
       type: flowchart
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/containers
+        - https://learn.microsoft.com/en-us/azure/container-apps/environment-variables
         - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
 validation:
   az_cli:
@@ -34,53 +36,82 @@ This step configures runtime settings in Azure Container Apps, including environ
     <!-- diagram-id: this-tutorial-assumes-a-production-ready-container -->
 ```mermaid
 flowchart TD
-    INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux Python 3.11"]
+    accTitle: Production-ready Container Apps context for the Python tutorial
+    accDescr: A caller reaches managed ingress and an active Python revision. The app uses managed identity for an Azure Container Registry image pull and reaches backend services through private endpoints whose DNS zones are linked to the virtual network.
 
-    subgraph VNET["VNet 10.0.0.0/16"]
-        subgraph ENV_SUB["Environment Subnet 10.0.0.0/23\nDelegation: Microsoft.App/environments"]
-            CAE[Container Apps Environment]
-            CA
-        end
-        subgraph PE_SUB["Private Endpoint Subnet 10.0.2.0/24"]
-            PE_ACR[PE: ACR]
-            PE_KV[PE: Key Vault]
-            PE_ST[PE: Storage]
+    CALLER["Request caller"]
+    ACR["Azure Container Registry"]
+    KV["Azure Key Vault"]
+    STORAGE["Storage account"]
+    ENTRA["Microsoft Entra ID"]
+    DNS["Private DNS zones<br/>linked to the VNet"]
+
+    subgraph VNET["Customer virtual network"]
+        INFRA["Dedicated Container Apps<br/>infrastructure subnet"]
+        subgraph PESUBNET["Private endpoint subnet"]
+            PE_ACR["ACR private endpoint"]
+            PE_KV["Key Vault private endpoint"]
+            PE_STORAGE["Storage private endpoint"]
         end
     end
 
-    PE_ACR --> ACR[Azure Container Registry]
-    PE_KV --> KV[Key Vault]
-    PE_ST --> ST[Storage Account]
-
-    subgraph DNS[Private DNS Zones]
-        DNS_ACR[privatelink.azurecr.io]
-        DNS_KV[privatelink.vaultcore.azure.net]
-        DNS_ST[privatelink.blob.core.windows.net]
+    subgraph ENV["Managed Container Apps environment"]
+        INGRESS["Managed Envoy ingress<br/>TLS and request routing"]
+        APP["Container app<br/>Python"]
+        REVISION["Active revision<br/>immutable app version"]
+        REPLICAS["Revision replicas<br/>running instances"]
     end
 
-    PE_ACR -.-> DNS_ACR
-    PE_KV -.-> DNS_KV
-    PE_ST -.-> DNS_ST
+    CALLER ==>|"HTTPS request"| INGRESS
+    INGRESS ==>|"Routed request"| REVISION
+    INFRA -.->|"Environment VNet integration"| APP
+    APP -.-> REVISION
+    REVISION ==>|"Serve request"| REPLICAS
+    REPLICAS -.->|"Managed identity"| ENTRA
+    ENTRA -.->|"Registry authorization"| ACR
+    ACR ==>|"Image pull"| PE_ACR
+    PE_ACR ==>|"Private connection"| REPLICAS
+    REPLICAS ==>|"Private connection"| PE_KV
+    PE_KV ==>|"Secret retrieval"| KV
+    REPLICAS ==>|"Private connection"| PE_STORAGE
+    PE_STORAGE ==>|"Data access"| STORAGE
+    DNS -.->|"Name resolution"| PE_ACR
+    DNS -.->|"Name resolution"| PE_KV
+    DNS -.->|"Name resolution"| PE_STORAGE
 
-    CA -.->|System-Assigned MI| ENTRA[Microsoft Entra ID]
-    CAE --> LOG[Log Analytics]
-    CA --> AI[Application Insights]
-
-    style CA fill:#107c10,color:#fff
-    style VNET fill:#E8F5E9,stroke:#4CAF50
-    style DNS fill:#E3F2FD
+    LEGEND["Arrow key<br/>thick = request or data transport<br/>dotted = identity, authorization, DNS, or logical association"]
 ```
+
+*Figure: The tutorial's shared production context. The Container Apps environment is a managed logical boundary integrated with a dedicated subnet; ACR, Key Vault, Storage, private DNS zones, and Microsoft Entra ID remain separate Azure resources.*
 
 ## Configuration Flow
 
 <!-- diagram-id: configuration-flow -->
 ```mermaid
-graph TD
-    ENV[Env Vars] --> ACA[Container App]
-    SEC[Secrets] --> ACA
-    DAPR[Dapr] --> ACA
-    ACA --> APP[Application]
+flowchart TD
+    accTitle: Container Apps configuration flow for Python
+    accDescr: An operator defines plain environment variables or application-level secrets. A revision template references those values, a new revision receives them at runtime, and the Python app reads the resulting environment variables.
+
+    OPERATOR["Operator or deployment workflow"]
+    PLAIN["Plain environment variable<br/>name and value"]
+    SECRET["Application-level secret<br/>direct value or Key Vault reference"]
+    TEMPLATE["Revision template<br/>container environment variables"]
+    REFERENCE["Secret reference<br/>secretref:secret-name"]
+    REVISION["New revision"]
+    APP["Python app<br/>reads runtime environment"]
+
+    OPERATOR -->|"Set non-sensitive value"| PLAIN
+    OPERATOR -->|"Define sensitive value"| SECRET
+    PLAIN --> TEMPLATE
+    SECRET -.->|"Available to revisions"| REFERENCE
+    REFERENCE --> TEMPLATE
+    TEMPLATE -->|"Revision-scope change"| REVISION
+    REVISION -->|"Load at runtime"| APP
+
+    LEGEND["Arrow key<br/>solid = configuration flow<br/>dotted = application-level secret availability"]
 ```
+
+*Figure: Environment-variable changes are revision-scoped, while secrets are application-scoped. A secret becomes runtime configuration only when the revision template references it.*
 
 ## Prerequisites
 
@@ -115,11 +146,13 @@ graph TD
      --output tsv)
    ```
 
-    | Command | Purpose |
+    | Command/Parameter | Purpose |
     |---|---|
-    | `APP_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppName.value" --output tsv)` | Captures the existing Container App name from the deployment outputs so configuration changes apply to the correct Python app. |
-    | `ACA_ENV_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppEnvName.value" --output tsv)` | Captures the environment name from the same deployment so later config and secret examples stay aligned with the deployed environment. |
-    | `ACR_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerRegistryName.value" --output tsv)` | Captures the registry name used by the app image so subsequent configuration and deployment examples reference the same registry. |
+    | `az deployment group show` | Reads outputs from the existing resource-group deployment for reuse in this tutorial. |
+    | `--name` | Selects the existing Bicep deployment whose outputs are being read. |
+    | `--resource-group` | Targets the resource group that contains the tutorial resources. |
+    | `--query` | Extracts `properties.outputs.containerAppName.value` from the command result for this verification or shell variable. |
+    | `--output` | Returns the selected value in `tsv)` format for shell capture or readable verification. |
 
    ???+ example "Expected output"
        The commands above set shell variables silently. Verify them with:
@@ -145,9 +178,12 @@ graph TD
       --set-env-vars "LOG_LEVEL=INFO" "FEATURE_FLAG=true"
    ```
 
-   | Command | Why it is used |
+   | Command/Parameter | Purpose |
    |---|---|
-   | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+   | `az containerapp update` | Updates the target Container App with the configuration values in this step. |
+   | `--name` | Targets the Container App being configured or inspected in this step. |
+   | `--resource-group` | Targets the resource group that contains the tutorial resources. |
+   | `--set-env-vars` | Sets the application environment variables or secret references shown in this step. |
 
    ???+ example "Expected output"
        ```json
@@ -166,9 +202,12 @@ graph TD
       --secrets "db-password=<secret-value>"
    ```
 
-   | Command | Why it is used |
+   | Command/Parameter | Purpose |
    |---|---|
-   | `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+   | `az containerapp secret set` | Creates or updates the named Container Apps secret used by this step. |
+   | `--name` | Targets the Container App being configured or inspected in this step. |
+   | `--resource-group` | Targets the resource group that contains the tutorial resources. |
+   | `--secrets` | Defines the Container Apps secret value or Key Vault reference shown in this step. |
 
    ???+ example "Expected output"
        ```text
@@ -195,9 +234,12 @@ graph TD
      --set-env-vars "DB_PASSWORD=secretref:db-password"
    ```
 
-   | Command | Why it is used |
+   | Command/Parameter | Purpose |
    |---|---|
-   | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+   | `az containerapp update` | Updates the target Container App with the configuration values in this step. |
+   | `--name` | Targets the Container App being configured or inspected in this step. |
+   | `--resource-group` | Targets the resource group that contains the tutorial resources. |
+   | `--set-env-vars` | Sets the application environment variables or secret references shown in this step. |
 
    ???+ example "Expected output"
        ```json
@@ -220,9 +262,16 @@ graph TD
       --scale-rule-http-concurrency 50
    ```
 
-   | Command | Why it is used |
+   | Command/Parameter | Purpose |
    |---|---|
-   | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+   | `az containerapp update` | Updates the target Container App with the configuration values in this step. |
+   | `--name` | Targets the Container App being configured or inspected in this step. |
+   | `--resource-group` | Targets the resource group that contains the tutorial resources. |
+   | `--min-replicas` | Allows the HTTP-scaled app to scale down to the configured minimum replica count. |
+   | `--max-replicas` | Caps the HTTP-scaled app at the configured maximum replica count. |
+   | `--scale-rule-name` | Names the scaling rule so it can be identified in the app configuration. |
+   | `--scale-rule-type` | Selects the HTTP or Azure Service Bus scaler used in this step. |
+   | `--scale-rule-http-concurrency` | Sets the concurrent-request threshold used by the HTTP scaling rule. |
 
    ???+ example "Expected output"
        ```json
@@ -247,9 +296,15 @@ graph TD
      --scale-rule-auth "connection=servicebus-connection"
    ```
 
-   | Command | Why it is used |
+   | Command/Parameter | Purpose |
    |---|---|
-   | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+   | `az containerapp update` | Updates the target Container App with the configuration values in this step. |
+   | `--name` | Targets the Container App being configured or inspected in this step. |
+   | `--resource-group` | Targets the resource group that contains the tutorial resources. |
+   | `--scale-rule-name` | Names the scaling rule so it can be identified in the app configuration. |
+   | `--scale-rule-type` | Selects the HTTP or Azure Service Bus scaler used in this step. |
+   | `--scale-rule-metadata` | Supplies the queue name and Service Bus namespace required by the scaler. |
+   | `--scale-rule-auth` | Maps the scaler's connection parameter to the named Container Apps secret. |
 
    ???+ example "Expected output"
        ```json
@@ -267,9 +322,11 @@ graph TD
      --output json
    ```
 
-   | Command | Why it is used |
+   | Command/Parameter | Purpose |
    |---|---|
-   | `az acr repository list ...` | Inspects or manages repositories and tags inside Azure Container Registry. |
+   | `az acr repository list` | Lists repositories in the tutorial's Azure Container Registry to confirm pushed images. |
+   | `--name` | Targets the tutorial Azure Container Registry by name. |
+   | `--output` | Returns the selected value in `json` format for shell capture or readable verification. |
 
    ???+ example "Expected output"
        ```json
@@ -286,9 +343,13 @@ graph TD
      --dapr-app-port 8000
    ```
 
-   | Command | Why it is used |
+   | Command/Parameter | Purpose |
    |---|---|
-   | `az containerapp dapr enable ...` | Configures Dapr sidecar settings for the Container App. |
+   | `az containerapp dapr enable` | Enables and configures the Dapr sidecar for the target Container App. |
+   | `--name` | Targets the Container App being configured or inspected in this step. |
+   | `--resource-group` | Targets the resource group that contains the tutorial resources. |
+   | `--dapr-app-id` | Sets the Dapr application ID used to identify this service. |
+   | `--dapr-app-port` | Sets the application port that the Dapr sidecar calls. |
 
    ???+ example "Expected output"
        ```json
@@ -336,5 +397,9 @@ DB_PASSWORD = os.environ.get("DB_PASSWORD", "")
 - [Dapr Integration Recipe](../recipes/dapr-integration.md)
 
 ## Sources
+- [Networking in an Azure Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Azure Container Apps image pull from ACR with managed identity (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
+- [Private endpoints and DNS for Container Apps environments (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns)
+- [Manage environment variables on Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/environment-variables)
 - [Containers (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/containers)
 - [Manage secrets in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)

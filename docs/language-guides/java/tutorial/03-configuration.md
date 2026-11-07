@@ -5,11 +5,14 @@ content_sources:
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
     - id: configuration-workflow
       type: flowchart
       source: mslearn-adapted
       based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/environment-variables
         - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
 validation:
   az_cli:
@@ -32,53 +35,82 @@ Spring Boot applications on Azure Container Apps use environment variables, secr
     <!-- diagram-id: this-tutorial-assumes-a-production-ready-container -->
 ```mermaid
 flowchart TD
-    INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux Java 17"]
+    accTitle: Production-ready Container Apps context for the Java tutorial
+    accDescr: A caller reaches managed ingress and an active Java revision. The app uses managed identity for an Azure Container Registry image pull and reaches backend services through private endpoints whose DNS zones are linked to the virtual network.
 
-    subgraph VNET["VNet 10.0.0.0/16"]
-        subgraph ENV_SUB["Environment Subnet 10.0.0.0/23\nDelegation: Microsoft.App/environments"]
-            CAE[Container Apps Environment]
-            CA
-        end
-        subgraph PE_SUB["Private Endpoint Subnet 10.0.2.0/24"]
-            PE_ACR[PE: ACR]
-            PE_KV[PE: Key Vault]
-            PE_ST[PE: Storage]
+    CALLER["Request caller"]
+    ACR["Azure Container Registry"]
+    KV["Azure Key Vault"]
+    STORAGE["Storage account"]
+    ENTRA["Microsoft Entra ID"]
+    DNS["Private DNS zones<br/>linked to the VNet"]
+
+    subgraph VNET["Customer virtual network"]
+        INFRA["Dedicated Container Apps<br/>infrastructure subnet"]
+        subgraph PESUBNET["Private endpoint subnet"]
+            PE_ACR["ACR private endpoint"]
+            PE_KV["Key Vault private endpoint"]
+            PE_STORAGE["Storage private endpoint"]
         end
     end
 
-    PE_ACR --> ACR[Azure Container Registry]
-    PE_KV --> KV[Key Vault]
-    PE_ST --> ST[Storage Account]
-
-    subgraph DNS[Private DNS Zones]
-        DNS_ACR[privatelink.azurecr.io]
-        DNS_KV[privatelink.vaultcore.azure.net]
-        DNS_ST[privatelink.blob.core.windows.net]
+    subgraph ENV["Managed Container Apps environment"]
+        INGRESS["Managed Envoy ingress<br/>TLS and request routing"]
+        APP["Container app<br/>Java"]
+        REVISION["Active revision<br/>immutable app version"]
+        REPLICAS["Revision replicas<br/>running instances"]
     end
 
-    PE_ACR -.-> DNS_ACR
-    PE_KV -.-> DNS_KV
-    PE_ST -.-> DNS_ST
+    CALLER ==>|"HTTPS request"| INGRESS
+    INGRESS ==>|"Routed request"| REVISION
+    INFRA -.->|"Environment VNet integration"| APP
+    APP -.-> REVISION
+    REVISION ==>|"Serve request"| REPLICAS
+    REPLICAS -.->|"Managed identity"| ENTRA
+    ENTRA -.->|"Registry authorization"| ACR
+    ACR ==>|"Image pull"| PE_ACR
+    PE_ACR ==>|"Private connection"| REPLICAS
+    REPLICAS ==>|"Private connection"| PE_KV
+    PE_KV ==>|"Secret retrieval"| KV
+    REPLICAS ==>|"Private connection"| PE_STORAGE
+    PE_STORAGE ==>|"Data access"| STORAGE
+    DNS -.->|"Name resolution"| PE_ACR
+    DNS -.->|"Name resolution"| PE_KV
+    DNS -.->|"Name resolution"| PE_STORAGE
 
-    CA -.->|System-Assigned MI| ENTRA[Microsoft Entra ID]
-    CAE --> LOG[Log Analytics]
-    CA --> AI[Application Insights]
-
-    style CA fill:#107c10,color:#fff
-    style VNET fill:#E8F5E9,stroke:#4CAF50
-    style DNS fill:#E3F2FD
+    LEGEND["Arrow key<br/>thick = request or data transport<br/>dotted = identity, authorization, DNS, or logical association"]
 ```
+
+*Figure: The tutorial's shared production context. The Container Apps environment is a managed logical boundary integrated with a dedicated subnet; ACR, Key Vault, Storage, private DNS zones, and Microsoft Entra ID remain separate Azure resources.*
 
 ## Configuration Workflow
 
 <!-- diagram-id: configuration-workflow -->
 ```mermaid
-graph TD
-    APP[Spring Boot App] --> ENV[Environment Variables]
-    APP --> SECRETS[ACA Secrets]
-    SECRETS --> KV[Azure Key Vault]
-    ENV --> ARGS[Spring Arguments]
+flowchart TD
+    accTitle: Container Apps configuration flow for Java
+    accDescr: An operator defines plain environment variables or application-level secrets. A revision template references those values, a new revision receives them at runtime, and Spring Boot maps the resulting environment variables to application properties.
+
+    OPERATOR["Operator or deployment workflow"]
+    PLAIN["Plain environment variable<br/>name and value"]
+    SECRET["Application-level secret<br/>direct value or Key Vault reference"]
+    TEMPLATE["Revision template<br/>container environment variables"]
+    REFERENCE["Secret reference<br/>secretref:secret-name"]
+    REVISION["New revision"]
+    APP["Spring Boot app<br/>maps runtime environment<br/>to application properties"]
+
+    OPERATOR -->|"Set non-sensitive value"| PLAIN
+    OPERATOR -->|"Define sensitive value"| SECRET
+    PLAIN --> TEMPLATE
+    SECRET -.->|"Available to revisions"| REFERENCE
+    REFERENCE --> TEMPLATE
+    TEMPLATE -->|"Revision-scope change"| REVISION
+    REVISION -->|"Load at runtime"| APP
+
+    LEGEND["Arrow key<br/>solid = configuration flow<br/>dotted = application-level secret availability"]
 ```
+
+*Figure: Environment-variable changes are revision-scoped, while secrets are application-scoped. A secret becomes runtime configuration only when the revision template references it.*
 
 ## Prerequisites
 
@@ -108,9 +140,12 @@ az containerapp update \
   --set-env-vars "APP_VERSION=1.0.0" "RUNTIME_MODE=production"
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the target Container App with the configuration values in this step. |
+| `--resource-group` | Targets the resource group that contains the tutorial resources. |
+| `--name` | Targets the Container App being configured or inspected in this step. |
+| `--set-env-vars` | Sets the application environment variables or secret references shown in this step. |
 
 ???+ example "Expected output"
     ```text
@@ -131,9 +166,12 @@ az containerapp secret set \
   --secrets "db-password=<secret-value>"
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+| `az containerapp secret set` | Creates or updates the named Container Apps secret used by this step. |
+| `--resource-group` | Targets the resource group that contains the tutorial resources. |
+| `--name` | Targets the Container App being configured or inspected in this step. |
+| `--secrets` | Defines the Container Apps secret value or Key Vault reference shown in this step. |
 
 ### 2. Map Secret to Environment Variable
 
@@ -146,9 +184,12 @@ az containerapp update \
   --set-env-vars "SPRING_DATASOURCE_PASSWORD=secretref:db-password"
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Updates the target Container App with the configuration values in this step. |
+| `--resource-group` | Targets the resource group that contains the tutorial resources. |
+| `--name` | Targets the Container App being configured or inspected in this step. |
+| `--set-env-vars` | Sets the application environment variables or secret references shown in this step. |
 
 ## Azure Key Vault Integration
 
@@ -161,9 +202,12 @@ KV_NAME="kv-java-$(date +%s)"
 az keyvault create --resource-group $RG --name $KV_NAME --location $LOCATION
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az keyvault create ...` | Creates or inspects Key Vault resources used by managed identity or secret references. |
+| `az keyvault create` | Creates the Key Vault used for the Java application's external secret. |
+| `--resource-group` | Targets the resource group that contains the tutorial resources. |
+| `--name` | Sets the Key Vault or secret name used by this Java tutorial step. |
+| `--location` | Creates the Key Vault in the tutorial's selected Azure region. |
 
 ### 2. Configure Managed Identity
 
@@ -184,9 +228,19 @@ az role assignment create \
   --scope /subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/$KV_NAME
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity assign` | Enables a system-assigned managed identity on the Java Container App. |
+| `az containerapp identity show` | Reads the app identity's principal ID for the Key Vault role assignment. |
+| `az role assignment create` | Grants the app identity permission to read secrets from the tutorial Key Vault. |
+| `--resource-group` | Targets the resource group that contains the tutorial resources. |
+| `--name` | Targets the Container App being configured or inspected in this step. |
+| `--system-assigned` | Enables the Container App's system-assigned managed identity. |
+| `--query` | Extracts `principalId` from the command result for this verification or shell variable. |
+| `--output` | Returns the selected value in `tsv)` format for shell capture or readable verification. |
+| `--role` | Selects the Contributor or Key Vault Secrets User role required by this step. |
+| `--assignee` | Targets the Container App managed identity principal that receives access. |
+| `--scope` | Limits the role assignment to the tutorial Key Vault resource. |
 
 ### 3. Reference Key Vault Secrets
 
@@ -201,9 +255,15 @@ az containerapp secret set \
   --secrets "db-password=keyvaultref:https://$KV_NAME.vault.azure.net/secrets/db-password"
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az keyvault secret ...` | Creates or inspects Key Vault resources used by managed identity or secret references. |
+| `az containerapp secret set` | Creates or updates the named Container Apps secret used by this step. |
+| `az keyvault secret set` | Stores the database password in the tutorial Key Vault. |
+| `--vault-name` | Targets the Key Vault that stores the Java application's database password. |
+| `--name` | Sets the Key Vault or secret name used by this Java tutorial step. |
+| `--value` | Supplies the database-password value to store in Key Vault. |
+| `--resource-group` | Targets the resource group that contains the tutorial resources. |
+| `--secrets` | Defines the Container Apps secret value or Key Vault reference shown in this step. |
 
 ## Best Practices for Java Apps
 
@@ -230,5 +290,9 @@ az containerapp secret set \
 - [Key Vault integration (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets?tabs=azure-cli#key-vault-references)
 
 ## Sources
+- [Networking in an Azure Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Azure Container Apps image pull from ACR with managed identity (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
+- [Private endpoints and DNS for Container Apps environments (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns)
+- [Manage environment variables on Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/environment-variables)
 - [Externalized Configuration (Spring Boot Documentation)](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.external-config)
 - [Azure Container Apps Secrets (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)
