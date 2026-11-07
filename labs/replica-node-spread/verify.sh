@@ -151,20 +151,17 @@
 #       b) profiles_separate: per-profile RunStats are evaluated
 #          independently (no cross-profile pooling) — the gate
 #          computes consumption_profile_summary and
-#          dedicated_d8_profile_summary as two SEPARATE dicts with
-#          NO merged counts (Strong path); OR the gate's output
-#          contains both profile keys with non-null values
-#          (Fallback). The Oracle anti-pattern: "Cross-profile
+#          dedicated_d8_profile_summary as two SEPARATE non-empty
+#          dicts with NO merged counts (one path). The Oracle anti-pattern: "Cross-profile
 #          pooling: do not merge consumption and dedicated into one
 #          headline predicate before evaluating them separately."
 #          The captured baseline has both profile dicts populated
 #          and zero merged counts.
-#       c) repeats_show_variability: the Consumption scale=30 runs
-#          1/2/3 OR the Dedicated-D8 scale=10 runs 1/2/3 show at
-#          least some ms-level variability in cluster_centers_ms
-#          across the 3 runs (shows the repeats are not byte-identical
-#          duplicates) — Strong path; OR at least one re-run
-#          pair shows non-identical cluster_centers_ms (Fallback).
+#       c) repeats_show_variability: BOTH the Consumption scale=30 runs
+#          1/2/3 AND the Dedicated-D8 scale=10 runs 1/2/3 must show
+#          some ms-level variability in cluster_centers_ms across the
+#          three runs (one path). This keeps each named repeat set in
+#          the verdict instead of letting unrelated variability rescue it.
 #          The captured baseline has Consumption scale=30 runs
 #          showing center[0] = 1781224393764 (run 1) vs 1781224393763
 #          (run 2/3) — 1 ms difference at the millisecond level,
@@ -186,10 +183,9 @@
 #       e) falsification_from_raw: every per-file count (unique
 #          replicas, unique boot_ids, num clusters) is recomputed
 #          from raw JSONL records (NOT just read from
-#          analysis-summary.json) and any mismatch between raw and
-#          summary is surfaced as a discrepancy — Strong path;
-#          OR the gate emits a per-file recompute_*_from_raw key
-#          for each scale file (Fallback). The Oracle directive:
+#          analysis-summary.json), all 11 recomputes must exist, and
+#          the advisory summary must reconcile without discrepancies
+#          (one path). The Oracle directive:
 #          "Summary-first reasoning: if analysis-summary or the H3
 #          verdict conflicts with raw JSONL, raw JSONL wins." The
 #          captured baseline has all 11 recomputes matching the
@@ -255,7 +251,8 @@
 set -euo pipefail
 
 EVIDENCE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/evidence"
-export PYTHONPATH="$(dirname "$EVIDENCE_DIR")${PYTHONPATH:+:$PYTHONPATH}"
+PYTHONPATH="$(dirname "$EVIDENCE_DIR")${PYTHONPATH:+:$PYTHONPATH}"
+export PYTHONPATH
 REPO_RELATIVE_EVIDENCE_DIR="labs/replica-node-spread/evidence"
 SCRIPT_PATH="labs/replica-node-spread/verify.sh"
 
@@ -1376,11 +1373,10 @@ a_strong_path_no_observed_placement = (
 a_observed_level_claims_only = a_strong_path_no_observed_placement
 
 # ---------- sub-gate b: profiles separate ----------
-# Strong path: per-profile summaries computed as two SEPARATE dicts
+# Single path: per-profile summaries computed as two SEPARATE dicts
 # with NO merged counts. The gate's output contains
 # consumption_profile_summary and dedicated_d8_profile_summary
 # as independent objects.
-# Fallback path: both profile dicts are present and non-empty.
 consumption_files = [
     f for f, d in per_file_data.items()
     if d["cell"] and d["cell"][0] == "consumption"
@@ -1415,24 +1411,18 @@ def summarize_profile(file_list):
 consumption_profile_summary = summarize_profile(consumption_files)
 dedicated_d8_profile_summary = summarize_profile(dedicated_files)
 
-b_strong_path_two_separate_dicts = (
+b_single_path_two_separate_dicts = (
     len(consumption_profile_summary) > 0
     and len(dedicated_d8_profile_summary) > 0
 )
-b_fallback_path_both_profiles_populated = (
-    bool(consumption_profile_summary) and bool(dedicated_d8_profile_summary)
-)
-b_profiles_separate = (
-    b_strong_path_two_separate_dicts or b_fallback_path_both_profiles_populated
-)
+b_profiles_separate = b_single_path_two_separate_dicts
+b_path_tier = "separate_profile_tables" if b_profiles_separate else "failed_profile_separation"
 
 # ---------- sub-gate c: repeats show variability ----------
-# Strong path: the Consumption scale=30 runs 1/2/3 OR the Dedicated-D8
-# scale=10 runs 1/2/3 show at least some ms-level variability in
-# cluster_centers_ms across the 3 runs (shows the repeats are not
-# byte-identical duplicates).
-# Fallback path: at least one re-run pair shows non-identical
-# cluster_centers_ms.
+# Single path: both named top-scale repeat sets show some ms-level
+# variability in cluster_centers_ms across their three runs. This shows
+# neither required repeat set is byte-identical without allowing one
+# profile (or an unrelated scale) to rescue the other.
 def check_repeats_variability(profile_summary, scale):
     """Returns dict with per-run cluster_centers_ms AND a flag
     indicating whether ANY two runs differ."""
@@ -1456,7 +1446,7 @@ def check_repeats_variability(profile_summary, scale):
 consumption_30_variability = check_repeats_variability(consumption_profile_summary, 30)
 dedicated_10_variability = check_repeats_variability(dedicated_d8_profile_summary, 10)
 
-# Strong path: BOTH the Consumption scale=30 runs 1/2/3 AND the
+# BOTH the Consumption scale=30 runs 1/2/3 AND the
 # Dedicated-D8 scale=10 runs 1/2/3 show at least some ms-level
 # variability in cluster_centers_ms across the 3 runs. Requiring BOTH
 # (not OR) matches the lab guide claim that "the 3 Consumption-n30 and
@@ -1464,29 +1454,12 @@ dedicated_10_variability = check_repeats_variability(dedicated_d8_profile_summar
 # cohort satisfies both (Consumption-30: 3 unique vectors;
 # Dedicated-D8-10: 2 unique values), so this is a tightening rather
 # than a relaxation.
-# Fallback path: at least one re-run pair shows non-identical
-# cluster_centers_ms.
-c_strong_path_both_top_scale_repeats_vary = (
+c_single_path_both_top_scale_repeats_vary = (
     consumption_30_variability.get("any_variability", False)
     and dedicated_10_variability.get("any_variability", False)
 )
-# Fallback: any re-run pair (not just the top-scale ones) shows
-# non-identical centers across the entire cohort.
-c_fallback_path_any_repeats_vary = False
-for profile_summary in (consumption_profile_summary, dedicated_d8_profile_summary):
-    for scale, runs in profile_summary.items():
-        if len(runs) < 2:
-            continue
-        centers_set = set(tuple(r["cluster_centers_ms"]) for r in runs)
-        if len(centers_set) > 1:
-            c_fallback_path_any_repeats_vary = True
-            break
-    if c_fallback_path_any_repeats_vary:
-        break
-c_repeats_show_variability = (
-    c_strong_path_both_top_scale_repeats_vary
-    or c_fallback_path_any_repeats_vary
-)
+c_repeats_show_variability = c_single_path_both_top_scale_repeats_vary
+c_path_tier = "both_top_scale_repeat_sets_vary" if c_repeats_show_variability else "failed_top_scale_variability"
 
 # ---------- sub-gate d: counterexamples surfaced ----------
 # Strong path: explicitly identify and report co-location cases:
@@ -1527,9 +1500,10 @@ d_strong_path_both_known_counterexamples = (
 d_counterexamples_surfaced = d_strong_path_both_known_counterexamples
 
 # ---------- sub-gate e: falsification from raw ----------
-# Strong path: every per-file count is recomputed from raw JSONL and
-# any mismatch between raw and analysis-summary.json is surfaced.
-# Fallback path: per-file recompute dict exists for each scale file.
+# Single path: every per-file count is recomputed from raw JSONL, every
+# scale file has a recompute, the summary is valid, and no raw/summary
+# discrepancy remains. Discrepancies are still emitted for diagnosis,
+# but their existence fails this reconciliation sub-gate.
 #
 # Schema note: see Phase 11 sub-gate c for the analysis-summary.json
 # schema (top-level list, `boot_time_clusters` key, `file` field as
@@ -1577,11 +1551,13 @@ for fname, d in per_file_data.items():
             "summary": summary_entry.get("boot_time_clusters"),
         })
 
-e_strong_path_zero_discrepancies = len(raw_vs_summary_discrepancies) == 0
-e_fallback_path_recompute_dict_exists = len(per_file_raw_recompute) == len(SCALE_FILES)
-e_falsification_from_raw = (
-    e_strong_path_zero_discrepancies or e_fallback_path_recompute_dict_exists
+e_single_path_raw_recomputes_reconcile = (
+    len(per_file_raw_recompute) == len(SCALE_FILES)
+    and not invalid_summary_reasons
+    and len(raw_vs_summary_discrepancies) == 0
 )
+e_falsification_from_raw = e_single_path_raw_recomputes_reconcile
+e_path_tier = "raw_recomputes_reconcile" if e_falsification_from_raw else "failed_summary_reconciliation"
 
 # ---------- compose gate ----------
 gate_3_claim_eligibility_sub_gates = {
@@ -1618,15 +1594,15 @@ print(json.dumps({
         "consumption_profile_summary": consumption_profile_summary,
         "dedicated_d8_profile_summary": dedicated_d8_profile_summary,
         "merged_counts_present": False,
-        "b_strong_path_two_separate_dicts": b_strong_path_two_separate_dicts,
-        "b_fallback_path_both_profiles_populated": b_fallback_path_both_profiles_populated,
+        "b_single_path_two_separate_dicts": b_single_path_two_separate_dicts,
+        "b_path_tier": b_path_tier,
         "b_pass": b_profiles_separate,
     },
     "sub_gate_c_repeats_show_variability": {
         "consumption_scale_30_variability": consumption_30_variability,
         "dedicated_d8_scale_10_variability": dedicated_10_variability,
-        "c_strong_path_both_top_scale_repeats_vary": c_strong_path_both_top_scale_repeats_vary,
-        "c_fallback_path_any_repeats_vary": c_fallback_path_any_repeats_vary,
+        "c_single_path_both_top_scale_repeats_vary": c_single_path_both_top_scale_repeats_vary,
+        "c_path_tier": c_path_tier,
         "c_pass": c_repeats_show_variability,
     },
     "sub_gate_d_counterexamples_surfaced": {
@@ -1643,8 +1619,8 @@ print(json.dumps({
         "scale_files_count": len(SCALE_FILES),
         "raw_vs_summary_discrepancies_count": len(raw_vs_summary_discrepancies),
         "raw_vs_summary_discrepancies": raw_vs_summary_discrepancies,
-        "e_strong_path_zero_discrepancies": e_strong_path_zero_discrepancies,
-        "e_fallback_path_recompute_dict_exists": e_fallback_path_recompute_dict_exists,
+        "e_single_path_raw_recomputes_reconcile": e_single_path_raw_recomputes_reconcile,
+        "e_path_tier": e_path_tier,
         "e_pass": e_falsification_from_raw,
     },
     "gate_3_claim_eligibility_sub_gates": gate_3_claim_eligibility_sub_gates,

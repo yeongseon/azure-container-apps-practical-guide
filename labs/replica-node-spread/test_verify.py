@@ -1527,7 +1527,7 @@ class SummaryBoundaryTests(unittest.TestCase):
                     discrepancies = strict_gate(lab, CLAIM_GATE)["sub_gate_e_falsification_from_raw"]["raw_vs_summary_discrepancies"]
                     self.assertIn({"file": missing_filename, "discrepancy": "no matching summary entry"}, discrepancies)
 
-    def test_two_advisory_discrepancies_pass_but_three_fail(self) -> None:
+    def test_gate_11_tolerates_two_advisory_discrepancies_but_gate_12_does_not(self) -> None:
         for count in (2, 3):
             with self.subTest(count=count), fixture_lab() as lab:
                 path = lab / "evidence" / "analysis-summary.json"
@@ -1542,13 +1542,42 @@ class SummaryBoundaryTests(unittest.TestCase):
                 proc = run_verify(lab)
 
                 sub = strict_gate(lab, MATRIX_GATE)["sub_gate_c_summary_reconciles"]
-                self.assertEqual(proc.returncode, 0 if count == 2 else 1, proc.stderr)
+                self.assertEqual(proc.returncode, 1, proc.stderr)
                 self.assertEqual(sub["matches_count"], 11 - count)
                 self.assertEqual(sub["c_pass"], count == 2)
                 claim = strict_gate(lab, CLAIM_GATE)["sub_gate_e_falsification_from_raw"]
                 self.assertCountEqual(claim["raw_vs_summary_discrepancies"], expected)
-                self.assertTrue(claim["e_fallback_path_recompute_dict_exists"])
-                self.assertTrue(claim["e_pass"])
+                self.assertEqual(claim["e_path_tier"], "failed_summary_reconciliation")
+                self.assertFalse(claim["e_pass"])
+
+
+class ClaimEligibilityAbsorbedFormTests(unittest.TestCase):
+    def test_profiles_separate_has_one_named_path(self) -> None:
+        with fixture_lab() as lab:
+            proc = run_verify(lab)
+
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            sub = strict_gate(lab, CLAIM_GATE)["sub_gate_b_profiles_separate"]
+            self.assertEqual(sub["b_path_tier"], "separate_profile_tables")
+            self.assertNotIn("b_fallback_path_both_profiles_populated", sub)
+
+    def test_both_top_scale_repeat_sets_must_vary(self) -> None:
+        with fixture_lab() as lab:
+            for run in (1, 2, 3):
+                path = lab / "evidence" / f"dedicated-d8-scale-10-run-{run}.jsonl"
+                records = list(map(json.loads, path.read_text().splitlines()))
+                for record in records:
+                    record["boot_time_estimate_ms"] = 1_000
+                path.write_text("".join(json.dumps(record) + "\n" for record in records))
+
+            proc = run_verify(lab)
+
+            sub = strict_gate(lab, CLAIM_GATE)["sub_gate_c_repeats_show_variability"]
+            self.assertEqual(proc.returncode, 1, proc.stderr)
+            self.assertTrue(sub["consumption_scale_30_variability"]["any_variability"])
+            self.assertFalse(sub["dedicated_d8_scale_10_variability"]["any_variability"])
+            self.assertEqual(sub["c_path_tier"], "failed_top_scale_variability")
+            self.assertFalse(sub["c_pass"])
 
 
 class RecursiveJsonBoundaryTests(unittest.TestCase):
