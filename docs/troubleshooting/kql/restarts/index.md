@@ -28,11 +28,16 @@ Queries for analyzing container and replica restart patterns in Azure Container 
 <!-- diagram-id: query-pipeline-overview -->
 ```mermaid
 flowchart TD
-    A[System Logs] --> B[Filter Restart Events]
-    B --> C[Correlate with Timeline]
-    C --> D[Identify Patterns]
-    D --> E[Root Cause Analysis]
+    accTitle: Build restart evidence from legacy Container Apps logs
+    accDescr: Platform system logs provide restart and lifecycle signals while application console logs provide shutdown and startup context. The investigation aligns both sources by time, revision, and replica before testing a root-cause hypothesis.
+
+    SOURCES[Legacy system and console logs<br/>platform plus application evidence] --> SCOPE[Scope app and incident window]
+    SCOPE --> ALIGN[Align timestamps,<br/>revisions, and replicas]
+    ALIGN --> PATTERN[Identify repeated or<br/>clustered restart patterns]
+    PATTERN --> HYPOTHESIS[Test a root-cause hypothesis<br/>with supporting evidence]
 ```
+
+*Figure: Restart analysis correlates platform and application evidence. Temporal alignment supports an investigation but does not by itself prove why a replica restarted.*
 
 ## Available Queries
 

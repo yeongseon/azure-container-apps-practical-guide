@@ -29,11 +29,17 @@ content_validation:
 <!-- diagram-id: purpose-identifies-replicas-with-multiple-startup -->
 ```mermaid
 graph TD
-    A[ContainerAppSystemLogs_CL] --> B[Filter Startup Events]
-    B --> C[Group by Replica]
-    C --> D[Count Failures]
-    D --> E[Identify Crash Loops]
+    accTitle: Find replicas with repeated startup failures
+    accDescr: The query scopes legacy system logs to one app and time window, keeps selected startup failure reasons, groups events by revision and replica, and returns groups above the configured count threshold.
+
+    SOURCE[Legacy system logs<br/>ContainerAppSystemLogs_CL] --> SCOPE[Select app and six-hour window]
+    SCOPE --> SIGNALS[Keep configured startup<br/>failure reasons]
+    SIGNALS --> GROUP[Group by revision and replica]
+    GROUP --> COUNT[Count failures and<br/>capture first and last time]
+    COUNT --> RESULT[Return groups with<br/>more than three events]
 ```
+
+*Figure: The result identifies repeated matching events; calling a result a crash loop still requires checking the event text and application console logs.*
 
 ## Query
 
