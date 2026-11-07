@@ -710,27 +710,28 @@ def assign(diagram: Record, rules: Record) -> tuple[Record, Record | None]:
 
 def diagram_record(page: str, ordinal: int, item: Occurrence) -> Record:
     kind, genre, classification = classify(item.body)
+    source_sha256 = hashlib.sha256(item.body.encode()).hexdigest()
     published = page.startswith('docs/')
     section = page.split('/')[1] if published and page.count('/') > 1 else (
         'docs-root' if published else 'repository')
     return {
-        'key': f'{page}#{item.diagram_id or "~" + str(ordinal)}',
+        'key': f'{page}#{item.diagram_id or "~" + source_sha256[:16]}',
         'diagram_id': item.diagram_id, 'id_provisional': item.diagram_id is None,
         'page': page, 'section': section, 'published': published, 'ordinal': ordinal,
         'location': {'line': item.line, 'end_line': item.end_line, 'heading_path': list(item.headings)},
         'mermaid_type': kind, 'genre_candidate': genre, 'classification': classification,
         'needs_review': genre == 'unknown', 'context': {'lead_in': item.lead_in, 'reader_intent': None},
-        'baseline': {'source_sha256': hashlib.sha256(item.body.encode()).hexdigest(),
+        'baseline': {'source_sha256': source_sha256,
                      'lines': len(item.body.splitlines()), 'subgraphs': classification['signals']['subgraphs'],
                      'nodes_approx': len(labels(item.body)),
                      'edges_approx': len(re.findall(r'-->|---|==>|-\.->|->>|-->>', item.body))},
         'target': copy.deepcopy(EMPTY_TARGET), 'migration': {'state': 'not-started', 'exception': None},
     }
 
-
 def unique_record_keys(records: list[Record]) -> list[str]:
     """Reserve literal IDs before allocating collision suffixes in source order."""
-    bases = [f'{r["page"]}#{r["diagram_id"] or "~" + str(r["ordinal"])}' for r in records]
+    bases = [f'{r["page"]}#{r["diagram_id"] or "~" + r["baseline"]["source_sha256"][:16]}'
+             for r in records]
     reserved = set(bases)
     used: set[str] = set()
     keys: list[str] = []
@@ -814,7 +815,7 @@ def asset_groups(root: Path, files: list[str], rules: Record) -> tuple[list[Reco
             text = local(root, page).read_text(encoding='utf-8-sig')
         except UnicodeDecodeError:
             continue
-        for destination in re.findall(r'!\[[^\]]*\]\(\s*<?([^\s)>]+)', text):
+        for destination in image_destinations(text):
             url = urlsplit(destination)
             if url.scheme or url.netloc:
                 continue
@@ -831,6 +832,46 @@ def asset_groups(root: Path, files: list[str], rules: Record) -> tuple[list[Reco
         groups.append({'group': rule['group'], 'reason': rule['reason'], 'rule': rule['id'],
                        'count': len(paths), 'referenced_count': sum(references[p] for p in paths), 'paths': paths})
     return groups, sorted(set(assets) - assigned)
+
+
+def image_destinations(text: str) -> list[str]:
+    """Return inline Markdown image destinations while balancing alt-text brackets."""
+    destinations: list[str] = []
+    start = 0
+    while (image := text.find('![', start)) != -1:
+        cursor = image + 2
+        depth = 1
+        while cursor < len(text) and depth:
+            if text[cursor] == '\\':
+                cursor += 2
+                continue
+            if text[cursor] == '[':
+                depth += 1
+            elif text[cursor] == ']':
+                depth -= 1
+            cursor += 1
+        if depth or cursor >= len(text) or text[cursor] != '(':
+            start = image + 2
+            continue
+        cursor += 1
+        while cursor < len(text) and text[cursor] in ' \t\r\n':
+            cursor += 1
+        angled = cursor < len(text) and text[cursor] == '<'
+        if angled:
+            cursor += 1
+        destination_start = cursor
+        while cursor < len(text):
+            character = text[cursor]
+            if character == '\\' and cursor + 1 < len(text):
+                cursor += 2
+                continue
+            if (angled and character == '>') or (not angled and (character.isspace() or character == ')')):
+                break
+            cursor += 1
+        if cursor > destination_start:
+            destinations.append(text[destination_start:cursor])
+        start = cursor + 1
+    return destinations
 
 
 def totals(diagrams: list[Record], exclusions: list[Record], visuals: list[Record]) -> Record:
@@ -999,8 +1040,8 @@ def generated_page(root: Path, manifest: Record) -> tuple[str | None, str | None
     for name, table in generated_tables(manifest).items():
         begin = f'<!-- BEGIN GENERATED: diagram-inventory:{name} -->'
         end = f'<!-- END GENERATED: diagram-inventory:{name} -->'
-        if (updated.count(begin) != updated.count(end) or updated.count(begin) > 1 or
-                (begin in updated and updated.index(begin) > updated.index(end))):
+        if (updated.count(begin) != 1 or updated.count(end) != 1 or
+                updated.index(begin) > updated.index(end)):
             raise InventoryError(f'{PAGE}: unmatched generated marker {name}')
         updated = re.sub(re.escape(begin) + r'.*?' + re.escape(end),
                          lambda _: begin + '\n' + table + end, updated, flags=re.S)
@@ -1026,7 +1067,7 @@ def check(root: Path, manifest: Record, rules: Record) -> list[str]:
     ordered = sorted(diagrams, key=lambda d: (d['page'], d['ordinal']))
     for diagram, expected in zip(ordered, unique_record_keys(ordered)):
         if diagram['key'] != expected:
-            errors.append(f'{diagram["key"]}: key does not match page/id/ordinal')
+            errors.append(f'{diagram["key"]}: key does not match page/id/content')
     for key in rules.get('overrides', {}):
         if key not in keys:
             errors.append(f'override references absent key: {key}')

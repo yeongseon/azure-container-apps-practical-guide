@@ -734,7 +734,7 @@ class ParsingTests(unittest.TestCase):
                 self.assertEqual(records[0]['provenance']['status'], 'missing')
                 self.assertIsNone(records[0]['provenance']['declared'])
                 self.assertTrue(records[0]['id_provisional'])
-                self.assertEqual(records[0]['key'], 'x.md#~1')
+                self.assertEqual(records[0]['key'], 'x.md#~35bb463104586fe1')
                 self.assertEqual(errors['frontmatter_entries_without_fence'], [{'page': 'x.md', 'entry': entry}])
 
     def test_duplicate_frontmatter_ids_keep_first_and_report_count(self):
@@ -747,13 +747,13 @@ class ParsingTests(unittest.TestCase):
         records, _, _ = inventory.page_records('x.md', '<!-- diagram-id: -->\n```mermaid\nflowchart LR\n```')
         self.assertIsNone(records[0]['diagram_id'])
         self.assertTrue(records[0]['id_provisional'])
-        self.assertEqual(records[0]['key'], 'x.md#~1')
+        self.assertEqual(records[0]['key'], 'x.md#~35bb463104586fe1')
 
     def test_duplicate_suffix_avoids_literal_and_provisional_keys(self):
         text = ''.join(f'<!-- diagram-id:{identifier} -->\n```mermaid\nflowchart LR\n```\n'
                        for identifier in ('x', 'x', 'x~2', '~5')) + '```mermaid\nflowchart LR\n```\n'
         records, _, _ = inventory.page_records('x.md', text)
-        self.assertEqual([r['key'] for r in records], ['x.md#x', 'x.md#x~3', 'x.md#x~2', 'x.md#~5', 'x.md#~5~2'])
+        self.assertEqual([r['key'] for r in records], ['x.md#x', 'x.md#x~3', 'x.md#x~2', 'x.md#~5', 'x.md#~35bb463104586fe1'])
         self.assertEqual(len({r['key'] for r in records}), len(records))
 
     def test_heading_preserves_attached_hash(self):
@@ -828,11 +828,11 @@ class ParsingTests(unittest.TestCase):
         self.assertEqual(errors['duplicate_ids_on_page'], [{'key': 'x.md#same', 'count': 3,
                          'keys': ['x.md#same', 'x.md#same~2', 'x.md#same~3']}])
 
-    def test_missing_ids_use_ordinals(self):
+    def test_missing_ids_use_content_hashes_and_duplicate_counters(self):
         records, errors, _ = inventory.page_records('x.md', '```mermaid\nflowchart LR\n```\n' * 2)
-        self.assertEqual([r['key'] for r in records], ['x.md#~1', 'x.md#~2'])
+        self.assertEqual([r['key'] for r in records], ['x.md#~35bb463104586fe1', 'x.md#~35bb463104586fe1~2'])
         self.assertTrue(all(r['id_provisional'] and r['diagram_id'] is None for r in records))
-        self.assertEqual(errors['missing_id_comment'], ['x.md#~1', 'x.md#~2'])
+        self.assertEqual(errors['missing_id_comment'], ['x.md#~35bb463104586fe1', 'x.md#~35bb463104586fe1~2'])
 
     def test_sibling_frontmatter_metadata(self):
         text = '---\nslug: arbitrary\ncontent_sources:\n  references: [{url: example}]\n  diagrams: [{id: x, extra: [true]}]\n---\n<!-- diagram-id: x -->\n```mermaid\nflowchart LR\n```\n'
@@ -916,6 +916,63 @@ class TreeTests(unittest.TestCase):
 
     def build(self) -> inventory.Record:
         return inventory.build(self.root, self.rules, '0' * 40)
+
+    def test_provisional_plan_stays_with_content_when_a_fence_is_inserted(self) -> None:
+        # Given an ID-less diagram with completed migration and a distinct target.
+        path = self.root / 'docs/x.md'
+        original = '```mermaid\nflowchart LR\nA[Original]-->B\n```\n'
+        _ = path.write_text(original)
+        previous = self.build()
+        prior = previous['diagrams'][0]
+        prior['migration']['state'] = 'completed'
+        prior['target']['base'] = 'Original target'
+        prior['context']['reader_intent'] = 'Original intent'
+        _ = (self.root / inventory.MANIFEST).write_text(inventory.encoded(previous))
+        _ = path.write_text('```mermaid\nflowchart LR\nX[Inserted]-->Y\n```\n' + original)
+        # When the CLI refreshes after inserting a different diagram before it.
+        written = self.cli('--write')
+        # Then the original retains its identity and plan, and the new fence has neither.
+        self.assertEqual(written.returncode, 0, written.stderr)
+        diagrams = json.loads((self.root / inventory.MANIFEST).read_text())['diagrams']
+        by_ordinal = {d['ordinal']: d for d in diagrams}
+        self.assertEqual(by_ordinal[2]['key'], prior['key'])
+        for field in ('migration', 'target', 'context'):
+            self.assertEqual(by_ordinal[2][field], prior[field])
+        self.assertEqual(by_ordinal[1]['migration']['state'], 'not-started')
+        self.assertIsNone(by_ordinal[1]['target']['base'])
+
+    def test_asset_usages_count_nested_brackets_in_alt_text(self) -> None:
+        # Given multiple captions like the memory-leak lab's [app]/[leak] captions.
+        (self.root / 'docs/assets').mkdir()
+        _ = (self.root / 'docs/assets/a.png').write_bytes(b'fixture')
+        _ = (self.root / 'docs/x.md').write_text(
+            '![Logs [app] active](assets/a.png)\n' +
+            '![Logs [leak [nested]] active](<assets/a.png> "Title")\n' +
+            '![Escaped \\] and \\[ caption](assets/a.png)\n' +
+            '![](assets/a.png)\n')
+        # When collecting local image usages.
+        result = self.build()
+        # Then every reference is counted, including nested and escaped brackets.
+        self.assertEqual(result['exclusions']['assets'][0]['referenced_count'], 4)
+
+    def test_check_rejects_a_generated_table_when_both_markers_are_removed(self) -> None:
+        # Given an inventory page with all generated tables initially up to date.
+        manifest = self.build()
+        _ = (self.root / inventory.MANIFEST).write_text(inventory.encoded(manifest))
+        tables = inventory.generated_tables(manifest)
+        for missing in tables:
+            with self.subTest(missing=missing):
+                text = '\n'.join(
+                    table if name == missing else
+                    f'<!-- BEGIN GENERATED: diagram-inventory:{name} -->\n{table}' +
+                    f'<!-- END GENERATED: diagram-inventory:{name} -->'
+                    for name, table in tables.items())
+                _ = (self.root / inventory.PAGE).write_text(text)
+                # When checking a page with both markers removed for one table.
+                checked = self.cli('--check')
+                # Then the broken update contract fails rather than accepting stale tables.
+                self.assertEqual(checked.returncode, 1, checked.stdout)
+                self.assertIn(f'unmatched generated marker {missing}', checked.stderr)
 
     def test_migration_states_and_exception_schema(self):
         schema = json.loads((self.root / inventory.SCHEMA).read_text())
@@ -1377,7 +1434,10 @@ class TreeTests(unittest.TestCase):
 
     def test_generated_blocks_write_and_check(self):
         page = self.root / inventory.PAGE
-        _ = page.write_text('# Inventory\n<!-- BEGIN GENERATED: diagram-inventory:section -->\nstale\n<!-- END GENERATED: diagram-inventory:section -->\n')
+        names = ('section', 'type', 'batch', 'exclusions', 'exceptions')
+        _ = page.write_text('# Inventory\n' + '\n'.join(
+            f'<!-- BEGIN GENERATED: diagram-inventory:{name} -->\nstale\n' +
+            f'<!-- END GENERATED: diagram-inventory:{name} -->' for name in names) + '\n')
         manifest = self.build()
         _ = (self.root / inventory.MANIFEST).write_text(inventory.encoded(manifest))
         stale = self.cli('--check')
@@ -1455,7 +1515,7 @@ class TreeTests(unittest.TestCase):
         _ = (self.root / 'docs/y.md').write_text('```mermaid\nsequenceDiagram\nA->>B: hi\n```')
         result = self.cli('--verify-tree', '--strict')
         self.assertEqual(result.returncode, 1)
-        self.assertEqual(json.loads(result.stdout)['added'], ['docs/y.md#~1'])
+        self.assertEqual(json.loads(result.stdout)['added'], ['docs/y.md#~6cc8c3afe4eb3e84'])
 
     def test_verify_tree_drift_categories(self):
         original = (self.root / 'docs/x.md').read_text()
