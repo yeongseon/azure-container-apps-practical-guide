@@ -60,17 +60,35 @@ Use this page to choose a reading path based on your role and goal. Each path is
 <!-- diagram-id: aca-learning-paths-overview -->
 ```mermaid
 flowchart TD
-    A[Start Here] --> B[Platform Concepts]
-    B --> C{Choose your path}
-    C --> D[Developer: Language Guides]
-    C --> E[DevOps: Operations and IaC]
-    C --> F[Architect: Best Practices]
-    C --> G[SRE: Troubleshooting and KQL]
-    D --> H[Production Readiness]
-    E --> H
-    F --> H
-    G --> H
+    accTitle: Choose a role-based Container Apps learning path
+    accDescr: Start with orientation and platform concepts, choose one of four role paths, and use that path's outcome checklist to decide whether to continue or revisit its reading sequence.
+
+    START[Start Here<br/>orientation and service fit]
+    PLATFORM[Platform concepts<br/>shared vocabulary]
+    ROLE{Which goal matches<br/>your current role?}
+    DEV[Developer path<br/>build and deploy]
+    DEVOPS[DevOps path<br/>delivery and automation]
+    ARCH[Architect path<br/>boundaries and design]
+    SRE[SRE path<br/>operate and diagnose]
+    OUTCOMES[Check the path outcomes]
+    NEXT[Continue to another path]
+    REVISIT[Revisit this path's reading sequence]
+
+    START -->|Orient| PLATFORM
+    PLATFORM -->|Choose a goal| ROLE
+    ROLE -->|Build an application| DEV
+    ROLE -->|Standardize delivery| DEVOPS
+    ROLE -->|Design the platform| ARCH
+    ROLE -->|Improve operations| SRE
+    DEV --> OUTCOMES
+    DEVOPS --> OUTCOMES
+    ARCH --> OUTCOMES
+    SRE --> OUTCOMES
+    OUTCOMES -->|Outcomes met| NEXT
+    OUTCOMES -->|Gap remains| REVISIT
 ```
+
+Choose one role branch for your current goal. The outcome check routes both results: continue when you can demonstrate the listed outcomes, or revisit that path when a gap remains.
 
 ## Developer Path
 
@@ -81,11 +99,22 @@ Build and ship containerized applications on Container Apps. Focuses on runtime,
 <!-- diagram-id: aca-learning-paths-developer -->
 ```mermaid
 flowchart TD
-    A[Overview] --> B[Choose Language Guide]
-    B --> C[First Deploy]
-    C --> D[Recipes]
-    D --> E[Revisions and Traffic]
+    accTitle: Developer reading path through the Container Apps guide
+    accDescr: Orient on Container Apps, select one runtime tutorial, complete its deployment sequence, use recipes as needed, and finish with revisions and traffic management concepts.
+
+    OVERVIEW[Overview and service fit]
+    LANGUAGE[Choose one language tutorial]
+    DEPLOY[Complete the tutorial sequence]
+    RECIPES[Use runtime recipes as needed]
+    REVISIONS[Study revisions and traffic splitting]
+
+    OVERVIEW -->|Orient| LANGUAGE
+    LANGUAGE -->|Follow numbered pages| DEPLOY
+    DEPLOY -->|Extend the workload| RECIPES
+    RECIPES -->|Prepare safe releases| REVISIONS
 ```
+
+This is a reading route, not a deployment runbook: use the linked tutorial for executable steps.
 
 Read in order:
 
@@ -121,11 +150,22 @@ Standardize how teams deploy to Container Apps: IaC, CI/CD pipelines, environmen
 <!-- diagram-id: aca-learning-paths-devops -->
 ```mermaid
 flowchart TD
-    A[Platform Basics] --> B[Language Guide IaC Recipes]
-    B --> C[CI/CD Pipeline]
-    C --> D[Deployment Operations]
-    D --> E[Multi-Environment Strategy]
+    accTitle: DevOps reading path through delivery and operations guidance
+    accDescr: Establish the platform model, select infrastructure-as-code and pipeline guidance, study deployment operations, then apply revision and environment practices.
+
+    PLATFORM[Platform and environment concepts]
+    IAC[Language-guide IaC recipes]
+    PIPELINE[CI/CD guidance]
+    OPERATIONS[Deployment operations]
+    STRATEGY[Revision and environment strategy]
+
+    PLATFORM -->|Define the target| IAC
+    IAC -->|Provision consistently| PIPELINE
+    PIPELINE -->|Automate delivery| OPERATIONS
+    OPERATIONS -->|Standardize releases| STRATEGY
 ```
+
+Follow the sequence to move from a shared platform model to repeatable delivery and release practices.
 
 Read in order:
 
@@ -157,11 +197,22 @@ Define platform boundaries, networking topology, identity model, and security po
 <!-- diagram-id: aca-learning-paths-architect -->
 ```mermaid
 flowchart TD
-    A[Architecture Overview] --> B[Environments and Workload Profiles]
-    B --> C[Networking Topology]
-    C --> D[Identity and Secrets]
-    D --> E[Best Practices Baseline]
+    accTitle: Architect reading path for Container Apps design boundaries
+    accDescr: Begin with the architecture model, choose environment and workload-profile boundaries, design networking, define identity and secret access, and validate the design against production practices and limits.
+
+    ARCHITECTURE[Architecture overview]
+    ENVIRONMENTS[Environments and workload profiles]
+    NETWORKING[Networking boundaries]
+    IDENTITY[Identity and secret access]
+    BASELINE[Best practices and limits]
+
+    ARCHITECTURE -->|Set the service model| ENVIRONMENTS
+    ENVIRONMENTS -->|Choose boundaries| NETWORKING
+    NETWORKING -->|Map connectivity| IDENTITY
+    IDENTITY -->|Complete the posture| BASELINE
 ```
+
+Use this route to make boundary decisions before implementation details obscure the platform design.
 
 Read in order:
 
@@ -193,11 +244,22 @@ Instrument, alert, and diagnose incidents on Container Apps. Focuses on observab
 <!-- diagram-id: aca-learning-paths-sre -->
 ```mermaid
 flowchart TD
-    A[Monitoring Baseline] --> B[Alert Design]
-    B --> C[KQL Query Packs]
-    C --> D[Playbooks]
-    D --> E[Labs and Post-Incident]
+    accTitle: SRE reading path from observability to incident practice
+    accDescr: Establish monitoring, design actionable alerts, learn the KQL query packs, follow symptom-based playbooks, and use labs to practice and improve post-incident readiness.
+
+    MONITORING[Monitoring baseline]
+    ALERTS[Alert design]
+    KQL[KQL query packs]
+    PLAYBOOKS[Troubleshooting playbooks]
+    LABS[Labs and post-incident learning]
+
+    MONITORING -->|Measure health| ALERTS
+    ALERTS -->|Define signals| KQL
+    KQL -->|Collect evidence| PLAYBOOKS
+    PLAYBOOKS -->|Practice decisions| LABS
 ```
+
+The path progresses from detecting a problem to collecting evidence, making decisions, and practicing recovery.
 
 Read in order:
 
@@ -246,5 +308,9 @@ Read in order:
 - [Quickstart: Deploy your first container app](https://learn.microsoft.com/en-us/azure/container-apps/get-started)
 - [Container Apps environments](https://learn.microsoft.com/en-us/azure/container-apps/environment)
 - [Networking overview](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Revisions in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Deploy to Azure Container Apps with GitHub Actions](https://learn.microsoft.com/en-us/azure/container-apps/github-actions)
+- [Deploy to Azure Container Apps with Azure Pipelines](https://learn.microsoft.com/en-us/azure/container-apps/azure-pipelines)
 - [Log monitoring in Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)
+- [Observability in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/observability)
 - [Blue/green deployment](https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment)
