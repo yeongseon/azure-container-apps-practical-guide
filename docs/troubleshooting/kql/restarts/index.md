@@ -22,7 +22,7 @@ Queries for analyzing container and replica restart patterns in Azure Container 
 | `ContainerAppConsoleLogs_CL` | Application logs showing shutdown/startup sequences |
 
 !!! note "Schema Variation"
-    The queries in this pack use the legacy direct Log Analytics schema: `ContainerAppConsoleLogs_CL` and `ContainerAppSystemLogs_CL`, with fields such as `Log_s`, `RevisionName_s`, and `ContainerGroupName_s`. Azure Monitor diagnostic settings instead populate the resource-specific `ContainerAppConsoleLogs` and `ContainerAppSystemLogs` tables, whose corresponding fields include `Log`, `RevisionName`, and `ReplicaName`. Choose the query variant for the ingestion path; do not only remove the `_CL` suffix because the column names also differ.
+    The queries in this pack use the legacy direct Log Analytics schema: `ContainerAppConsoleLogs_CL` and `ContainerAppSystemLogs_CL`, with fields such as `Log_s`, `RevisionName_s`, and `ContainerGroupName_g`. In legacy console logs, `ContainerGroupName_g` is the replica name. Azure Monitor diagnostic settings instead populate the resource-specific `ContainerAppConsoleLogs` and `ContainerAppSystemLogs` tables; the resource-specific console table maps that value to `ContainerGroupName`, alongside fields such as `Log` and `RevisionName`. Choose the query variant for the ingestion path; do not only remove the `_CL` suffix because the column names also differ.
 
 ## Query Pipeline Overview
 
@@ -74,5 +74,6 @@ flowchart TD
 ## Sources
 
 - [Log monitoring in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)
+- [ContainerAppConsoleLogs table reference](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappconsolelogs)
 - [Health probes in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
 - [Kusto Query Language (KQL) overview](https://learn.microsoft.com/en-us/kusto/query/)
