@@ -1,6 +1,7 @@
 {
   "claim": "The trigger mutated ingress.targetPort from 80 to 8081, edge traffic collapsed to 0/10 HTTP 200, the strictly post-trigger KQL window materialized 25 PortMismatch rows with gate_classification='populated_table', and the sample evidence includes the smoking-gun platform attribution 'The TargetPort 8081 does not match the listening port 80.'.",
   "claim_level": "Observed",
+  "evaluated_at_utc": "2026-11-09T13:05:31Z",
   "gate_classification": "H1 gate: confirms that the app-scope ingress mutation produced the documented failure signature on both the edge-traffic surface and the system-log attribution surface.",
   "hypothesis": "H1_trigger_produces_failure",
   "ingress_target_port_mismatch_h1_trigger_produces_failure_all_subgates_pass": true,
@@ -94,6 +95,5 @@
     "post_trigger_requests_ok_max": 1,
     "target_port_before_expected": 80,
     "target_port_trigger_expected": 8081
-  },
-  "utc_captured": "2026-06-26T05:41:52Z"
+  }
 }
