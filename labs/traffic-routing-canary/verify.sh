@@ -3,11 +3,17 @@ set -euo pipefail
 
 export PYTHONWARNINGS="${PYTHONWARNINGS:-ignore}"
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [[ -n "${GATE_REPLAY_BASELINE_DIR:-}" || "${1:-}" == "--offline" ]]; then
+    python3 "${SCRIPT_DIR}/verify_offline.py"
+    exit $?
+fi
+
 : "${AZ_SUBSCRIPTION:?Set AZ_SUBSCRIPTION before running}"
 : "${RG:?Set RG before running}"
 : "${APP_NAME:?Set APP_NAME before running}"
 
-EVIDENCE_DIR="$(cd "$(dirname "$0")" && pwd)/evidence"
+EVIDENCE_DIR="${SCRIPT_DIR}/evidence"
 mkdir -p "$EVIDENCE_DIR"
 
 UTC_NOW="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -223,14 +229,14 @@ az group show \
     --output json \
     > "$EVIDENCE_DIR/21-region.json" 2>&1 || true
 
-UTC_CAPTURED="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+EVALUATED_AT_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 export EVIDENCE_DIR AZ_SUBSCRIPTION RG APP_NAME APP_FQDN
 export BAD_REVISION_NAME GOOD_REVISION_NAME TRIGGER_GOOD_CREATED TRIGGER_GOOD_IMAGE
 export PRE_FIX_BAD_NAME PRE_FIX_BAD_RUNNING PRE_FIX_BAD_HEALTH PRE_FIX_BAD_RUNNING_DETAILS PRE_FIX_BAD_IMAGE
 export PRE_FIX_CURL_SUCCESS_COUNT PRE_FIX_CURL_TIMEOUT_COUNT
 export FIX_UTC FIX_EXIT_CODE
 export POST_FIX_GOOD_NAME POST_FIX_GOOD_HEALTH POST_FIX_GOOD_RUNNING POST_FIX_GOOD_CREATED POST_FIX_GOOD_IMAGE
-export POST_FIX_CURL_SUCCESS_COUNT UTC_CAPTURED
+export POST_FIX_CURL_SUCCESS_COUNT EVALUATED_AT_UTC
 
 python3 <<'PYEOF'
 import json, os
@@ -415,7 +421,7 @@ else:
     gate_classification = 'partial_observation_some_subgates_failed'
 
 out = {
-    'utc_captured': os.environ['UTC_CAPTURED'],
+    'evaluated_at_utc': os.environ['EVALUATED_AT_UTC'],
     'subscription': os.environ['AZ_SUBSCRIPTION'],
     'rg': os.environ['RG'],
     'app_name': os.environ['APP_NAME'],

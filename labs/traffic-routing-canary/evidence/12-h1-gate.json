@@ -1,11 +1,11 @@
 {
-  "utc_captured": "2026-06-24T00:18:49Z",
+  "evaluated_at_utc": "2026-11-09T16:03:01Z",
   "subscription": "00000000-0000-0000-0000-000000000000",
   "rg": "rg-aca-lab-traffic2",
   "app_name": "ca-labtraffic-ve2wnr",
   "app_fqdn": "ca-labtraffic-ve2wnr.calmdesert-6bf1e90b.koreacentral.azurecontainerapps.io",
   "trigger_window": {
-    "start_utc": "2026-06-24T00:13:55Z",
+    "start_utc": "2026-06-24T00:14:10+00:00",
     "bad_revision_name": "ca-labtraffic-ve2wnr--badv2",
     "bad_revision_image": "mcr.microsoft.com/dotnet/samples:aspnetapp",
     "bad_revision_created_time": "2026-06-24T00:14:10+00:00",

@@ -13,7 +13,7 @@ This inventory is pinned to `origin/main` commit `de59e3e27aaa8c78714a23704f8f12
 
 ## Remaining Matrix at the Pinned SHA
 
-The audit found **22 affected verifiers and 48 committed derived gates**. Seven verifier families have no committed derived gate JSON yet. Already converted work from #394, #410, #411, and #417 is excluded.
+The matrix lists every audited verifier with its current status; rows marked Fixed or Deferred are distinguished in the Status column, and the measured remaining counts are in the Batch F section. Seven verifier families have no committed derived gate JSON yet. Already converted work from #394, #410, #411, and #417 is excluded.
 
 | Lab | Verifier and committed derived gates | Emitted field | Raw capture time vs generated evaluation time | Status | Owner |
 |---|---|---|---|---|---|
@@ -35,10 +35,10 @@ The audit found **22 affected verifiers and 48 committed derived gates**. Seven 
 | `managed-identity-key-vault-failure` | `labs/managed-identity-key-vault-failure/verify.sh`; `labs/managed-identity-key-vault-failure/evidence/14-cohort-integrity-gate.json`; `labs/managed-identity-key-vault-failure/evidence/15-h1-trigger-produces-failure-gate.json`; `labs/managed-identity-key-vault-failure/evidence/16-h2-fix-restores-recovery-gate.json`; `labs/managed-identity-key-vault-failure/evidence/17-bounded-falsification-gate.json` | `utc_captured` from `UTC_NOW` | Preserve content-derived raw timestamps; replace only each gate's replay stamp with generated `evaluated_at_utc`. | Deferred | Unassigned / #409 |
 | `observability-tracing` | `labs/observability-tracing/verify.sh`; `labs/observability-tracing/evidence/12-h1-gate.json`; `labs/observability-tracing/evidence/24-h2-gate.json` | `evaluated_at_utc` from verifier replay time | Capture-script and telemetry event times remain unchanged; only Gates 12 and 24 receive evaluation time. | Fixed in Batch E | #409 batch E |
 | `probe-and-port-mismatch` | `labs/probe-and-port-mismatch/verify.sh`; `labs/probe-and-port-mismatch/evidence/11-h1-gate.json`; `labs/probe-and-port-mismatch/evidence/22-h2-gate.json` | `evaluated_at_utc` from verifier replay time | Capture-script and raw revision/log timestamps remain unchanged; only Gates 11 and 22 receive evaluation time. | Fixed in Batch E | #409 batch E |
-| `revision-failover` | `labs/revision-failover/verify.sh`; `labs/revision-failover/evidence/11-h1-gate.json`; `labs/revision-failover/evidence/17-h2-gate.json` | `utc_captured` from verifier replay time | Preserve capture-script and raw revision/traffic timestamps; generate `evaluated_at_utc` only in Gates 11 and 17. | Deferred | Unassigned / #409 |
+| `revision-failover` | `labs/revision-failover/verify.sh`; `labs/revision-failover/evidence/11-h1-gate.json`; `labs/revision-failover/evidence/17-h2-gate.json` | `evaluated_at_utc` from the replay invocation | Capture-script and raw revision/traffic timestamps remain capture evidence; only Gates 11 and 17 carry replay evaluation time. | Fixed in Batch F | #409 batch F |
 | `revision-provisioning-failure` | `labs/revision-provisioning-failure/verify.sh`; `labs/revision-provisioning-failure/evidence/14-cohort-integrity-gate.json`; `labs/revision-provisioning-failure/evidence/15-h1-trigger-produces-failure-gate.json`; `labs/revision-provisioning-failure/evidence/16-h2-fix-restores-recovery-gate.json`; `labs/revision-provisioning-failure/evidence/17-bounded-falsification-gate.json` | `utc_captured` from `UTC_NOW` | Preserve content-derived raw timestamps; replace only each gate's replay stamp with generated `evaluated_at_utc`. | Deferred | Unassigned / #409 |
-| `scale-rule-mismatch` | `labs/scale-rule-mismatch/verify.sh`; `labs/scale-rule-mismatch/evidence/10-h1-gate.json`; `labs/scale-rule-mismatch/evidence/19-h2-gate.json` | `utc_captured` from verifier replay time | Preserve capture-script and raw scaler/log timestamps; generate `evaluated_at_utc` only in Gates 10 and 19. | Deferred | Unassigned / #409 |
-| `traffic-routing-canary` | `labs/traffic-routing-canary/verify.sh`; `labs/traffic-routing-canary/evidence/12-h1-gate.json`; `labs/traffic-routing-canary/evidence/22-h2-gate.json` | `utc_captured` from verifier replay time | Preserve capture-script and raw revision/traffic timestamps; generate `evaluated_at_utc` only in Gates 12 and 22. | Deferred | Unassigned / #409 |
+| `scale-rule-mismatch` | `labs/scale-rule-mismatch/verify.sh`; `labs/scale-rule-mismatch/evidence/10-h1-gate.json`; `labs/scale-rule-mismatch/evidence/19-h2-gate.json` | `evaluated_at_utc` from the replay invocation | Capture-script and raw scaler/log timestamps remain capture evidence; only Gates 10 and 19 carry replay evaluation time. | Fixed in Batch F | #409 batch F |
+| `traffic-routing-canary` | `labs/traffic-routing-canary/verify.sh`; `labs/traffic-routing-canary/evidence/12-h1-gate.json`; `labs/traffic-routing-canary/evidence/22-h2-gate.json` | `evaluated_at_utc` from the replay invocation | Capture-script and raw revision/traffic timestamps remain capture evidence; only Gates 12 and 22 carry replay evaluation time. | Fixed in Batch F | #409 batch F |
 
 ## Selected Batch
 
@@ -56,15 +56,22 @@ Starting from the **19 verifiers and 36 committed derived gates** remaining afte
 
 Batch C selects only `acr-network-path-pe-forced-inspection` and `ingress-target-port-mismatch`. The ACR verifier retains originally emitted file-system anchors only through `GATE_REPLAY_BASELINE_DIR`; `scripts/check_gate_replay.py` first proves every current tracked non-gate evidence file is byte-identical to `HEAD`. Values parsed from current raw payloads remain authoritative. The ingress verifier derives all anchors directly from raw payload fields and needs no historical baseline anchors.
 
-The current tree has **15 affected verifiers and 20 committed derived gates** remaining after Batch C. These semantic counts include seven source-only verifiers with no committed gates and count only Phase B outputs whose top-level replay stamp still needs conversion.
+Inventory counts after Batch C were superseded by later batches; the measured counts on the merged tree are in the Batch F section.
 
-A literal `grep -l utc_captured labs/*/verify.sh` returns 16 files because it also finds `labs/acr-pull-failure/verify.sh`. That verifier references legitimate Phase A `utc_captured` fields from raw evidence; its current Phase B Gates 30-33 already emit top-level `evaluated_at_utc`, so `acr-pull-failure` is classified as converted rather than remaining work. Its older committed Gates 06 and 14 retain historical top-level `utc_captured`, but they are not outputs of the current offline verifier and are outside this evaluation-time conversion count. The 20-gate total likewise excludes raw JSON files that happen to carry capture-time fields.
+`acr-pull-failure` appears in a literal `grep -l utc_captured labs/*/verify.sh` only as a Phase-A-only hit: the verifier references legitimate Phase A `utc_captured` fields from raw evidence, and its current Phase B Gates 30-33 already emit top-level `evaluated_at_utc`. Its older committed Gates 06 and 14 retain historical top-level `utc_captured`, but they are not outputs of the current offline verifier.
 
 ## Batch E
 
 Batch E converts `cd-reconnect-rbac-conflict`, `observability-tracing`, and `probe-and-port-mismatch`. Their offline Phase B paths validate current raw payloads and derive gate decisions without Azure access. Direct live-capture paths preserve capture-script timestamps plus Azure, revision, log, and telemetry event times.
 
-Starting from the **15 affected verifiers and 20 committed derived gates** remaining after Batch C, removing these three two-gate verifiers and six gates leaves **12 verifiers and 14 committed derived gates**. Literal `utc_captured` occurrences that remain in the converted observability verifier belong to raw curl and secret-store capture artifacts, not to Gates 12 or 24. The textual grep count also includes `acr-pull-failure`, which is a Phase-A-only hit rather than a remaining Phase B emitter.
+Literal `utc_captured` occurrences that remain in the converted observability verifier belong to raw curl and secret-store capture artifacts, not to Gates 12 or 24. Remaining-work counts are measured in the Batch F section.
+
+## Batch F
+
+Batch F converts `revision-failover`, `scale-rule-mismatch`, and `traffic-routing-canary`. Their offline replay paths derive Gates 11/17, 10/19, and 12/22 respectively from the current raw payloads. Direct replay is independent of existing gates; `GATE_REPLAY_BASELINE_DIR` is an explicit opt-in comparison source used only after `scripts/check_gate_replay.py` proves the raw cohort byte-identical to `HEAD`. Capture-script start times and raw revision, traffic, scaler, replica, and log timestamps remain unchanged.
+
+Measured on the merged tree after Batch F: `grep -l utc_captured labs/*/verify.sh` reports **11** textual hits. Nine are actual emitters of a top-level `utc_captured` in derived output: the seven source-only `aca-secret-kv-ref-mi-network-path*` verifiers (no committed gates), `managed-identity-key-vault-failure` (4 committed gates), and `revision-provisioning-failure` (4 committed gates). The other two hits are not remaining emitters: `acr-pull-failure` is a Phase-A-only hit (references to raw capture fields and comments; its Phase B gates emit `evaluated_at_utc`, and historical Gates 06 and 14 are not current offline-verifier outputs), and `observability-tracing` matches only raw curl and secret-store capture artifacts, not Gates 12 or 24. The committed Phase B gates still carrying a top-level `utc_captured` from a remaining emitter number **8**.
+
 
 ## Fail-Open Gate Replay Audit
 
