@@ -5,12 +5,15 @@ content_sources:
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/monitor
-        - https://learn.microsoft.com/en-us/dotnet/core/diagnostics/distributed-tracing
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-link
     - id: how-observability-works-in-container-apps
       type: flowchart
       source: mslearn-adapted
       based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-options
+        - https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring
         - https://learn.microsoft.com/en-us/azure/container-apps/monitor
         - https://learn.microsoft.com/en-us/dotnet/core/diagnostics/distributed-tracing
 validation:
@@ -29,61 +32,82 @@ This tutorial step shows how to inspect console logs, query Log Analytics, and a
 !!! info "Infrastructure Context"
     **Service**: Container Apps (Consumption) | **Network**: VNet integrated | **VNet**: ✅
 
-    This tutorial assumes a production-ready Container Apps deployment with a custom VNet, ACR with managed identity pull, and private endpoints for backend services.
+    This tutorial assumes a production-ready Container Apps deployment with a custom VNet and private ACR access using managed identity.
 
     <!-- diagram-id: this-tutorial-assumes-a-production-ready-container -->
 ```mermaid
+%%{init: {"themeVariables": {"fontSize": "10px"}, "flowchart": {"curve": "linear", "nodeSpacing": 5, "rankSpacing": 20, "diagramPadding": 2, "wrappingWidth": 55}}}%%
 flowchart TD
-    INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux .NET 8"]
-
-    subgraph VNET["VNet 10.0.0.0/16"]
-        subgraph ENV_SUB["Environment Subnet 10.0.0.0/23\nDelegation: Microsoft.App/environments"]
-            CAE[Container Apps Environment]
-            CA
-        end
-        subgraph PE_SUB["Private Endpoint Subnet 10.0.2.0/24"]
-            PE_ACR[PE: ACR]
-            PE_KV[PE: Key Vault]
-            PE_ST[PE: Storage]
-        end
+    accTitle: Production-ready Container Apps context for the .NET tutorial
+    accDescr: Client requests and responses pass through managed ingress. The customer VNet and private-endpoint subnet host the ACR private endpoint and link its DNS zone. Managed identity is assigned to the app and authorizes registry pulls, while platform provisioning exchanges image traffic with ACR through the private endpoint.
+    CALLER(["Client"])
+    VNET["VNet + PE<br/>subnet"]
+    IDENTITY["Managed identity"]
+    PE_ACR["ACR PE"]
+    ACR["ACR"]
+    DNS["ACR DNS zone"]
+    subgraph ENV["ACA environment"]
+        INGRESS["Ingress"]
+        APP["Container app<br/>.NET"]
+        REVISION["Revision config"]
+        REPLICAS["Replicas"]
+        PLATFORM["Provisioning<br/>(platform)"]
     end
-
-    PE_ACR --> ACR[Azure Container Registry]
-    PE_KV --> KV[Key Vault]
-    PE_ST --> ST[Storage Account]
-
-    subgraph DNS[Private DNS Zones]
-        DNS_ACR[privatelink.azurecr.io]
-        DNS_KV[privatelink.vaultcore.azure.net]
-        DNS_ST[privatelink.blob.core.windows.net]
-    end
-
-    PE_ACR -.-> DNS_ACR
-    PE_KV -.-> DNS_KV
-    PE_ST -.-> DNS_ST
-
-    CA -.->|System-Assigned MI| ENTRA[Microsoft Entra ID]
-    CAE --> LOG[Log Analytics]
-    CA --> AI[Application Insights]
-
-    style CA fill:#107c10,color:#fff
-    style VNET fill:#E8F5E9,stroke:#4CAF50
-    style DNS fill:#E3F2FD
+    CALLER ~~~ INGRESS ~~~ REPLICAS ~~~ REVISION ~~~ APP ~~~ IDENTITY ~~~ ACR ~~~ PE_ACR ~~~ PLATFORM ~~~ DNS ~~~ VNET
+    CALLER ==>|"Request"| INGRESS
+    INGRESS ==>|"Response"| CALLER
+    INGRESS ==>|"Request"| REPLICAS
+    REPLICAS ==>|"Response"| INGRESS
+    VNET -.-> ENV
+    VNET -.-> PE_ACR
+    DNS -.-> VNET
+    APP -.-> IDENTITY
+    IDENTITY -.-> ACR
+    APP -.-> REVISION
+    REVISION -.-> REPLICAS
+    PLATFORM -.-> REVISION
+    PLATFORM ==>|"Pull"| PE_ACR
+    PE_ACR ==>|"Pull"| ACR
+    ACR ==>|"Layers"| PE_ACR
+    PE_ACR ==>|"Layers"| PLATFORM
+    PE_ACR -.-> DNS
 ```
+
+*Figure: Client traffic crosses managed ingress to the replicas. The customer VNet and private-endpoint subnet host the ACR private endpoint and link its DNS zone. Managed identity is assigned to the app and authorizes registry pulls through a role assignment; platform provisioning remains the image-pull actor, and both pull requests and layer responses pass through the private endpoint.*
 
 ## How Observability Works in Container Apps
 
 <!-- diagram-id: how-observability-works-in-container-apps -->
 ```mermaid
 flowchart TD
-    APP[App container stdout/stderr] --> CONSOLE[Console logs]
-    DAPR[Dapr sidecar stdout/stderr] --> CONSOLE
-    PLATFORM[Platform/revision/auth events] --> SYSTEM[System logs]
-    CONSOLE --> LAW[Log Analytics workspace]
-    SYSTEM --> LAW
-    OTEL[App instrumentation<br/>OpenTelemetry SDK] --> AI[Application Insights]
-    AZMON[Azure Monitor] --> METRICS[Metrics: requests, CPU, memory, replicas]
+    accTitle: Logging and telemetry paths for the .NET container app
+    accDescr: Console and system logs use the environment's direct Log Analytics destination and custom tables. OpenTelemetry sends application telemetry to Application Insights, while platform metrics are available through Azure Monitor.
+
+    APP[".NET app container<br/>stdout and stderr"]
+    DAPR["Dapr sidecar<br/>stdout and stderr"]
+    PLATFORM["Container Apps platform<br/>system events"]
+    CONSOLE["Console log stream"]
+    SYSTEM["System log stream"]
+    LAW["Log Analytics workspace<br/>direct environment destination"]
+    CONSOLE_TABLE["ContainerAppConsoleLogs_CL<br/>Log_s and RevisionName_s"]
+    SYSTEM_TABLE["ContainerAppSystemLogs_CL<br/>Log_s and RevisionName_s"]
+    OTEL["OpenTelemetry SDK"]
+    AI["Application Insights"]
+    AZMON["Azure Monitor metrics<br/>requests, CPU, memory, replicas"]
+
+    APP --> CONSOLE
+    DAPR --> CONSOLE
+    PLATFORM --> SYSTEM
+    CONSOLE ==>|"Log records"| LAW
+    SYSTEM ==>|"Log records"| LAW
+    LAW --> CONSOLE_TABLE
+    LAW --> SYSTEM_TABLE
+    APP ==>|"Traces and application telemetry"| OTEL
+    OTEL ==>|"Telemetry export"| AI
+    PLATFORM -.->|"Platform measurements"| AZMON
 ```
+
+*Figure: This tutorial uses the direct Log Analytics custom-table destination, so KQL queries target the `*_CL` custom tables and `_s` columns. An environment configured with the Azure Monitor destination instead requires diagnostic settings; resource-specific native tables require `--export-to-resource-specific true`.*
 
 ## Prerequisites
 
@@ -265,5 +289,10 @@ flowchart TD
 - [Troubleshooting Methodology](../../../troubleshooting/methodology/index.md)
 
 ## Sources
+- [Container Apps networking (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Managed identity image pull (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
+- [Azure Container Registry private link (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-link)
+- [Log storage and monitoring options (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/log-options)
+- [Log monitoring with Log Analytics (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)
 - [Monitoring Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/monitor)
 - [OpenTelemetry with ASP.NET Core (Microsoft Learn)](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/distributed-tracing)
