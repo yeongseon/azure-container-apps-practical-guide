@@ -6,7 +6,7 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
-        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates
 ---
 # Custom Domains and Certificates
 
@@ -17,13 +17,32 @@ Azure Container Apps supports custom hostnames and TLS certificates so you can s
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    U[Client] --> DNS[Public DNS zone]
-    DNS --> INGRESS[Container Apps ingress]
-    DNS --> TXT[TXT record: asuid.<host>]
-    TXT --> ACA[Container Apps domain validation]
-    ACA --> CERT[TLS certificate binding]
-    CERT --> APP[ASP.NET Core App]
+    accTitle: Custom hostname validation and HTTPS request flow
+    accDescr: DNS ownership and routing records permit Container Apps to validate and bind the hostname and managed certificate. After binding succeeds, a client resolves the hostname and sends an HTTPS request to managed ingress, which terminates TLS and routes the request to ASP.NET Core.
+    DNS[Public DNS zone]
+    TXT[TXT asuid record<br/>ownership verification]
+    ROUTE[CNAME or apex A record<br/>traffic routing]
+    VALIDATE[Container Apps<br/>hostname validation]
+    BIND[Custom hostname +<br/>managed certificate binding]
+    CLIENT[Client]
+    INGRESS[Managed ingress<br/>TLS termination]
+    APP[ASP.NET Core app]
+
+    DNS --> TXT
+    DNS --> ROUTE
+    TXT -.->|"Proves domain ownership"| VALIDATE
+    ROUTE -.->|"Resolves hostname to ingress"| VALIDATE
+    VALIDATE -->|"Validation succeeds"| BIND
+    BIND -.->|"Configures hostname and certificate"| INGRESS
+    CLIENT ==>|"DNS query"| DNS
+    DNS ==>|"Address or canonical name"| CLIENT
+    CLIENT ==>|"HTTPS request with SNI"| INGRESS
+    INGRESS ==>|"Routed request after TLS termination"| APP
+    APP ==> INGRESS
+    INGRESS ==>|"HTTPS response"| CLIENT
 ```
+
+*Figure: DNS validation and certificate binding are control-plane prerequisites. Only after the hostname is bound does the runtime HTTPS request flow through managed ingress to the app.*
 
 ## Prerequisites
 
@@ -36,9 +55,11 @@ flowchart TD
 az extension add --name containerapp --upgrade
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+| `az extension add` | For custom-domain configuration, installs or upgrades the Container Apps CLI extension used by this procedure. |
+| `--name` | Selects the `containerapp` extension that provides hostname and certificate commands. |
+| `--upgrade` | For custom-domain configuration, upgrades the Container Apps extension when an older release is installed. |
 
 ## Step 1: Get the app and environment values
 
@@ -62,11 +83,14 @@ export CUSTOM_DOMAIN_VERIFICATION_ID=$(az containerapp show \
   --output tsv)
 ```
 
-| Command | Purpose |
+| Command / Parameter | Purpose |
 |---|---|
-| `export ENV_STATIC_IP=$(az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.staticIp" --output tsv)` | Captures the environment static IP used by apex `A` records when binding a root custom domain to Container Apps. |
-| `export APP_FQDN=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.fqdn" --output tsv)` | Captures the app's default ingress FQDN so you can create the corresponding `CNAME` or verify the current hostname before switching traffic. |
-| `export CUSTOM_DOMAIN_VERIFICATION_ID=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.customDomainVerificationId" --output tsv)` | Extracts the domain verification token that must be published in DNS as the `asuid` record before Container Apps will accept the custom hostname. |
+| `az containerapp env show` | For custom-domain configuration, reads the Container Apps environment static IP used for the custom-domain DNS record. |
+| `--name` | Selects environment `$ACA_ENV_NAME` for its static IP and app `$APP_NAME` for ingress and verification values. |
+| `--output` | Returns each DNS input as unquoted `tsv` for assignment to a shell variable. |
+| `--query` | For custom-domain configuration, extracts `properties.staticIp`, `properties.configuration.ingress.fqdn`, `properties.customDomainVerificationId` from the command response for the next operation. |
+| `--resource-group` | Locates the Container Apps environment and app in `$RG`. |
+| `az containerapp show` | Reads the ingress FQDN for the CNAME and the ownership token for the TXT record. |
 
 ## Step 2: Create DNS records
 
@@ -84,9 +108,15 @@ az network dns record-set txt add-record \
   --value "$CUSTOM_DOMAIN_VERIFICATION_ID"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az network dns record-set ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
+| `az network dns record-set cname set-record` | For custom-domain configuration, points the custom hostname CNAME record at the Container App ingress FQDN. |
+| `--cname` | For custom-domain configuration, sets the DNS CNAME target to Container App FQDN `$APP_FQDN`. |
+| `--record-set-name` | For custom-domain configuration, updates DNS record set `www`, `asuid.www`. |
+| `--resource-group` | For custom-domain configuration, limits the operations in this block to resource group `$DNS_RG`. |
+| `--zone-name` | For custom-domain configuration, updates records in public DNS zone `contoso.com`. |
+| `az network dns record-set txt add-record` | For custom-domain configuration, publishes the `asuid` TXT value that proves custom-domain ownership. |
+| `--value` | For custom-domain configuration, publishes domain-verification value `$CUSTOM_DOMAIN_VERIFICATION_ID`. |
 
 ## Step 3: Add the hostname to the Container App
 
@@ -97,9 +127,12 @@ az containerapp hostname add \
   --hostname "www.contoso.com"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp hostname add ...` | Manages custom hostname bindings for ingress. |
+| `az containerapp hostname add` | For custom-domain configuration, adds the verified custom hostname to the Container App. |
+| `--hostname` | For custom-domain configuration, targets custom hostname `www.contoso.com` for validation or certificate binding. |
+| `--name` | Adds the hostname to Container App `$APP_NAME`. |
+| `--resource-group` | Finds the app receiving `www.contoso.com` in `$RG`. |
 
 ## Step 4: Bind a certificate
 
@@ -112,9 +145,14 @@ az containerapp hostname bind \
   --validation-method CNAME
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp hostname bind ...` | Manages custom hostname bindings for ingress. |
+| `az containerapp hostname bind` | For custom-domain configuration, binds the custom hostname to a managed TLS certificate. |
+| `--environment` | Uses `$ACA_ENV_NAME` when creating and attaching the managed certificate. |
+| `--hostname` | For custom-domain configuration, targets custom hostname `www.contoso.com` for validation or certificate binding. |
+| `--name` | Binds the managed certificate to `$APP_NAME`. |
+| `--resource-group` | Locates the hostname-bearing app in `$RG`. |
+| `--validation-method` | For custom-domain configuration, validates the managed certificate with method `CNAME`. |
 
 ## Step 5: Configure ASP.NET Core for forwarded headers
 
@@ -155,9 +193,13 @@ az containerapp env certificate list \
 curl --verbose https://www.contoso.com/
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp hostname list ...` | Manages custom hostname bindings for ingress. |
+| `az containerapp hostname list` | For custom-domain configuration, lists the Container App hostname binding to verify its certificate state. |
+| `--name` | Selects `$APP_NAME` for hostname verification and `$ACA_ENV_NAME` for certificate inventory. |
+| `--output` | Displays hostnames and certificates in tables for visual confirmation. |
+| `--resource-group` | Looks up both verification targets in `$RG`. |
+| `az containerapp env certificate list` | For custom-domain configuration, lists environment certificates to verify the managed certificate resource. |
 
 ## See Also
 
@@ -168,4 +210,4 @@ curl --verbose https://www.contoso.com/
 ## Sources
 
 - [Custom domains and managed certificates in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates)
-- [Configure custom DNS suffix for Azure Container Apps environment](https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns)
+- [Custom domains and certificates in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates)

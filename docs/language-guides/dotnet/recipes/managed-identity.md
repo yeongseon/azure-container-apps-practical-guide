@@ -15,12 +15,36 @@ Use `DefaultAzureCredential` and ASP.NET Core dependency injection to access Azu
 <!-- diagram-id: use-defaultazurecredential-and-asp-net-core-dependency -->
 ```mermaid
 flowchart TD
-    C[Client] --> APP[ASP.NET Core App]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> BLOB[Azure Blob Storage]
-    style APP fill:#107c10,color:#fff
+    accTitle: DefaultAzureCredential access from ASP.NET Core
+    accDescr: ASP.NET Core uses DefaultAzureCredential to request a resource-scoped token from the local Container Apps identity endpoint. Microsoft Entra ID issues the token, and Blob Storage independently evaluates the identity's Blob data role before allowing or denying the operation.
+    CLIENT[Client]
+    APP[ASP.NET Core app<br/>BlobServiceClient]
+    CREDENTIAL[DefaultAzureCredential]
+    ENDPOINT[Container Apps identity endpoint]
+    IDENTITY[System- or user-assigned identity]
+    ENTRA[Microsoft Entra ID]
+    BLOB[Azure Blob Storage]
+    AUTHZ[Blob authorization result]
+    RESULT[Blob list result]
+    DENIED[Authorization failure]
+
+    CLIENT ==>|"Application request"| APP
+    APP ==>|"Acquire resource token"| CREDENTIAL
+    CREDENTIAL ==>|"Local token request"| ENDPOINT
+    IDENTITY -.->|"Selected identity"| ENDPOINT
+    ENDPOINT ==>|"Token request"| ENTRA
+    ENTRA ==>|"Access token response"| ENDPOINT
+    ENDPOINT ==>|"Return token"| CREDENTIAL
+    APP ==>|"Blob request + token"| BLOB
+    BLOB -->|"Evaluate data role"| AUTHZ
+    AUTHZ -->|"Allowed"| RESULT
+    AUTHZ -.->|"Denied"| DENIED
+    RESULT ==>|"Blob list response"| APP
+    DENIED -.->|"Authorization error"| APP
+    APP ==>|"Application response"| CLIENT
 ```
+
+*Figure: Managed identity removes application credentials; it does not grant data access by itself. Blob Storage still requires a matching data-plane role assignment at the intended scope.*
 
 ## Prerequisites
 
@@ -49,9 +73,21 @@ az role assignment create \
   --scope "$(az storage account show --name "$STORAGE_ACCOUNT" --resource-group "$RG" --query id --output tsv)"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity assign` | For managed-identity Blob access, enables the Container App identity that authenticates to the target Azure service. |
+| `--name` | Selects `$APP_NAME` for identity lookup and `$STORAGE_ACCOUNT` for the nested Storage scope lookup. |
+| `--resource-group` | For managed-identity Blob access, limits the operations in this block to resource group `$RG`. |
+| `--system-assigned` | For managed-identity Blob access, enables the system-assigned identity on the selected Container App. |
+| `az containerapp show` | Reads the app's system-assigned principal ID for Blob data authorization. |
+| `--output` | Returns the app principal ID and nested Storage resource ID as unquoted `tsv`. |
+| `--query` | Selects `identity.principalId` from the app and `id` from the Storage account. |
+| `az role assignment create` | Grants the app identity read access to blobs in the selected Storage account. |
+| `--assignee-object-id` | For managed-identity Blob access, assigns the role to managed-identity principal `$PRINCIPAL_ID` without a Graph lookup. |
+| `--assignee-principal-type` | For managed-identity Blob access, declares the assignee as `ServicePrincipal` for the managed-identity role assignment. |
+| `--role` | For managed-identity Blob access, grants role `Storage Blob Data Reader` to the selected identity. |
+| `az storage account show` | For managed-identity Blob access, reads the Storage account resource ID used as the Blob data-role scope. |
+| `--scope` | Limits `Storage Blob Data Reader` to the Storage account resource ID returned by the nested `az storage account show` command. |
 
 ## ASP.NET Core 8 DI pattern
 

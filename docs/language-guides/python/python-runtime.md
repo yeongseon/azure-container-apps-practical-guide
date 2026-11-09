@@ -17,12 +17,30 @@ This reference summarizes practical runtime defaults for Python workloads on Azu
 <!-- diagram-id: runtime-execution-model -->
 ```mermaid
 flowchart TD
-    IMG[Container Image] --> BOOT[Gunicorn Startup]
-    BOOT --> PORT[Bind 0.0.0.0:8000]
-    PORT --> PROBE[Health Probes]
-    PROBE --> TRAFFIC[Ingress Traffic]
-    TRAFFIC --> LOGS[stdout/stderr to Log Analytics]
+    accTitle: Python runtime execution model in Container Apps
+    accDescr: A revision starts the container image and Gunicorn listener. Platform health probes determine readiness, managed ingress routes requests to a ready replica, and console output is collected for logging.
+    IMAGE[Python container image]
+    START[Gunicorn process starts]
+    LISTEN[HTTP listener<br/>0.0.0.0:8000]
+    PROBES[Container Apps health probes]
+    READY[Replica readiness result]
+    NOT_READY[Replica remains out of ingress routing]
+    INGRESS[Managed ingress]
+    REQUEST[Request handled by Flask]
+    CONSOLE[stdout and stderr]
+    LOGS[Container Apps logging destination]
+
+    IMAGE --> START --> LISTEN
+    PROBES ==>|"Probe request"| LISTEN
+    PROBES -->|"Evaluate result"| READY
+    READY -.->|"Ready replicas are eligible"| INGRESS
+    READY -->|"Not ready"| NOT_READY
+    INGRESS ==>|"Routed request"| REQUEST
+    REQUEST -.->|"Application writes"| CONSOLE
+    CONSOLE ==>|"Log transport"| LOGS
 ```
+
+*Figure: Runtime startup, health evaluation, request routing, and console-log collection are separate paths. The port and application process are repository defaults; configure ingress `targetPort` and probes to match them.*
 
 !!! tip "Treat runtime settings as deployment contracts"
     Keep port binding, process model, and logging behavior stable between revisions. Changing all three at once makes incident triage much harder.
@@ -92,10 +110,15 @@ python --version
 ps aux
 ```
 
-| Command | Purpose |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console --follow` | Streams Python app console logs so you can inspect Gunicorn startup, worker activity, and request handling in real time. |
-| `az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "/bin/bash"` | Opens a shell in the running container so you can verify the Python runtime and inspect the live process state from inside the replica. |
+| `az containerapp logs show` | For Python runtime diagnostics, streams the Container App logs used to verify runtime behavior. |
+| `--follow` | For Python runtime diagnostics, keeps the log stream open so new application messages appear during verification. |
+| `--name` | For Python runtime diagnostics, selects `$APP_NAME` as the named resource or extension operated on in this block. |
+| `--resource-group` | For Python runtime diagnostics, limits the operations in this block to resource group `$RG`. |
+| `--type` | For Python runtime diagnostics, selects the `console` Container Apps log stream. |
+| `az containerapp exec` | For Python runtime diagnostics, opens a shell in the running Container App replica for in-container checks. |
+| `--command` | For Python runtime diagnostics, runs `/bin/bash` inside the selected Container App replica. |
 
 ## Frequent Runtime Failures
 
