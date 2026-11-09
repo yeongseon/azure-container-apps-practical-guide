@@ -353,6 +353,8 @@ The same chain repeats for `<registry>.koreacentral.data.azurecr.io` → `10.90.
 
 ## 4) Experiment Log
 
+Gate 14 through Gate 17 were originally emitted on 2026-06-29 and later re-evaluated offline from unchanged raw evidence. Their top-level `evaluated_at_utc` records each replay invocation, not a new evidence capture or current Azure validation date.
+
 > **Status: Reproduced live in koreacentral on 2026-06-06 with Azure CLI 2.79.0.** All three falsification gates PASSED. The actual values from the live run are below.
 
 | Step | Action | Expected | Actual (2026-06-06, koreacentral, Azure CLI 2.79.0) | Pass/Fail |

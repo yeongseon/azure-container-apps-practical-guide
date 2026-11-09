@@ -172,6 +172,8 @@ inspection"; the other four labs all produce visibly failed pulls.
 
 The committed Phase B cohort lives in [`evidence/`](evidence/README.md).
 
+Gate 14 through Gate 17 were originally emitted on 2026-06-29 and later re-evaluated offline from the unchanged raw cohort. Each replay records its own invocation time in top-level `evaluated_at_utc`; that value is not a capture date and implies no current Azure replay or validation.
+
 - It captures one live `koreacentral` reproduction of the **silence-gate** pattern: baseline firewall presence, H1 bypass absence, H2 recovery presence, with pulls succeeding throughout.
 - The raw cohort contains 12 files (`01`-`12`) plus four derived gate JSONs (`14`-`17`).
 - Gate 15 carries the lab-specific **baseline-presence proof** so the H1 `count == 0` silence claim is not vacuously true.
@@ -183,7 +185,7 @@ For offline reruns:
 | Command | Why it is used |
 |---|---|
 | `cd labs/acr-network-path-pe-forced-inspection/` | Enters the lab directory so relative evidence paths resolve correctly. |
-| `bash verify.sh` | Recomputes Gate 14 through Gate 17 from committed evidence without touching Azure. |
+| `bash verify.sh` | Recomputes Gate 14 through Gate 17 hermetically from current raw evidence without touching Azure or reading existing gate files as anchor sources. |
 
 ```bash
 cd labs/acr-network-path-pe-forced-inspection/
