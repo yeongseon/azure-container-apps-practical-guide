@@ -40,25 +40,34 @@ Reproducible falsification lab demonstrating that the environment-level `propert
 <!-- diagram-id: diagnostic-settings-missing-lab-flow -->
 ```mermaid
 flowchart TD
-    A[Deploy Bicep: LAW + Env WITHOUT appLogsConfiguration + helloworld app] --> B[Capture env config: destination=null]
-    B --> C[Capture app config + active revision]
-    C --> D[Send 10 HTTPS GETs to baseline revision]
-    D --> E[Wait 5 minutes for log ingestion]
-    E --> F[KQL ContainerAppConsoleLogs_CL + ContainerAppSystemLogs_CL]
-    F --> G{Both tables return 0 rows or BadArgumentError?}
-    G -- Yes --> H[H1 PASS: baseline silent]
-    G -- No --> I[H1 FALSIFIED: INVALID RUN]
-    H --> J[az containerapp env update --logs-destination log-analytics --logs-workspace-id ... --logs-workspace-key ...]
-    J --> K[Readback env config: destination=log-analytics]
-    K --> L[az containerapp update --set-env-vars FIXAPPLIED=nonce -> new revision]
-    L --> M[Wait for new revision runningState=Running]
-    M --> N[Send 10 HTTPS GETs to new revision]
-    N --> O[Wait 5 minutes for log ingestion]
-    O --> P[KQL ContainerAppConsoleLogs_CL + ContainerAppSystemLogs_CL]
-    P --> Q{Both tables return >=1 row?}
-    Q -- Yes --> R[H2 PASS: SUPPORTED, exit 0]
-    Q -- No --> S[H2 FALSIFIED: investigate, exit 2]
+    accTitle: Falsify missing Log Analytics routing at environment scope
+    accDescr: Compare identical request and query windows before and after setting the environment Log Analytics destination, with both decision outcomes preserved for each evidence gate.
+
+    DEPLOY[Deploy workspace, environment without<br/>appLogsConfiguration, and subject app]
+    BASELINE[Capture destination null,<br/>send requests, then wait]
+    QUERY1[Query legacy Log Analytics tables<br/>ContainerAppConsoleLogs_CL and<br/>ContainerAppSystemLogs_CL]
+    SILENT{Both baseline tables silent<br/>or not materialized?}
+    INVALID[H1 falsified or run invalid]
+    UPDATE[Set environment destination<br/>to Log Analytics]
+    REVISION[Create a fresh revision,<br/>send requests, then wait]
+    QUERY2[Repeat the same legacy-table queries]
+    POPULATED{Both tables contain<br/>at least one row?}
+    SUPPORTED[H2 supported for this run]
+    INVESTIGATE[H2 falsified:<br/>investigate another invariant]
+
+    DEPLOY --> BASELINE
+    BASELINE --> QUERY1
+    QUERY1 --> SILENT
+    SILENT -->|No| INVALID
+    SILENT -->|Yes| UPDATE
+    UPDATE --> REVISION
+    REVISION --> QUERY2
+    QUERY2 --> POPULATED
+    POPULATED -->|Yes| SUPPORTED
+    POPULATED -->|No| INVESTIGATE
 ```
+
+*Figure: The lab holds the workload and query windows constant while changing only the environment log destination; the `_CL` names denote the direct Log Analytics destination used by this run.*
 
 !!! note "Evidence depth"
     This lab is **fully reproducible** with dedicated infrastructure-as-code, helper scripts, and raw evidence committed under [`labs/diagnostic-settings-missing/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/diagnostic-settings-missing):
