@@ -48,16 +48,21 @@ Use this playbook when latency rises under burst traffic, startup becomes slow u
 <!-- diagram-id: cpu-throttling-decision-flow -->
 ```mermaid
 flowchart TD
-    A[High latency or probe failures] --> B[Check CPU metrics and replica count]
-    B --> C{CPU near limit?}
-    C -->|No| D[Look for memory, network, or dependency bottlenecks]
-    C -->|Yes| E[Compare requests, replicas, and scale settings]
-    E --> F{Replica count increased in time?}
-    F -->|No| G[Scale rule or min replica issue]
-    F -->|Yes| H[Per-replica CPU budget too low]
-    G --> I[Adjust scale rule thresholds or pre-scale]
-    H --> J[Increase CPU or move to a larger profile]
+    accTitle: Separate CPU pressure from delayed scale-out
+    accDescr: Correlate CPU usage, latency, replicas, scale rules, and environment quota before changing per-replica resources or scaling thresholds.
+
+    START[Latency or probe failures rise] --> CPU{CPU usage sustained near<br/>the configured allocation?}
+    CPU -->|No| OTHER[Investigate memory, network,<br/>or dependency latency]
+    CPU -->|Yes| QUOTA{Environment has quota<br/>for more replicas?}
+    QUOTA -->|No| HEADROOM[Request quota or move<br/>to suitable capacity]
+    QUOTA -->|Yes| SCALE{Replica count responds<br/>to configured rules?}
+    SCALE -->|No| RULES[Correct thresholds,<br/>limits, or minimum replicas]
+    SCALE -->|Yes| PERREPLICA{Latency remains high<br/>after scale-out?}
+    PERREPLICA -->|No| DONE[Scaling relieved pressure]
+    PERREPLICA -->|Yes| RESOURCES[Increase per-replica CPU<br/>or optimize compute work]
 ```
+
+*Figure: CPU saturation, available environment quota, and scaler response are independent checks; increasing CPU is justified only after the load remains CPU-bound per replica.*
 
 1. Confirm the current resource envelope and scale settings.
 
@@ -74,9 +79,15 @@ flowchart TD
         --name "$ACA_ENV_NAME"
     ```
 
-    | Command | Why it is used |
+    | Command or parameter | Purpose |
     |---|---|
-    | `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+    | `az containerapp show` | Fetches CPU and memory reservation plus scale rule thresholds to establish baseline resource constraints before diagnosing saturation. |
+    | `az containerapp env list-usages` | Reports current environment compute and memory consumption to detect whether headroom for new replicas exists. |
+    | `--name` | Targets the app and environment by name to prevent accidentally comparing another app's or environment's configuration. |
+    | `--output` | Formats as `json` so the CPU/memory/scale fields can be parsed programmatically and compared against observed metrics. |
+    | `--query` | Extracts only CPU, memory, and scale fields to reduce parsing and focus on the resources that throttle latency. |
+    | `--resource-group` | Narrows both commands to the exact resource group containing the affected app and environment. |
+    | `--subscription` | Specifies the subscription ID explicitly for `env list-usages` in multi-subscription scenarios. |
 
 2. Check whether CPU usage is saturating while requests continue to rise.
 
@@ -85,12 +96,16 @@ flowchart TD
         --resource "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.App/containerApps/$APP_NAME" \
         --metric UsageNanoCores \
         --aggregation Average \
-        --timespan PT1H
+        --offset PT1H
     ```
 
-    | Command | Why it is used |
+    | Command or parameter | Purpose |
     |---|---|
-    | `az monitor metrics ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
+    | `az monitor metrics list` | Retrieves the time-series of CPU usage to correlate with the latency timeline and determine whether usage stays near the limit during incidents. |
+    | `--aggregation` | Uses `Average` to smooth per-second CPU spikes and identify sustained throttling patterns that compress latency tails. |
+    | `--metric` | Selects `UsageNanoCores` (the only CPU metric directly comparable to `--cpu` allocations) to match configuration limits against observed usage. |
+    | `--resource` | Targets the exact container app by resource ID to prevent querying metrics from a similarly named app in another subscription or resource group. |
+    | `--offset` | Sets a `PT1H` lookback from the current time to capture the recent incident window. |
 
 3. Correlate request pressure, replica count, and throttling symptoms in Log Analytics.
 
@@ -115,12 +130,13 @@ flowchart TD
         --output json
     ```
 
-| Command or Query | Why it is used |
-|---|---|
-| `az containerapp show --query "{resources...,scale...}"` | Confirms the current CPU allocation and scaling configuration. |
-| `az containerapp env list-usages ...` | Checks whether the environment is already near its quota boundary. |
-| `az monitor metrics list --metric UsageNanoCores ...` | Verifies whether the app is CPU-bound rather than merely slow. |
-| KQL against `ContainerAppSystemLogs_CL` | Correlates probe failures and replica events with the CPU saturation window. |
+    | Command or parameter | Purpose |
+    |---|---|
+    | `az containerapp show` | Reads the configured scale rules to confirm thresholds (CPU % or requests/sec) that trigger replica additions. |
+    | `--name` | Targets the app by name to retrieve its specific scale rule configuration rather than a default or another app's rules. |
+    | `--output` | Formats as `json` so threshold values can be extracted and compared against the CPU metric average observed during the latency spike. |
+    | `--query` | Extracts only `scale.rules` to isolate the trigger conditions from the full app definition. |
+    | `--resource-group` | Narrows the query to the exact resource group to prevent cross-group configuration confusion. |
 
 ## Resolution
 
@@ -134,9 +150,13 @@ flowchart TD
         --memory 2.0Gi
     ```
 
-    | Command | Why it is used |
+    | Command or parameter | Purpose |
     |---|---|
-    | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+    | `az containerapp update` | Applies the CPU and memory change across all replicas, moving to the next supported CPU tier to reduce throttling. |
+    | `--cpu` | Sets `1.0` core; choose the minimum CPU tier above your observed usage + 20% headroom to absorb request spikes without saturation. |
+    | `--memory` | Sets `2.0Gi` proportional to the CPU increase (Azure Container Apps enforces specific CPU:memory ratios; 1.0 CPU requires at least 2.0Gi). |
+    | `--name` | Targets the app by name to ensure the CPU increase applies to the correct revision and not a similarly named app. |
+    | `--resource-group` | Restricts the update to the exact resource group. |
 
 2. Reduce HTTP concurrency or lower scale thresholds so new replicas arrive before each replica is overloaded.
 3. Increase `minReplicas` for known burst windows to avoid slow scale-out.

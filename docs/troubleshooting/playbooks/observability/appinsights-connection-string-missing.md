@@ -47,117 +47,142 @@ Use this playbook when traffic reaches the app but expected traces, requests, or
 <!-- diagram-id: appinsights-connection-string-missing-flow -->
 ```mermaid
 flowchart TD
-    A[Notice missing telemetry in Application Insights] --> B[Confirm traffic still reaches the app]
-    B --> C[Inspect environment telemetry configuration]
-    C --> D[Inspect app environment variables and secret references]
-    D --> E[Generate fresh traffic]
-    E --> F[Query requests and traces in the intended Application Insights resource]
-    F --> G{Telemetry appears?}
-    G -->|Yes| H[Classify as propagation or stale-query issue]
-    G -->|No| I[Fix connection string or instrumentation path]
+    accTitle: Diagnose missing Application Insights telemetry
+    accDescr: Determine whether the managed OpenTelemetry destination, application instrumentation, fresh traffic, and selected Application Insights resource are correct before changing configuration.
+
+    START[Expected telemetry is missing] --> DEST{Application Insights<br/>destination configured?}
+    DEST -->|No| CONFIG[Configure the destination<br/>and signal types]
+    DEST -->|Yes| SDK{Application emits the<br/>expected OpenTelemetry signal?}
+    SDK -->|No| INSTRUMENT[Instrument the application<br/>for logs or traces]
+    SDK -->|Yes| TRAFFIC[Generate fresh traffic]
+    CONFIG --> TRAFFIC
+    INSTRUMENT --> TRAFFIC
+    TRAFFIC --> QUERY[Query the intended<br/>Application Insights resource]
+    QUERY --> FOUND{Fresh telemetry appears?}
+    FOUND -->|Yes| DONE[Routing verified]
+    FOUND -->|No| CONNECTION[Verify connection string<br/>and destination selection]
+    CONNECTION --> TRAFFIC
 ```
+
+*Figure: Configuration and instrumentation are separate prerequisites; the managed agent routes only signals the application emits.*
 
 1. Confirm the environment telemetry configuration.
 
-   ```bash
-   az containerapp env telemetry app-insights show \
-       --name "$ACA_ENV_NAME" \
-       --resource-group "$RG" \
-       --output json
-   ```
+    ```bash
+    az containerapp env telemetry app-insights show \
+        --name "$ACA_ENV_NAME" \
+        --resource-group "$RG" \
+        --output json
+    ```
 
-   | Command | Why it is used |
-   |---|---|
-   | `az containerapp env telemetry ...` | Runs the Azure CLI operation required by the documented step. |
+    | Command or parameter | Purpose |
+    |---|---|
+    | `az containerapp env telemetry app-insights show` | Read the environment's telemetry configuration to determine whether Application Insights is connected and which signal types are enabled. |
+    | `--name` | Specify the Container Apps environment name to configure telemetry. |
+    | `--resource-group` | Specify the resource group containing the environment. |
+    | `--output json` | Return structured JSON so the connection string metadata, enabled signal types (traces, logs), and Application Insights resource reference are all visible. |
 
 2. Inspect the container app environment variable definitions and secret references.
 
-   ```bash
-   az containerapp show \
-       --name "$APP_NAME" \
-       --resource-group "$RG" \
-       --query "properties.template.containers[0].env[].{name:name,secretRef:secretRef}" \
-       --output json
-   ```
+    ```bash
+    az containerapp show \
+        --name "$APP_NAME" \
+        --resource-group "$RG" \
+        --query "properties.template.containers[0].env[].{name:name,secretRef:secretRef}" \
+        --output json
+    ```
 
-   | Command | Why it is used |
-   |---|---|
-   | `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+    | Command or parameter | Purpose |
+    |---|---|
+    | `az containerapp show` | Read the container app's configuration to verify it defines the environment variables or secrets that hold the Application Insights connection string or SDK configuration. |
+    | `--name` | Specify the container app by name. |
+    | `--resource-group` | Specify the resource group where the container app is deployed. |
+    | `--query "properties.template.containers[0].env[].{name:name,secretRef:secretRef}"` | Extract only the environment variables and their secret references; if the app's telemetry configuration depends on a secret, verify the reference name matches an existing secret. |
+    | `--output json` | Return JSON for reliable field extraction. |
 
 3. Verify that you are querying the intended Application Insights component.
 
-   ```bash
-   az monitor app-insights component show \
-       --app "$APPINSIGHTS_NAME" \
-       --resource-group "$RG" \
-       --query "{appId:appId,name:name,location:location}" \
-       --output json
-   ```
+    ```bash
+    az monitor app-insights component show \
+        --app "$APPINSIGHTS_NAME" \
+        --resource-group "$RG" \
+        --query "{appId:appId,name:name,location:location}" \
+        --output json
+    ```
 
-   | Command | Why it is used |
-   |---|---|
-   | `az monitor app-insights ...` | Creates or inspects Azure Monitor alerts, diagnostic settings, or metrics. |
+    | Command or parameter | Purpose |
+    |---|---|
+    | `az monitor app-insights component show` | Fetch the Application Insights resource's metadata, including the application ID, name, and region, to confirm you are querying the correct telemetry destination. |
+    | `--app` | Specify the Application Insights resource by name. |
+    | `--resource-group` | Specify the resource group where the Application Insights resource is deployed. |
+    | `--query "{appId:appId,name:name,location:location}"` | Extract the application ID (used in query operations), the friendly name, and the region; confirms you are querying the intended resource. |
+    | `--output json` | Format as JSON so the template structure and secret references are clearly visible. |
 
 4. Generate fresh traffic after configuration changes.
 
-   ```bash
-   curl --silent --show-error "$APP_URL"
-   ```
+    ```bash
+    curl --silent --show-error "$APP_URL"
+    ```
 
 5. Query recent request and trace volume.
 
-   ```kusto
-   requests
-   | where timestamp > ago(30m)
-   | summarize requestCount=count() by cloud_RoleName
-   | order by requestCount desc
-   ```
+    ```kusto
+    requests
+    | where timestamp > ago(30m)
+    | summarize requestCount=count() by cloud_RoleName
+    | order by requestCount desc
+    ```
 
-   ```kusto
-   traces
-   | where timestamp > ago(30m)
-   | summarize traceCount=count() by cloud_RoleName
-   | order by traceCount desc
-   ```
+    ```kusto
+    traces
+    | where timestamp > ago(30m)
+    | summarize traceCount=count() by cloud_RoleName
+    | order by traceCount desc
+    ```
 
 6. If you prefer a CLI verification path, run the Application Insights query directly.
 
-   ```bash
-   az monitor app-insights query \
-       --app "$APPINSIGHTS_NAME" \
-       --resource-group "$RG" \
-       --analytics-query "requests | where timestamp > ago(30m) | summarize count() by cloud_RoleName" \
-       --output table
-   ```
+    ```bash
+    az monitor app-insights query \
+        --app "$APPINSIGHTS_NAME" \
+        --resource-group "$RG" \
+        --analytics-query "requests | where timestamp > ago(30m) | summarize count() by cloud_RoleName" \
+        --output table
+    ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp env telemetry app-insights show --name "$ACA_ENV_NAME" --resource-group "$RG" --output json` | Shows whether the environment has Application Insights telemetry configured at all. |
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].env[].{name:name,secretRef:secretRef}" --output json` | Confirms whether the app references the expected telemetry variable or secret without dumping raw environment variable values. |
-| `az monitor app-insights component show --app "$APPINSIGHTS_NAME" --resource-group "$RG" --query "{appId:appId,name:name,location:location}" --output json` | Confirms that the operator is inspecting the intended Application Insights resource without printing the full connection string. |
-| `curl --silent --show-error "$APP_URL"` | Creates fresh traffic so telemetry queries are based on new evidence rather than stale assumptions. |
-| `az monitor app-insights query --app "$APPINSIGHTS_NAME" --resource-group "$RG" ...` | Tests telemetry presence directly from the CLI and avoids portal scope confusion. |
+    | Command or parameter | Purpose |
+    |---|---|
+    | `az monitor app-insights query` | Run the KQL query via the CLI to eliminate any possibility that the portal is filtering or misrepresenting the results. |
+    | `--app` | Identify the Application Insights component during resolution. |
+    | `--resource-group` | Specify the resource group where the Application Insights telemetry destination is deployed. |
+    | `--analytics-query` | Execute a 30-minute time-scoped query; a non-zero result confirms telemetry is flowing, while zero rows suggests a configuration or instrumentation problem. |
+    | `--output table` | Return results as a human-readable table for quick visual confirmation. |
 
 ## Resolution
 
 1. Configure the correct connection string on the telemetry path you actually use.
 
-   ```bash
-   az containerapp env telemetry app-insights set \
-       --name "$ACA_ENV_NAME" \
-       --resource-group "$RG" \
-       --connection-string "$APPLICATIONINSIGHTS_CONNECTION_STRING" \
-       --enable-open-telemetry-traces true \
-       --enable-open-telemetry-logs true
-   ```
+    ```bash
+    az containerapp env telemetry app-insights set \
+        --name "$ACA_ENV_NAME" \
+        --resource-group "$RG" \
+        --connection-string "$APPLICATIONINSIGHTS_CONNECTION_STRING" \
+        --enable-open-telemetry-traces true \
+        --enable-open-telemetry-logs true
+    ```
+
+    | Command or parameter | Purpose |
+    |---|---|
+    | `az containerapp env telemetry app-insights set` | Configure the environment to collect and forward OpenTelemetry signals to the specified Application Insights resource. |
+    | `--name` | Name the telemetry environment. |
+    | `--resource-group` | Specify the resource group in which both the environment and Application Insights resources are deployed. |
+    | `--connection-string` | Provide the connection string that identifies the Application Insights resource and authenticates telemetry writes; the managed OpenTelemetry agent uses this to route data. |
+    | `--enable-open-telemetry-traces true` | Enable the managed agent's traces pipeline so distributed traces from the app are collected and forwarded. |
+    | `--enable-open-telemetry-logs true` | Enable the managed agent's structured logs pipeline so application logs are collected as telemetry. |
 
 2. If the application uses the Application Insights SDK directly, restore the `APPLICATIONINSIGHTS_CONNECTION_STRING` environment variable or its referenced secret in the app definition.
 3. Generate fresh requests after the change and re-query `requests` and `traces` over the last 15 to 30 minutes.
-4. If telemetry still does not appear, treat the issue as an instrumentation-path problem rather than only a missing connection string problem.
-
-| Command | Why it is used |
-|---|---|
-| `az containerapp env telemetry app-insights set --name "$ACA_ENV_NAME" --resource-group "$RG" --connection-string "$APPLICATIONINSIGHTS_CONNECTION_STRING" --enable-open-telemetry-traces true --enable-open-telemetry-logs true` | Restores environment-level Application Insights telemetry routing for OpenTelemetry-based scenarios. |
+4. If telemetry still does not appear, treat the issue as an instrumentation-path problem rather than only a missing connection string problem. Verify that your application code actually instantiates the Application Insights SDK and that the instrumentation runs before any requests are processed.
 
 ## Prevention
 

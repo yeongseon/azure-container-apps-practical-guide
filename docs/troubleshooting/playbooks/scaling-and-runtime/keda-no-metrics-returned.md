@@ -4,24 +4,24 @@ content_sources:
     - id: troubleshooting-decision-flow
       type: flowchart
       source: self-generated
-      justification: Synthesizes the KEDA/HPA metric collection lifecycle and the conditions under which the Kubernetes Metrics Server returns no data, based on Kubernetes HPA docs and KEDA troubleshooting references.
+      justification: Synthesizes Container Apps scale-rule, replica-health, and Azure Monitor evidence into a diagnostic decision flow.
       based_on:
-        - https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details
-        - https://keda.sh/docs/latest/scalers/memory/
-        - https://signoz.io/guides/kubernetes-hpa-unable-to-get-metrics-for-resource-memory-no-metrics-returned-from-resource-metrics-api/
+        - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+        - https://learn.microsoft.com/en-us/azure/container-apps/metrics
+        - https://learn.microsoft.com/en-us/azure/container-apps/health-probes
 content_validation:
   status: verified
-  last_reviewed: '2026-06-05'
-  reviewer: ai-agent
+  last_reviewed: 2026-11-08
+  reviewer: agent
   core_claims:
-    - claim: KEDA CPU/Memory scalers rely on the Kubernetes Resource Metrics API (metrics-server) to collect per-container utilization data.
-      source: https://keda.sh/docs/latest/scalers/memory/
+    - claim: Azure Container Apps supports CPU and memory scale rules and uses KEDA for event-driven scaling.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
       verified: true
-    - claim: The Kubernetes Metrics Server cannot return data for pods that are not yet in Ready state, causing "no metrics returned" errors in the HPA.
-      source: https://github.com/kubernetes/kubernetes/issues/127169
+    - claim: Azure Container Apps exposes replica count and restart count metrics through Azure Monitor for correlation with scaler errors.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/metrics
       verified: true
-    - claim: The KEDA memory scaler metadata field 'type' was deprecated in v2.7 in favor of trigger-level 'metricType' and removed in v2.18.
-      source: https://github.com/kedacore/keda/discussions/6348
+    - claim: Startup, readiness, and liveness probes provide distinct health signals for Container Apps replicas.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/health-probes
       verified: true
 ---
 # KEDA "No Metrics Returned from Resource Metrics API"
@@ -75,7 +75,9 @@ can only return data for containers that:
 
 1. Are **Running** and **Ready** (passed readiness probe).
 2. Have been running long enough for the kubelet to collect at least one
-   metrics sample (typically ~60 seconds after container start).
+   metrics sample. In the linked Korea Central lab run on 2026-06-05, that
+   initial sample took about 60 seconds; treat this as environment-specific
+   evidence, not a platform-wide timing guarantee.
 
 When either condition is not met, the Metrics API returns an empty
 response, and the HPA controller logs:
@@ -92,27 +94,34 @@ reports `invalid metrics (N invalid out of M)`.
 <!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
 flowchart TD
-    A["System log: 'no metrics returned'"] --> B{Transient or persistent?}
-    B -->|Transient: during deploy/restart| H1["H1: Expected lifecycle gap<br/>No action needed"]
-    B -->|Persistent: >10 min continuous| C{Check container health}
-    C --> D{RestartCount rising?}
-    D -->|Yes| H2["H2: CrashLoopBackOff<br/>Fix application crash"]
-    D -->|No| E{Readiness probe passing?}
-    E -->|No| H3["H3: Probe misconfiguration<br/>Tune startup/readiness probe"]
-    E -->|Yes| F{Multiple scale rules?}
-    F -->|Yes| H4["H4: One scaler blocking others<br/>Check all trigger configs"]
-    F -->|No| H5["H5: Platform issue<br/>Open support case"]
+    accTitle: Correlate a no-metrics scaler error with replica health
+    accDescr: Compare error timing with deployment and restart events, then check replica stability, readiness, and every configured rule before escalating a persistent unexplained condition.
+
+    START[System log reports<br/>no metrics returned] --> WINDOW{Only near deployment,<br/>restart, or scale-out?}
+    WINDOW -->|Yes| OBSERVE[Correlate with replica and<br/>restart metrics over time]
+    WINDOW -->|No| STABLE{Replica process stable?}
+    STABLE -->|No| CRASH[Fix crash or memory pressure]
+    STABLE -->|Yes| READY{Readiness probe succeeds?}
+    READY -->|No| PROBE[Fix endpoint or probe timing]
+    READY -->|Yes| RULES{All configured scale rules<br/>return usable metrics?}
+    RULES -->|No| CONFIG[Correct failing rule metadata,<br/>authentication, or source access]
+    RULES -->|Yes| PERSIST{Error persists while replicas<br/>remain healthy?}
+    PERSIST -->|No| DONE[Record lifecycle correlation]
+    PERSIST -->|Yes| SUPPORT[Collect logs, metrics,<br/>and open a support case]
+    OBSERVE --> PERSIST
 ```
+
+*Figure: A log message alone does not prove a scaler defect; replica health, readiness, and each scale rule provide the evidence needed to classify it.*
 
 ## 2. Common Scenarios
 
 | Scenario | Duration | Impact on scaling | Action required |
 |---|---|---|---|
-| **New revision deployment** | 30-60s per replica | None — transient | No |
-| **Scale-from-zero cold start** | 60-180s | First scaling decision delayed | Set `minReplicas >= 1` if latency-sensitive |
+| **New revision deployment** | 30-60s per replica in the Korea Central lab | None — transient | No |
+| **Scale-from-zero cold start** | 60-180s in the Korea Central lab | First scaling decision delayed | Set `minReplicas >= 1` if latency-sensitive |
 | **Container crash/restart** | Repeats each cycle | Scaling decisions skip affected replica | Fix the crash |
 | **OOMKill** | Brief per kill | Similar to crash | Right-size memory or fix leak |
-| **Platform node maintenance** | 30-120s | Transparent if multiple replicas | No |
+| **Platform node maintenance** | 30-120s in the Korea Central lab | Transparent if multiple replicas | No |
 | **Readiness probe too aggressive** | Persistent if probe keeps failing | Replica stays Not Ready, typically does not report metrics | Tune probe timing |
 
 !!! example "Lab observation"
@@ -149,9 +158,12 @@ az monitor log-analytics query \
   --output table
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az monitor log-analytics query` | Queries ContainerAppSystemLogs_CL for KEDA metric error entries. |
+| `az monitor log-analytics query` | Searches system logs for scaler errors with timestamps, enabling correlation between metric gaps and container lifecycle events (deployment, restart, readiness probe transitions). |
+| `--analytics-query` | Filters to the target app and error patterns (`no metrics returned`, `invalid metrics`, `failed to get`); orders by timestamp (newest first) to identify whether errors cluster during known restarts or persist unexpectedly. |
+| `--workspace` | Targets the Log Analytics workspace using the customer ID (not resource ID), necessary because system logs are written by the managed platform agent. |
+| `--output table` | Human-readable format for terminal inspection of error timestamps and progression. |
 
 ### Restart count correlation
 
@@ -164,9 +176,19 @@ az monitor metrics list \
   --output table
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az monitor metrics list --metric RestartCount` | Checks whether container restarts correlate with metric error timestamps. |
+| `az containerapp show` | Retrieves the resource ID of the target app, required as input to `az monitor metrics list`. |
+| `az monitor metrics list` | Enumerates restart count metrics over a time window, showing whether restarts align with the timestamps of `no metrics returned` log entries. |
+| `--name` | Selects `<app-name>` for the resource-ID lookup performed by `az containerapp show`. |
+| `--resource-group` | Locates `<app-name>` within `<rg>` before its ID is passed to the metrics query. |
+| `--query` | Extracts the app's `id` property for assignment to `APP_ID`. |
+| `--output` | Emits the app ID as unquoted TSV for `APP_ID`, then renders restart-count metric points as a readable table. |
+| `--resource` | Sends `az monitor metrics list` to the Container App identified by `$APP_ID`. |
+| `--metric` | Requests `RestartCount`, the series used to correlate restarts with scaler-error timestamps. |
+| `--aggregation` | Totals restart events inside each metric bucket rather than averaging their count. |
+| `--interval` | Divides the restart series into `PT5M` buckets for comparison with the system-log timeline. |
+| `--offset` | Restricts the metric evidence to the preceding `PT1H`, covering the recent failure window. |
 
 If restart timestamps align with "no metrics" log timestamps, the cause
 is container lifecycle, likely not a scaler defect.
@@ -179,9 +201,14 @@ az containerapp logs show \
   --type console --follow false --tail 30
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp logs show --type console` | Retrieves application stdout/stderr to identify crash causes. |
+| `az containerapp logs show` | Retrieves recent application stdout and stderr; stack traces, exit codes, or out-of-memory messages explain why the metrics API had no data (container was not running or was crashing). |
+| `--type` | Selects `console` output so stack traces and process exits come from application stdout and stderr. |
+| `--follow` | Uses `false` to return the current crash evidence instead of holding an interactive stream open. |
+| `--tail` | Limits this check to the latest `30` console lines where the terminating error is most likely visible. |
+| `--name` | Targets the app by name. |
+| `--resource-group` | Restricts to the resource group. |
 
 Look for stack traces, `exit(1)`, or OOMKilled messages.
 
@@ -232,6 +259,10 @@ platform versions.
 - Platform: [CPU and Memory Scaler](../../../platform/scaling/cpu-memory-scaler.md)
 
 ## Sources
+
+- [Scaling in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
+- [Metrics in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/metrics)
+- [Health probes in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
 
 - [Set scaling rules - Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
 - [KEDA memory scaler](https://keda.sh/docs/latest/scalers/memory/)

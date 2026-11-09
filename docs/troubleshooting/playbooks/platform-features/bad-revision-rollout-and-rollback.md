@@ -39,13 +39,21 @@ Revision health, replica readiness, and business correctness are not the same th
 <!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
 flowchart TD
-    A[Post-rollout errors detected] --> B{Errors isolated to new revision?}
-    B -->|Yes| C[Shift traffic to last known good revision]
-    B -->|No| D[Investigate shared dependency or platform issue]
-    C --> E{Service recovered after rollback?}
-    E -->|Yes| F[Freeze rollout and perform diff analysis]
-    E -->|No| G[Escalate to network/identity/runtime playbooks]
+    accTitle: Decide whether to roll back a bad revision
+    accDescr: Correlate errors with revision traffic, move traffic to the last known good revision when isolated, and use recovery after rollback to test the revision-specific hypothesis.
+
+    START[Errors rise after rollout] --> CORRELATE{Errors isolated to<br/>the new revision?}
+    CORRELATE -->|No| SHARED[Investigate shared dependency,<br/>network, identity, or platform]
+    CORRELATE -->|Yes| ROLLBACK[Move traffic to the<br/>last known good revision]
+    ROLLBACK --> RECOVER{Service recovers?}
+    RECOVER -->|Yes| FREEZE[Freeze rollout and compare<br/>image and revision configuration]
+    RECOVER -->|No| BROADER[Restore intended traffic state<br/>and investigate shared causes]
+    FREEZE --> FIX[Create a corrected immutable revision<br/>and canary it]
+    SHARED --> EVIDENCE[Collect revision-scoped<br/>and shared-dependency evidence]
+    BROADER --> EVIDENCE
 ```
+
+*Figure: Recovery after moving traffic is falsification evidence for a revision-specific regression; lack of recovery redirects the investigation to shared causes.*
 
 ## 2. Common Misreadings
 
@@ -84,10 +92,14 @@ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query 
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.traffic" --output json
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "[].{name:name,active:properties.active,traffic:properties.trafficWeight,health:properties.healthState}" --output table` | Lists revisions and filters them to the health, traffic, or timing fields needed for this hypothesis, so you can see whether rollout state matches the failure pattern. |
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.traffic" --output json` | Reads the Container App resource and extracts the effective ingress configuration in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp revision list` | List all revisions to identify which ones are receiving traffic and their health state |
+| `az containerapp show` | Retrieve the live traffic split configuration to confirm which revision received the recent shift |
+| `--name` | Scope queries to the specific app where errors spiked after rollout |
+| `--output` | Format results as table (quick visual scan) or JSON (detailed diff between old and new config) |
+| `--query` | Extract only revision names, active status, traffic weight, and health to focus on rollout-relevant fields |
+| `--resource-group` | Limit queries to the resource group containing the affected app |
 
 ## 5. Evidence to Collect
 
@@ -140,9 +152,16 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+| `az containerapp revision list` | List revisions to identify which one received traffic at the moment errors started |
+| `az containerapp show` | Confirm the exact traffic weight split and capture the state before rolling back |
+| `az containerapp logs show` | Retrieve console logs from both the new and stable revisions to compare startup and runtime behavior |
+| `--name` | Query only the affected app to avoid confusion with similarly named apps in the same resource group |
+| `--output` | Use table format for quick visual comparison or JSON format for programmatic diff |
+| `--query` | Extract revision name, active flag, traffic weight, and health state to spot the newly deployed revision |
+| `--resource-group` | Restrict all queries to the resource group where the app is deployed |
+| `--type` | Request console logs to capture workload-level errors that platform-level health checks may miss |
 
 ```kusto
 let AppName = "ca-myapp";
@@ -176,14 +195,14 @@ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists revisions, so you can see whether rollout state matches the failure pattern. |
-| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console` | Pulls application stdout/stderr from the running container so you can correlate platform symptoms with app-level exceptions or request handling. |
-
-| Command | Why it is used |
-|---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+| `az containerapp revision list` | List revisions to compare their configuration digests and identify which revision entered scope |
+| `az containerapp logs show` | Capture console output from the new revision to detect auth errors, missing-secret messages, or downstream connection failures |
+| `--name` | Query the specific app to isolate revision-scoped configuration drift from environment-wide changes |
+| `--output` | Use table format to get a quick list of revisions and their config checksums |
+| `--resource-group` | Restrict query to the resource group to avoid false positives from same-named apps elsewhere |
+| `--type` | Request console logs to see failed dependency initialization and auth failures at startup |
 
 **Disproof logic:** If the stable revision also fails under the same dependency path, focus on shared infrastructure or dependency health instead of revision-specific drift.
 
@@ -209,11 +228,16 @@ az containerapp ingress traffic set --name "$APP_NAME" --resource-group "$RG" --
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.traffic" --output json` | Reads the current traffic distribution so you can verify whether the incident is isolated to a partial canary split. |
-| `az containerapp ingress traffic set --name "$APP_NAME" --resource-group "$RG" --revision-weight "<stable-revision>=100"` | Rolls all live traffic back to the stable revision, which is the fastest way to test whether the new revision is actually the source of the outage. |
-| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists revision health after the rollback so you can confirm the stable revision remains healthy while the canary is removed from service. |
+| `az containerapp show` | Read the current traffic split to confirm canary percentage and identify the stable revision baseline |
+| `az containerapp ingress traffic set` | Move 100% traffic to the stable revision to perform the rollback and falsify whether errors subside |
+| `az containerapp revision list` | Confirm rollback succeeded and the new revision no longer receives traffic |
+| `--name` | Target the specific app to roll back only its traffic, not environment-wide changes |
+| `--output` | Use JSON for show commands to script programmatic traffic rebalancing |
+| `--query` | Extract only the ingress.traffic field to focus on the split percentage and revision names |
+| `--resource-group` | Restrict to the resource group containing the affected app |
+| `--revision-weight` | Set the rollback target (e.g., "ca-myapp--0000001=100") to move all traffic atomically to the stable revision |
 
 **Disproof logic:** If controlled rollback does not improve service or if failures are not isolated to canary traffic, canary analysis gaps are secondary, not primary.
 

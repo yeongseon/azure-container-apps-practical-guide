@@ -36,17 +36,23 @@ Resource pressure manifests differently depending on the bottleneck (memory vs C
 
 <!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
-graph TD
-    A[Symptom: Frequent restarts] --> B{OOMKilled signal in logs?}
-    B -->|Yes| H1[H1: Memory limit exceeded]
-    B -->|No| C{Exit code 137?}
-    C -->|Yes| H1
-    C -->|No| D{Probe failures during startup?}
-    D -->|Yes| H2[H2: CPU throttling delays startup]
-    D -->|No| E{Crash after serving traffic?}
-    E -->|Yes| H3[H3: Memory leak or burst allocation]
-    E -->|No| H4[H4: Application startup crash]
+flowchart TD
+    accTitle: Classify repeated container restarts
+    accDescr: Use system and console evidence to distinguish memory-limit termination, probe-driven restart, and application-process exit before changing resources or probes.
+
+    START[Replica restarts repeatedly] --> OOM{System evidence shows<br/>memory-limit termination?}
+    OOM -->|Yes| MEMORY[Compare working set with<br/>configured memory]
+    OOM -->|No| PROBE{Liveness or startup<br/>probe is failing?}
+    PROBE -->|Yes| HEALTH[Check endpoint behavior,<br/>timing, and CPU pressure]
+    PROBE -->|No| EXIT{Application process<br/>exits with an error?}
+    EXIT -->|Yes| APP[Fix command, configuration,<br/>or application exception]
+    EXIT -->|No| EVIDENCE[Collect replica events<br/>and console logs]
+    MEMORY --> GROWTH{Memory rises toward limit<br/>before each restart?}
+    GROWTH -->|Yes| LEAK[Profile leak, burst,<br/>or unbounded buffering]
+    GROWTH -->|No| SPIKE[Investigate short spikes<br/>and other termination causes]
 ```
+
+*Figure: An `OOMKilled` signal supports memory pressure, while probe failure and process exit lead to different corrective paths.*
 
 ## 2. Common Misreadings
 
@@ -102,11 +108,14 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
 az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].resources" --output json` | Reads the Container App resource and extracts the per-container CPU and memory allocation in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].probes" --output json` | Reads the Container App resource and extracts the configured probe definitions in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
-| `az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists live replicas so you can confirm how many instances exist and whether the platform is creating, restarting, or recycling them. |
+| `az containerapp show` | Retrieves CPU and memory allocation limits to compare against the crash pattern (e.g., OOM suggests too-low memory; startup timeout suggests too-low CPU). |
+| `az containerapp replica list` | Lists current and past replicas with restart counts and termination reasons to identify whether crashes are increasing or stabilizing. |
+| `--name` | Targets the app by name to retrieve its resource configuration and replica state, not another app's. |
+| `--output` | Formats `show` output as `json` (parseable) and `replica list` as `table` (human-readable restart counts). |
+| `--query` | Extracts `containers[0].resources` and `containers[0].probes` from the full app definition to focus on CPU, memory, and probe timeout settings. |
+| `--resource-group` | Narrows to the exact resource group containing the affected app and its replicas. |
 
 ## 5. Evidence to Collect
 
@@ -167,9 +176,16 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
   --memory "1.0Gi" --cpu "0.5"
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the current memory allocation to compare against the working-set peak observed in metrics before crashes. |
+| `az containerapp update` | Applies the new memory and CPU limits to all replicas, allowing the container to hold more in-memory data without hitting the OOM boundary. |
+| `--cpu` | Sets `0.5` cores; memory increases often require a corresponding CPU increase to maintain the Container Apps CPU:memory ratio. |
+| `--memory` | Sets `1.0Gi`; choose the minimum memory tier above the observed peak working set + 20% headroom to absorb traffic spikes. |
+| `--name` | Targets the app by name to ensure the memory increase applies to the correct revision. |
+| `--output` | Formats `show` as `tsv` (tab-separated, easy to grep) to extract the numeric memory value for comparison. |
+| `--query` | Extracts only the memory field to reduce output noise and isolate the limit for comparison. |
+| `--resource-group` | Keeps the memory-limit check within the resource group hosting the affected app. |
 
 ### H2: CPU throttling delays startup
 
@@ -198,9 +214,13 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
   --query "properties.template.containers[0].resources.cpu" --output tsv
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads probe `initialDelaySeconds` and CPU allocation to determine whether the startup timeout is too short for the current CPU budget. |
+| `--name` | Points the resource read at the app whose memory limit is under test. |
+| `--output` | Formats as `json` for probes (complex structure) and `tsv` for CPU (single value). |
+| `--query` | Extracts `probes` and `resources.cpu` to isolate startup timing and CPU constraints. |
+| `--resource-group` | Scopes probe and CPU evidence to the deployment under investigation. |
 
 ```kusto
 // Find probe failures
@@ -247,13 +267,13 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
   --output table
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].env[?contains(name, 'MEMORY') || contains(name, 'HEAP')]" --output table` | Reads the Container App resource and extracts the container environment-variable mapping, which is the specific surface this troubleshooting step needs to confirm. |
-
-| Command | Why it is used |
-|---|---|
-| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads environment variables that control memory behavior (heap size, buffer limits, GC tuning) to identify if an app-level setting contributes to the leak. |
+| `--name` | Selects the workload whose probe and CPU settings explain slow startup. |
+| `--output` | Formats as `table` (readable environment variable names and values). |
+| `--query` | Filters for MEMORY and HEAP variables only, reducing output to the diagnostically relevant settings. |
+| `--resource-group` | Reads memory-related environment variables from the app in its owning resource group. |
 
 ### H4: Application startup crash
 
@@ -277,9 +297,13 @@ az containerapp logs show --name "$APP_NAME" --resource-group "$RG" \
   --type console --tail 200
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console --tail 200` | Pulls recent application stdout/stderr so you can see whether the crash is an immediate startup exception rather than an OOM or runtime resource-pressure symptom. |
+| `az containerapp logs show` | Streams application console output to display the exception, missing config error, or bind failure that causes the process to exit. |
+| `--name` | Chooses the crashing app for console-log collection. |
+| `--resource-group` | Collects console output from the resource group containing the crashing revision. |
+| `--tail` | Shows the last 200 lines of console output, capturing the error stack trace at container startup. |
+| `--type` | Requests `console` logs (application stdout/stderr), not system logs. |
 
 ```kusto
 // Find startup errors
@@ -306,44 +330,57 @@ ContainerAppConsoleLogs_CL
 ## 8. Immediate Mitigations
 
 1. **If OOM:** Increase memory limit
-   ```bash
-   az containerapp update --name "$APP_NAME" --resource-group "$RG" \
-     --memory "2.0Gi" --cpu "1.0"
-   ```
+    ```bash
+    az containerapp update --name "$APP_NAME" --resource-group "$RG" \
+      --memory "2.0Gi" --cpu "1.0"
+    ```
 
-   | Command | Why it is used |
-   |---|---|
-   | `az containerapp update --name ...` | Updates the existing Container App configuration without recreating the app. |
+    | Command or parameter | Purpose |
+    |---|---|
+    | `az containerapp update` | Applies the higher memory and CPU limits to all running and future replicas, preventing OOM termination on the next cycle. |
+    | `--cpu` | Sets `1.0` core to maintain a valid CPU:memory ratio for the memory increase. |
+    | `--memory` | Sets `2.0Gi`; this should exceed your observed peak working set by at least 20% to absorb sudden allocations. |
+    | `--name` | Identifies the app receiving the temporary memory mitigation. |
+    | `--resource-group` | Applies the memory change only within the affected deployment group. |
 
 2. **If probe timeout:** Relax probe settings
-   ```bash
-   az containerapp update --name "$APP_NAME" --resource-group "$RG" \
-     --yaml probe-config.yaml  # With increased initialDelaySeconds
-   ```
+    ```bash
+    az containerapp update --name "$APP_NAME" --resource-group "$RG" \
+      --yaml probe-config.yaml  # With increased initialDelaySeconds
+    ```
 
-   | Command | Why it is used |
-   |---|---|
-   | `az containerapp update --name ...` | Updates the existing Container App configuration without recreating the app. |
+    | Command or parameter | Purpose |
+    |---|---|
+    | `az containerapp update` | Applies the updated probe configuration with a longer startup window. |
+    | `--name` | Names the app whose CPU allocation is being raised. |
+    | `--resource-group` | Applies the CPU adjustment to the group that contains the throttled app. |
+    | `--yaml` | Specifies `probe-config.yaml` containing the adjusted `initialDelaySeconds` (e.g., 60 instead of 30) to allow CPU-throttled startup to complete before the first probe fires. |
 
 3. **If startup crash:** Roll back to known good revision
-   ```bash
-   az containerapp ingress traffic set --name "$APP_NAME" --resource-group "$RG" \
-     --revision-weight "<previous-revision>=100"
-   ```
+    ```bash
+    az containerapp ingress traffic set --name "$APP_NAME" --resource-group "$RG" \
+      --revision-weight "<previous-revision>=100"
+    ```
 
-   | Command | Why it is used |
-   |---|---|
-   | `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+    | Command or parameter | Purpose |
+    |---|---|
+    | `az containerapp ingress traffic set` | Redirects all traffic to the stable revision, restoring service while the crashing revision is investigated. |
+    | `--name` | Selects the workload that receives the probe adjustment. |
+    | `--resource-group` | Updates probes on the app deployment in this resource group. |
+    | `--revision-weight` | Directs 100% of traffic to `<previous-revision>` (the stable version before the crash regression). |
 
 4. **If memory leak:** Restart replicas while investigating
-   ```bash
-   az containerapp revision restart --name "$APP_NAME" --resource-group "$RG" \
-     --revision "<current-revision>"
-   ```
+    ```bash
+    az containerapp revision restart --name "$APP_NAME" --resource-group "$RG" \
+      --revision "<current-revision>"
+    ```
 
-   | Command | Why it is used |
-   |---|---|
-   | `az containerapp revision restart ...` | Restarts the selected revision when validating runtime recovery. |
+    | Command or parameter | Purpose |
+    |---|---|
+    | `az containerapp revision restart` | Terminates and respawns the current revision, which clears leaked memory in the process address space (short-term mitigation only; root cause still needs fixing). |
+    | `--name` | Points the minimum-replica change at the pressure-affected app. |
+    | `--resource-group` | Changes minimum replicas only for the workload in this resource group. |
+    | `--revision` | Names the current crashing revision to restart only that revision, not the entire app. |
 
 ## 9. Prevention
 

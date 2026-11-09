@@ -48,21 +48,26 @@ Use this playbook when no `ContainerAppConsoleLogs_CL` or `ContainerAppSystemLog
 <!-- diagram-id: diagnostic-settings-missing-flow -->
 ```mermaid
 flowchart TD
-    A[Notice empty Log Analytics tables for the environment] --> B[Read environment appLogsConfiguration]
-    B --> C{destination value?}
-    C -->|null| D[Primary scenario: env was provisioned without log routing]
-    C -->|log-analytics| E[Different cause - check workspace IDs and ingestion lag]
-    C -->|azure-monitor| F[Variant scenario: check Microsoft.Insights/diagnosticSettings on env resource]
-    C -->|other| G[Use the playbook for that destination]
-    D --> H[Apply env-level fix: az containerapp env update --logs-destination log-analytics ...]
-    F --> I[Apply diagnostic-setting fix: az monitor diagnostic-settings create --resource ENV_RESOURCE_ID ...]
-    H --> J[Force new revision to emit fresh RevisionReady event]
-    I --> J
-    J --> K[Wait 5 minutes for log ingestion]
-    K --> L{Rows present in Log Analytics?}
-    L -->|Yes| M[Routing is restored]
-    L -->|No| N[Escalate - check workspace customerId mismatch or platform issue]
+    accTitle: Restore Container Apps log routing
+    accDescr: Branch on the environment logs destination, configure direct Log Analytics or Azure Monitor diagnostic settings as required, emit a fresh signal, and verify ingestion.
+
+    START[Log rows are missing] --> READ[Read environment<br/>appLogsConfiguration]
+    READ --> DEST{Logs destination?}
+    DEST -->|None| DIRECT[Configure Log Analytics<br/>destination and workspace]
+    DEST -->|Log Analytics| WORKSPACE[Verify workspace identity<br/>and allow ingestion delay]
+    DEST -->|Azure Monitor| SETTINGS{Diagnostic setting<br/>routes environment logs?}
+    SETTINGS -->|No| CREATE[Create environment-level<br/>diagnostic setting]
+    SETTINGS -->|Yes| WORKSPACE
+    DEST -->|Another destination| EXPECTATION[Align query expectation<br/>with configured destination]
+    DIRECT --> SIGNAL[Emit a fresh console<br/>or system signal]
+    CREATE --> SIGNAL
+    WORKSPACE --> SIGNAL
+    SIGNAL --> ROWS{Rows arrive in the<br/>matching table schema?}
+    ROWS -->|Yes| DONE[Routing verified]
+    ROWS -->|No| ESCALATE[Recheck workspace, categories,<br/>schema, and ingestion health]
 ```
+
+*Figure: Direct Log Analytics routing and Azure Monitor diagnostic settings are distinct configuration paths; both require a fresh post-change signal for verification.*
 
 1. Read the environment's `appLogsConfiguration` — this is the single most important check.
 
@@ -75,9 +80,14 @@ flowchart TD
         --output json
     ```
 
-    | Command | Why it is used |
+    | Command or parameter | Purpose |
     |---|---|
-    | `az containerapp env show --query "properties.appLogsConfiguration" --output json` | Returns the full log destination configuration in one call. The shape of the response tells you which branch of the playbook to follow: `{"destination": null, ...}` is the primary scenario; `{"destination": "azure-monitor", ...}` is the variant scenario; `{"destination": "log-analytics", "logAnalyticsConfiguration": {"customerId": "..."}}` means the destination is configured and the silence is caused by something else (workspace IDs, ingestion lag, or a per-app issue). |
+    | `az containerapp env show` | Read the live `appLogsConfiguration` property to identify whether the environment is currently routing logs. |
+    | `--subscription` | Specify the subscription containing the Container Apps environment (required for Azure CLI cross-subscription operations). |
+    | `--resource-group` | Reference the resource group in which the environment resource was created. |
+    | `--name` | Identify the specific Container Apps environment by its name. |
+    | `--query` | Filter the output to show only `properties.appLogsConfiguration`, the node that controls where logs are routed. |
+    | `--output json` | Return structured JSON so the full destination configuration (including workspace identity) is readable. |
 
 2. If `destination` is `null`, you are in the primary scenario. Capture the workspace resource ID and customer ID you will need for the fix.
 
@@ -90,9 +100,14 @@ flowchart TD
         --output json
     ```
 
-    | Command | Why it is used |
+    | Command or parameter | Purpose |
     |---|---|
-    | `az monitor log-analytics workspace show --query "{id:id, customerId:customerId}" --output json` | Returns both the ARM resource ID (used by `az monitor diagnostic-settings` for the variant scenario) and the workspace customer ID (used by `az containerapp env update --logs-workspace-id` for the primary scenario). |
+    | `az monitor log-analytics workspace show` | Fetch the workspace resource to obtain both the customer ID and ARM resource ID required for the fix. |
+    | `--subscription` | Specify the subscription in which the Log Analytics workspace is deployed. |
+    | `--resource-group` | Reference the resource group containing the Log Analytics workspace. |
+    | `--workspace-name` | Name the specific Log Analytics workspace to query. |
+    | `--query` | Project both `id` (for diagnostic settings) and `customerId` (for log analytics configuration), each serving different purposes downstream. |
+    | `--output json` | Format as JSON for reliable key-value extraction in downstream steps. |
 
 3. If `destination` is `azure-monitor`, you are in the variant scenario. List diagnostic settings on the environment resource.
 
@@ -108,10 +123,16 @@ flowchart TD
         --output json
     ```
 
-    | Command | Why it is used |
+    | Command or parameter | Purpose |
     |---|---|
-    | `az containerapp env show --query "id" --output tsv` | Returns the ARM resource ID of the managed environment so it can be passed to `az monitor diagnostic-settings`. |
-    | `az monitor diagnostic-settings list --resource "$ENV_RESOURCE_ID" --output json` | Lists every diagnostic setting attached to the environment resource. An empty array confirms the variant scenario: the destination is `azure-monitor` but no downstream routing exists. |
+    | `az containerapp env show` | Retrieve the environment's ARM resource ID. |
+    | `--subscription` | Select the subscription that owns the environment whose diagnostic settings are being inspected. |
+    | `--resource-group` | Locate the resource group containing the Container Apps environment. |
+    | `--name` | Identify the environment whose ARM resource ID is assigned to `ENV_RESOURCE_ID`. |
+    | `--query` | Project the environment `id` required as the diagnostic-settings resource target. |
+    | `--output` | Emit unquoted TSV for `ENV_RESOURCE_ID`, then render the diagnostic-settings list as JSON. |
+    | `az monitor diagnostic-settings list` | List any `Microsoft.Insights/diagnosticSettings` resources already attached to the environment that route to Log Analytics. |
+    | `--resource` | Point to the environment resource by its full ARM ID. |
 
 4. Confirm the silence is workspace-wide by running the canonical KQL on both tables.
 
@@ -164,11 +185,22 @@ flowchart TD
     unset WORKSPACE_SHARED_KEY
     ```
 
-    | Command | Why it is used |
+    | Command or parameter | Purpose |
     |---|---|
-    | `az monitor log-analytics workspace show --query "customerId" --output tsv` | Returns the workspace customer ID (a GUID), which is the value `az containerapp env update --logs-workspace-id` expects. This is NOT the workspace ARM resource ID. |
-    | `az monitor log-analytics workspace get-shared-keys --query "primarySharedKey" --output tsv` | Returns the workspace shared key. This is a secret — read it into a shell variable at command-time and `unset` it immediately after `az containerapp env update`. Never commit it to evidence files or paste it into chat. |
-    | `az containerapp env update --logs-destination log-analytics --logs-workspace-id <customerId> --logs-workspace-key <sharedKey>` | Sets the environment-level `appLogsConfiguration` to `{"destination": "log-analytics", "logAnalyticsConfiguration": {"customerId": "..."}}` on the live resource. This is the fix that restores ingestion for every app in the environment. |
+    | `az monitor log-analytics workspace show` | Obtain the workspace's `customerId`, the unique identifier that the environment uses to authenticate log writes to Log Analytics. |
+    | `--subscription` | Select the subscription containing the workspace and environment used for the routing repair. |
+    | `--resource-group` | Locate the resource group that contains the Log Analytics workspace and Container Apps environment. |
+    | `--workspace-name` | Identify the workspace whose customer ID and shared key are needed for direct ingestion. |
+    | `--query` | Extract `customerId` for the workspace identifier and `primarySharedKey` for authentication. |
+    | `--output` | Return each workspace value as unquoted TSV for safe shell assignment. |
+    | `az monitor log-analytics workspace get-shared-keys` | Fetch the workspace's authentication key; this is a sensitive credential required at environment-update time. |
+    | `az containerapp env update` | Commit the corrected log routing configuration to the live environment resource. |
+    | `--name` | Target the Container Apps environment whose direct Log Analytics routing is being restored. |
+    | `--logs-destination log-analytics` | Set the destination to direct Log Analytics routing (not via Azure Monitor diagnostic settings). |
+    | `--logs-workspace-id` | Supply the workspace customer ID so the environment sends logs to the correct Log Analytics workspace. |
+    | `--logs-workspace-key` | Supply the workspace shared key; this credential authenticates the environment's log writes and is unset immediately after the update. |
+
+    After the update, `unset WORKSPACE_SHARED_KEY` removes the temporary credential from the shell environment to reduce accidental exposure.
 
 2. Force a new revision so the platform emits a fresh `RevisionReady` event after the destination was set.
 
@@ -181,11 +213,17 @@ flowchart TD
         --set-env-vars "FIXAPPLIED=$NONCE"
     ```
 
-    | Command | Why it is used |
+    | Command or parameter | Purpose |
     |---|---|
-    | `az containerapp update --set-env-vars FIXAPPLIED=<nonce>` | Adds (or updates) an environment variable on the Container App. Any env var change invalidates the previous revision template hash and creates a new revision under `activeRevisionsMode: Single`. This is the cheapest way to guarantee the platform emits a fresh `RevisionReady` event into `ContainerAppSystemLogs_CL` AFTER the environment was updated, so you have an unambiguous post-fix signal to query. |
+    | `az containerapp update` | Trigger a new revision by modifying the container app template; the platform will emit a fresh `RevisionReady` event after the destination is set. |
+    | `--subscription` | Select the subscription containing the app used to emit the post-fix signal. |
+    | `--resource-group` | Locate the resource group containing the app whose template is changed. |
+    | `--name` | Target the container app that must create a fresh revision event. |
+    | `--set-env-vars "FIXAPPLIED=$NONCE"` | Inject a variable that will force the platform to create a new revision; the specific value and variable name do not matter, only that the template has changed. |
 
-3. Wait 5 minutes for ingestion, then re-run the KQL from step 4 of Diagnosis. Both `ContainerAppConsoleLogs_CL` and `ContainerAppSystemLogs_CL` should now return rows. A row count of `0` on either table after the wait window means escalate: re-check the workspace customer ID, re-check that the new revision actually entered the `Running` state, and confirm the workspace is in the same tenant as the environment.
+    The `NONCE` assignment creates a unique UTC timestamp so the environment-variable value changes on every retry.
+
+3. Use 5 minutes as the first retry interval, then re-run the KQL from step 4 of Diagnosis. New records can take several minutes to become queryable, so an empty result at that retry is not a deadline or proof of failure. Continue by re-checking the workspace customer ID, confirming that the new revision entered the `Running` state, and verifying that the workspace is in the same tenant as the environment before escalating persistent silence.
 
 4. Update the IaC that originally provisioned this environment (Bicep / ARM / Terraform) to include `appLogsConfiguration`. If you skip this step, the next `az deployment group create` will revert the live fix back to `destination: null`.
 
@@ -201,17 +239,25 @@ If the environment is configured for `azure-monitor` routing, the environment it
         --name "aca-observability" \
         --resource "$ENV_RESOURCE_ID" \
         --workspace "$WORKSPACE_RESOURCE_ID" \
-        --logs '[{"category":"ContainerAppConsoleLogs","enabled":true},{"category":"ContainerAppSystemLogs","enabled":true}]' \
+        --export-to-resource-specific true \
+        --logs '[{"categoryGroup":"allLogs","enabled":true}]' \
         --metrics '[{"category":"AllMetrics","enabled":true}]'
     ```
 
-    | Command | Why it is used |
+    | Command or parameter | Purpose |
     |---|---|
-    | `az monitor diagnostic-settings create --name "aca-observability" --resource "$ENV_RESOURCE_ID" --workspace "$WORKSPACE_RESOURCE_ID" --logs ... --metrics ...` | Creates the diagnostic setting on the environment ARM resource that forwards `ContainerAppConsoleLogs`, `ContainerAppSystemLogs`, and metrics from Azure Monitor to the target Log Analytics workspace. `--workspace` expects the full ARM resource ID of the workspace, not the customer ID. |
+    | `az monitor diagnostic-settings create` | Establish the bridge between the environment's Azure Monitor stream and the Log Analytics workspace. |
+    | `--subscription` | Select the subscription in which the environment diagnostic setting is created. |
+    | `--name "aca-observability"` | Assign a human-readable name to this diagnostic setting for identification in future audits. |
+    | `--resource` | Reference the environment as the source of diagnostics to be routed. |
+    | `--workspace` | Reference the Log Analytics workspace that will receive the environment's logs and metrics. |
+    | `--export-to-resource-specific true` | Store logs in the resource-specific `ContainerAppConsoleLogs` and `ContainerAppSystemLogs` tables queried below instead of the default `AzureDiagnostics` table. |
+    | `--logs '[{"categoryGroup":"allLogs","enabled":true}]'` | Enable all log categories (console, system, and platform logs). |
+    | `--metrics '[{"category":"AllMetrics","enabled":true}]'` | Enable all metrics so resource utilization is also visible. |
 
 2. Generate a fresh request or revision event so a new signal is produced AFTER the diagnostic setting was created. Use the same `FIXAPPLIED=<nonce>` env-var update pattern as the primary scenario.
 
-3. Wait 5 minutes for ingestion, then re-run the KQL. Rows should now arrive.
+3. Use 5 minutes as an initial retry interval, then query the native `ContainerAppConsoleLogs` and `ContainerAppSystemLogs` tables produced by a resource-specific diagnostic setting. Because Azure Monitor documents a delay of several minutes, keep correlating fresh post-change signals with the configured workspace and categories rather than treating one empty retry as proof of failure.
 
 ## Prevention
 
@@ -234,7 +280,7 @@ If the environment is configured for `azure-monitor` routing, the environment it
     ```
 
 - After every new environment creation, run `az containerapp env show --query "properties.appLogsConfiguration"` as a smoke test. The expected response is `{"destination": "log-analytics", ...}` or `{"destination": "azure-monitor", ...}` — never `{"destination": null}`.
-- After every new environment creation, run the canonical KQL on both `*_CL` tables within 5-10 minutes of first traffic. If either table returns `Failed to resolve table`, the environment was provisioned without a log destination.
+- After every new environment creation, emit a known signal and retry the schema-appropriate KQL after several minutes: use `*_CL` tables for direct Log Analytics routing and native tables for Azure Monitor diagnostic settings configured in resource-specific mode. A missing table on one retry is evidence to inspect destination and schema configuration, not by itself proof that the environment lacks a log destination.
 - Keep the workspace customer ID and the workspace ARM resource ID in deployment outputs so post-deployment validation is a one-liner.
 - Document at the team level that the environment log destination must be configured correctly before environment-wide console and system log ingestion can work.
 

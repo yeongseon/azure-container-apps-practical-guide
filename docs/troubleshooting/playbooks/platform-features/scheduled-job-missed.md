@@ -36,17 +36,26 @@ Use this playbook when a scheduled Container Apps job does not run at the expect
 <!-- diagram-id: scheduled-job-missed-flow -->
 ```mermaid
 flowchart TD
-    A[Expected execution does not happen] --> B[Review job trigger type]
-    B --> C{Trigger type is Schedule}
-    C -->|No| D[Wrong workload type selected]
-    C -->|Yes| E[Inspect cron expression]
-    E --> F{Five-field UTC cron is valid}
-    F -->|No| G[Fix invalid schedule]
-    F -->|Yes| H[Check execution history]
-    H --> I{Manual start works}
-    I -->|No| J[Investigate image, identity, or runtime failure]
-    I -->|Yes| K[Correct UTC expectation or schedule window]
+    accTitle: Diagnose a missed scheduled job execution
+    accDescr: Verify the Schedule trigger and five-field UTC cron, separate an absent execution from an immediately failed one, and use a manual start to test the job template independently.
+
+    START[Expected execution is absent] --> TYPE{Trigger type is Schedule?}
+    TYPE -->|No| TRIGGER[Correct the job trigger type]
+    TYPE -->|Yes| CRON{Five-field UTC cron valid<br/>for the expected window?}
+    CRON -->|No| SCHEDULE[Correct cron expression<br/>or UTC expectation]
+    CRON -->|Yes| HISTORY{Execution exists in history?}
+    HISTORY -->|Yes| FAILED[Diagnose execution failure<br/>instead of schedule]
+    HISTORY -->|No| MANUAL[Start a manual execution]
+    MANUAL --> WORKS{Manual execution succeeds?}
+    WORKS -->|No| RUNTIME[Fix image, command, secret,<br/>identity, or dependency]
+    WORKS -->|Yes| WINDOW[Recheck applied schedule<br/>and next UTC window]
+    TRIGGER --> VERIFY[Observe the next scheduled window]
+    SCHEDULE --> VERIFY
+    RUNTIME --> VERIFY
+    WINDOW --> VERIFY
 ```
+
+*Figure: Execution history distinguishes a missed trigger from an execution that started and failed; manual start isolates the schedule from the job template.*
 
 ## Possible Causes
 
@@ -79,11 +88,14 @@ az containerapp job start \
     --resource-group "$RG"
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp job show --name "$JOB_NAME" --resource-group "$RG" --output json` | Confirms the trigger type and lets you inspect the schedule configuration delivered to the platform. |
-| `az containerapp job execution list --name "$JOB_NAME" --resource-group "$RG" --output table` | Shows whether the job actually fired and whether recent executions exist. |
-| `az containerapp job start --name "$JOB_NAME" --resource-group "$RG"` | Tests the job template without waiting for the next scheduled interval. |
+| `az containerapp job show` | Reads the job definition to verify the trigger type is Schedule and inspect the cron expression. |
+| `az containerapp job execution list` | Lists execution history to check whether the job triggered and failed vs. never triggered at all. |
+| `az containerapp job start` | Manually starts the job to test the image, identity, and runtime independently from the scheduler. |
+| `--name` | Targets the scheduled job being diagnosed. |
+| `--output` | Formats as JSON (full config) or table (execution records). |
+| `--resource-group` | Ensures queries target the correct resource group. |
 
 Useful KQL for confirming the execution timeline:
 
@@ -111,9 +123,12 @@ az containerapp job show \
     --output yaml
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp job show --name "$JOB_NAME" --resource-group "$RG" --output yaml` | Gives you a clean representation of the current job definition so the schedule can be corrected in source-controlled YAML or IaC. |
+| `az containerapp job show` | Reads the updated job definition to verify the corrected cron expression and trigger settings are persisted. |
+| `--name` | Targets the scheduled job whose cron was corrected. |
+| `--output` | Emits YAML to preserve the nested schedule and trigger configuration. |
+| `--resource-group` | Ensures the query targets the correct resource group. |
 
 ## Prevention
 

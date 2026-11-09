@@ -22,59 +22,66 @@ content_validation:
   last_reviewed: 2026-09-11
   reviewer: agent
   core_claims:
-    - claim: Container Apps zone redundancy is implemented by the platform scheduler and is described in Microsoft Learn as a best-effort distribution across physical hosts while meeting the minimum replica count.
+    - claim: In a zone-redundant environment, Container Apps automatically schedules app replicas across availability zones; setting at least two minimum replicas helps ensure distribution across multiple zones.
       source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
       verified: true
     - claim: Setting resource requests and limits helps the Container Apps scheduler make optimal placement decisions across zones, and underspecified resource requirements can lead to uneven distribution.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/how-to-zone-redundancy
+      source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
       verified: true
-    - claim: Container Apps may pause or restart replicas during planned platform maintenance windows.
+    - claim: Container Apps applies noncritical platform updates during configured maintenance windows, while critical or urgent updates can occur outside those windows.
       source: https://learn.microsoft.com/en-us/azure/container-apps/planned-maintenance
       verified: true
-    - claim: For higher availability targets than a single zone-redundant environment provides, Microsoft Learn directs operators to multi-region designs fronted by Azure Front Door.
+    - claim: For resilience to a regional outage, Microsoft Learn describes deploying Container Apps environments in multiple regions with global load balancing or failover.
       source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
       verified: true
 ---
-# Zone Redundancy Is Best-Effort
+# Zone Redundancy Incident Response
 
-Use this playbook when you assumed `zoneRedundant=true` plus `minReplicas=N` guaranteed `N` replicas spread across `N` Availability Zones, then observed a concentrated availability loss anyway.
+Use this playbook when a zone-redundant environment experiences customer impact and you need to verify minimum replicas, healthy-zone capacity, application resilience, and regional recovery requirements.
 
 ## Symptom
 
 - A zone-redundant Container Apps environment serving an app with `minReplicas >= 2` shows a brief but complete 503 outage that does not match a deployment, scale event, or known upstream incident.
-- Clustered replica restarts: two or more replicas of the same app are terminated and restarted inside a 60-second window.
+- Clustered replica turnover: two or more replicas of the same app stop and are replaced inside a 60-second window.
 - The Azure Portal "Availability + zones" tile shows the environment as zone-redundant, yet a single Availability Zone fault correlated with measurable customer impact.
-- Support engineer asks "is zone redundancy guaranteeing my N replicas land in N zones?" and the assumption is **No** — the platform offers a best-effort distribution that depends on host capacity, planned maintenance, and per-replica resource shape.
+- The environment is zone redundant, but minimum replicas, health probes, client retries, or healthy-zone capacity are insufficient for the observed failure.
 
 <!-- diagram-id: best-effort-decision-flow -->
 ```mermaid
 flowchart TD
-    A[Concentrated availability loss<br/>on zone-redundant env] --> B{Was the env actually<br/>zone-redundant at deploy time?}
-    B -->|No| C[L0 - Fix the env<br/>zoneRedundant=true<br/>+ workload profile]
-    B -->|Yes| D{Resource requests +<br/>limits explicitly set?}
-    D -->|No| E[L1 - Tune ACA inputs<br/>set requests/limits<br/>raise minReplicas<br/>tighten health probes]
-    D -->|Yes| F{Client retries with<br/>backoff in place?}
-    F -->|No| G[L2 - App resilience<br/>add retry+circuit breaker<br/>warm caches]
-    F -->|Yes| H{RTO requires<br/>cross-region failover?}
-    H -->|Yes| I[L3 - Multi-region<br/>+ Front Door<br/>or AKS escalation]
-    H -->|No| J[L4 - Observability<br/>alert on clustered churn<br/>baseline MTTR]
+    accTitle: Choose the next reliability layer after a zone-related incident
+    accDescr: Verify zone redundancy and minimum replicas, then validate resource sizing, probes, client resilience, and whether the recovery objective requires a separate regional deployment.
+
+    START[Availability loss in a<br/>zone-redundant design] --> ENABLED{Environment created<br/>with zone redundancy?}
+    ENABLED -->|No| MIGRATE[Create a new zone-redundant<br/>environment and redeploy]
+    ENABLED -->|Yes| MINIMUM{Minimum replicas at least two<br/>and sufficient for lost capacity?}
+    MINIMUM -->|No| CAPACITY[Raise minimum replicas<br/>and plan healthy-zone capacity]
+    MINIMUM -->|Yes| INPUTS{Resource sizing and<br/>health probes appropriate?}
+    INPUTS -->|No| TUNE[Set resource requirements<br/>and tune probes]
+    INPUTS -->|Yes| RETRIES{Clients tolerate transient<br/>timeouts and dropped requests?}
+    RETRIES -->|No| RESILIENCE[Add bounded retry<br/>and idempotence]
+    RETRIES -->|Yes| REGION{Recovery objective survives<br/>a region outage?}
+    REGION -->|No| MULTIREGION[Deploy another region<br/>and configure global routing]
+    REGION -->|Yes| MONITOR[Monitor replica loss,<br/>failure rate, and recovery]
 ```
+
+*Figure: Zone redundancy reduces zone-failure risk but does not replace capacity planning, transient-fault handling, or a multi-region design for regional outages.*
 
 ## Possible Causes
 
 | Cause | Why it matters |
 |---|---|
-| Single-zone scheduler decision | The scheduler distributes replicas across zones on a **best-effort** basis. With small `minReplicas`, two or three replicas can legitimately land in the same physical zone. |
-| Underspecified resource requests | Without explicit `cpu` / `memory` requests, the scheduler treats placement as fungible and may co-locate replicas. MS Learn calls this out as a leading cause of uneven distribution. |
+| Insufficient minimum replicas | Microsoft Learn recommends at least two minimum replicas to help ensure distribution across multiple zones; higher minimums can be necessary for peak load or stricter recovery targets. |
+| Underspecified resource requirements | Resource requests and limits help the scheduler make placement decisions; underspecified requirements can contribute to uneven distribution or placement failures under load. |
 | Image pull serialization on first cold zone | Container images are pulled into each zone the first time a replica is scheduled there. If the lab/test never scales out, the second zone may never warm up. |
-| Planned platform maintenance | Maintenance can restart replicas in waves, producing clustered termination that looks like a zone fault. |
+| Platform update timing | A configured maintenance window controls noncritical update timing, but critical or urgent updates can occur outside the window; correlate the incident with Service Health rather than assuming a replica restart pattern. |
 | Single-region single-environment design | Even ideal zone-spread does not survive a regional incident; the assumption that one zone-redundant environment alone meets a multi-zone RTO is the root organizational error. |
 | Client without retry / backoff | If clients abort on first 503 instead of retrying the replacement replica, every clustered churn surfaces as a customer-visible failure. |
 
 ## Diagnosis Steps
 
 1. **Confirm the environment is actually zone-redundant** — both `zoneRedundant=true` and a workload-profile (not Consumption-only) plan.
-2. **Inspect the app's `resources.requests` and `resources.limits`**. Empty or vague values are an L1 fix opportunity.
+2. **Inspect the app's resource requests and limits**. Check whether they are set and appropriately sized for the workload.
 3. **Run the [Mass-Reschedule KQL pack](../../kql/scaling-and-replicas/zone-redundancy-mass-reschedule.md)** to look for clustered churn events in your incident window.
 4. **Compare baseline vs perturbation** with the same KQL (Q6) to separate platform-caused churn from your own deploys.
 5. **Check Azure Resource Health and the Service Health blade** for region-wide or zone-specific advisories.
@@ -103,11 +110,14 @@ az containerapp show \
     --output json
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp env show` | Confirms that `zoneRedundant=true` is present and that a workload profile (not Consumption-only) is configured, since zone redundancy requires both. |
-| `az containerapp show ... resources` | Reveals whether the app has explicit `cpu` / `memory` requests, which MS Learn lists as the primary scheduler input for zone-aware placement. |
-| `az containerapp show ... scale` | Reads `minReplicas` and `maxReplicas`, the only two operator-controlled inputs that influence the platform's best-effort spread. |
+| `az containerapp env show` | Reads the environment configuration to verify zone-redundancy enablement and workload profile assignment. |
+| `az containerapp show` | Reads container resource requests and limits, plus the scale configuration including minReplicas. |
+| `--name` | Targets the environment name (for env show) or app name (for show). |
+| `--output` | Formats as JSON (for parsing) or table (for human review). |
+| `--query` | Filters to zone-redundancy and workload-profile fields (env) or container resource fields (app). |
+| `--resource-group` | Keeps the environment and app sizing comparison within the deployment whose zone posture is being assessed. |
 
 ## Resolution — Four-Layer Mitigation Matrix
 
@@ -117,7 +127,7 @@ az containerapp show \
 
 | Lever | What to do | Why it helps |
 |---|---|---|
-| Explicit `resources.requests` and `resources.limits` | Set both for every container, sized to your real working set. | Per MS Learn, the scheduler uses these values to make placement decisions. Vague resource shapes are the leading documented cause of uneven distribution. |
+| Explicit resource requirements | Size CPU and memory for the real working set. | Microsoft Learn states that resource requests and limits help the scheduler make optimal placement decisions across zones. |
 | `minReplicas >= 3` (when the budget allows) | Larger `minReplicas` dilutes the impact of any single clustered-churn event. | Q7 in the KQL pack measures the per-app churn frequency at `min={2,3,6}`. Higher minimums reduce — but do not eliminate — clustered churn. |
 | Startup, readiness, and liveness probes that reflect dependency readiness | Don't pass the readiness probe before the app can actually serve traffic. | A probe that lies green during cold start lets the ingress send traffic to a replica that will 503. |
 | Pre-pull the image into the second zone | Force at least one scale-out event during deploy validation. | Avoids the documented "first scheduling into a zone pulls the image" delay during a real failure. |
@@ -149,9 +159,9 @@ az containerapp show \
 
 - **Set requests + limits on every container** during the first deploy. Treat unset resource shapes as a deploy-time CI check failure.
 - **Pick `minReplicas` from your RTO**, not from cost intuition. Higher minimums reduce — not eliminate — clustered-churn impact.
-- **Treat zone redundancy as one layer**, not a guarantee. The four-layer matrix above is the actual reliability contract; documenting it in your service definition stops the recurring "but we set `zoneRedundant=true`" postmortem.
+- **Treat zone redundancy as one layer**, not a complete regional recovery design. Document minimum capacity, transient-fault handling, and multi-region requirements together.
 - **Schedule quarterly fault injection** using `trigger.sh --perturb restart` (or the equivalent runbook) so the team sees clustered churn in a controlled window and can verify the L2 retry path actually works.
-- **Subscribe to Azure Service Health alerts** for the region; planned maintenance is a documented source of clustered restarts and is signalled in advance.
+- **Subscribe to Azure Service Health alerts** for the region, and configure a maintenance window when you need noncritical platform updates scheduled within a preferred time range.
 
 ## See Also
 

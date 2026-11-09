@@ -2,13 +2,13 @@
 content_sources:
   references:
     - type: mslearn-adapted
-      url: https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
+      url: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
   diagrams:
     - id: multi-region-failover-flow
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
+        - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
         - https://learn.microsoft.com/en-us/azure/frontdoor/create-front-door-cli
 content_validation:
   status: verified
@@ -16,7 +16,7 @@ content_validation:
   reviewer: ai-agent
   core_claims:
     - claim: Azure reliability guidance for Container Apps recommends multi-region planning for higher resilience requirements.
-      source: https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps
+      source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
       verified: true
     - claim: Azure Front Door can use health probes and origin groups to steer traffic.
       source: https://learn.microsoft.com/en-us/azure/frontdoor/create-front-door-cli
@@ -36,15 +36,29 @@ Use this playbook when traffic does not fail over away from an unhealthy Azure C
 <!-- diagram-id: multi-region-failover-flow -->
 ```mermaid
 flowchart TD
-    A[Regional outage or degraded app] --> B[Front Door sends health probes]
-    B --> C{Probe path returns healthy}
-    C -->|No| D[Origin marked unhealthy]
-    D --> E[Traffic shifts to secondary region]
-    C -->|Yes| F[Traffic remains on failed origin]
-    F --> G[Fix health endpoint or origin config]
-    G --> B
-    E --> H[Validate recovery and failback plan]
+    accTitle: Diagnose regional failover through Azure Front Door
+    accDescr: Front Door probes each regional Container Apps origin, removes origins that fail the configured health evaluation, routes client requests to a healthy origin, and requires an explicit recovery and failback check.
+
+    CLIENT[Client] ==>|Request| FRONTDOOR[Azure Front Door]
+    FRONTDOOR -->|Health probes| PRIMARY[Primary regional app]
+    PRIMARY -->|Probe response| FRONTDOOR
+    FRONTDOOR -->|Health probes| SECONDARY[Secondary regional app]
+    SECONDARY -->|Probe response| FRONTDOOR
+    FRONTDOOR --> HEALTHY{At least one origin<br/>passes health evaluation?}
+    HEALTHY -->|No| OUTAGE[No healthy origin<br/>Investigate both regions]
+    HEALTHY -->|Yes| ROUTE{Primary origin healthy?}
+    ROUTE -->|Yes| PRIMARY_ROUTE[Route requests to primary]
+    ROUTE -->|No| SECONDARY_ROUTE[Route requests to secondary]
+    PRIMARY_ROUTE ==>|Origin request| PRIMARY
+    PRIMARY ==>|Response| FRONTDOOR
+    SECONDARY_ROUTE ==>|Origin request| SECONDARY
+    SECONDARY ==>|Response| FRONTDOOR
+    FRONTDOOR ==>|Response| CLIENT
+    PRIMARY_ROUTE --> RECOVERY[Validate recovery and<br/>failback behavior]
+    SECONDARY_ROUTE --> RECOVERY[Validate data, dependencies,<br/>recovery, and failback]
 ```
+
+*Figure: Health probes and client traffic are separate exchanges; Front Door can route only to origins that pass its configured health evaluation.*
 
 ## Possible Causes
 
@@ -87,11 +101,16 @@ az containerapp show \
     --output tsv
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az afd origin-group show ...` | Exposes the active health probe configuration and failover thresholds used by Front Door. |
-| `az containerapp show ... (primary)` | Confirms the primary region backend FQDN that Front Door should probe. |
-| `az containerapp show ... (secondary)` | Confirms the secondary region backend FQDN and verifies it is independently reachable. |
+| `az afd origin-group show` | Reads the Front Door health probe configuration to verify probe interval, success criteria, and path. |
+| `az containerapp show` | Reads each regional app FQDN to confirm both regions are deployed and the origin names match. |
+| `--name` | Targets the primary and secondary regional apps. |
+| `--origin-group-name` | Specifies the origin group (e.g., aca-origins) that groups the regional backends. |
+| `--output` | Formats as JSON (probe config) or TSV (FQDN extraction). |
+| `--profile-name` | Targets the Front Door profile by name. |
+| `--query` | Extracts the FQDN field from the app config to match against Front Door origins. |
+| `--resource-group` | Ensures queries target the correct resource groups (primary and secondary separately). |
 
 KQL to compare regional symptoms when Log Analytics is centralized:
 
@@ -124,9 +143,19 @@ az afd origin-group update \
     --additional-latency-in-milliseconds 50
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az afd origin-group update ...` | Updates the existing origin group probe configuration — use `update` rather than `create` to avoid duplicating the origin group. |
+| `az afd origin-group update` | Updates Front Door health probe configuration to change probe path, interval, or success threshold. |
+| `--additional-latency-in-milliseconds` | Sets the extra latency tolerance before marking an origin as unhealthy (in this case, 50ms). |
+| `--origin-group-name` | Targets the origin group (e.g., aca-origins) being tuned. |
+| `--probe-interval-in-seconds` | Sets how often Front Door probes the origins (30 seconds in this example). |
+| `--probe-path` | Sets the health endpoint path (e.g., /health) that Front Door requests. |
+| `--probe-protocol` | Sets the protocol for probes (Https for encrypted health checks). |
+| `--probe-request-type` | Sets the HTTP method for probes (GET in this example). |
+| `--profile-name` | Targets the Front Door profile by name. |
+| `--resource-group` | Ensures the update targets the primary resource group. |
+| `--sample-size` | Sets how many probe attempts Front Door samples (4 in this example). |
+| `--successful-samples-required` | Sets how many must pass to mark the origin healthy (3 out of 4 in this example). |
 
 ## Prevention
 
@@ -143,6 +172,6 @@ az afd origin-group update \
 
 ## Sources
 
-- [Reliability in Azure Container Apps](https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps)
+- [Reliability in Azure Container Apps](https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps)
 - [Create an Azure Front Door with the Azure CLI](https://learn.microsoft.com/en-us/azure/frontdoor/create-front-door-cli)
 - [Azure Front Door CLI reference](https://learn.microsoft.com/en-us/cli/azure/afd)
