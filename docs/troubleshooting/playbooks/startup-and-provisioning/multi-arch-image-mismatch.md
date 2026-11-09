@@ -46,16 +46,33 @@ Use this playbook when a revision pulls successfully but the container fails imm
 <!-- diagram-id: multi-arch-image-mismatch-decision-flow -->
 ```mermaid
 flowchart TD
-    A[Container exits immediately after pull] --> B[Read startup and system logs]
-    B --> C{exec format or manifest mismatch?}
-    C -->|No| D[Use generic startup failure playbook]
-    C -->|Yes| E[Inspect registry tag and manifests]
-    E --> F{Required architecture present?}
-    F -->|No| G[Rebuild and publish multi-arch image]
-    F -->|Yes| H[Check tag drift or wrong image reference]
-    G --> I[Retest deployment with explicit manifest]
-    H --> J[Pin correct digest or corrected tag]
+    accTitle: Diagnose a container image architecture mismatch
+    accDescr: Require architecture-specific startup evidence, inspect the configured image and manifest variants, and verify a corrected linux amd64 image reference.
+
+    START[Container fails during startup]
+    LOGS[Read Container Apps<br/>system and console logs]
+    ARCH{Architecture-specific error<br/>such as exec format?}
+    OTHER[Use the general container-start<br/>diagnostic path]
+    IMAGE[Confirm the configured<br/>tag or digest]
+    MANIFEST[Inspect manifest metadata<br/>for platform variants]
+    AMD64{Linux amd64 variant present<br/>for the referenced image?}
+    REBUILD[Build and publish a compatible<br/>single- or multi-architecture image]
+    DRIFT[Correct tag drift or<br/>the wrong image reference]
+    RETEST[Deploy the corrected digest<br/>and verify startup]
+
+    START --> LOGS
+    LOGS --> ARCH
+    ARCH -->|No| OTHER
+    ARCH -->|Yes| IMAGE
+    IMAGE --> MANIFEST
+    MANIFEST --> AMD64
+    AMD64 -->|No| REBUILD
+    AMD64 -->|Yes| DRIFT
+    REBUILD --> RETEST
+    DRIFT --> RETEST
 ```
+
+*Figure: Azure Container Apps requires Linux `amd64` images, so the decision path proves the configured reference and its manifest contents before rebuilding or changing a tag.*
 
 1. Capture the configured image and the observed startup error.
 
