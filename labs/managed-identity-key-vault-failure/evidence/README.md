@@ -22,6 +22,8 @@ The claim ceiling is deliberately narrow: this pack proves only what this single
 - The pack captures a single live Azure cohort from Jun 26 2026; it is not a statistical sample across regions or tenants.
 - `06-system-logs-pre-fix.json` is JSONL/NDJSON, not a JSON array; `verify.sh` parses it one record per line.
 - `08-kql-console-logs-pre-fix.json` does not contain request-body smoking-gun text because the Flask handler does not emit application logs for the caught exception. The smoking gun is the captured HTTP 500 body in `05-http-response-pre-fix.json`.
+- Gate 14 now derives direct anchors from raw revision, HTTP, role-assignment, and `systemData` timestamps. Files without their own timestamp use a disclosed pre-fix or post-fix phase proxy. Existing filesystem anchors may be reused only when `scripts/check_gate_replay.py` supplies a guarded `GATE_REPLAY_BASELINE_DIR`; direct `verify.sh` replay never reads local gate files or clone metadata as authority.
+- This Gate 14 intentionally differs from its original committed form beyond `evaluated_at_utc`: the old capture-order check used clone-local file birth times, while the hermetic check uses the raw cohort's timestamp values and phase proxies. The semantic result remains a passing, bounded, monotonic H1-to-H2 cohort; Gates 15-17 still change only their replay stamp.
 - The pack does not capture image digests, pod UID continuity, exact RBAC propagation latency, or token-cache-only recovery. Those gaps are carried explicitly in Gate 17 `cohort_binding_note.explicit_drops`.
 
 ## File index

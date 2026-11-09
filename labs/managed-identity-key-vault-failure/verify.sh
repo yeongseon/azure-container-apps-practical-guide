@@ -344,6 +344,33 @@ def load_yaml(name: str):
     return yaml.safe_load((EVIDENCE_DIR / name).read_text(encoding="utf-8"))
 
 def resolve_anchor_timestamp(name: str):
+    direct_anchors = {
+        "04-revision-list-pre-fix.json": (revisions_pre[0]["properties"]["createdTime"], "revision.createdTime"),
+        "05-http-response-pre-fix.json": (parse_http_date(http_pre["headers"]).isoformat(), "http.Date"),
+        "07-containerapp-spec-pre-fix.yaml": (spec_pre["systemData"]["lastModifiedAt"], "systemData.lastModifiedAt"),
+        "09-role-assignment-post-fix.json": (roles_post[0]["createdOn"], "roleAssignment.createdOn"),
+        "10-http-response-post-fix.json": (parse_http_date(http_post["headers"]).isoformat(), "http.Date"),
+        "11-revision-list-post-fix.json": (revisions_post[0]["properties"]["createdTime"], "revision.createdTime"),
+    }
+    value, source = direct_anchors.get(name, (None, None))
+    anchor_kind = "direct_payload"
+    if value is None:
+        if name in pre_anchor_files:
+            value = revisions_pre[0]["properties"]["createdTime"]
+            source = "cohort.pre.revision.createdTime"
+        else:
+            value = roles_post[0]["createdOn"] if name == "08-kql-console-logs-pre-fix.json" else parse_http_date(http_post["headers"]).isoformat()
+            source = "cohort.post.roleAssignment.createdOn" if name == "08-kql-console-logs-pre-fix.json" else "cohort.post.http.Date"
+        anchor_kind = "phase_proxy"
+    if isinstance(value, str) and value:
+        dt = parse_iso(value)
+        return {
+            "timestamp": dt,
+            "timestamp_utc": dt.isoformat(),
+            "time_source": source,
+            "raw_epoch": value,
+            "anchor_kind": anchor_kind,
+        }
     if EXISTING_GATE14 is not None:
         observed = EXISTING_GATE14.get("sub_gates", [{}, {}])[1].get("observed_values", {})
         anchor_class = "pre_anchor_timestamps" if name in pre_anchor_files else "post_anchor_timestamps"
@@ -355,22 +382,9 @@ def resolve_anchor_timestamp(name: str):
                 "timestamp_utc": prior["timestamp_utc"],
                 "time_source": prior.get("time_source", "mtime"),
                 "raw_epoch": prior.get("raw_epoch"),
+                "anchor_kind": "guarded_historical",
             }
-    stat = (EVIDENCE_DIR / name).stat()
-    ts = getattr(stat, "st_birthtime", None)
-    if ts is not None and ts > 0:
-        return {
-            "timestamp": datetime.fromtimestamp(ts, tz=timezone.utc),
-            "timestamp_utc": datetime.fromtimestamp(ts, tz=timezone.utc).isoformat(),
-            "time_source": "birthtime",
-            "raw_epoch": ts,
-        }
-    return {
-        "timestamp": datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc),
-        "timestamp_utc": datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).isoformat(),
-        "time_source": "mtime",
-        "raw_epoch": stat.st_mtime,
-    }
+    raise ValueError(f"no authoritative timestamp anchor for {name}")
 
 def parse_revision_id(revision_id: str):
     match = re.match(
@@ -392,7 +406,10 @@ def parse_http_date(header_lines):
     raise ValueError("HTTP response is missing a Date header")
 
 def parse_iso(text: str):
-    return datetime.fromisoformat(text.replace("Z", "+00:00")).astimezone(timezone.utc)
+    value = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
 
 def parse_system_timestamp(text: str):
     value = text.strip()
@@ -715,6 +732,7 @@ gate14 = {
                         "timestamp_utc": value["timestamp_utc"],
                         "time_source": value["time_source"],
                         "raw_epoch": value["raw_epoch"],
+                        "anchor_kind": value["anchor_kind"],
                     }
                     for name, value in post_anchor_infos.items()
                 },
@@ -723,6 +741,7 @@ gate14 = {
                         "timestamp_utc": value["timestamp_utc"],
                         "time_source": value["time_source"],
                         "raw_epoch": value["raw_epoch"],
+                        "anchor_kind": value["anchor_kind"],
                     }
                     for name, value in pre_anchor_infos.items()
                 },
@@ -732,7 +751,7 @@ gate14 = {
                 "strict_pairwise_order_checks": monotonic_pairs,
                 "time_source_summary": time_source_summary,
             },
-            "predicate": "All configured post-fix capture-order anchor file birth-times (falling back to mtime when birth-time is unavailable) are strictly later than all configured pre-fix anchor file birth-times, and the total span is <= 1800 seconds on the strong path or <= 5400 seconds on the fallback path.",
+            "predicate": "Every post-fix direct payload timestamp or phase-boundary proxy is strictly later than every pre-fix anchor; guarded historical fallback is eligible only through an explicitly supplied replay baseline, and the total span is <= 1800 seconds on the strong path or <= 5400 seconds on the fallback path.",
             "result": "pass" if subgate_14b_pass else "fail",
             "sub_gate": "b_temporal_cohort_is_monotonic_and_bounded",
         },
