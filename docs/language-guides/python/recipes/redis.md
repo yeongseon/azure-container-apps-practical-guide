@@ -6,7 +6,7 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
-        - https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-python-get-started
+        - https://learn.microsoft.com/en-us/azure/redis/python-get-started
 ---
 # Azure Cache for Redis Integration (Managed Identity)
 
@@ -17,15 +17,26 @@ Use this recipe to connect Azure Container Apps to Azure Cache for Redis with Mi
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Container App]
-    APP --> REDIS[Azure Cache for Redis]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> REDIS
+    accTitle: Passwordless Python access to Azure Cache for Redis
+    accDescr: A client request reaches the Python app through managed ingress. The app obtains a Redis token through its managed identity and Microsoft Entra ID, and the cache access policy authorizes the object ID used as the Redis username.
+
+    CLIENT[Client]
+    INGRESS[Managed ingress]
+    APP[Python container app]
+    IDENTITY[Managed identity]
+    ENTRA[Microsoft Entra ID]
+    REDIS[Azure Cache for Redis]
+
+    CLIENT ==>|HTTPS request| INGRESS
+    INGRESS ==>|Routed request| APP
+    APP -.->|Uses| IDENTITY
+    IDENTITY -->|Requests Redis token| ENTRA
+    ENTRA -->|Issues access token| APP
+    IDENTITY -.->|Cache access policy| REDIS
+    APP ==>|TLS Redis request<br/>object ID and token| REDIS
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+Thick arrows show request or Redis transport. Thin arrows show token exchange, and dotted arrows show identity and authorization associations.
 
 ## Prerequisites
 
@@ -50,7 +61,15 @@ export PRINCIPAL_ID=$(az containerapp show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity assign` | Enables the system-assigned identity that the Python app uses for token-based Redis authentication. |
+| `az containerapp show` | Reads that identity's principal ID before resolving the Redis username object ID. |
+| `--name` | Targets `$APP_NAME`, whose identity will receive the Redis data access policy. |
+| `--resource-group` | Locates `$APP_NAME` in `$RG` for both identity commands. |
+| `az containerapp identity assign --system-assigned` | Attaches a platform-managed identity to the app for passwordless cache access. |
+| `az containerapp show --query` | Selects `identity.principalId`, which is resolved to the object ID used by Redis authentication. |
+| `az containerapp show --output` | Emits only the principal ID as tab-separated text for `PRINCIPAL_ID`. |
+
+
 
 ## Step 2: Assign Redis data access policy
 
@@ -63,9 +82,14 @@ export OBJECT_ID=$(az ad sp show \
   --output tsv)
 ```
 
-| Command | Purpose |
+| Command | Why it is used |
 |---|---|
-| `export OBJECT_ID=$(az ad sp show --id "$PRINCIPAL_ID" --query "id" --output tsv)` | Resolves the service principal object ID used by Azure Managed Redis as the ACL username for managed-identity authentication. |
+| `az ad sp show` | Resolves `$PRINCIPAL_ID` to the service-principal object ID used as the Redis token-authentication username. |
+| `--id` | Configures the id as `$PRINCIPAL_ID` on `az ad sp show`. |
+| `--query` | Extracts the service-principal object ID that Redis expects as the token-authentication username. |
+| `--output` | Assigns the object ID as plain text to `OBJECT_ID` for the access-policy command. |
+
+
 
 Create an access policy assignment (for example, Data Owner):
 
@@ -80,7 +104,14 @@ az redis access-policy-assignment create \
 
 | Command | Why it is used |
 |---|---|
-| `az redis access-policy-assignment ...` | Creates or inspects Azure Cache for Redis resources used by the sample app. |
+| `az redis access-policy-assignment create` | Grants the app's Entra object the Redis `Data Owner` policy under the `$APP_NAME` alias. |
+| `--name` | Selects `$REDIS_NAME` as the cache receiving the app identity's `Data Owner` assignment. |
+| `--resource-group` | Finds `$REDIS_NAME` in `$RG` before creating its data access policy assignment. |
+| `--access-policy-name` | Configures the Redis data access policy as `Data Owner` on `az redis access-policy-assignment create`. |
+| `--object-id` | Configures the Microsoft Entra object receiving access as `$OBJECT_ID` on `az redis access-policy-assignment create`. |
+| `--object-id-alias` | Labels the Redis assignment with `$APP_NAME` so operators can identify the app identity. |
+
+
 
 ## Step 3: Configure Redis endpoint for the app
 
@@ -88,42 +119,48 @@ az redis access-policy-assignment create \
 az containerapp update \
   --name "$APP_NAME" \
   --resource-group "$RG" \
-  --set-env-vars REDIS_HOST="$REDIS_NAME.redis.cache.windows.net" REDIS_PORT="10000"
+  --set-env-vars REDIS_HOST="$REDIS_NAME.redis.cache.windows.net" REDIS_PORT="6380"
 ```
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Writes the Redis TLS hostname and port into the Container App revision used by the Python client. |
+| `--name` | Targets `$APP_NAME`, which receives the Redis endpoint settings. |
+| `--resource-group` | Locates `$APP_NAME` in `$RG` before adding the Redis connection settings. |
+| `--set-env-vars` | Writes the classic cache TLS endpoint and its port as `REDIS_HOST=$REDIS_NAME.redis.cache.windows.net` and `REDIS_PORT=6380`. |
+
+
 
 ## Step 4: Python code (Entra token auth)
 
-Install dependencies:
+Install the Redis client and its Microsoft Entra credential provider:
 
 ```bash
-pip install azure-identity redis
+pip install redis redis-entraid
 ```
 
-Use managed identity token as Redis password:
+Use the credential provider to acquire and renew managed identity tokens in the background. The provider passes refreshed credentials to redis-py, which reissues `AUTH` before the current token expires:
 
 ```python
 import os
-import redis
-from azure.identity import DefaultAzureCredential
-
-credential = DefaultAzureCredential()
-access_token = credential.get_token("https://redis.azure.com/.default").token
+from redis import Redis
+from redis_entraid.cred_provider import (
+    ManagedIdentityType,
+    create_from_managed_identity,
+)
 
 host = os.environ["REDIS_HOST"]
-port = int(os.environ.get("REDIS_PORT", "10000"))
+port = int(os.environ.get("REDIS_PORT", "6380"))
 
-# Username is the Entra object ID of the managed identity
-username = os.environ["REDIS_OBJECT_ID"]
+credential_provider = create_from_managed_identity(
+    identity_type=ManagedIdentityType.SYSTEM_ASSIGNED,
+    resource="https://redis.azure.com/",
+)
 
-client = redis.Redis(
+client = Redis(
     host=host,
     port=port,
-    username=username,
-    password=access_token,
+    credential_provider=credential_provider,
     ssl=True,
     decode_responses=True,
 )
@@ -132,22 +169,11 @@ client.set("health", "ok", ex=60)
 print(client.get("health"))
 ```
 
-Store `REDIS_OBJECT_ID` as a non-secret environment variable:
-
-```bash
-az containerapp update \
-  --name "$APP_NAME" \
-  --resource-group "$RG" \
-  --set-env-vars REDIS_OBJECT_ID="$OBJECT_ID"
-```
-
-| Command | Why it is used |
-|---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+The system-assigned identity already determines the Redis username through the access-policy assignment, so the app does not need a separate `REDIS_OBJECT_ID` setting. Microsoft Entra authentication is available on Basic, Standard, and Premium Azure Cache for Redis tiers, but not Enterprise or Enterprise Flash. Those Enterprise tiers use port `10000` and do not support this authentication flow.
 
 ## Container Apps specifics
 
-- Keep Redis host, port, and object ID in environment variables.
+- Keep the Redis host and TLS port in environment variables; let the credential provider derive the identity and refresh its token.
 - Avoid access keys and connection strings when using managed identity.
 - If using private networking, pair this setup with private endpoints and VNet integration.
 
@@ -164,7 +190,12 @@ az redis access-policy-assignment list \
 
 | Command | Why it is used |
 |---|---|
-| `az redis access-policy-assignment ...` | Creates or inspects Azure Cache for Redis resources used by the sample app. |
+| `az redis access-policy-assignment list` | Lists `$REDIS_NAME` access-policy assignments to confirm the app identity received the `Data Owner` policy. |
+| `--name` | Selects `$REDIS_NAME` whose assignments are inspected for the app identity. |
+| `--resource-group` | Locates the cache in `$RG` for the post-grant policy check. |
+| `--output` | Displays policy names, object IDs, and aliases in columns so the app assignment is easy to confirm. |
+
+
 
 2. Confirm app logs show successful Redis `SET`/`GET`:
 
@@ -177,7 +208,12 @@ az containerapp logs show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Retrieves `$APP_NAME` runtime logs to confirm the Redis `SET` and `GET` calls succeed with an Entra token. |
+| `--name` | Targets `$APP_NAME`, whose logs reveal Redis authentication results. |
+| `--resource-group` | Finds `$APP_NAME` in `$RG` for Redis authentication log collection. |
+| `--follow` | Returns the completed Redis test entries instead of streaming future logs. |
+
+
 
 ## See Also
 - [Managed Identity](../../../platform/identity-and-secrets/managed-identity.md)
@@ -185,4 +221,5 @@ az containerapp logs show \
 
 ## Sources
 - [Azure Cache for Redis + Microsoft Entra auth](https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication)
-- [Python quickstart for Azure Cache for Redis (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-python-get-started)
+- [Python quickstart for Azure Redis (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/redis/python-get-started)
+- [redis-py Microsoft Entra credential provider](https://github.com/redis/redis-py-entraid)

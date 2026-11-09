@@ -6,15 +6,19 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-link
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-dedicated-data-endpoints
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
         - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication-managed-identity
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-built-in-roles-overview
     - id: configure-the-container-app-to-reference
       type: flowchart
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-link
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-dedicated-data-endpoints
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
         - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication-managed-identity
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-built-in-roles-overview
 ---
 # Private Container Registry (ACR with Private Endpoint)
 
@@ -25,15 +29,24 @@ Pull container images from Azure Container Registry over a private network path 
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Container App]
-    ACR[Azure Container Registry] --> APP
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> ACR
+    accTitle: Pull a private image from Azure Container Registry
+    accDescr: A container app uses its configured pull identity for authorization and resolves the registry through private DNS before downloading image content through an Azure Container Registry private endpoint.
+
+    APP[Container app revision]
+    IDENTITY[Configured pull identity]
+    DNS[Private DNS zone<br/>privatelink.azurecr.io]
+    PE[Registry private endpoint]
+    ACR[Azure Container Registry]
+
+    APP -.->|Uses for image pull| IDENTITY
+    IDENTITY -.->|Registry authorization| ACR
+    APP -->|Resolves registry names| DNS
+    DNS -->|Returns private endpoint addresses| APP
+    APP ==>|Registry and layer requests| PE
+    PE ==>|Private Link transport| ACR
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+Thick arrows show image transport. Thin arrows show DNS exchange, and dotted arrows show identity and authorization associations.
 
 !!! note "Private Endpoint requires ACR Premium SKU"
     Private Endpoints for ACR are only available on the **Premium** tier. Basic and Standard ACR cannot use Private Endpoints.
@@ -44,44 +57,35 @@ By default, Container Apps pulls images from a public ACR endpoint. In a private
 
 1. Deploy ACR with public access disabled and a Private Endpoint in your VNet
 2. Configure a **user-assigned managed identity** on your Container App as the pull identity
-3. Grant that identity `AcrPull` on the registry
+3. Grant the identity the pull role for the registry's permission mode: `AcrPull` for **RBAC Registry Permissions**, or `Container Registry Repository Reader` for **RBAC Registry + ABAC Repository Permissions**
 4. Configure the Container App to reference that identity for the registry
 
 <!-- diagram-id: configure-the-container-app-to-reference -->
 ```mermaid
-graph TD
-    subgraph VNet["Virtual Network (10.0.0.0/16)"]
-        subgraph CASubnet["Container Apps Subnet (10.0.0.0/23)"]
-            CAE[Container Apps Environment]
-            CA[Container App<br/>+ User-Assigned MI]
-        end
-        subgraph PESubnet["Private Endpoints Subnet (10.0.2.0/24)"]
-            PE_ACR[Private Endpoint<br/>ACR login server<br/>10.0.2.10]
-            PE_DATA[Private Endpoint<br/>ACR data endpoint<br/>10.0.2.11]
-        end
+flowchart TD
+    accTitle: Private ACR image-pull dependencies
+    accDescr: The Container Apps environment reaches a registry private endpoint through its virtual network. Private DNS resolves both registry login and regional data names. A user-assigned managed identity is associated with the app and authorized on the registry separately from the network path.
+
+    IDENTITY[User-assigned managed identity]
+    DNS[Private DNS zone<br/>privatelink.azurecr.io]
+    ACR[Azure Container Registry<br/>Premium, public access disabled]
+
+    subgraph VNET[Customer virtual network]
+        ENV[Container Apps environment]
+        APP[Container app revision]
+        PE[ACR private endpoint]
     end
 
-    subgraph DNS["Private DNS Zone<br/>privatelink.azurecr.io"]
-        DNS_LOGIN["myregistry.azurecr.io → 10.0.2.10"]
-        DNS_DATA["myregistry.koreacentral.data.azurecr.io → 10.0.2.11"]
-    end
-
-    subgraph ACR["Azure Container Registry<br/>(Premium, public disabled)"]
-        LOGIN[Login server]
-        DATA[Data endpoint]
-    end
-
-    CA -->|"1. Token request (ARM audience)"| AAD[Microsoft Entra ID]
-    AAD -->|"2. Access token"| CA
-    CA -->|"3. Pull via private IP"| PE_ACR --> LOGIN
-    CA -->|"4. Layer download"| PE_DATA --> DATA
-    DNS_LOGIN -.-> PE_ACR
-    DNS_DATA -.-> PE_DATA
-
-    style CA fill:#0078d4,color:#fff
-    style ACR fill:#f0f0f0,stroke:#888
-    style DNS fill:#e6f2fb,stroke:#0078d4
+    ENV -->|Hosts| APP
+    APP -.->|Configured pull identity| IDENTITY
+    IDENTITY -.->|Registry pull authorization| ACR
+    APP -->|Queries login and data names| DNS
+    DNS -->|Returns private endpoint addresses| APP
+    APP ==>|Registry login and layer requests| PE
+    PE ==>|Private Link transport| ACR
 ```
+
+Thick arrows show image transport. Thin arrows show hosting and DNS exchange; dotted arrows show identity and authorization associations.
 
 !!! warning "Two DNS records are required"
     ACR image pulls use **two endpoints**: the login server (`myregistry.azurecr.io`) for authentication and the regional data endpoint (`myregistry.<region>.data.azurecr.io`) for layer downloads. Both must resolve to private IPs through the Private DNS Zone. Missing the data endpoint causes pull failures that are not obvious from the error message.
@@ -114,7 +118,7 @@ export UAMI_NAME="id-myapp"
 
 ## Step 1: Create ACR (Premium SKU)
 
-Private Endpoints require **Premium** SKU. Enable the data endpoint — it's required for image layer downloads over Private Link.
+Private Endpoints require the **Premium** SKU. Creating the registry's `registry` private endpoint automatically enables dedicated data endpoints and adds their regional IP configurations to that private endpoint.
 
 ```bash
 az acr create \
@@ -122,13 +126,19 @@ az acr create \
   --resource-group "$RG" \
   --location "$LOCATION" \
   --sku Premium \
-  --public-network-enabled false \
-  --data-endpoint-enabled true
+  --public-network-enabled false
 ```
 
 | Command | Why it is used |
 |---|---|
-| `az acr create ...` | Creates Azure Container Registry for container image storage. |
+| `az acr create` | Provisions the Premium registry that will host the private application image without a public endpoint. |
+| `--name` | Names the new private registry `$ACR_NAME` for later build and pull commands. |
+| `--resource-group` | Places the registry in `$RG` alongside the networking resources used by this recipe. |
+| `--location` | Configures the Azure deployment region as `$LOCATION` on `az acr create`. |
+| `--sku` | Configures the registry service tier as `Premium` on `az acr create`. |
+| `--public-network-enabled` | Configures the registry public network access as `false` on `az acr create`. |
+
+
 
 !!! important "Enable ARM audience token authentication"
     Managed identity pulls require ACR to accept ARM audience tokens. Enable this explicitly — it is not on by default in all tenants:
@@ -140,8 +150,10 @@ az acr create \
     ```
 
     | Command | Why it is used |
-    |---|---|
-    | `az acr config authentication-as-arm ...` | Runs the Azure CLI operation required by the documented step. |
+    | --- | --- |
+    | `az acr config authentication-as-arm update` | Enables ARM-audience token authentication on `$ACR_NAME` so its managed identity can authorize image pulls. |
+    | `--registry` | Enables ARM-audience token authentication specifically on `$ACR_NAME` for managed-identity image pulls. |
+    | `--status` | Configures the ARM-audience authentication state as `enabled` on `az acr config authentication-as-arm update`. |
 
     Without this, managed identity pull attempts fail with `401 Unauthorized` even when RBAC looks correct.
 
@@ -173,9 +185,18 @@ export UAMI_CLIENT_ID=$(az identity show \
 
 | Command | Why it is used |
 |---|---|
-| `az identity create ...` | Creates a user-assigned managed identity for image pulls or runtime access. |
+| `az identity create` | Provisions `$UAMI_NAME` as the dedicated identity used for private-registry image pulls. |
+| `az identity show` | Returns the new identity's resource, principal, and client IDs for app attachment and registry authorization. |
+| `--name` | Targets `$UAMI_NAME` for user-assigned identity creation and managed-identity property lookup. |
+| `--resource-group` | Scopes user-assigned identity creation and managed-identity property lookup to `$RG`. |
+| `az identity show --query` | Extracts `id`, `principalId`, `clientId` from `az identity show` output. |
+| `az identity show --output` | Emits each identity property as plain text for the three exported shell variables. |
 
-## Step 3: Grant AcrPull to the managed identity
+
+
+## Step 3: Grant the mode-appropriate pull role
+
+Check `roleAssignmentMode` before creating the role assignment. ABAC-enabled registries do not honor the legacy `AcrPull` role.
 
 ```bash
 export ACR_ID=$(az acr show \
@@ -184,23 +205,46 @@ export ACR_ID=$(az acr show \
   --query "id" \
   --output tsv)
 
+export ACR_ROLE_ASSIGNMENT_MODE=$(az acr show \
+  --name "$ACR_NAME" \
+  --resource-group "$RG" \
+  --query "roleAssignmentMode" \
+  --output tsv)
+
+if [ "$ACR_ROLE_ASSIGNMENT_MODE" = "AbacRepositoryPermissions" ]; then
+  export ACR_PULL_ROLE="Container Registry Repository Reader"
+else
+  export ACR_PULL_ROLE="AcrPull"
+fi
+
 az role assignment create \
   --assignee-object-id "$UAMI_PRINCIPAL_ID" \
   --assignee-principal-type ServicePrincipal \
-  --role "AcrPull" \
+  --role "$ACR_PULL_ROLE" \
   --scope "$ACR_ID"
 ```
 
 | Command | Why it is used |
 |---|---|
-| `az acr show ...` | Reads registry configuration such as login server, identity, or admin status. |
+| `az acr show` | Retrieves `$ACR_NAME`'s resource ID and authorization mode so the script can choose the correct pull role and scope. |
+| `az role assignment create` | Grants the user-assigned identity the pull role selected for the registry's RBAC or ABAC mode. |
+| `az acr show --name` | Identifies `$ACR_NAME` as the registry whose ID and role-assignment mode are inspected. |
+| `az acr show --resource-group` | Locates `$ACR_NAME` in `$RG` before deriving the role-assignment scope. |
+| `az acr show --query` | Extracts `id`, `roleAssignmentMode` from `az acr show` output. |
+| `az acr show --output` | Captures the registry ID and authorization mode as scalar shell values for role selection. |
+| `az role assignment create --assignee-object-id` | Identifies the user-assigned identity principal that must pull private images. |
+| `az role assignment create --assignee-principal-type` | Configures the role-assignment principal type as `ServicePrincipal` on `az role assignment create`. |
+| `az role assignment create --role` | Applies the pull role selected for the registry's RBAC-only or ABAC authorization mode. |
+| `az role assignment create --scope` | Constrains image-pull permission to `$ACR_NAME` rather than the resource group or subscription. |
+
+
 
 !!! tip "Role assignment propagation"
     RBAC changes take 1–5 minutes to propagate. If a container pull fails immediately after assigning the role, wait and retry the revision.
 
 ## Step 4: Create the Private Endpoint for ACR
 
-Create a private endpoint for the registry login server (`registry` group). This handles authentication and, for standard registries, layer downloads as well.
+Create one private endpoint for the registry's `registry` group. ACR automatically enables the dedicated data endpoints and allocates their regional addresses as additional IP configurations on this private endpoint. The subnet therefore needs one IP for the global registry endpoint plus one IP for each geo-replica's data endpoint.
 
 ```bash
 # Private Endpoint for login server
@@ -215,48 +259,18 @@ az network private-endpoint create \
 
 | Command | Why it is used |
 |---|---|
-| `az network private-endpoint create ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
+| `az network private-endpoint create` | Connects `$ACR_NAME`'s `registry` subresource to `$PE_SUBNET_ID` through `pe-acr-${ACR_NAME}`. |
+| `--name` | Targets `pe-acr-${ACR_NAME}` for registry private-endpoint creation. |
+| `--resource-group` | Creates the registry private endpoint in `$RG` alongside its networking dependencies. |
+| `--subnet` | Configures the subnet hosting the private endpoint as `$PE_SUBNET_ID` on `az network private-endpoint create`. |
+| `--private-connection-resource-id` | Configures the registry resource reached through Private Link as `$ACR_ID` on `az network private-endpoint create`. |
+| `--group-id` | Configures the Private Link subresource as `registry` on `az network private-endpoint create`. |
+| `--connection-name` | Configures the private-link connection name as `conn-acr-registry` on `az network private-endpoint create`. |
 
-### Optional: Dedicated data endpoint
 
-If you need separate network control over image layer downloads (e.g., for geo-replicated registries), enable the dedicated data endpoint and create a second PE. **This must be done after the ACR is fully provisioned** — the `registry_data_<region>` group ID is not immediately available and will cause a deployment failure if attempted in the same Bicep deployment as the ACR.
 
-```bash
-# Step 1: Enable dedicated data endpoint (after ACR is provisioned)
-az acr update \
-  --name "$ACR_NAME" \
-  --resource-group "$RG" \
-  --data-endpoint-enabled true
-
-# Step 2: Verify the data endpoint group ID is available
-az network private-link-resource list \
-  --id "$ACR_ID" \
-  --output table
-
-# Step 3: Create the data endpoint PE (using the group ID from step 2)
-az network private-endpoint create \
-  --name "pe-acr-data-${ACR_NAME}" \
-  --resource-group "$RG" \
-  --subnet "$PE_SUBNET_ID" \
-  --private-connection-resource-id "$ACR_ID" \
-  --group-id "registry_data_${LOCATION}" \
-  --connection-name "conn-acr-data"
-
-# Step 4: Add DNS zone group for data endpoint
-az network private-endpoint dns-zone-group create \
-  --resource-group "$RG" \
-  --endpoint-name "pe-acr-data-${ACR_NAME}" \
-  --name "default" \
-  --private-dns-zone "privatelink.azurecr.io" \
-  --zone-name "registry-data"
-```
-
-| Command | Why it is used |
-|---|---|
-| `az acr update ...` | Runs the Azure CLI operation required by the documented step. |
-
-!!! warning "Bicep + data endpoint race condition"
-    Creating the data endpoint PE in the same Bicep deployment as the ACR resource will fail with `InvalidPrivateEndpointConnectionRequestParameters` because the `registry_data_<region>` group ID is not registered until the ACR fully provisions. Always create the data endpoint PE in a separate step via CLI or a second Bicep deployment.
+!!! note "Dedicated data endpoints share the registry private endpoint"
+    Do not create a second private endpoint for `registry_data_<region>`. ACR exposes each regional data endpoint through an additional IP configuration on the private endpoint created with `--group-id registry`. Private DNS integration creates the corresponding data-endpoint records; if you manage DNS records manually, create one record for every geo-replica's data endpoint.
 
 ## Step 5: Configure Private DNS Zone
 
@@ -291,7 +305,21 @@ az network private-endpoint dns-zone-group create \
 
 | Command | Why it is used |
 |---|---|
-| `az network vnet show ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
+| `az network vnet show` | Retrieves `$VNET_NAME`'s resource ID for linking the ACR private DNS zone to the app network. |
+| `az network private-dns zone create` | Creates `privatelink.azurecr.io` to hold private ACR login and data endpoint records. |
+| `az network private-dns link vnet create` | Links `privatelink.azurecr.io` to `$VNET_NAME` so Container Apps can resolve the registry privately. |
+| `az network private-endpoint dns-zone-group create` | Attaches the ACR private DNS zone to `pe-acr-${ACR_NAME}` for automatic record registration. |
+| `--name` | Targets `$VNET_NAME`, `privatelink.azurecr.io`, `link-acr-${VNET_NAME}`, `default` for private-endpoint DNS integration, private DNS virtual-network linking and private DNS zone creation. |
+| `--resource-group` | Scopes private-endpoint DNS integration, private DNS virtual-network linking and private DNS zone creation to `$RG`. |
+| `az network vnet show --query` | Extracts `$VNET_NAME`'s resource ID for the private DNS virtual-network link. |
+| `az network vnet show --output` | Stores the VNet ID as unquoted text in `VNET_ID`. |
+| `--zone-name` | Configures the private DNS zone or zone-group label as `privatelink.azurecr.io`, `registry` on `az network private-dns link vnet create` and `az network private-endpoint dns-zone-group create`. |
+| `az network private-dns link vnet create --virtual-network` | Configures the virtual network linked to private DNS as `$VNET_ID` on `az network private-dns link vnet create`. |
+| `az network private-dns link vnet create --registration-enabled` | Configures the automatic VM record registration as `false` on `az network private-dns link vnet create`. |
+| `az network private-endpoint dns-zone-group create --endpoint-name` | Configures the private endpoint receiving DNS integration as `pe-acr-${ACR_NAME}` on `az network private-endpoint dns-zone-group create`. |
+| `az network private-endpoint dns-zone-group create --private-dns-zone` | Configures the private DNS zone attached to the endpoint as `privatelink.azurecr.io` on `az network private-endpoint dns-zone-group create`. |
+
+
 
 Verify A records were registered:
 
@@ -304,7 +332,12 @@ az network private-dns record-set a list \
 
 | Command | Why it is used |
 |---|---|
-| `az network private-dns record-set ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
+| `az network private-dns record-set a list` | Lists A records in `privatelink.azurecr.io` to confirm both the registry login server and regional data endpoint resolve privately. |
+| `--resource-group` | Searches `$RG` for the ACR private DNS records created by the endpoint integration. |
+| `--zone-name` | Configures the private DNS zone or zone-group label as `privatelink.azurecr.io` on `az network private-dns record-set a list`. |
+| `--output` | Displays login-server and regional data-endpoint A records in a readable verification table. |
+
+
 
 Expected output:
 
@@ -316,7 +349,7 @@ myregistry.koreacentral.data    10     A       False             10.0.2.11
 ```
 
 !!! note "Data endpoint DNS record is registered automatically"
-    When you create the `registry` group Private Endpoint and attach a DNS zone group, Azure automatically registers **both** A records — the login server record (`myregistry`) and the regional data endpoint record (`myregistry.<region>.data`) — in the same `privatelink.azurecr.io` zone. A separate data endpoint Private Endpoint is **not required** for standard image pulls from Container Apps. The explicit `registry_data_<region>` PE is only needed when you require independent network control per endpoint (e.g., for geo-replication scenarios where each replica region gets its own PE).
+    When you create the `registry` group private endpoint and attach a DNS zone group, Azure registers the login server record (`myregistry`) and each regional data endpoint record (`myregistry.<region>.data`) in the same `privatelink.azurecr.io` zone. Each geo-replica adds a data-endpoint IP configuration to that private endpoint; do not create a separate private endpoint for it.
 
 ## Step 6: Build and push the image
 
@@ -341,7 +374,14 @@ docker push "${ACR_NAME}.azurecr.io/myapp:latest"
 
 | Command | Why it is used |
 |---|---|
-| `az acr build ...` | Builds and pushes the container image to Azure Container Registry. |
+| `az acr build` | Runs the Dockerfile build in ACR and publishes `myapp:latest` without a local Docker daemon. |
+| `az acr login` | Authenticates Docker to `$ACR_NAME` before the local image push. |
+| `az acr build --registry` | Sends the remote Docker build to `$ACR_NAME`, where `myapp:latest` will be stored. |
+| `az acr build --image` | Names `myapp:latest` as the repository tag produced by the remote build. |
+| `az acr build --file` | Selects `Dockerfile` as the build instructions applied to the `../app` context. |
+| `az acr login --name` | Targets `$ACR_NAME` for local registry authentication and local Azure authentication. |
+
+
 
 !!! warning "CI/CD runners must have network line-of-sight"
     When ACR public access is disabled, GitHub-hosted runners **cannot push images** to the registry. Use **ACR Tasks** or a **self-hosted runner inside the VNet**.
@@ -358,8 +398,14 @@ docker push "${ACR_NAME}.azurecr.io/myapp:latest"
     ```
 
     | Command | Why it is used |
-    |---|---|
-    | `az acr update --name ...` | Runs the Azure CLI operation required by the documented step. |
+    | --- | --- |
+    | `az acr update` | Temporarily enables and then disables `$ACR_NAME`'s public endpoint around the remote build. |
+    | `az acr build` | Queues the temporary-public-access build that publishes `myapp:latest` into the registry. |
+    | `az acr update --name` | Selects `$ACR_NAME` for the temporary public-access window surrounding the remote build. |
+    | `az acr update --public-network-enabled` | Configures the registry public network access as `true`, `false` on `az acr update`. |
+    | `az acr build --registry` | Queues the temporary-public-access build in `$ACR_NAME` rather than another registry. |
+    | `az acr build --image` | Tags the build result as `myapp:latest` before public access is disabled again. |
+    | `az acr build --file` | Uses `Dockerfile` from the `../app` context during the temporary access window. |
 
     For production pipelines, prefer a **self-hosted runner or build agent inside the VNet** to avoid toggling public access.
 
@@ -384,7 +430,19 @@ az containerapp create \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp create ...` | Creates the Container App with the documented image, ingress, scale, and environment settings. |
+| `az containerapp create` | Deploys `$APP_NAME` from the private ACR image with the pull identity attached at creation time. |
+| `--name` | Names the private-image Container App `$APP_NAME` for subsequent DNS and revision checks. |
+| `--resource-group` | Creates `$APP_NAME` in `$RG`, which contains the environment and identity dependencies. |
+| `--environment` | Deploys the private-image app into `$ACA_ENV_NAME`. |
+| `--image` | Starts the new app from the fully qualified private-registry image. |
+| `--registry-server` | Configures the registry login server as `${ACR_NAME}.azurecr.io` on `az containerapp create`. |
+| `--registry-identity` | Configures the identity used to pull from the registry as `$UAMI_ID` on `az containerapp create`. |
+| `--user-assigned` | Enables the user-assigned identity on the resource modified by `az containerapp create`. |
+| `--env-vars` | Configures the env vars as `AZURE_CLIENT_ID=$UAMI_CLIENT_ID` on `az containerapp create`. |
+| `--ingress` | Configures the ingress exposure mode as `external` on `az containerapp create`. |
+| `--target-port` | Configures the application port receiving ingress traffic as `8000` on `az containerapp create`. |
+
+
 
 For an **existing** app, update registry config:
 
@@ -398,7 +456,13 @@ az containerapp registry set \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp registry set ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp registry set` | Associates the ACR login server and user-assigned identity with `$APP_NAME` for authenticated pulls. |
+| `--name` | Selects `$APP_NAME` as the app receiving the managed-identity registry credential. |
+| `--resource-group` | Locates `$APP_NAME` in `$RG` before changing its registry authentication settings. |
+| `--server` | Configures the server as `${ACR_NAME}.azurecr.io` on `az containerapp registry set`. |
+| `--identity` | Configures the managed identity used by the operation as `$UAMI_ID` on `az containerapp registry set`. |
+
+
 
 Then update the image:
 
@@ -411,7 +475,12 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Creates a new `$APP_NAME` revision from `myapp:latest` after registry authentication is configured. |
+| `--name` | Targets `$APP_NAME`, which receives the image from the private registry. |
+| `--resource-group` | Finds `$APP_NAME` in `$RG` before replacing its image with the ACR build. |
+| `--image` | Creates a revision that pulls `myapp:latest` through the managed-identity registry configuration. |
+
+
 
 !!! important "Control-plane success ≠ runtime success"
     `az containerapp update --image` updates the **app spec** successfully even when the registry is unreachable. The **revision** will fail to start if DNS resolution or RBAC is wrong. Always check revision status and logs after an image update.
@@ -429,7 +498,12 @@ az containerapp exec \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp exec ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp exec` | Opens a process in `$APP_NAME` to test registry login-server DNS resolution. |
+| `--name` | Targets `$APP_NAME`, where login-server DNS is tested. |
+| `--resource-group` | Scopes the login-server DNS test to the app in `$RG`. |
+| `--command` | Resolves `${ACR_NAME}.azurecr.io` from the app to verify the private login-server path. |
+
+
 
 Expected — private IP, not public:
 
@@ -454,7 +528,12 @@ az containerapp exec \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp exec ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp exec` | Opens a process in `$APP_NAME` to test the regional registry data endpoint. |
+| `--name` | Targets `$APP_NAME`, where regional data-endpoint DNS is tested. |
+| `--resource-group` | Scopes the data-endpoint DNS test to the app in `$RG`. |
+| `--command` | Resolves the regional data endpoint from the app to verify private layer-download DNS. |
+
+
 
 ### Check revision status
 
@@ -467,7 +546,12 @@ az containerapp revision list \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+| `az containerapp revision list` | Lists `$APP_NAME` revisions to verify the private image produced a healthy, running revision. |
+| `--name` | Selects `$APP_NAME` whose private-image revision state is being verified. |
+| `--resource-group` | Finds the deployed app in `$RG` for the post-pull revision check. |
+| `--output` | Shows revision health, replica count, and traffic columns after the private image deployment. |
+
+
 
 Expected:
 
@@ -489,7 +573,13 @@ az containerapp logs show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Collects the latest `$APP_NAME` log lines to diagnose private-registry pull or startup failures. |
+| `--name` | Targets `$APP_NAME`, whose logs reveal private-registry pull failures. |
+| `--resource-group` | Locates `$APP_NAME` in `$RG` for private-registry failure log collection. |
+| `--follow` | Returns the current diagnostic snapshot instead of waiting for additional log entries. |
+| `--tail` | Configures the tail as `50` on `az containerapp logs show`. |
+
+
 
 ---
 
@@ -583,7 +673,7 @@ myregistry.koreacentral.data.azurecr.io
 myregistry.japaneast.data.azurecr.io
 ```
 
-Each requires a separate Private Endpoint and DNS A record in `privatelink.azurecr.io`. The login server endpoint (`myregistry.azurecr.io`) remains a single endpoint.
+Each geo-replica adds a regional data-endpoint IP configuration to the existing `registry` private endpoint. Private DNS integration adds the corresponding A record in `privatelink.azurecr.io`; if DNS is managed manually, add one record per replica data endpoint. The login server endpoint (`myregistry.azurecr.io`) remains a single endpoint.
 
 ---
 
@@ -610,5 +700,7 @@ Each requires a separate Private Endpoint and DNS A record in `privatelink.azure
 
 ## Sources
 - [ACR Private Link (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-link)
+- [ACR dedicated data endpoints (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-dedicated-data-endpoints)
 - [Managed identity for Container Apps registry auth (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
 - [ACR authentication as ARM (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication-managed-identity)
+- [ACR permissions and role assignments (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-built-in-roles-overview)

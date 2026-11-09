@@ -16,12 +16,28 @@ Use Flask middleware to parse `X-Forwarded-Client-Cert`, validate the forwarded 
 <!-- diagram-id: flask-xfcc-validation-flow -->
 ```mermaid
 flowchart TD
-    Client[Client certificate] --> Ingress[ACA ingress]
-    Ingress --> Header[X-Forwarded-Client-Cert]
-    Header --> Flask[Flask middleware]
-    Flask --> Policy[CN or thumbprint allowlist]
-    Flask --> Outbound[Dapr invoke or direct httpx call]
+    accTitle: Authorize a forwarded client certificate in Flask
+    accDescr: A client presents a certificate during TLS. Container Apps ingress requires or accepts it and forwards certificate fields in X-Forwarded-Client-Cert. Flask parses only the forwarded leaf certificate and allows its SHA-256 thumbprint or common name when either value appears in the configured allowlist; it does not validate the certificate chain.
+
+    CLIENT[Client with certificate]
+    INGRESS[Managed ingress<br/>require or accept mode]
+    XFCC[X-Forwarded-Client-Cert<br/>Hash, Cert, and Chain]
+    PARSE[Flask middleware<br/>parse forwarded fields]
+    VALIDATE[Check leaf thumbprint or CN<br/>against the allowlists]
+    ALLOW[Serve protected route]
+    DENY[Return 403]
+
+    CLIENT ==>|TLS with client certificate| INGRESS
+    INGRESS ==>|Request with XFCC header| XFCC
+    XFCC --> PARSE
+    PARSE --> VALIDATE
+    VALIDATE -->|Allowlist match| ALLOW
+    VALIDATE -->|No allowlist match| DENY
 ```
+
+Thick arrows show request transport. The decision remains in the application: certificate presentation and forwarding alone do not prove that the caller satisfies your authorization policy.
+
+This example parses only the forwarded leaf certificate and compares its SHA-256 thumbprint or subject common name with application allowlists. It does **not** validate the issuer or chain, validity period, extended key usage, revocation status, or a CA trust store. Use thumbprints for the stronger of the two demonstrated identity checks; a common name alone is not proof of a trusted certificate chain.
 
 ## Prerequisites
 
@@ -40,8 +56,8 @@ httpx==0.28.1
 
 ## What You'll Build
 
-- A Flask `before_request` hook that extracts the leaf PEM from `X-Forwarded-Client-Cert`.
-- Certificate validation against an allowlist of thumbprints or common names.
+- A Flask `before_request` hook that extracts the forwarded leaf PEM from `X-Forwarded-Client-Cert`.
+- Certificate validation against a SHA-256 thumbprint allowlist. The CN example is an application policy check, not full certificate-chain validation.
 - Two outbound patterns:
     - Dapr service invocation through `localhost:3500`
     - Direct internal call with `httpx`
@@ -161,7 +177,12 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Writes the allowed certificate identities and backend routing targets into a new `$APP_NAME` revision. |
+| `--name` | Targets `$APP_NAME`, whose client-certificate allowlists are being configured. |
+| `--resource-group` | Scopes the allowlist update to `$RG`, where `$APP_NAME` is deployed. |
+| `--set-env-vars` | Configures the environment variables written to the workload as `ALLOWED_CERT_COMMON_NAMES=api-client.contoso.com,partner-gateway.contoso.com`, `ALLOWED_CERT_THUMBPRINTS=`, `DIRECT_BACKEND_URL=http://ca-backend`, `DAPR_TARGET_APP_ID=backend` on `az containerapp update`. |
+
+
 
 ### 3. Test from outside the app
 

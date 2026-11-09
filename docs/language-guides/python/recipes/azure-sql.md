@@ -17,15 +17,25 @@ Use this recipe to connect Azure Container Apps to Azure SQL Database with Micro
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Container App]
-    APP --> SQL[Azure SQL Database]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> SQL
+    accTitle: Passwordless Python access to Azure SQL
+    accDescr: A client request reaches the Python app through managed ingress. The app obtains a token for Azure SQL through its managed identity and Microsoft Entra ID before opening the database connection.
+
+    CLIENT[Client]
+    INGRESS[Managed ingress]
+    APP[Python container app]
+    IDENTITY[Managed identity]
+    ENTRA[Microsoft Entra ID]
+    SQL[Azure SQL Database]
+
+    CLIENT ==>|HTTPS request| INGRESS
+    INGRESS ==>|Routed request| APP
+    APP -.->|Uses| IDENTITY
+    IDENTITY -->|Requests SQL token| ENTRA
+    ENTRA -->|Issues access token| APP
+    APP ==>|Encrypted SQL connection<br/>with access token| SQL
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+Thick arrows show request or database transport. Thin arrows show token exchange, and the dotted arrow shows the identity association.
 
 ## Prerequisites
 
@@ -51,7 +61,15 @@ export PRINCIPAL_ID=$(az containerapp show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity assign` | Enables the system-assigned identity that the Python app uses to request an Azure SQL access token. |
+| `az containerapp show` | Reads that identity's principal ID so an Azure SQL contained user can be created for the app. |
+| `--name` | Targets `$APP_NAME`, whose identity will authenticate to the Azure SQL database. |
+| `--resource-group` | Locates `$APP_NAME` in `$RG` for both identity commands. |
+| `az containerapp identity assign --system-assigned` | Attaches a platform-managed identity to the app for passwordless Azure SQL authentication. |
+| `az containerapp show --query` | Selects `identity.principalId`, the identifier associated with the database user grant. |
+| `az containerapp show --output` | Emits only the principal ID as tab-separated text for `PRINCIPAL_ID`. |
+
+
 
 ## Step 2: Grant SQL database access to the app identity
 
@@ -74,7 +92,12 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Writes the Azure SQL server and database names into the revision used by the passwordless Python client. |
+| `--name` | Targets `$APP_NAME`, which receives the Azure SQL server and database settings. |
+| `--resource-group` | Scopes the SQL configuration update to `$RG`, where `$APP_NAME` is deployed. |
+| `--set-env-vars` | Configures the environment variables written to the workload as `SQL_SERVER=$SQL_SERVER.database.windows.net`, `SQL_DATABASE=$SQL_DATABASE` on `az containerapp update`. |
+
+
 
 ## Step 4: Python code (token-based SQL connection)
 
@@ -136,7 +159,13 @@ az containerapp show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Returns `$APP_NAME` identity configuration to confirm the system-assigned principal remains enabled for Azure SQL authentication. |
+| `--name` | Targets `$APP_NAME`, whose managed identity must match the Azure SQL user. |
+| `--resource-group` | Scopes the identity lookup to `$RG`, where the SQL-enabled app is deployed. |
+| `--query` | Narrows the response to the identity that Azure SQL maps to the contained database user. |
+| `--output` | Shows the identity type and principal identifiers as JSON for comparison with the SQL user. |
+
+
 
 2. Verify runtime connectivity by checking application logs:
 
@@ -149,7 +178,12 @@ az containerapp logs show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Retrieves `$APP_NAME` runtime logs to check for successful SQL connections or token and ODBC errors. |
+| `--name` | Targets `$APP_NAME`, whose logs reveal Azure SQL connection attempts. |
+| `--resource-group` | Scopes log retrieval to `$RG`, where the SQL-enabled app is deployed. |
+| `--follow` | Uses `false` to inspect Azure SQL connection activity. |
+
+
 
 3. Confirm SQL sign-ins in Azure SQL auditing/logs.
 

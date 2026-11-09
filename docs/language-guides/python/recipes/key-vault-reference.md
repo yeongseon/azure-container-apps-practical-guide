@@ -15,14 +15,28 @@ Use managed identity and Key Vault references so your Python app receives secret
 <!-- diagram-id: use-managed-identity-and-key-vault -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Container App]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> KV[Azure Key Vault]
-    KV -.-> SEC["Secrets (env vars)"]
-    SEC -.-> APP
+    accTitle: Resolve a Key Vault-backed Container Apps secret
+    accDescr: A Container Apps secret stores a Key Vault URL and identity reference. The platform uses the app identity and its Key Vault role assignment to resolve the value, then injects the referenced secret into the Python container as an environment variable.
+
+    APP_ID[App managed identity]
+    KV[Azure Key Vault]
+
+    APP[Container app]
+    CONFIG[Secret definition<br/>Key Vault URL and identity reference]
+    ENVVAR[Environment variable<br/>secretRef]
+    PYTHON[Python container]
+
+    APP -->|Contains| CONFIG
+    APP -->|Runs| PYTHON
+    CONFIG -.->|Uses| APP_ID
+    APP_ID -.->|Key Vault role assignment| KV
+    CONFIG ==>|Platform resolves secret| KV
+    KV ==>|Secret value| CONFIG
+    CONFIG -->|Binds secretRef| ENVVAR
+    ENVVAR -->|Injected at startup| PYTHON
 ```
+
+Thick arrows show secret resolution. Thin and dotted arrows show configuration, identity, and authorization associations.
 
 ## Prerequisites
 
@@ -36,7 +50,11 @@ az extension add --name containerapp --upgrade
 
 | Command | Why it is used |
 |---|---|
-| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+| `az extension add` | Installs the Container Apps commands used to bind a Key Vault reference to an app secret. |
+| `--name` | Chooses the `containerapp` extension that supplies secret-reference management. |
+| `--upgrade` | Refreshes that extension so Key Vault reference parameters are available. |
+
+
 
 ## Create Key Vault and add secrets
 
@@ -54,7 +72,15 @@ az keyvault secret set \
 
 | Command | Why it is used |
 |---|---|
-| `az keyvault create ...` | Creates or inspects Key Vault resources used by managed identity or secret references. |
+| `az keyvault create` | Creates `$KEYVAULT_NAME` with RBAC authorization as the source for the referenced application secret. |
+| `az keyvault secret set` | Creates the `db-password` value that the Container App secret reference will resolve at runtime. |
+| `--name` | Targets `$KEYVAULT_NAME`, `db-password` for Key Vault secret creation, Key Vault creation and application secret binding. |
+| `az keyvault create --resource-group` | Creates `$KEYVAULT_NAME` in `$RG` with the app and its identity dependencies. |
+| `az keyvault create --location` | Configures the Azure deployment region as `$LOCATION` on `az keyvault create`. |
+| `az keyvault secret set --vault-name` | Configures the vault name as `$KEYVAULT_NAME` on `az keyvault secret set`. |
+| `az keyvault secret set --value` | Configures the secret value as `replace-with-real-value` on `az keyvault secret set`. |
+
+
 
 ## Configure managed identity for Key Vault access
 
@@ -79,7 +105,21 @@ az role assignment create \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity assign` | Enables the system identity used by `$APP_NAME` to resolve the Key Vault reference. |
+| `az containerapp show` | Retrieves the app principal that will be authorized to resolve Key Vault secret references. |
+| `az role assignment create` | Grants `$APP_NAME`'s principal permission to read secret values from the selected vault. |
+| `az keyvault show` | Extracts the resource ID of `$KEYVAULT_NAME` for use as the `Key Vault Secrets User` role-assignment scope. |
+| `--name` | Targets `$APP_NAME`, `$KEYVAULT_NAME` for workload identity assignment, Key Vault scope lookup and Container App property inspection. |
+| `--resource-group` | Scopes workload identity assignment and Container App property inspection to `$RG`. |
+| `az containerapp identity assign --system-assigned` | Enables the system-assigned identity on the resource modified by `az containerapp identity assign`. |
+| `--query` | Extracts `identity.principalId`, `id` from `az containerapp show` and `az keyvault show` output. |
+| `--output` | Produces shell-ready principal and vault IDs for constructing the permission grant. |
+| `az role assignment create --assignee-object-id` | Names the app's system principal as the recipient of secret-reading access. |
+| `az role assignment create --assignee-principal-type` | Configures the role-assignment principal type as `ServicePrincipal` on `az role assignment create`. |
+| `az role assignment create --role` | Permits the Container App identity to read secret values without granting vault administration rights. |
+| `az role assignment create --scope` | Binds secret-reading permission to the vault ID returned by the nested lookup. |
+
+
 
 ## Add a Container Apps secret with Key Vault reference
 
@@ -105,7 +145,14 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+| `az containerapp secret set` | Stores a Key Vault-backed `db-password` reference that resolves through the app's system identity. |
+| `az containerapp update` | Maps `DB_PASSWORD` to the new Container Apps secret reference in the workload revision. |
+| `--name` | Targets `$APP_NAME` for application secret binding and workload configuration update. |
+| `--resource-group` | Scopes application secret binding and workload configuration update to `$RG`. |
+| `az containerapp secret set --secrets` | Configures the secret values stored on the workload as `db-password=keyvaultref:https://$KEYVAULT_NAME.vault.azure.net/secrets/db-password,identityref:system` on `az containerapp secret set`. |
+| `az containerapp update --set-env-vars` | Configures the environment variables written to the workload as `DB_PASSWORD=secretref:db-password` on `az containerapp update`. |
+
+
 
 ## Access referenced secrets in Python
 
@@ -180,7 +227,12 @@ az containerapp logs show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Collects `$APP_NAME` logs that show whether the Key Vault-backed password resolved successfully. |
+| `--name` | Targets `$APP_NAME`, whose logs reveal Key Vault reference resolution. |
+| `--resource-group` | Scopes Key Vault reference log retrieval to `$RG`. |
+| `--follow` | Returns the current secret-resolution evidence without streaming future log entries. |
+
+
 
 ## Advanced Topics
 
