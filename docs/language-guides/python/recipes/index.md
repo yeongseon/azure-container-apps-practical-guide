@@ -1,4 +1,5 @@
 ---
+description: Practical Python integration recipes for Azure Container Apps, covering identity, data services, networking, deployment, and operations patterns.
 content_sources:
   diagrams:
     - id: integration-dependency-map
@@ -23,10 +24,14 @@ az extension add --name containerapp --upgrade
 az login
 ```
 
-| Command | Purpose |
+| Command | Why it is used |
 |---|---|
-| `az extension add --name containerapp --upgrade` | Ensures the Container Apps CLI extension is installed and current before you run any Python recipe commands. |
-| `az login` | Starts an authenticated Azure CLI session so the recipe commands can read and update your Azure resources. |
+| `az extension add` | Installs or updates the Container Apps extension before any recipe commands are run. |
+| `az login` | Opens an interactive Azure sign-in so subsequent recipe commands use the intended subscription context. |
+| `az extension add --name` | Selects the `containerapp` extension that supplies commands used throughout these recipes. |
+| `az extension add --upgrade` | Updates an existing `containerapp` installation instead of leaving an older version in place. |
+
+
 
 ## Recipe Catalog
 
@@ -59,18 +64,42 @@ These recipes are intentionally task-oriented: each page solves a specific produ
 <!-- diagram-id: integration-dependency-map -->
 ```mermaid
 flowchart TD
-    BASE[Baseline app deployed<br/>Steps 01-07] --> ID[Managed Identity]
-    BASE --> REV[Revision Validation]
-    ID --> KV[Key Vault Reference]
-    ID --> COSMOS[Cosmos DB]
-    ID --> SQL[Azure SQL]
-    ID --> ACR[Container Registry]
-    BASE --> REDIS[Redis]
-    BASE --> STORAGE[Storage]
-    STORAGE --> BYOS[Bring Your Own Storage]
-    BASE --> DAPR[Dapr Integration]
-    REV --> DOMAIN[Custom Domains]
+    accTitle: Select Python recipes by prerequisite
+    accDescr: Begin with a deployed baseline app. Add managed identity before passwordless data and secret integrations, add image construction before private registry deployment, and enable multiple revisions before validation. Storage, Dapr, authentication, domains, mTLS, and jobs branch from their own platform prerequisites.
+
+    BASE[Baseline Python app deployed]
+    IMAGE[Custom image and<br/>native dependencies]
+    IDENTITY[Managed identity]
+    REVISIONS[Multiple revisions]
+    STORAGE[Storage choice]
+    ACR[Private container registry]
+    DATA[Azure SQL, Cosmos DB,<br/>Redis, Blob Storage]
+    KV[Key Vault references]
+    VALIDATE[Revision validation]
+    FILES[Azure Files mount]
+    DAPR[Dapr integration]
+    AUTH[Built-in authentication]
+    DOMAIN[Custom domain]
+    MTLS[mTLS client certificates]
+    JOBS[Finite-duration jobs]
+
+    BASE --> IMAGE
+    BASE --> IDENTITY
+    BASE --> REVISIONS
+    BASE --> STORAGE
+    IMAGE --> ACR
+    IDENTITY --> DATA
+    IDENTITY --> KV
+    REVISIONS --> VALIDATE
+    STORAGE --> FILES
+    BASE --> DAPR
+    BASE --> AUTH
+    BASE --> DOMAIN
+    BASE --> MTLS
+    BASE --> JOBS
 ```
+
+Arrows show prerequisite order, not runtime request flow.
 
 !!! warning "Apply prerequisites before recipe commands"
     Most recipe failures come from missing baseline resources or missing role assignments. Confirm `$RG`, `$APP_NAME`, `$ACA_ENV_NAME`, and (when needed) `$ACR_NAME` are already set and valid in your current subscription context before you run recipe commands.
@@ -118,7 +147,13 @@ az containerapp show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Returns `$APP_NAME`, its provisioning state, and running status for the recipe-level health check. |
+| `--name` | Targets `$APP_NAME`, whose provisioning and revision health are being checked. |
+| `--resource-group` | Scopes the health lookup to `$RG`, where the selected app is deployed. |
+| `--query` | Limits the pre-recipe health snapshot to the app name, provisioning state, and running status. |
+| `--output` | Emits the three health fields as JSON so their names and values remain visible. |
+
+
 
 ## See Also
 

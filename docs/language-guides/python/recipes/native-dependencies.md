@@ -15,13 +15,28 @@ Handle Python packages with compiled/native components by installing required sy
 <!-- diagram-id: handle-python-packages-with-compiled-native-components -->
 ```mermaid
 flowchart TD
-    REQ["requirements.txt"] --> BUILD["Builder Stage (gcc, libpq-dev)"]
-    BUILD --> WHEELS["Compiled Wheels"]
-    WHEELS --> RUNTIME["Runtime Stage (slim)"]
-    RUNTIME --> IMG[Final Image]
-    IMG --> ACR[Azure Container Registry]
-    ACR --> APP[Container App]
+    accTitle: Package native Python dependencies for Container Apps
+    accDescr: A Linux amd64 builder installs the required compiler and headers and produces wheels. A clean runtime stage installs the wheels and only the shared libraries they need. The tested image is pushed to a registry and pulled into a Container Apps revision.
+
+    REQUIREMENTS[requirements.txt<br/>pinned versions]
+    TOOLCHAIN[Builder stage<br/>compiler and headers]
+    WHEELS[Linux amd64 wheels]
+    LIBS[Runtime shared libraries]
+    RUNTIME[Lean runtime stage]
+    TEST[Import and health tests]
+    REGISTRY[Container registry]
+    REVISION[Container app revision]
+
+    REQUIREMENTS --> TOOLCHAIN
+    TOOLCHAIN --> WHEELS
+    WHEELS --> RUNTIME
+    LIBS --> RUNTIME
+    RUNTIME --> TEST
+    TEST ==>|Push tested image| REGISTRY
+    REGISTRY ==>|Image pull| REVISION
 ```
+
+Thick arrows show image transport. Thin arrows show build inputs and artifacts. Container Apps runs the resulting Linux amd64 image; dependency compilation happens during the image build, not on the platform.
 
 ## Prerequisites
 

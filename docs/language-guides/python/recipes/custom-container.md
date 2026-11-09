@@ -15,13 +15,29 @@ Build production-ready Python container images that start quickly, stay small, a
 <!-- diagram-id: build-production-ready-python-container-images-that -->
 ```mermaid
 flowchart TD
-    SRC[Source Code] --> BUILD["Docker Build (Multi-stage)"]
-    BUILD --> IMG[Container Image]
-    IMG --> ACR[Azure Container Registry]
-    ACR --> APP[Container App]
-    APP --> I[Container Apps Ingress]
-    I --> C[Client]
+    accTitle: Build and run a custom Python container image
+    accDescr: Source and pinned dependencies enter a multi-stage build. The builder produces wheels, the runtime stage creates a Linux amd64 image, the registry stores it, and Container Apps pulls the immutable tag to create a revision with probes and ingress.
+
+    SOURCE[Python source]
+    DEPS[Pinned dependencies]
+    BUILDER[Builder stage<br/>toolchain and wheels]
+    RUNTIME[Runtime stage<br/>non-root process]
+    IMAGE[Linux amd64 image<br/>unique tag]
+    REGISTRY[Container registry]
+    REVISION[Container app revision<br/>resources and probes]
+    INGRESS[Managed ingress]
+
+    SOURCE --> BUILDER
+    DEPS --> BUILDER
+    BUILDER -->|Copies wheels| RUNTIME
+    SOURCE -->|Copies app files| RUNTIME
+    RUNTIME --> IMAGE
+    IMAGE ==>|Push| REGISTRY
+    REGISTRY ==>|Image pull| REVISION
+    INGRESS ==>|Routed requests| REVISION
 ```
+
+Thick arrows show image or request transport. Thin arrows show build inputs and artifacts.
 
 ## Prerequisites
 
@@ -37,7 +53,12 @@ az acr login --name "$ACR_NAME"
 
 | Command | Why it is used |
 |---|---|
-| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+| `az extension add` | Makes the Container Apps deployment commands available before publishing the custom image. |
+| `az acr login` | Authenticates the local Docker client to `$ACR_NAME` before the image push. |
+| `--name` for `az extension add` and `az acr login` | Selects the `containerapp` extension needed for deployment commands and `$ACR_NAME` as the registry receiving the custom image. |
+| `az extension add --upgrade` | Replaces an older Container Apps extension with its latest available release. |
+
+
 
 ## Multi-stage Docker builds for Python
 

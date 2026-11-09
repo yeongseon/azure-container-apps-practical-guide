@@ -15,14 +15,24 @@ Use managed identity and `DefaultAzureCredential` to access Azure services from 
 <!-- diagram-id: use-managed-identity-and-defaultazurecredential-to -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Container App]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> BLOB[Azure Blob Storage]
-    MI -.-> SQL[Azure SQL]
-    MI -.-> KV[Azure Key Vault]
+    accTitle: Use DefaultAzureCredential with a Container Apps managed identity
+    accDescr: The Python SDK requests a token through DefaultAzureCredential. In Container Apps it uses the assigned managed identity; Microsoft Entra ID issues a resource-specific token, and the target service authorizes the operation through its data-plane permissions.
+
+    APP[Python container app]
+    SDK[Azure SDK client<br/>DefaultAzureCredential]
+    IDENTITY[System-assigned or<br/>user-assigned identity]
+    ENTRA[Microsoft Entra ID]
+    SERVICE[Target Azure service]
+
+    APP -->|Calls| SDK
+    SDK -.->|Uses in Azure| IDENTITY
+    IDENTITY -->|Requests resource token| ENTRA
+    ENTRA -->|Issues access token| SDK
+    IDENTITY -.->|Data-plane permission| SERVICE
+    SDK ==>|Service request with token| SERVICE
 ```
+
+Thick arrows show service transport. Thin arrows show token exchange, and dotted arrows show credential and authorization associations.
 
 ## Prerequisites
 
@@ -34,9 +44,13 @@ flowchart TD
 az extension add --name containerapp --upgrade
 ```
 
-| Command | Purpose |
+| Command | Why it is used |
 |---|---|
-| `az extension add --name containerapp --upgrade` | Ensures the Container Apps CLI extension is installed and up to date before you enable managed identities or attach them to the app. |
+| `az extension add` | Adds the Container Apps identity commands used to attach managed identities to the app. |
+| `--name` | Requests the `containerapp` extension that owns those identity commands. |
+| `--upgrade` | Ensures an existing installation includes the latest managed-identity options. |
+
+
 
 ## System-assigned vs user-assigned identity
 
@@ -56,9 +70,14 @@ az containerapp identity assign \
   --system-assigned
 ```
 
-| Command | Purpose |
+| Command | Why it is used |
 |---|---|
-| `az containerapp identity assign --name "$APP_NAME" --resource-group "$RG" --system-assigned` | Enables a system-assigned managed identity on the Python app so it can authenticate to Azure services without embedded secrets. |
+| `az containerapp identity assign` | Assigns the Container App identity to enable a system-assigned identity. |
+| `--name` | Selects `$APP_NAME` as the workload receiving the system-managed principal. |
+| `--resource-group` | Finds `$APP_NAME` in `$RG` before enabling its system identity. |
+| `--system-assigned` | Enables the system-assigned identity on the resource modified by `az containerapp identity assign` to enable a system-assigned identity. |
+
+
 
 User-assigned:
 
@@ -82,7 +101,17 @@ az containerapp identity assign \
 
 | Command | Why it is used |
 |---|---|
-| `az identity create ...` | Creates a user-assigned managed identity for image pulls or runtime access. |
+| `az identity create` | Provisions `id-$APP_NAME` as a reusable identity that can be attached to the Container App. |
+| `az identity show` | Returns `id-$APP_NAME`'s resource ID so that exact identity can be attached to the app. |
+| `az containerapp identity assign` | Assigns the Container App identity to attach a user-assigned identity. |
+| `--name` | Targets `id-$APP_NAME`, `$APP_NAME` for user-assigned identity creation, managed-identity property lookup and workload identity assignment. |
+| `--resource-group` | Scopes user-assigned identity creation, managed-identity property lookup and workload identity assignment to `$RG`. |
+| `az identity create --location` | Configures the Azure deployment region as `$LOCATION` on `az identity create`. |
+| `az identity show --query` | Extracts `id-$APP_NAME`'s full resource ID for the subsequent `--user-assigned` attachment. |
+| `az identity show --output` | Stores that resource ID as plain text in `UAMI_ID`. |
+| `az containerapp identity assign --user-assigned` | Enables the user-assigned identity on the resource modified by `az containerapp identity assign`. |
+
+
 
 ## Enable identity via Bicep
 
@@ -127,7 +156,19 @@ az role assignment create \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Obtains the app's system identity principal for the Blob reader grant. |
+| `az role assignment create` | Grants `$PRINCIPAL_ID` read-only Blob data access at the nested storage-account scope. |
+| `az storage account show` | Retrieves `$STORAGE_ACCOUNT`'s resource ID to scope the Blob reader assignment. |
+| `--name` | Targets `$APP_NAME`, `$STORAGE_ACCOUNT` for storage account scope lookup and Container App property inspection. |
+| `--resource-group` | Scopes storage account scope lookup and Container App property inspection to `$RG`. |
+| `--query` | Extracts `identity.principalId`, `id` from `az containerapp show` and `az storage account show` output. |
+| `--output` | Converts both IDs to scalar text suitable for shell substitution. |
+| `az role assignment create --assignee-object-id` | Configures the principal receiving the role as `$PRINCIPAL_ID` on `az role assignment create` to grant the identity access to Blob Storage. |
+| `az role assignment create --assignee-principal-type` | Configures the role-assignment principal type as `ServicePrincipal` on `az role assignment create` to grant the identity access to Blob Storage. |
+| `az role assignment create --role` | Gives the app read-only access to blob data while excluding write and account-management permissions. |
+| `az role assignment create --scope` | Uses the nested storage-account lookup to confine the reader grant to `$STORAGE_ACCOUNT`. |
+
+
 
 ## Use `DefaultAzureCredential` in Python
 
@@ -174,7 +215,12 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Supplies the Blob account URL and container name to the managed-identity sample workload. |
+| `--name` | Targets `$APP_NAME`, which receives the Blob endpoint settings. |
+| `--resource-group` | Scopes the managed-identity Blob sample update to `$RG`. |
+| `--set-env-vars` | Configures the environment variables written to the workload as `STORAGE_ACCOUNT_URL=https://$STORAGE_ACCOUNT.blob.core.windows.net`, `STORAGE_CONTAINER=app-data` on `az containerapp update`. |
+
+
 
 ## Common service patterns
 
@@ -193,7 +239,11 @@ python -m flask --app src.app run --port 8000
 
 | Command | Why it is used |
 |---|---|
-| `az login ...` | Authenticates the CLI session before Azure resource operations. |
+| `az login` | Authenticates the local developer before `DefaultAzureCredential` requests an Azure CLI token. |
+| `az account set` | Selects `<subscription-id>` as the subscription whose Azure CLI credential `DefaultAzureCredential` uses during local development. |
+| `az account set --subscription` | Configures the subscription as `<subscription-id>` on `az account set`. |
+
+
 
 `DefaultAzureCredential` will use Azure CLI token locally and managed identity in Container Apps.
 

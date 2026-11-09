@@ -17,15 +17,26 @@ Use this recipe to connect a Python Container App to Azure Cosmos DB (NoSQL) wit
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Container App]
-    APP --> COSMOS[Azure Cosmos DB]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> COSMOS
+    accTitle: Passwordless Python access to Azure Cosmos DB
+    accDescr: A client request reaches the Python app through managed ingress. The app obtains a data-plane token through its managed identity and Microsoft Entra ID, and Azure Cosmos DB authorizes the operation through its data-plane role assignment.
+
+    CLIENT[Client]
+    INGRESS[Managed ingress]
+    APP[Python container app]
+    IDENTITY[Managed identity]
+    ENTRA[Microsoft Entra ID]
+    COSMOS[Azure Cosmos DB for NoSQL]
+
+    CLIENT ==>|HTTPS request| INGRESS
+    INGRESS ==>|Routed request| APP
+    APP -.->|Uses| IDENTITY
+    IDENTITY -->|Requests Cosmos DB token| ENTRA
+    ENTRA -->|Issues access token| APP
+    IDENTITY -.->|Data-plane role assignment| COSMOS
+    APP ==>|SDK request with token| COSMOS
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+Thick arrows show request or SDK transport. Thin arrows show token exchange, and dotted arrows show identity and authorization associations.
 
 ## Prerequisites
 
@@ -40,7 +51,11 @@ az extension add --name cosmosdb-preview --upgrade
 
 | Command | Why it is used |
 |---|---|
-| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+| `az extension add` | Installs the Container Apps and Cosmos DB command groups used by this integration workflow. |
+| `--name` | Selects `containerapp` for app management and `cosmosdb-preview` for the Cosmos DB commands used in this workflow. |
+| `--upgrade` | Refreshes both installed extensions so the identity and Cosmos DB command options used in this recipe are current. |
+
+
 
 ## Step 1: Enable managed identity on the Container App
 
@@ -53,7 +68,12 @@ az containerapp identity assign \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity assign` | Enables the system identity that `$APP_NAME` will use for keyless Cosmos DB data access. |
+| `--name` | Selects `$APP_NAME` as the workload receiving the Cosmos DB identity. |
+| `--resource-group` | Finds `$APP_NAME` in `$RG` before enabling its system identity. |
+| `--system-assigned` | Enables the system-assigned identity on the resource modified by `az containerapp identity assign`. |
+
+
 
 Get the managed identity principal ID:
 
@@ -65,9 +85,15 @@ export PRINCIPAL_ID=$(az containerapp show \
   --output tsv)
 ```
 
-| Command | Purpose |
+| Command | Why it is used |
 |---|---|
-| `export PRINCIPAL_ID=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity.principalId" --output tsv)` | Captures the app's managed identity principal ID so the next RBAC assignment can grant Cosmos DB access to the actual runtime identity. |
+| `az containerapp show` | Retrieves the system identity principal that will receive Cosmos DB data-plane access. |
+| `--name` | Targets `$APP_NAME`, whose principal ID receives Cosmos DB access. |
+| `--resource-group` | Scopes the Cosmos DB identity lookup to `$RG`. |
+| `--query` | Selects the app identity's `principalId` for the following role assignment. |
+| `--output` | Emits the principal ID without JSON quoting so it can be stored in `PRINCIPAL_ID`. |
+
+
 
 ## Step 2: Grant Cosmos DB data-plane access
 
@@ -87,7 +113,18 @@ az role assignment create \
 
 | Command | Why it is used |
 |---|---|
-| `az cosmosdb show ...` | Creates or inspects Cosmos DB resources used by the sample app. |
+| `az cosmosdb show` | Retrieves `$COSMOS_ACCOUNT`'s resource ID to define the boundary of the data-plane permission grant. |
+| `az role assignment create` | Grants the app principal Cosmos DB data contributor access at the selected account scope. |
+| `az cosmosdb show --name` | Targets `$COSMOS_ACCOUNT` for Cosmos DB account scope lookup. |
+| `az cosmosdb show --resource-group` | Scopes Cosmos DB account scope lookup to `$RG`. |
+| `az cosmosdb show --query` | Extracts the Cosmos DB account resource ID that becomes the data-contributor assignment scope. |
+| `az cosmosdb show --output` | Writes the account ID as unquoted text for reuse in `COSMOS_ACCOUNT_ID`. |
+| `az role assignment create --assignee-object-id` | Assigns Cosmos DB data access to the Container App's system principal. |
+| `az role assignment create --assignee-principal-type` | Configures the role-assignment principal type as `ServicePrincipal` on `az role assignment create`. |
+| `az role assignment create --role` | Grants the app permission to read and write Cosmos DB items without account keys. |
+| `az role assignment create --scope` | Restricts the data-contributor grant to the selected Cosmos DB account. |
+
+
 
 ## Step 3: Configure endpoint in Container Apps settings
 
@@ -102,7 +139,12 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Writes the Cosmos DB endpoint, database, and container names into a new `$APP_NAME` revision. |
+| `--name` | Targets `$APP_NAME`, which receives the Cosmos DB endpoint settings. |
+| `--resource-group` | Scopes the Cosmos DB configuration update to `$RG`. |
+| `--set-env-vars` | Configures the environment variables written to the workload as `COSMOS_ENDPOINT=https://$COSMOS_ACCOUNT.documents.azure.com:443/`, `COSMOS_DATABASE=$COSMOS_DATABASE`, `COSMOS_CONTAINER=$COSMOS_CONTAINER` on `az containerapp update`. |
+
+
 
 ## Step 4: Python code (passwordless access)
 
@@ -149,7 +191,13 @@ az containerapp show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Returns `$APP_NAME` identity configuration to confirm the principal used for Cosmos DB data-plane access is enabled. |
+| `--name` | Targets `$APP_NAME`, whose Cosmos DB environment settings are verified. |
+| `--resource-group` | Scopes the Cosmos DB settings check to `$RG`. |
+| `--query` | Isolates the complete identity block so the enabled principal can be checked. |
+| `--output` | Preserves the identity type and principal fields in structured JSON for verification. |
+
+
 
 2. Confirm role assignment exists:
 
@@ -162,7 +210,12 @@ az role assignment list \
 
 | Command | Why it is used |
 |---|---|
-| `az role assignment list ...` | Lists Azure RBAC assignments to verify access or diagnose conflicts. |
+| `az role assignment list` | Lists assignments for `$PRINCIPAL_ID` at `$COSMOS_ACCOUNT_ID` to confirm the expected Cosmos DB access grant exists. |
+| `--assignee` | Configures the principal whose assignments are listed as `$PRINCIPAL_ID` on `az role assignment list`. |
+| `--scope` | Filters assignments to the Cosmos DB account rather than unrelated grants for the same principal. |
+| `--output` | Renders matching assignments as a table for a quick role-and-scope check. |
+
+
 
 3. Check app logs for successful read/write operations.
 
@@ -175,7 +228,12 @@ az containerapp logs show \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Retrieves `$APP_NAME` runtime logs to confirm the sample item write and read complete without authorization errors. |
+| `--name` | Targets `$APP_NAME`, whose logs reveal Cosmos DB authorization results. |
+| `--resource-group` | Locates `$APP_NAME` in `$RG` for the Cosmos DB authorization log check. |
+| `--follow` | Returns existing Cosmos DB test logs without holding the terminal open for new entries. |
+
+
 
 ## See Also
 - [Managed Identity](../../../platform/identity-and-secrets/managed-identity.md)

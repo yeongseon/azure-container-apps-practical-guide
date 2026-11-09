@@ -15,12 +15,29 @@ Mount Azure Files into your Python Container App when you need shared, persisten
 <!-- diagram-id: mount-azure-files-into-your-python -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Container App]
-    APP --> VOL["Azure Files Mount (/mnt/shared)"]
-    VOL --> SA[Azure Storage Account]
-    SA -.-> KEY["Storage Account Key"]
+    accTitle: Mount an Azure Files share in a Python container app
+    accDescr: An Azure Files share is registered as environment storage, referenced by an app revision, and mounted into the Python container. New SMB mounts can authenticate with an identity assigned to the Container Apps environment, while storage account keys remain an alternative.
+
+    FILES[Classic Azure Files share]
+    ENV_ID[Environment managed identity<br/>recommended for new SMB mounts]
+
+    ENV[Container Apps environment]
+    STORAGE[Environment storage definition]
+    REVISION[Container app revision]
+    APP[Python container]
+    MOUNT[Mounted path<br/>/mnt/shared]
+
+    ENV_ID -.->|Assigned to| ENV
+    ENV -->|Contains storage definition| STORAGE
+    ENV -->|Hosts| REVISION
+    STORAGE -.->|References share| FILES
+    REVISION -->|Defines volume| STORAGE
+    REVISION -->|Runs| APP
+    APP ==>|Filesystem read and write| MOUNT
+    MOUNT ==>|SMB file operations| FILES
 ```
+
+Thick arrows show file transport. Thin and dotted arrows show configuration and identity associations; the mount identity belongs to the environment, not the app.
 
 ## Prerequisites
 
@@ -35,7 +52,11 @@ az extension add --name containerapp --upgrade
 
 | Command | Why it is used |
 |---|---|
-| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+| `az extension add` | Adds the Container Apps environment storage and volume-mount commands required later in the procedure. |
+| `--name` | Selects `containerapp`, which provides the storage-management command group. |
+| `--upgrade` | Replaces an older `containerapp` extension so the environment-storage and volume options used below are available. |
+
+
 
 ## Create an Azure Files share
 
@@ -54,7 +75,16 @@ export STORAGE_KEY=$(az storage account keys list \
 
 | Command | Why it is used |
 |---|---|
-| `az storage share-rm ...` | Creates or inspects Storage resources used by volume, state, or sample app scenarios. |
+| `az storage share-rm create` | Provisions `aca-shared` as the persistent file share mounted by the Container App. |
+| `az storage account keys list` | Extracts the first key from `$STORAGE_ACCOUNT` for authenticating the Azure Files share creation step. |
+| `--resource-group` | Scopes storage access-key retrieval and Azure Files share creation to `$RG`. |
+| `az storage share-rm create --storage-account` | Places the persistent `aca-shared` file share inside `$STORAGE_ACCOUNT`. |
+| `az storage share-rm create --name` | Names the new Azure Files share `aca-shared` for later environment registration. |
+| `az storage account keys list --account-name` | Selects `$STORAGE_ACCOUNT` as the source of the key used to authenticate the mount. |
+| `az storage account keys list --query` | Extracts the first storage account key used to authenticate the environment-level file mount. |
+| `az storage account keys list --output` | Captures only the key value as text in `STORAGE_KEY`, without the surrounding key object. |
+
+
 
 ## Configure the storage mount in Container Apps
 
@@ -73,7 +103,16 @@ az containerapp env storage set \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp env storage ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp env storage set` | Registers `aca-shared` as `sharedfiles` on `$ACA_ENV_NAME` using the retrieved account key. |
+| `--name` | Targets `$ACA_ENV_NAME` for environment storage definition. |
+| `--resource-group` | Finds `$ACA_ENV_NAME` in `$RG` before registering its `sharedfiles` storage definition. |
+| `--storage-name` | Configures the environment storage definition as `sharedfiles` on `az containerapp env storage set`. |
+| `--azure-file-account-name` | Configures the azure file account name as `$STORAGE_ACCOUNT` on `az containerapp env storage set`. |
+| `--azure-file-account-key` | Configures the azure file account key as `$STORAGE_KEY` on `az containerapp env storage set`. |
+| `--azure-file-share-name` | Configures the azure file share name as `aca-shared` on `az containerapp env storage set`. |
+| `--access-mode` | Configures the access mode as `ReadWrite` on `az containerapp env storage set`. |
+
+
 
 Attach it to the app.
 
@@ -86,7 +125,12 @@ az containerapp update \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Applies `containerapp-with-volume.yaml` to create a revision with the Azure Files volume attached. |
+| `--name` | Targets `$APP_NAME`, which receives the Azure Files volume definition. |
+| `--resource-group` | Scopes the Azure Files volume update to `$RG`. |
+| `--yaml` | Configures the declarative Container Apps configuration file as `containerapp-with-volume.yaml` on `az containerapp update`. |
+
+
 
 Example YAML fragment:
 
@@ -150,7 +194,7 @@ resource storage 'Microsoft.App/managedEnvironments/storages@2023-05-01' = {
 
 ## Performance considerations
 
-- Azure Files adds network latency versus local ephemeral disk.
+- Azure Files adds network latency versus local ephemeral storage.
 - Many small file operations can be slower than blob/object access patterns.
 - Use mounted shares for coordination/state handoff, not high-throughput analytics pipelines.
 
@@ -169,7 +213,7 @@ resource storage 'Microsoft.App/managedEnvironments/storages@2023-05-01' = {
 ## Advanced Topics
 
 - Combine mount access with queue-based processing for resilient workflows.
-- Store storage keys in Key Vault and rotate periodically.
+- Prefer environment managed identity for new SMB mounts. If you use the storage-key alternative, protect and rotate the key.
 - For high-scale binary workloads, prefer Blob SDK over filesystem semantics.
 
 ## See Also

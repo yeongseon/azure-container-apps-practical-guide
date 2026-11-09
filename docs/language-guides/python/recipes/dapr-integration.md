@@ -15,13 +15,34 @@ Azure Container Apps provides native Dapr integration, allowing your Python appl
 <!-- diagram-id: azure-container-apps-aca-provides-native -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Python App]
-    APP <--> DAPR[Dapr Sidecar]
-    DAPR --> STATE[State Store]
-    DAPR --> PUBSUB["Pub/Sub Broker"]
-    DAPR --> SVC[Other Services]
+    accTitle: Use Dapr APIs from a Python container app
+    accDescr: A client request reaches the Python app through managed ingress. The app calls its local Dapr sidecar, which invokes configured state, publish and subscribe, secret, or service-invocation components.
+
+    CLIENT[Client]
+    INGRESS[Managed ingress]
+
+    REPLICA[Container app replica]
+    APP[Python app]
+    DAPR[Dapr sidecar]
+
+    STATE[State store component]
+    BROKER[Publish and subscribe component]
+    SECRET[Secret store component]
+    SERVICE[Target Dapr-enabled app]
+
+    CLIENT ==>|HTTPS request| INGRESS
+    INGRESS -->|Routes to| REPLICA
+    REPLICA -->|Runs| APP
+    REPLICA -->|Runs| DAPR
+    INGRESS ==>|Routed request| APP
+    APP ==>|HTTP or gRPC on localhost| DAPR
+    DAPR ==>|State API| STATE
+    DAPR ==>|Publish or subscribe API| BROKER
+    DAPR ==>|Secrets API| SECRET
+    DAPR ==>|Service invocation| SERVICE
 ```
+
+Thick arrows show application and Dapr API transport. The component resources remain outside the app replica boundary.
 
 ## Enabling Dapr
 
@@ -37,7 +58,13 @@ az containerapp dapr enable \
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp dapr enable ...` | Configures Dapr sidecar settings for the Container App. |
+| `az containerapp dapr enable` | Enables a Dapr sidecar for `my-python-app` and connects it to the service on port `8000`. |
+| `--name` | Targets `my-python-app`, the app receiving the Dapr sidecar configuration. |
+| `--resource-group` | Scopes Dapr enablement to `my-aca-rg`, where `my-python-app` is deployed. |
+| `--dapr-app-id` | Configures the Dapr application identifier as `my-python-service` on `az containerapp dapr enable`. |
+| `--dapr-app-port` | Configures the Dapr sidecar application port as `8000` on `az containerapp dapr enable`. |
+
+
 
 ## How Dapr Works
 
