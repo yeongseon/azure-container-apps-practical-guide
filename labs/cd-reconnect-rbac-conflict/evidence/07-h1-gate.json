@@ -1,5 +1,4 @@
 {
-  "utc_captured": "2026-06-23T12:23:38Z",
   "subscription": "00000000-0000-0000-0000-000000000000",
   "rg": "rg-aca-lab-cd-rbac",
   "acr_name": "acrlabcdrbacmym3wz",
@@ -31,5 +30,6 @@
     "d_reconnect_deployment_failed_with_role_assignment_exists": true
   },
   "h1_all_subgates_pass": true,
-  "gate_classification": "cd_rbac_conflict_reproduced"
+  "gate_classification": "cd_rbac_conflict_reproduced",
+  "evaluated_at_utc": "2026-11-09T13:18:06Z"
 }

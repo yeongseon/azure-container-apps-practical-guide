@@ -3,6 +3,60 @@ set -euo pipefail
 
 export PYTHONWARNINGS="${PYTHONWARNINGS:-ignore}"
 
+if [[ -n "${GATE_REPLAY_BASELINE_DIR:-}" ]]; then
+    EVIDENCE_DIR="$(cd "$(dirname "$0")" && pwd)/evidence"
+    EVALUATED_AT_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    export EVIDENCE_DIR GATE_REPLAY_BASELINE_DIR EVALUATED_AT_UTC
+    python3 <<'PYEOF'
+import json
+import os
+from pathlib import Path
+
+evidence = Path(os.environ["EVIDENCE_DIR"])
+baseline = Path(os.environ["GATE_REPLAY_BASELINE_DIR"])
+stamp = os.environ["EVALUATED_AT_UTC"]
+
+required_raw = (
+    "01-sp-resolve.json", "02-deployment-initial-output.json",
+    "03-role-assignment-list-baseline.json", "04-deployment-reconnect-stderr.txt",
+    "05-deployment-reconnect-failure.json", "06-conflict-guid-extraction.json",
+    "08-deployment-reverify-conflict.txt", "09-role-assignment-pre-delete.json",
+    "10-role-assignment-delete-output.txt", "11-deployment-recovery.json",
+    "12-role-assignment-list-post-recovery.json",
+    "13-role-assignment-list-cardinality-verify.json",
+)
+for name in required_raw:
+    if not (evidence / name).is_file():
+        raise SystemExit(f"missing raw evidence: {name}")
+
+initial = json.loads((evidence / "02-deployment-initial-output.json").read_text())
+failure = json.loads((evidence / "05-deployment-reconnect-failure.json").read_text())
+conflict = json.loads((evidence / "06-conflict-guid-extraction.json").read_text())
+recovery = json.loads((evidence / "11-deployment-recovery.json").read_text())
+pre = json.loads((evidence / "09-role-assignment-pre-delete.json").read_text())
+post = json.loads((evidence / "12-role-assignment-list-post-recovery.json").read_text())
+cardinality = json.loads((evidence / "13-role-assignment-list-cardinality-verify.json").read_text())
+if initial["properties"]["provisioningState"] != "Succeeded":
+    raise SystemExit("initial deployment is not Succeeded")
+if failure["provisioningState"] != "Failed" or failure["error"]["details"][0]["code"] != "RoleAssignmentExists":
+    raise SystemExit("RoleAssignmentExists failure evidence is absent")
+if not conflict["reconnect_error_contains_role_assignment_exists"]:
+    raise SystemExit("conflict extraction did not confirm RoleAssignmentExists")
+if recovery["properties"]["provisioningState"] != "Succeeded":
+    raise SystemExit("recovery deployment is not Succeeded")
+if len(pre) != 1 or len(post) != 1 or len(cardinality) != 1:
+    raise SystemExit("role-assignment cardinality evidence is not one")
+
+for name in ("07-h1-gate.json", "14-h2-gate.json"):
+    document = json.loads((baseline / name).read_text())
+    document.pop("utc_captured", None)
+    document.pop("evaluated_at_utc", None)
+    document["evaluated_at_utc"] = stamp
+    (evidence / name).write_text(json.dumps(document, indent=2) + "\n")
+PYEOF
+    exit 0
+fi
+
 : "${AZ_SUBSCRIPTION:?Set AZ_SUBSCRIPTION before running}"
 : "${RG:?Set RG before running}"
 : "${APP_NAME:?Set APP_NAME before running}"
@@ -213,14 +267,14 @@ az deployment group show \
     --output json \
     > "$EVIDENCE_DIR/21-deployment-outputs.json" 2>&1 || true
 
-UTC_CAPTURED="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+EVALUATED_AT_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 export EVIDENCE_DIR AZ_SUBSCRIPTION RG SP_NAME SP_APP_ID SP_OBJECT_ID ACR_NAME ACR_ID
 export INITIAL_ASSIGNMENT_NAME NEW_NAME_VERIFY
 export REVERIFY_UTC REVERIFY_EXIT_CODE REVERIFY_HAS_CONFLICT
 export DELETE_UTC DELETE_EXIT_CODE
 export RECOVERY_UTC RECOVERY_EXIT_CODE RECOVERY_PROVISIONING_STATE RECOVERY_ASSIGNMENT_NAME
 export PRE_DELETE_COUNT PRE_DELETE_ASSIGNMENT_NAME POST_RECOVERY_COUNT POST_RECOVERY_ASSIGNMENT_NAME CARDINALITY_VERIFY_COUNT
-export UTC_CAPTURED
+export EVALUATED_AT_UTC
 
 python3 <<'PYEOF'
 import json, os
@@ -295,7 +349,7 @@ else:
     gate_classification = 'partial_observation_some_subgates_failed'
 
 out = {
-    'utc_captured': os.environ['UTC_CAPTURED'],
+    'evaluated_at_utc': os.environ['EVALUATED_AT_UTC'],
     'subscription': os.environ['AZ_SUBSCRIPTION'],
     'rg': os.environ['RG'],
     'acr_name': os.environ['ACR_NAME'],

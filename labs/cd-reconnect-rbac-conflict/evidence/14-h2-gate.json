@@ -1,5 +1,4 @@
 {
-  "utc_captured": "2026-06-23T12:34:03Z",
   "subscription": "00000000-0000-0000-0000-000000000000",
   "rg": "rg-aca-lab-cd-rbac",
   "acr_name": "acrlabcdrbacmym3wz",
@@ -40,5 +39,6 @@
     "d_final_assignment_count_is_one": true
   },
   "h2_all_subgates_pass": true,
-  "gate_classification": "cd_rbac_recovered_after_delete_retry"
+  "gate_classification": "cd_rbac_recovered_after_delete_retry",
+  "evaluated_at_utc": "2026-11-09T13:18:06Z"
 }

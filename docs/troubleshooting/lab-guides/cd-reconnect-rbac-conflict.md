@@ -362,6 +362,8 @@ H1 gate (`evidence/07-h1-gate.json`): `cd_rbac_conflict_reproduced`, all 4 sub-g
 
 H2 gate (`evidence/14-h2-gate.json`): `cd_rbac_recovered_after_delete_retry`, all 4 sub-gates PASS.
 
+The H1/H2 gates were originally emitted during the live cycle and later re-evaluated offline from unchanged raw evidence. Top-level `evaluated_at_utc` records each replay invocation; it is not a capture date and does not establish a current replay or validation date.
+
 #### Lab automation hardening shipped with this evidence pack
 
 Two latent script bugs were discovered and fixed during this run; both would have produced false-negative H1 / H2 gates on any future re-run if left unpatched:
