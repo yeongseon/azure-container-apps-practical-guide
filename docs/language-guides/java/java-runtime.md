@@ -21,7 +21,7 @@ Azure Container Apps runs the image you configure; the reference application sel
 ```mermaid
 flowchart TD
     accTitle: Java runtime execution model in Container Apps
-    accDescr: A revision starts the selected Eclipse Temurin image and Spring Boot listener. Platform health probes determine readiness, managed ingress routes requests to a ready replica, and Logback console output is collected for logging.
+    accDescr: A revision starts the selected Eclipse Temurin image and Spring Boot listener. Platform probes send a request to the listener, the listener returns a probe response, and the platform evaluates readiness before managed ingress routes requests to ready replicas. Logback output follows a separate logging path.
     IMAGE[Eclipse Temurin Java 21 image]
     START[Spring Boot JVM starts]
     LISTEN[HTTP listener<br/>0.0.0.0:8000]
@@ -35,6 +35,7 @@ flowchart TD
 
     IMAGE --> START --> LISTEN
     PROBES ==>|"Probe request"| LISTEN
+    LISTEN ==>|"Probe response"| PROBES
     PROBES -->|"Evaluate result"| READY
     READY -.->|"Ready replicas are eligible"| INGRESS
     READY -->|"Not ready"| NOT_READY
@@ -43,7 +44,7 @@ flowchart TD
     CONSOLE ==>|"Log transport"| LOGS
 ```
 
-*Figure: Runtime startup, health evaluation, request routing, and console-log collection are separate paths. Eclipse Temurin, Java 21, port 8000, and Logback are choices made by this repository rather than platform-selected runtime components.*
+*Figure: Runtime startup, the probe request and listener response, readiness evaluation, request routing, and console-log collection are separate paths. Eclipse Temurin, Java 21, port 8000, and Logback are choices made by this repository rather than platform-selected runtime components.*
 
 ## JVM Memory Management
 

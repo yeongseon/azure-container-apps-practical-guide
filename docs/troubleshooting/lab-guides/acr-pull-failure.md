@@ -57,6 +57,8 @@ For pull failures, the fastest evidence usually comes from revision state and sy
 <!-- diagram-id: architecture -->
 ```mermaid
 sequenceDiagram
+    accTitle: ACR manifest failure and corrected revision provisioning
+    accDescr: The first revision provisioning attempt fails when ACR cannot find the requested manifest. The operator publishes the valid image and updates the app, after which corrected provisioning retrieves the manifest and layers and returns a healthy revision.
     participant Op as Operator
     participant ARM as Azure Resource Manager
     participant ACA as Container Apps revision provisioning
@@ -77,7 +79,9 @@ sequenceDiagram
     ARM-->>Op: Return the successful deployment result
 ```
 
-The `architecture` diagram separates a successful image build and ARM submission from the later provisioning failure, where system logs expose the missing ACR manifest.
+*Figure: The failed manifest lookup is followed by publication of the corrected image and a successful revision provisioning attempt.*
+
+The `architecture` diagram separates the initial ARM submission and manifest failure from the corrected image publication and successful reprovisioning.
 
 ## 2) Hypothesis
 
