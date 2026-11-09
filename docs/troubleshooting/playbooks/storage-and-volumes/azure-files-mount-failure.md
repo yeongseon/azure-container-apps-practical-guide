@@ -8,6 +8,9 @@ content_sources:
       type: flowchart
       source: self-generated
       justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-storage-mount-failures
+        - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
 content_validation:
   status: verified
   last_reviewed: 2026-07-18
@@ -28,18 +31,39 @@ content_validation:
 <!-- diagram-id: azure-files-mount-failure-flow -->
 ```mermaid
 flowchart TD
-    A[Container fails to start: mount error] --> B[Check ACA environment storage definition]
-    B -->|Missing| C[Add storage definition with correct account key and share name]
-    B -->|Exists| D[Verify storage account key is current]
-    C --> E[Update container volume mount config]
-    D -->|Stale key| F[Rotate storage account key and update secret]
-    D -->|Current| G[Check SMB port 445 not blocked by NSG]
-    F --> E
-    G -->|Blocked| H[Add NSG rule to allow port 445 outbound]
-    G -->|Open| E
-    H --> E
-    E --> I[Container mounts volume successfully]
+    accTitle: Diagnose an Azure Files mount failure
+    accDescr: Verify the environment storage definition, credential and share values, revision volume references, and platform storage evidence before redeploying a corrected mount.
+
+    START[Revision reports an Azure Files<br/>mount failure]
+    ENV[Check whether the expected environment<br/>storage definition exists]
+    CREATE[Create the storage definition<br/>with account, key, and share]
+    VALUES[Check account, key, share,<br/>and protocol values]
+    CREDENTIALS[Correct the storage values<br/>or update a rotated key]
+    REFERENCES[Check revision storageName,<br/>volume, and mount-name alignment]
+    YAML[Correct the revision volume<br/>and volumeMount references]
+    DETECTOR[Use Storage Mount Failures<br/>diagnostics for remaining evidence]
+    REDEPLOY[Deploy a corrected revision]
+    MOUNTED[Check the corrected revision's<br/>volume-mount result]
+    DONE[Mount path verified]
+    CONTINUE[Investigate the detector result<br/>and storage network policy]
+
+    START --> ENV
+    ENV -->|Definition missing| CREATE
+    ENV -->|Definition present| VALUES
+    VALUES -->|Value mismatch| CREDENTIALS
+    VALUES -->|Values correct| REFERENCES
+    REFERENCES -->|Names differ| YAML
+    REFERENCES -->|Names align| DETECTOR
+    CREATE --> REDEPLOY
+    CREDENTIALS --> REDEPLOY
+    YAML --> REDEPLOY
+    DETECTOR --> REDEPLOY
+    REDEPLOY --> MOUNTED
+    MOUNTED -->|Mount succeeds| DONE
+    MOUNTED -->|Mount still fails| CONTINUE
 ```
+
+*Figure: Environment storage configuration and revision volume references are separate contracts; the portal detector supplies evidence when both appear correct.*
 
 ## Symptom
 
