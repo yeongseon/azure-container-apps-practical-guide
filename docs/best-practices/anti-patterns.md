@@ -251,7 +251,7 @@ az containerapp update \
 |---|---|
 | `az containerapp update` | Allows the latency-sensitive API to scale to zero, illustrating the cold-start anti-pattern. |
 | `--min-replicas` | Sets the latency-sensitive API floor to zero to expose the cold-start risk under review. |
-| `--name` | Identifies the latency-sensitive Container App. |
+| `--name` | Selects the API whose zero-replica floor demonstrates the cold-start risk. |
 | `--resource-group` | Targets the production group containing the API used in the scale-to-zero warning. |
 
 Better pattern:
@@ -269,7 +269,7 @@ az containerapp update \
 | `az containerapp update` | Keeps one warm replica while allowing bounded scale-out for the API. |
 | `--max-replicas` | Caps app scale-out at the documented replica count. |
 | `--min-replicas` | Retains one warm API replica to avoid the cold-start behavior shown in the bad pattern. |
-| `--name` | Identifies the latency-sensitive Container App. |
+| `--name` | Selects the API being restored to a one-replica warm baseline. |
 | `--resource-group` | Targets the production group containing the API whose warm baseline is being restored. |
 
 ### 7) Expecting progressive-delivery controls from single revision mode

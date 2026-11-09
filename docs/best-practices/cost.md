@@ -235,7 +235,7 @@ az containerapp update \
 | `az containerapp update` | Keeps one warm replica for the latency-sensitive API while bounding scale-out. |
 | `--max-replicas` | Caps app scale-out at the documented replica count. |
 | `--min-replicas` | Keeps one replica warm to protect the user-facing API's latency objective. |
-| `--name` | Identifies the latency-sensitive Container App. |
+| `--name` | Selects the user-facing API whose latency objective requires a warm replica. |
 | `--resource-group` | Targets the production group containing the API whose latency floor is being preserved. |
 
 !!! warning "Do not optimize cost by breaking SLO"

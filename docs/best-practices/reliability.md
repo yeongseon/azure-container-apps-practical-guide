@@ -527,7 +527,7 @@ az containerapp ingress traffic show \
 | Command / Parameter | Purpose |
 |---|---|
 | `az containerapp show` | Reads the latest ready revision name for the containment decision. |
-| `--name` | Identifies the incident-affected Container App. |
+| `--name` | Selects the affected app for both the ready-revision lookup and live traffic-allocation check. |
 | `--output` (`az containerapp show`) | Emits the selected revision name as TSV plain text for immediate use. |
 | `--query` (`az containerapp show`) | Selects `properties.latestReadyRevisionName` from the app resource. |
 | `--resource-group` | Locates the affected app in the production resource group. |

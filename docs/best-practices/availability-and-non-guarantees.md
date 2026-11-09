@@ -19,10 +19,10 @@ content_validation:
     - claim: Microsoft Learn does not document a per-replica physical-host placement contract or an operator-facing control for pinning Container Apps replicas to distinct physical hosts.
       source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
       verified: true
-    - claim: In a zone-redundant environment, Container Apps automatically schedules app replicas across availability zones, and Microsoft recommends at least two minimum replicas to ensure distribution across multiple zones.
+    - claim: In a zone-redundant environment, Container Apps automatically schedules app replicas across availability zones, Microsoft recommends at least two minimum replicas to ensure distribution across multiple zones, and platform maintenance uses rolling updates across fault domains and availability zones to reduce disruption.
       source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
       verified: true
-    - claim: Container Apps applies platform maintenance through rolling updates across fault domains and availability zones to reduce disruption; planned maintenance windows control when noncritical updates can start but remain optional and best-effort.
+    - claim: Planned maintenance windows control when noncritical updates can start but remain optional and best-effort.
       source: https://learn.microsoft.com/en-us/azure/container-apps/planned-maintenance
       verified: true
     - claim: A new revision is considered ready only after it provisions successfully, scales to match the previous revision's replica count, and all replicas pass startup and readiness probes; rolling rollout depends on correctly-configured probes to mask client-visible transients.
