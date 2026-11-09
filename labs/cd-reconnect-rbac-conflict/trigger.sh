@@ -242,8 +242,8 @@ PYEOF
 echo ""
 
 echo "=== Phase 7: emit H1 gate JSON ==="
-UTC_CAPTURED="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-export EVIDENCE_DIR SP_NAME SP_APP_ID SP_OBJECT_ID ACR_NAME ACR_ID RG AZ_SUBSCRIPTION UTC_CAPTURED
+EVALUATED_AT_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+export EVIDENCE_DIR SP_NAME SP_APP_ID SP_OBJECT_ID ACR_NAME ACR_ID RG AZ_SUBSCRIPTION EVALUATED_AT_UTC
 export INITIAL_DEPLOY_UTC RECONNECT_UTC INITIAL_PROVISIONING_STATE INITIAL_ASSIGNMENT_NAME
 export INITIAL_ASSIGNMENT_COUNT RECONNECT_PROVISIONING_STATE RECONNECT_EXIT_CODE
 export CONFLICT_GUID_HEX CONFLICT_GUID_HYPHENATED RECONNECT_HAS_ROLE_ASSIGNMENT_EXISTS NEW_NAME
@@ -312,7 +312,7 @@ else:
     gate_classification = 'partial_observation_some_subgates_failed'
 
 out = {
-    'utc_captured': os.environ['UTC_CAPTURED'],
+    'evaluated_at_utc': os.environ['EVALUATED_AT_UTC'],
     'subscription': os.environ['AZ_SUBSCRIPTION'],
     'rg': os.environ['RG'],
     'acr_name': os.environ['ACR_NAME'],

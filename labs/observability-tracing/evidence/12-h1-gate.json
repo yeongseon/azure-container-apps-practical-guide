@@ -1,5 +1,4 @@
 {
-  "utc_captured": "2026-06-24T01:13:10Z",
   "subscription": "00000000-0000-0000-0000-000000000000",
   "rg": "rg-aca-lab-observability2",
   "app_name": "ca-labobs-ewwmkr",
@@ -65,5 +64,6 @@
     "e_app_continues_serving_requests": true
   },
   "h1_all_subgates_pass": true,
-  "gate_classification": "telemetry_misconfiguration_env_var_source_flipped_to_literal"
+  "gate_classification": "telemetry_misconfiguration_env_var_source_flipped_to_literal",
+  "evaluated_at_utc": "2026-11-09T16:13:19Z"
 }

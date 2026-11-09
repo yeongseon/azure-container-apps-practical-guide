@@ -1,16 +1,15 @@
 {
-  "utc_captured": "2026-06-23T22:23:35Z",
   "subscription": "00000000-0000-0000-0000-000000000000",
   "rg": "rg-aca-lab-port",
   "app_name": "ca-labport-zopng3",
   "acr_name": "acrlabportzopng3",
   "app_fqdn": "ca-labport-zopng3.purpleground-4d39dde1.koreacentral.azurecontainerapps.io",
   "build_window": {
-    "start_utc": "2026-06-23T14:05:12Z",
+    "start_utc": "2026-06-23T14:05:17Z",
     "exit_code": 0
   },
   "trigger_window": {
-    "start_utc": "2026-06-23T14:05:47Z",
+    "start_utc": "2026-06-23T14:06:13.4898709",
     "revision_name": "ca-labport-zopng3--0000001",
     "image": "acrlabportzopng3.azurecr.io/ca-labport-zopng3:v1",
     "created_time": "2026-06-23T14:06:19+00:00",
@@ -45,5 +44,6 @@
     "e_target_port_still_mismatched": true
   },
   "h1_all_subgates_pass": true,
-  "gate_classification": "port_mismatch_probe_failure_reproduced"
+  "gate_classification": "port_mismatch_probe_failure_reproduced",
+  "evaluated_at_utc": "2026-11-09T16:14:00Z"
 }
