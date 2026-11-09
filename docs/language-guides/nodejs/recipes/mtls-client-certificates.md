@@ -16,12 +16,27 @@ Use Express middleware and the Node.js `X509Certificate` API to parse the forwar
 <!-- diagram-id: express-xfcc-validation-flow -->
 ```mermaid
 flowchart TD
-    Client[Client certificate] --> Ingress[ACA ingress]
-    Ingress --> Header[X-Forwarded-Client-Cert]
-    Header --> Express[Express middleware]
-    Express --> Validate[CN or fingerprint allowlist]
-    Express --> Calls[Dapr invoke or direct fetch]
+    accTitle: Express client-certificate presentation and caller authorization
+    accDescr: In require mode, managed ingress rejects a request without a client certificate. When a certificate is presented, ingress forwards the request with X-Forwarded-Client-Cert. Express parses the forwarded leaf certificate and separately applies the configured caller authorization policy before allowing or rejecting the request.
+    CLIENT[Client]
+    INGRESS[Managed ingress<br/>clientCertificateMode = require]
+    PRESENT[Client certificate presentation result]
+    EDGE_REJECT[Ingress rejects request]
+    APP[Express middleware<br/>parse X-Forwarded-Client-Cert]
+    AUTHZ[Caller authorization result<br/>CN or SHA-256 fingerprint allowlist]
+    ALLOW[Handle request]
+    DENY[Return HTTP 403]
+
+    CLIENT ==>|"HTTPS + client certificate"| INGRESS
+    INGRESS --> PRESENT
+    PRESENT -->|"No"| EDGE_REJECT
+    PRESENT ==>|"Yes: request + X-Forwarded-Client-Cert"| APP
+    APP --> AUTHZ
+    AUTHZ -->|"Allowed"| ALLOW
+    AUTHZ -->|"Denied"| DENY
 ```
+
+*Figure: Certificate presentation at ingress and application authorization are separate gates. `X-Forwarded-Client-Cert` is request metadata, not a network hop, and its presence alone does not establish a trusted caller. This sample allowlist does not validate the certificate chain.*
 
 ## Prerequisites
 
