@@ -5,14 +5,17 @@ content_sources:
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/containers
-        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
     - id: configuration-flow
       type: flowchart
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/containers
+        - https://learn.microsoft.com/en-us/azure/container-apps/environment-variables
         - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
 validation:
   az_cli:
     last_tested:
@@ -34,53 +37,95 @@ This step configures runtime settings in Azure Container Apps, including environ
     <!-- diagram-id: this-tutorial-assumes-a-production-ready-container -->
 ```mermaid
 flowchart TD
-    INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux Node 18 LTS"]
+    accTitle: Production-ready Container Apps context for the Node.js tutorial
+    accDescr: A caller reaches managed ingress and an active Node.js revision. The app uses managed identity for an Azure Container Registry image pull and reaches backend services through private endpoints whose DNS zones are linked to the virtual network.
 
-    subgraph VNET["VNet 10.0.0.0/16"]
-        subgraph ENV_SUB["Environment Subnet 10.0.0.0/23\nDelegation: Microsoft.App/environments"]
-            CAE[Container Apps Environment]
-            CA
-        end
-        subgraph PE_SUB["Private Endpoint Subnet 10.0.2.0/24"]
-            PE_ACR[PE: ACR]
-            PE_KV[PE: Key Vault]
-            PE_ST[PE: Storage]
+    CALLER["Request caller"]
+    ACR["Azure Container Registry"]
+    KV["Azure Key Vault"]
+    STORAGE["Storage account"]
+    ENTRA["Microsoft Entra ID"]
+    DNS["Private DNS zones<br/>linked to the VNet"]
+
+    subgraph VNET["Customer virtual network"]
+        INFRA["Dedicated Container Apps<br/>infrastructure subnet"]
+        subgraph PESUBNET["Private endpoint subnet"]
+            PE_ACR["ACR private endpoint"]
+            PE_KV["Key Vault private endpoint"]
+            PE_STORAGE["Storage private endpoint"]
         end
     end
 
-    PE_ACR --> ACR[Azure Container Registry]
-    PE_KV --> KV[Key Vault]
-    PE_ST --> ST[Storage Account]
-
-    subgraph DNS[Private DNS Zones]
-        DNS_ACR[privatelink.azurecr.io]
-        DNS_KV[privatelink.vaultcore.azure.net]
-        DNS_ST[privatelink.blob.core.windows.net]
+    subgraph ENV["Managed Container Apps environment"]
+        INGRESS["Managed Envoy ingress<br/>TLS and request routing"]
+        APP["Container app<br/>Node.js"]
+        REVISION["Active revision<br/>immutable app version"]
+        REPLICAS["Revision replicas<br/>running instances"]
     end
 
-    PE_ACR -.-> DNS_ACR
-    PE_KV -.-> DNS_KV
-    PE_ST -.-> DNS_ST
+    CALLER ==>|"HTTPS request"| INGRESS
+    INGRESS ==>|"Routed request"| REPLICAS
+    REPLICAS ==>|"App response"| INGRESS
+    INGRESS ==>|"HTTPS response"| CALLER
+    INFRA -.->|"Environment VNet integration"| APP
+    APP -.-> REVISION
+    REVISION -.-> REPLICAS
+    REPLICAS -.->|"Managed identity"| ENTRA
+    ENTRA -.->|"Registry authorization"| ACR
+    REPLICAS ==>|"Image pull request"| PE_ACR
+    PE_ACR ==>|"Image pull request"| ACR
+    ACR ==>|"Image response"| PE_ACR
+    PE_ACR ==>|"Image response"| REPLICAS
+    REPLICAS ==>|"Secret request"| PE_KV
+    PE_KV ==>|"Secret request"| KV
+    KV ==>|"Secret response"| PE_KV
+    PE_KV ==>|"Secret response"| REPLICAS
+    REPLICAS ==>|"Data request"| PE_STORAGE
+    PE_STORAGE ==>|"Data request"| STORAGE
+    STORAGE ==>|"Data response"| PE_STORAGE
+    PE_STORAGE ==>|"Data response"| REPLICAS
+    DNS -.->|"Name resolution"| PE_ACR
+    DNS -.->|"Name resolution"| PE_KV
+    DNS -.->|"Name resolution"| PE_STORAGE
 
-    CA -.->|System-Assigned MI| ENTRA[Microsoft Entra ID]
-    CAE --> LOG[Log Analytics]
-    CA --> AI[Application Insights]
-
-    style CA fill:#107c10,color:#fff
-    style VNET fill:#E8F5E9,stroke:#4CAF50
-    style DNS fill:#E3F2FD
+    LEGEND["Arrow key<br/>thick = request or data transport<br/>dotted = identity, authorization, DNS, or logical association"]
 ```
+
+*Figure: The tutorial's shared production context. The Container Apps environment is a managed logical boundary integrated with a dedicated subnet; ACR, Key Vault, Storage, private DNS zones, and Microsoft Entra ID remain separate Azure resources.*
 
 ## Configuration Flow
 
 <!-- diagram-id: configuration-flow -->
 ```mermaid
-graph TD
-    ENV[Env Vars] --> ACA[Container App]
-    SEC[Secrets] --> ACA
-    DAPR[Dapr] --> ACA
-    ACA --> APP[Application]
+flowchart TD
+    accTitle: Container Apps configuration flow for Node.js
+    accDescr: An operator defines environment variables, application-level secrets, and Dapr settings. The revision template delivers referenced values to a new revision, while the Dapr settings enable a sidecar that communicates with the Node.js app on its configured port.
+
+    OPERATOR["Operator or deployment workflow"]
+    PLAIN["Plain environment variable<br/>name and value"]
+    SECRET["Application-level secret<br/>direct value or Key Vault reference"]
+    TEMPLATE["Revision template<br/>container environment variables"]
+    REFERENCE["Secret reference<br/>secretref:secret-name"]
+    REVISION["New revision"]
+    APP["Node.js app<br/>reads runtime environment"]
+    DAPR_CONFIG["Dapr configuration<br/>app ID and app port"]
+    SIDECAR["Dapr sidecar<br/>enabled for the app"]
+
+    OPERATOR -->|"Set non-sensitive value"| PLAIN
+    OPERATOR -->|"Define sensitive value"| SECRET
+    OPERATOR -->|"Enable Dapr"| DAPR_CONFIG
+    PLAIN --> TEMPLATE
+    SECRET -.->|"Available to revisions"| REFERENCE
+    REFERENCE --> TEMPLATE
+    TEMPLATE -->|"Revision-scope change"| REVISION
+    REVISION -->|"Load at runtime"| APP
+    DAPR_CONFIG -->|"Apply sidecar settings"| SIDECAR
+    SIDECAR -->|"Call app on configured port"| APP
+
+    LEGEND["Arrow key<br/>solid = configuration or Dapr traffic<br/>dotted = application-level secret availability"]
 ```
+
+*Figure: Environment-variable changes are revision-scoped, while secrets are application-scoped and become runtime configuration only when referenced. Dapr settings form a separate branch that enables a sidecar and identifies the app port the sidecar calls.*
 
 ## Prerequisites
 
@@ -103,9 +148,13 @@ graph TD
       --output tsv)
     ```
 
-    | Command | Purpose |
+    | Command/Parameter | Purpose |
     |---|---|
-    | `APP_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppName.value" --output tsv)` | Captures the existing Container App name from the deployment outputs so configuration changes apply to the correct Node.js app. |
+    | `az deployment group show` | Reads the deployed Node.js app name from the infrastructure deployment. |
+    | `--name` | Opens the `main` deployment used in Step 02. |
+    | `--resource-group` | Searches for that deployment in `rg-nodejs-guide`. |
+    | `--query` | Extracts `properties.outputs.containerAppName.value` for `APP_NAME`. |
+    | `--output` | Returns only the app-name text so the shell can capture it. |
 
 2. **Set environment variables**
 
@@ -116,9 +165,12 @@ graph TD
       --set-env-vars "LOG_LEVEL=INFO" "FEATURE_FLAG=true"
     ```
 
-    | Command | Why it is used |
+    | Command/Parameter | Purpose |
     |---|---|
-    | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+    | `az containerapp update` | Creates a Node.js revision with the tutorial log level and feature flag. |
+    | `--name` | Selects the Node.js app receiving `LOG_LEVEL` and `FEATURE_FLAG`. |
+    | `--resource-group` | Applies this environment update within `rg-nodejs-guide`. |
+    | `--set-env-vars` | Sets `LOG_LEVEL=INFO` and turns `FEATURE_FLAG` on. |
 
     ???+ example "Expected output"
         ```json
@@ -137,9 +189,12 @@ graph TD
       --secrets "db-password=<secret-value>"
     ```
 
-    | Command | Why it is used |
+    | Command/Parameter | Purpose |
     |---|---|
-    | `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+    | `az containerapp secret set` | Adds the database password to the Node.js app's secret store. |
+    | `--name` | Identifies the app that owns the `db-password` secret. |
+    | `--resource-group` | Resolves that app in the Node.js tutorial resource group. |
+    | `--secrets` | Stores `<secret-value>` under `db-password`. |
 
     ???+ example "Expected output"
         ```text
@@ -160,9 +215,12 @@ graph TD
       --set-env-vars "DB_PASSWORD=secretref:db-password"
     ```
 
-    | Command | Why it is used |
+    | Command/Parameter | Purpose |
     |---|---|
-    | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+    | `az containerapp update` | Creates a revision that injects the stored password into the Node.js process. |
+    | `--name` | Chooses the app whose runtime receives `DB_PASSWORD`. |
+    | `--resource-group` | Scopes the secret-reference update to `rg-nodejs-guide`. |
+    | `--set-env-vars` | Binds `DB_PASSWORD` to `secretref:db-password` instead of exposing its value. |
 
     ???+ example "Expected output"
         ```json
@@ -185,9 +243,16 @@ graph TD
       --scale-rule-http-concurrency 50
     ```
 
-    | Command | Why it is used |
+    | Command/Parameter | Purpose |
     |---|---|
-    | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+    | `az containerapp update` | Adds HTTP concurrency scaling to the Express service. |
+    | `--name` | Targets the Node.js app whose replicas handle incoming requests. |
+    | `--resource-group` | Locates the Express workload in `rg-nodejs-guide`. |
+    | `--min-replicas` | Allows the service to reach zero replicas when no requests arrive. |
+    | `--max-replicas` | Prevents this tutorial workload from exceeding ten replicas. |
+    | `--scale-rule-name` | Names the request rule `http-scale`. |
+    | `--scale-rule-type` | Chooses the Container Apps HTTP scaler for Express traffic. |
+    | `--scale-rule-http-concurrency` | Uses 50 simultaneous requests per replica as the scaling target. |
 
     ???+ example "Expected output"
         ```json
@@ -207,9 +272,13 @@ graph TD
       --dapr-app-port 8000
     ```
 
-    | Command | Why it is used |
+    | Command/Parameter | Purpose |
     |---|---|
-    | `az containerapp dapr enable ...` | Configures Dapr sidecar settings for the Container App. |
+    | `az containerapp dapr enable` | Attaches and configures a Dapr sidecar for the Node.js app. |
+    | `--name` | Selects the same app name used as the Dapr service identity. |
+    | `--resource-group` | Finds the sidecar host in `rg-nodejs-guide`. |
+    | `--dapr-app-id` | Uses `$APP_NAME` as the service's Dapr application ID. |
+    | `--dapr-app-port` | Routes Dapr app-channel traffic to port `8000`. |
 
     ???+ example "Expected output"
         ```json
@@ -257,5 +326,10 @@ module.exports = { LOG_LEVEL, FEATURE_FLAG, DB_PASSWORD };
 - [Recipes Index](../recipes/index.md)
 
 ## Sources
+- [Networking in an Azure Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Azure Container Apps image pull from ACR with managed identity (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
+- [Private endpoints and DNS for Container Apps environments (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns)
+- [Manage environment variables on Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/environment-variables)
 - [Containers (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/containers)
 - [Manage secrets in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)
+- [Dapr integration with Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview)

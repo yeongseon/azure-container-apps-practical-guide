@@ -5,14 +5,17 @@ content_sources:
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/
-        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
     - id: configuration-flow
       type: flowchart
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/
+        - https://learn.microsoft.com/en-us/azure/container-apps/environment-variables
         - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview
 validation:
   az_cli:
     last_tested:
@@ -34,54 +37,95 @@ This step configures runtime settings in Azure Container Apps for your .NET appl
     <!-- diagram-id: this-tutorial-assumes-a-production-ready-container -->
 ```mermaid
 flowchart TD
-    INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux .NET 8"]
+    accTitle: Production-ready Container Apps context for the .NET tutorial
+    accDescr: A caller reaches managed ingress and an active .NET revision. The app uses managed identity for an Azure Container Registry image pull and reaches backend services through private endpoints whose DNS zones are linked to the virtual network.
 
-    subgraph VNET["VNet 10.0.0.0/16"]
-        subgraph ENV_SUB["Environment Subnet 10.0.0.0/23\nDelegation: Microsoft.App/environments"]
-            CAE[Container Apps Environment]
-            CA
-        end
-        subgraph PE_SUB["Private Endpoint Subnet 10.0.2.0/24"]
-            PE_ACR[PE: ACR]
-            PE_KV[PE: Key Vault]
-            PE_ST[PE: Storage]
+    CALLER["Request caller"]
+    ACR["Azure Container Registry"]
+    KV["Azure Key Vault"]
+    STORAGE["Storage account"]
+    ENTRA["Microsoft Entra ID"]
+    DNS["Private DNS zones<br/>linked to the VNet"]
+
+    subgraph VNET["Customer virtual network"]
+        INFRA["Dedicated Container Apps<br/>infrastructure subnet"]
+        subgraph PESUBNET["Private endpoint subnet"]
+            PE_ACR["ACR private endpoint"]
+            PE_KV["Key Vault private endpoint"]
+            PE_STORAGE["Storage private endpoint"]
         end
     end
 
-    PE_ACR --> ACR[Azure Container Registry]
-    PE_KV --> KV[Key Vault]
-    PE_ST --> ST[Storage Account]
-
-    subgraph DNS[Private DNS Zones]
-        DNS_ACR[privatelink.azurecr.io]
-        DNS_KV[privatelink.vaultcore.azure.net]
-        DNS_ST[privatelink.blob.core.windows.net]
+    subgraph ENV["Managed Container Apps environment"]
+        INGRESS["Managed Envoy ingress<br/>TLS and request routing"]
+        APP["Container app<br/>.NET 8"]
+        REVISION["Active revision<br/>immutable app version"]
+        REPLICAS["Revision replicas<br/>running instances"]
     end
 
-    PE_ACR -.-> DNS_ACR
-    PE_KV -.-> DNS_KV
-    PE_ST -.-> DNS_ST
+    CALLER ==>|"HTTPS request"| INGRESS
+    INGRESS ==>|"Routed request"| REPLICAS
+    REPLICAS ==>|"App response"| INGRESS
+    INGRESS ==>|"HTTPS response"| CALLER
+    INFRA -.->|"Environment VNet integration"| APP
+    APP -.-> REVISION
+    REVISION -.-> REPLICAS
+    REPLICAS -.->|"Managed identity"| ENTRA
+    ENTRA -.->|"Registry authorization"| ACR
+    REPLICAS ==>|"Image pull request"| PE_ACR
+    PE_ACR ==>|"Image pull request"| ACR
+    ACR ==>|"Image response"| PE_ACR
+    PE_ACR ==>|"Image response"| REPLICAS
+    REPLICAS ==>|"Secret request"| PE_KV
+    PE_KV ==>|"Secret request"| KV
+    KV ==>|"Secret response"| PE_KV
+    PE_KV ==>|"Secret response"| REPLICAS
+    REPLICAS ==>|"Data request"| PE_STORAGE
+    PE_STORAGE ==>|"Data request"| STORAGE
+    STORAGE ==>|"Data response"| PE_STORAGE
+    PE_STORAGE ==>|"Data response"| REPLICAS
+    DNS -.->|"Name resolution"| PE_ACR
+    DNS -.->|"Name resolution"| PE_KV
+    DNS -.->|"Name resolution"| PE_STORAGE
 
-    CA -.->|System-Assigned MI| ENTRA[Microsoft Entra ID]
-    CAE --> LOG[Log Analytics]
-    CA --> AI[Application Insights]
-
-    style CA fill:#107c10,color:#fff
-    style VNET fill:#E8F5E9,stroke:#4CAF50
-    style DNS fill:#E3F2FD
+    LEGEND["Arrow key<br/>thick = request or data transport<br/>dotted = identity, authorization, DNS, or logical association"]
 ```
+
+*Figure: The tutorial's shared production context. The Container Apps environment is a managed logical boundary integrated with a dedicated subnet; ACR, Key Vault, Storage, private DNS zones, and Microsoft Entra ID remain separate Azure resources.*
 
 ## Configuration Flow
 
 <!-- diagram-id: configuration-flow -->
 ```mermaid
-graph TD
-    ENV[Env Vars] --> ACA[Container App]
-    SEC[Secrets] --> ACA
-    DAPR[Dapr] --> ACA
-    ACA --> APP[ASP.NET Core App]
-    APP --> KESTREL[Kestrel Server]
+flowchart TD
+    accTitle: Container Apps configuration flow for .NET
+    accDescr: An operator defines environment variables, application-level secrets, and Dapr settings. The revision template delivers referenced values to a new revision, while the Dapr settings enable a sidecar that communicates with the ASP.NET Core app on its configured port.
+
+    OPERATOR["Operator or deployment workflow"]
+    PLAIN["Plain environment variable<br/>name and value"]
+    SECRET["Application-level secret<br/>direct value or Key Vault reference"]
+    TEMPLATE["Revision template<br/>container environment variables"]
+    REFERENCE["Secret reference<br/>secretref:secret-name"]
+    REVISION["New revision"]
+    APP["ASP.NET Core app<br/>reads runtime environment"]
+    DAPR_CONFIG["Dapr configuration<br/>app ID and app port"]
+    SIDECAR["Dapr sidecar<br/>enabled for the app"]
+
+    OPERATOR -->|"Set non-sensitive value"| PLAIN
+    OPERATOR -->|"Define sensitive value"| SECRET
+    OPERATOR -->|"Enable Dapr"| DAPR_CONFIG
+    PLAIN --> TEMPLATE
+    SECRET -.->|"Available to revisions"| REFERENCE
+    REFERENCE --> TEMPLATE
+    TEMPLATE -->|"Revision-scope change"| REVISION
+    REVISION -->|"Load at runtime"| APP
+    DAPR_CONFIG -->|"Apply sidecar settings"| SIDECAR
+    SIDECAR -->|"Call app on configured port"| APP
+
+    LEGEND["Arrow key<br/>solid = configuration or Dapr traffic<br/>dotted = application-level secret availability"]
 ```
+
+*Figure: Environment-variable changes are revision-scoped, while secrets are application-scoped and become runtime configuration only when referenced. Dapr settings form a separate branch that enables a sidecar and identifies the app port the sidecar calls.*
 
 ## Prerequisites
 
@@ -92,93 +136,105 @@ graph TD
 
 1. **Set standard variables (reuse Bicep outputs from Step 02)**
 
-   ```bash
-   RG="rg-dotnet-guide"
-   DEPLOYMENT_NAME="main"
+    ```bash
+    RG="rg-dotnet-guide"
+    DEPLOYMENT_NAME="main"
 
-   APP_NAME=$(az deployment group show \
+    APP_NAME=$(az deployment group show \
      --name "$DEPLOYMENT_NAME" \
      --resource-group "$RG" \
      --query "properties.outputs.containerAppName.value" \
      --output tsv)
 
-   ACR_NAME=$(az deployment group show \
+    ACR_NAME=$(az deployment group show \
      --name "$DEPLOYMENT_NAME" \
      --resource-group "$RG" \
      --query "properties.outputs.containerRegistryName.value" \
      --output tsv)
-   ```
+    ```
 
-| Command | Purpose |
-|---|---|
-| `APP_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerAppName.value" --output tsv)` | Captures the existing Container App name from the deployment outputs so configuration updates target the right app. |
-| `ACR_NAME=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.containerRegistryName.value" --output tsv)` | Captures the registry name from the same deployment so later image and secret examples stay aligned with the deployed resources. |
+    | Command/Parameter | Purpose |
+    |---|---|
+    | `az deployment group show` | Reads the Step 02 deployment outputs that identify the .NET app and its registry. |
+    | `--name` | Selects the `main` deployment that provisioned the .NET tutorial resources. |
+    | `--resource-group` | Looks up that deployment in `rg-dotnet-guide`. |
+    | `--query` | Selects either the `containerAppName` or `containerRegistryName` output for the current assignment. |
+    | `--output` | Emits each selected deployment output as unquoted text for its shell variable. |
 
 2. **Set environment variables**
 
-   ASP.NET Core automatically reads environment variables into its configuration system.
+    ASP.NET Core automatically reads environment variables into its configuration system.
 
-   ```bash
-   az containerapp update \
+    ```bash
+    az containerapp update \
      --name "$APP_NAME" \
      --resource-group "$RG" \
      --set-env-vars "Logging__LogLevel__Default=Information" "FeatureManagement__NewUI=true"
-   ```
+    ```
 
-   | Command | Why it is used |
-   |---|---|
-   | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+    | Command/Parameter | Purpose |
+    |---|---|
+    | `az containerapp update` | Creates a .NET app revision with logging and feature-management settings. |
+    | `--name` | Identifies the .NET Container App receiving the two non-sensitive settings. |
+    | `--resource-group` | Applies the update to the app discovered in `rg-dotnet-guide`. |
+    | `--set-env-vars` | Sets the default log level to `Information` and enables `FeatureManagement__NewUI`. |
 
-   ???+ example "Expected output"
-       ```json
-       {
-         "name": "<your-app-name>",
-         "provisioningState": "Succeeded"
-       }
-       ```
+    ???+ example "Expected output"
+        ```json
+        {
+          "name": "<your-app-name>",
+          "provisioningState": "Succeeded"
+        }
+        ```
 
 3. **Store and reference a secret**
 
-   ```bash
-   az containerapp secret set \
+    ```bash
+    az containerapp secret set \
      --name "$APP_NAME" \
      --resource-group "$RG" \
      --secrets "db-connection-string=Server=tcp:sql.database.windows.net;Database=mydb;"
-   ```
+    ```
 
-   | Command | Why it is used |
-   |---|---|
-   | `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+    | Command/Parameter | Purpose |
+    |---|---|
+    | `az containerapp secret set` | Stores the sample SQL connection string as an application-level secret. |
+    | `--name` | Selects the .NET app that owns `db-connection-string`. |
+    | `--resource-group` | Resolves the secret owner within `rg-dotnet-guide`. |
+    | `--secrets` | Writes the value under the secret name `db-connection-string`. |
 
-   ???+ example "Expected output"
-       ```text
-       Containerapp must be restarted in order for secret changes to take effect.
-       ```
-       ```json
-       [
-         {
-           "name": "db-connection-string"
-         }
-       ]
-       ```
+    ???+ example "Expected output"
+        ```text
+        Containerapp must be restarted in order for secret changes to take effect.
+        ```
+        ```json
+        [
+          {
+            "name": "db-connection-string"
+          }
+        ]
+        ```
 
-   Map the secret to an environment variable:
+    Map the secret to an environment variable:
 
-   ```bash
-   az containerapp update \
+    ```bash
+    az containerapp update \
      --name "$APP_NAME" \
      --resource-group "$RG" \
      --set-env-vars "ConnectionStrings__DefaultConnection=secretref:db-connection-string"
-   ```
+    ```
 
-   | Command | Why it is used |
-   |---|---|
-   | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+    | Command/Parameter | Purpose |
+    |---|---|
+    | `az containerapp update` | Creates a revision that exposes the stored connection string through .NET configuration. |
+    | `--name` | Chooses the .NET app whose container environment receives the secret reference. |
+    | `--resource-group` | Scopes the revision update to the app in `rg-dotnet-guide`. |
+    | `--set-env-vars` | Maps `ConnectionStrings__DefaultConnection` to `secretref:db-connection-string`. |
 
 4. **Configure KEDA HTTP autoscaling**
 
-   ```bash
-   az containerapp update \
+    ```bash
+    az containerapp update \
      --name "$APP_NAME" \
      --resource-group "$RG" \
      --min-replicas 0 \
@@ -186,43 +242,54 @@ graph TD
      --scale-rule-name "http-scale" \
      --scale-rule-type "http" \
      --scale-rule-http-concurrency 50
-   ```
+    ```
 
-   | Command | Why it is used |
-   |---|---|
-   | `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+    | Command/Parameter | Purpose |
+    |---|---|
+    | `az containerapp update` | Configures request-concurrency scaling for the .NET API. |
+    | `--name` | Selects the .NET app that will use the HTTP scale rule. |
+    | `--resource-group` | Locates the scalable app in `rg-dotnet-guide`. |
+    | `--min-replicas` | Permits the .NET API to scale to zero while idle. |
+    | `--max-replicas` | Limits burst scale-out to ten replicas. |
+    | `--scale-rule-name` | Records this rule as `http-scale` in the app template. |
+    | `--scale-rule-type` | Uses the built-in HTTP request scaler. |
+    | `--scale-rule-http-concurrency` | Triggers scale decisions at 50 concurrent requests per replica. |
 
-   ???+ example "Expected output"
-       ```json
-       {
-         "name": "<your-app-name>",
-         "provisioningState": "Succeeded"
-       }
-       ```
+    ???+ example "Expected output"
+        ```json
+        {
+          "name": "<your-app-name>",
+          "provisioningState": "Succeeded"
+        }
+        ```
 
 5. **Enable Dapr sidecar**
 
-   ```bash
-   az containerapp dapr enable \
+    ```bash
+    az containerapp dapr enable \
      --name "$APP_NAME" \
      --resource-group "$RG" \
      --dapr-app-id "dotnet-api" \
      --dapr-app-port 8000
-   ```
+    ```
 
-   | Command | Why it is used |
-   |---|---|
-   | `az containerapp dapr enable ...` | Configures Dapr sidecar settings for the Container App. |
+    | Command/Parameter | Purpose |
+    |---|---|
+    | `az containerapp dapr enable` | Enables a Dapr sidecar for the .NET service. |
+    | `--name` | Identifies the .NET Container App that receives the sidecar. |
+    | `--resource-group` | Finds the Dapr-enabled app in `rg-dotnet-guide`. |
+    | `--dapr-app-id` | Registers the service with Dapr as `dotnet-api`. |
+    | `--dapr-app-port` | Directs sidecar-to-app calls to port `8000`. |
 
-   ???+ example "Expected output"
-       ```json
-       {
-         "appId": "dotnet-api",
-         "appPort": 8000,
-         "appProtocol": "http",
-         "enabled": true
-       }
-       ```
+    ???+ example "Expected output"
+        ```json
+        {
+          "appId": "dotnet-api",
+          "appPort": 8000,
+          "appProtocol": "http",
+          "enabled": true
+        }
+        ```
 
 ### Verify configuration in Azure Portal
 
@@ -261,5 +328,10 @@ var connectionString = configuration.GetConnectionString("DefaultConnection");
 - [Recipes Index](../recipes/index.md)
 
 ## Sources
+- [Networking in an Azure Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Azure Container Apps image pull from ACR with managed identity (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
+- [Private endpoints and DNS for Container Apps environments (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns)
+- [Manage environment variables on Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/environment-variables)
 - [Configuration in ASP.NET Core (Microsoft Learn)](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/)
 - [Manage secrets in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)
+- [Dapr integration with Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview)
