@@ -56,7 +56,7 @@ Starting from the **19 verifiers and 36 committed derived gates** remaining afte
 
 ## Batch D
 
-Batch D converts `managed-identity-key-vault-failure` and `revision-provisioning-failure`. Each verifier has four committed derived gates and keeps capture timestamps in the 12-file raw cohort unchanged. Recounting the current tree after this batch leaves 16 verifier files containing `utc_captured` and 22 committed derived gates with that key.
+Batch D converts `managed-identity-key-vault-failure` and `revision-provisioning-failure`. Each verifier has four committed derived gates and keeps capture timestamps in the 12-file raw cohort unchanged. A textual `utc_captured` grep still finds 16 verifier files, but `acr-pull-failure/verify.sh` uses its two hits only in Phase A/raw-provenance comments and does not emit that field. The classified current-tree count is therefore **15 affected gate-emitting verifiers and 22 committed derived gates** with top-level `utc_captured`; the other nine JSON hits are raw evidence, not derived gates.
 
 Issue #579 audited the checked items in #398 at `origin/main` commit `9cbf725392ae262dadf3553005172d7eda88c6a0` on 2026-11-07. The exact already-merged implementation slices are:
 
