@@ -8,7 +8,7 @@ The claim ceiling is deliberately narrow: this pack proves only what this single
 
 1. **H1 failure surface.** `01-app-identity-pre-fix.json` through `08-kql-console-logs-pre-fix.json` capture the system-assigned identity, empty pre-fix role surface, RBAC-mode vault configuration, active healthy revision, failing `/health` body, system logs, full app spec, and KQL console-log context.
 2. **H2 recovery surface.** `09-role-assignment-post-fix.json` through `12-kql-recovery-summary-post-fix.json` capture the scoped role assignment, successful `/health` body, new revision, and post-fix KQL reason summary.
-3. **Phase B overlay.** `verify.sh` writes Gate 14 through Gate 17 JSONs over the raw cohort without touching Azure.
+3. **Phase B overlay.** `verify.sh` writes Gate 14 through Gate 17 JSONs over the raw cohort without touching Azure. The gates were originally emitted on 2026-06-26 and can be re-evaluated later offline from unchanged raw files. Every replay writes its invocation time as top-level `evaluated_at_utc`; this is not a capture date and does not establish a current Azure replay or validation date.
 
 ## Gate overview
 
