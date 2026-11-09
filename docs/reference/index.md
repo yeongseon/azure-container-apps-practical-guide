@@ -26,13 +26,31 @@ This section is optimized for fast operational lookup during build, deploy, and 
 <!-- diagram-id: save-this-page-and-the-linked -->
 ```mermaid
 flowchart TD
-    A[Reference Index] --> B[CLI Reference]
-    A --> C[Environment Variables]
-    A --> D[Platform Limits]
-    B --> E[Deploy / Update / Observe]
-    C --> F[Runtime Configuration Validation]
-    D --> G[Capacity and Quota Planning]
+    accTitle: Choose a Container Apps reference by operator question
+    accDescr: Start from the question you need to answer, then choose command syntax, configuration scope, environment variables, metrics, or platform quotas and limits.
+
+    QUESTION[Start with the operator question<br/>that needs a reference]
+    CLI[CLI reference<br/>command syntax]
+    SCOPE[Configuration scope matrix<br/>change impact]
+    ENV[Environment variables<br/>runtime configuration]
+    METRICS[Metrics reference<br/>names, dimensions, and aggregation]
+    LIMITS[Platform limits<br/>quota scope and constraints]
+    EXECUTE[Execute and verify<br/>an operation]
+    PLAN[Plan and diagnose<br/>with the correct boundary]
+
+    QUESTION -->|How do I run it?| CLI
+    QUESTION -->|Will it create a revision?| SCOPE
+    QUESTION -->|What reaches the container?| ENV
+    QUESTION -->|What should I measure?| METRICS
+    QUESTION -->|Which quota or limit applies?| LIMITS
+    CLI --> EXECUTE
+    SCOPE --> PLAN
+    ENV --> PLAN
+    METRICS --> PLAN
+    LIMITS --> PLAN
 ```
+
+Choose one branch from the operator question. The linked page then provides the exact lookup details; this diagram is navigation, not a runtime dependency map.
 
 ## Reference coverage map
 
@@ -100,7 +118,11 @@ az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "
 
 | Command | Purpose |
 |---|---|
-| `az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.defaultDomain" --output tsv` | Extracts the environment's default DNS suffix as plain text so you can record the canonical `*.azurecontainerapps.io` domain used for ingress, verification, and troubleshooting. |
+| `az containerapp env show` | Extracts the environment's default DNS suffix as plain text so you can record the canonical `*.azurecontainerapps.io` domain used for ingress, verification, and troubleshooting. |
+| `--name` | Selects the Container Apps environment whose default domain is required. |
+| `--resource-group` | Selects the resource group containing that environment. |
+| `--query` | Extracts only `properties.defaultDomain` from the environment resource. |
+| `--output` | Returns the extracted domain as unquoted text for reuse in commands or records. |
 
 ## Fast verification checklist
 
