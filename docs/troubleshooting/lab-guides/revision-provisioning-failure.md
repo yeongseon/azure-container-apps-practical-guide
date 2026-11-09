@@ -41,15 +41,15 @@ This pattern is distinct from API validation failures (which reject the update b
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    A[Deploy baseline app] --> B[Healthy revision running]
-    B --> C[Trigger: Add bad startup probe]
-    C --> D[New revision created]
-    D --> E[Startup probe targets bad path or port]
-    E --> F[Probe fails repeatedly]
-    F --> G[Revision never becomes Ready]
-    G --> H[Fix: Repair startup probe path]
-    H --> I[New revision becomes Healthy]
+    BASE[Deploy and verify the baseline revision] --> BAD[Create a revision with the lab bad startup-probe endpoint]
+    BAD --> PROBES[Platform evaluates the configured startup probe]
+    PROBES --> FAILURE[Capture probe failures and non-ready revision state]
+    FAILURE --> FIX[Correct the startup-probe configuration]
+    FIX --> RECOVERY[Create and verify the recovery revision]
+    RECOVERY --> GATES[Evaluate the bounded H1 and H2 evidence gates]
 ```
+
+The `architecture` diagram contrasts the misconfigured startup probe and its non-ready revision evidence with the corrected probe and subsequent ready-state verification.
 
 !!! warning "Revision created ≠ Revision ready"
     A revision can exist in the system but remain in a Failed or Degraded state if health probes never pass. Always check revision health state, not just existence.

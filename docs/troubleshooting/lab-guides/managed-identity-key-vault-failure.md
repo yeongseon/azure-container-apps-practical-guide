@@ -45,20 +45,30 @@ Managed identity failures are easy to misread because the revision can stay heal
 <!-- diagram-id: architecture -->
 ```mermaid
 sequenceDiagram
+    accTitle: Managed identity token and Key Vault authorization boundaries
+    accDescr: The application requests a Key Vault token from its local Container Apps identity endpoint by using IDENTITY_ENDPOINT and IDENTITY_HEADER. The endpoint obtains and returns the Microsoft Entra token. Key Vault then independently denies the secret request until the operator creates the Key Vault Secrets User assignment, after which a retry succeeds.
     participant User
     participant App as Container App
-    participant MI as Managed Identity
-    participant KV as Key Vault
-    User->>App: Request secret-dependent endpoint
-    App->>MI: Request token for Key Vault
-    MI-->>App: Access token
-    App->>KV: Read secret
-    KV-->>App: 403 Forbidden (missing RBAC role)
-    App-->>User: 500/authorization error path
-    User->>Azure: Assign Key Vault Secrets User role
-    App->>KV: Read secret again
-    KV-->>App: 200 OK
+    participant Identity as Local identity endpoint<br/>IDENTITY_ENDPOINT + IDENTITY_HEADER
+    participant Entra as Microsoft Entra token service
+    participant KV as Azure Key Vault
+    participant ARM as Azure Resource Manager
+    User->>App: Request the secret-dependent endpoint
+    App->>Identity: Request a Key Vault audience token
+    Identity->>Entra: Obtain the resource-scoped token
+    Entra-->>Identity: Issue the access token
+    Identity-->>App: Return the access token
+    App->>KV: Request the secret with the token
+    KV-->>App: Return 403 when the role assignment is absent
+    App-->>User: Return the application error path
+    User->>ARM: Create Key Vault Secrets User assignment at vault scope
+    ARM-->>User: Confirm the role assignment
+    App->>KV: Retry the secret request with a token
+    KV-->>App: Return the authorized secret response
+    App-->>User: Return the successful endpoint response
 ```
+
+The `architecture` diagram separates the app-to-local-endpoint token request from Microsoft Entra token issuance, then shows Key Vault denying the secret read until the vault-scoped role assignment exists.
 
 !!! warning "Identity enabled does not mean authorized"
     System-assigned identity creation is only step one. Without role assignment at the correct scope, token retrieval can succeed while resource access still fails.

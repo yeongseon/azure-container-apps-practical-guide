@@ -57,17 +57,17 @@ Two properties of firewall diagnostic logging make the reproduction precise:
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    A["Operator: az containerapp secret set --identity system --key-vault-url"] --> B["ACA control-plane worker resolves KV URL"]
-    B --> C["MI token acquisition begins:<br/>GET https://login.microsoftonline.com/{tenant}/.well-known/openid-configuration"]
-    C --> D["Egress from workload subnet snet-aca 10.90.0.0/23"]
-    D --> E{"UDR 0.0.0.0/0<br/>→ Azure Firewall private IP?"}
-    E -->|Yes| F["Azure Firewall Basic<br/>Policy afwp-{baseName}-{suffix}<br/>Entra Application Rule ABSENT (H1 and H2)"]
-    F --> G["OIDC discovery DENIED at the firewall<br/>TLS reset, response body EOF<br/>Secret set FAILS in both H1 and H2<br/>Revision UNCHANGED, ingress HTTP 200"]
-    G --> H{"AzureFirewallApplicationRule<br/>diagnostic category enabled<br/>on diag-to-law?"}
-    H -->|H0 baseline: Yes + rule present| I["Discovery succeeds, secret set exit 0<br/>kvref-h0 present"]
-    H -->|H1: No| J["Deny NOT logged<br/>AZFWApplicationRule → 0 rows<br/>(logging gap)<br/>kvref-h1 absent"]
-    H -->|H2: Yes, rule still absent| K["NEW denial logged<br/>AZFWApplicationRule → >=1 Deny row<br/>(observability restored, connectivity still broken)<br/>kvref-h2 absent"]
+    ATTEMPT["Run the lab secret-set attempt"] --> RULE{"Entra Application Rule present?"}
+    RULE -->|Yes: H0| ALLOW["OIDC discovery allowed and secret set succeeds"]
+    RULE -->|No: H1 and H2| DENY["OIDC discovery denied and secret set fails"]
+    DENY --> LOGGING{"Application-rule diagnostic category enabled?"}
+    LOGGING -->|No: H1| GAP["This attempt produces no queried Deny row"]
+    LOGGING -->|Yes: H2| VISIBLE["A new attempt produces a queried Deny row"]
+    GAP --> INTERPRET["Connectivity broken; observability absent"]
+    VISIBLE --> INTERPRET2["Connectivity broken; observability restored"]
 ```
+
+The `architecture` diagram contrasts an Entra request failure with the separate logging condition: restoring firewall diagnostics makes the denial observable but does not restore connectivity.
 
 !!! warning "Zero Deny rows is not proof the firewall is innocent"
     A disabled `AzureFirewallApplicationRule` diagnostic category produces the same empty KQL result as a firewall that never saw the packet. The two are indistinguishable from the query alone. Before treating zero rows as disproof of H4, verify the diagnostic category is actually enabled — `az monitor diagnostic-settings list --resource <firewall-id> --query "[?logs[?category=='AzureFirewallApplicationRule' && enabled]]"` returns an empty array when the category is off. This preflight is the first rule-out step in the [Playbook H4 Variants table](../playbooks/identity-and-configuration/secret-and-key-vault-reference-failure.md#h4-variants-when-base-h4-kql-returns-zero-rows).

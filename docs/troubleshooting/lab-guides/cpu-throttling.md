@@ -40,15 +40,18 @@ Reproducible lab demonstrating that per-replica CPU allocation is the dominant b
 <!-- diagram-id: cpu-throttling-lab-flow -->
 ```mermaid
 flowchart TD
-    A[Deploy Container App with cpu=0.25, memory=0.5Gi, single replica via Bicep] --> B[Capture initial config + revision list]
-    B --> C[Warm up replica with 5 discarded GETs]
-    C --> D[Load test 100 req / 20 concurrent at cpu=0.25, capture p50/p95/p99/max/avg]
-    D --> E[az containerapp update --cpu 1.0 --memory 2.0Gi -> new revision]
-    E --> F[Wait for new revision to reach runningState=Running]
-    F --> G[Warm up new replica with 5 discarded GETs]
-    G --> H[Load test 100 req / 20 concurrent at cpu=1.0, byte-identical client code]
-    H --> I[Evaluate H1: cpu=0.25 p95 > 100ms AND H2: cpu=1.0 p95 < 50% of cpu=0.25 p95]
+    BASE[Deploy single-replica baseline CPU and memory envelope] --> WARM1[Warm the baseline replica]
+    WARM1 --> LOAD1[Run the pre-registered baseline load]
+    LOAD1 --> CAPTURE1[Capture latency, configuration, revision, and CPU evidence]
+    CAPTURE1 --> UPDATE[Change only the CPU and paired memory envelope]
+    UPDATE --> READY[Wait for the experiment revision to run]
+    READY --> WARM2[Warm the experiment replica]
+    WARM2 --> LOAD2[Run the byte-identical post-fix load]
+    LOAD2 --> CAPTURE2[Capture matching post-fix evidence]
+    CAPTURE2 --> GATES[Evaluate this cohort H1, H2, and single-variable gates]
 ```
+
+The `cpu-throttling-lab-flow` diagram pairs byte-identical load tests with latency and `UsageNanoCores` measurements before and after the CPU envelope changes.
 
 !!! note "Evidence depth"
     This lab is **fully reproducible** with dedicated infrastructure-as-code, helper scripts, and raw evidence committed under [`labs/cpu-throttling/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/cpu-throttling):

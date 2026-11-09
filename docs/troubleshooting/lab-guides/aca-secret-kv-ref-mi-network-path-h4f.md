@@ -54,15 +54,15 @@ H4f reproduces a **third-party NVA egress** failure. Many enterprise environment
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    A["Operator: az containerapp secret set --secrets <name>=keyvaultref:<url>,identityref:system"] --> B["ACA control-plane worker resolves Key Vault reference"]
-    B --> C["Managed identity OIDC discovery must reach login.microsoftonline.com / login.microsoft.com"]
-    C --> D["UDR on snet-aca: 0.0.0.0/0 -> Linux NVA surrogate private IP"]
-    D --> E["Linux forwarding VM: NIC IP forwarding + OS ip_forward + nftables NAT/masquerade"]
-    E --> F{"NVA-surrogate Entra DROP rule present?"}
-    F -->|H0 / H2: absent| G["Entra traffic is forwarded and NAT'd\nsecret set succeeds\nrevision unchanged"]
-    F -->|H1: present| H["Forwarded tcp/443 to AzureActiveDirectory prefixes is dropped\nsecret set fails with MI / OIDC + connectivity clue\nrevision unchanged, ingress HTTP 200"]
-    H --> I["Workload probes to both Entra hosts fail while the DROP rule is installed"]
+    ATTEMPT["Run the lab secret-set attempt"] --> ROUTE{"Default route still targets the Linux NVA surrogate?"}
+    ROUTE -->|No| INVALID["Cohort invalid: route control changed"]
+    ROUTE -->|Yes| DROP{"Entra TCP 443 DROP rule present?"}
+    DROP -->|No: H0 and H2| FORWARD["NVA forwards traffic; this attempt succeeds"]
+    DROP -->|Yes: H1| BLOCK["Workload probes and this secret-set attempt fail"]
+    BLOCK --> LIMIT["Managed-resolver effect is strongly suggested, not captured"]
 ```
+
+The `architecture` diagram distinguishes the NVA surrogate's forwarding-plane drop rule from the workload probe transitions that provide indirect evidence of its effect on Entra egress.
 
 !!! warning "Workload probe evidence is not the same thing as direct control-plane capture"
     [Observed] A workload replica can directly observe whether outbound tcp/443 to `login.microsoftonline.com` and `login.microsoft.com` succeeds on the **workload data plane**. [Strongly Suggested] If those workload probes flip together with the control-plane secret-set result in one H0/H1/H2 cohort, the control plane is strongly suggested to be affected by the same NVA-surrogate Entra block. [Not Proven] The guide does **not** state that this is direct control-plane egress proof.

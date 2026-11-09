@@ -178,16 +178,15 @@ az group delete \
 <!-- diagram-id: udr-nsg-egress-blocked-page-flow -->
 ```mermaid
 flowchart TD
-    A["UDR and NSG Egress Blocked Lab"]
-    B["Lab Metadata"]
-    C["1. Question"]
-    D["2. Setup"]
-    E["3. Hypothesis"]
-    A --> B
-    B --> C
-    C --> D
-    D --> E
+    BASE[Capture healthy egress baseline] --> TRIGGER[Apply the lab UDR or NSG blocking condition]
+    TRIGGER --> ROUTES[Capture effective route and configured policy evidence]
+    ROUTES --> TEST[Run the downstream connectivity check]
+    TEST --> FIX[Correct only the lab route or NSG condition]
+    FIX --> RETEST[Repeat the same connectivity check]
+    RETEST --> COMPARE[Compare this run failure and recovery evidence]
 ```
+
+The `udr-nsg-egress-blocked-page-flow` diagram separates route evidence from NSG policy evidence, then links the corrected control to a repeated downstream connectivity test.
 
 ## See Also
 

@@ -52,12 +52,14 @@ Deploy an architecture-incompatible image to reproduce the failure, then replace
 <!-- diagram-id: multi-arch-image-mismatch-lab-flow -->
 ```mermaid
 flowchart TD
-    A[Deploy single-architecture image] --> B[Observe startup failure]
-    B --> C[Inspect manifests and logs]
-    C --> D[Publish multi-arch image]
-    D --> E[Deploy corrected tag]
-    E --> F[Verify healthy revision]
+    INSPECT[Inspect the candidate image manifest] --> DEPLOY_BAD[Deploy the architecture-incompatible image]
+    DEPLOY_BAD --> CAPTURE_BAD[Capture API or startup failure evidence]
+    CAPTURE_BAD --> PUBLISH[Publish or select a compatible image manifest]
+    PUBLISH --> DEPLOY_GOOD[Deploy the corrected image reference]
+    DEPLOY_GOOD --> CAPTURE_GOOD[Capture this run healthy revision evidence]
 ```
+
+The `multi-arch-image-mismatch-lab-flow` diagram connects manifest architecture inspection to the incompatible deployment failure and the healthy outcome after selecting a compatible image variant.
 
 !!! note "Evidence depth"
     This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/multi-arch-image-mismatch/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/multi-arch-image-mismatch/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.

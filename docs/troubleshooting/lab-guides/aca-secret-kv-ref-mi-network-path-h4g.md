@@ -54,15 +54,15 @@ H4g reproduces a **TLS-inspection exemption** failure. Azure Firewall Premium an
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    A["Operator: az containerapp secret set --secrets <name>=keyvaultref:<url>,identityref:system"] --> B["ACA control-plane worker resolves Key Vault reference"]
-    B --> C["Managed identity OIDC discovery must reach login.microsoftonline.com / login.microsoft.com"]
-    C --> D["UDR on snet-aca: 0.0.0.0/0 -> Azure Firewall private IP"]
-    D --> E["Azure Firewall Premium + Firewall Policy Premium"]
-    E --> F{"Entra-authority rule terminateTLS?"}
-    F -->|H0 / H2: false| G["TLS-inspection exemption for the Entra authority\nsecret set succeeds\nrevision unchanged"]
-    F -->|H1: true| H["Firewall terminates TLS for the Entra authority\nsecret set fails with MI / OIDC + TLS or cert clue\nrevision unchanged, ingress HTTP 200"]
-    H --> I["Workload openssl capture can show the lab interception CA chain"]
+    ATTEMPT["Run the lab secret-set attempt"] --> ROUTE{"Default route still targets Azure Firewall Premium?"}
+    ROUTE -->|No| INVALID["Cohort invalid: route control changed"]
+    ROUTE -->|Yes| TLS{"Entra-authority rule terminates TLS?"}
+    TLS -->|No: H0 and H2| EXEMPT["TLS inspection exempted; this attempt succeeds"]
+    TLS -->|Yes: H1| INSPECT["Workload sees the lab interception chain and this attempt fails"]
+    INSPECT --> LIMIT["Managed-resolver effect is strongly suggested, not captured"]
 ```
+
+The `architecture` diagram contrasts the firewall rule's `terminateTLS` setting with the certificate chain observed by the workload, using the lab CA as proxy evidence of TLS inspection.
 
 !!! warning "Workload `openssl` evidence is not the same thing as direct control-plane capture"
     [Observed] A workload replica can directly observe whether the lab interception CA appears on the **workload data plane** for `login.microsoftonline.com:443`. [Strongly Suggested] If that workload chain flips together with the control-plane secret-set result in one H0/H1/H2 cohort, the control plane is strongly suggested to be affected by the same Entra-authority TLS-inspection exemption. [Not Proven] The guide does **not** state that this is direct control-plane TLS-chain proof.

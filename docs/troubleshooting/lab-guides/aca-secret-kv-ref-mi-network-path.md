@@ -56,16 +56,16 @@ The failure is not at the KV data plane. It is one hop earlier, at the Entra aut
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    A["Operator: az containerapp secret set --identity system --key-vault-url"] --> B["ACA control-plane worker resolves KV URL"]
-    B --> C["MI token acquisition begins:<br/>GET https://login.microsoftonline.com/{tenant}/.well-known/openid-configuration"]
-    C --> D["Egress from workload subnet snet-aca 10.90.0.0/23"]
-    D --> E{"UDR 0.0.0.0/0<br/>→ Azure Firewall private IP?"}
-    E -->|Yes| F["Azure Firewall Basic<br/>Policy fp-aca-secret-kv-ref-mi-network-path"]
-    F --> G{"Application Rule<br/>allow-entra-authority<br/>permits login.microsoftonline.com<br/>+ login.microsoft.com?"}
-    G -->|H0 baseline: Yes| H["OIDC discovery succeeds<br/>Token acquired for KV audience<br/>KV secret read<br/>configuration.secrets updated<br/>Exit 0"]
-    G -->|H1 rule removed: No| I["TLS reset, response body EOF<br/>Managed identity discovery fails<br/>az CLI: 'Unable to get value using Managed identity'<br/>Exit non-zero<br/>Secret NOT added to configuration.secrets<br/>latestReadyRevisionName UNCHANGED<br/>Ingress still HTTP 200 (silence gate)"]
-    G -->|H2 rule restored: Yes| J["OIDC discovery succeeds again<br/>Exit 0<br/>New secret added<br/>Revision name still unchanged"]
+    ATTEMPT["Run the lab secret-set attempt"] --> ROUTE{"Default route targets Azure Firewall?"}
+    ROUTE -->|No| INVALID["Cohort invalid for H4a"]
+    ROUTE -->|Yes| RULE{"One Application Rule permits both Entra authority FQDNs?"}
+    RULE -->|Yes: H0 and H2| ALLOW["OIDC discovery proceeds; this attempt succeeds"]
+    RULE -->|No: H1| DENY["OIDC discovery is denied; this attempt fails"]
+    DENY --> EVIDENCE["Capture this attempt's Deny and silence-gate evidence"]
+    ALLOW --> EVIDENCE2["Capture this attempt's success and silence-gate evidence"]
 ```
+
+The `architecture` diagram distinguishes the two Entra authority hostnames selected at runtime and shows how firewall deny rows identify which OIDC discovery path the workload attempted.
 
 !!! warning "MI exists does not mean OIDC discovery works"
     A system-assigned managed identity, a granted `Key Vault Secrets User` role, and a healthy Key Vault are all necessary but not sufficient. The control-plane worker performing the secret-set operation must be able to reach the Entra authority (either `login.microsoftonline.com` or `login.microsoft.com` — the OIDC discovery client picks one host at runtime) to fetch OIDC discovery metadata before any token flow can begin. If your workload subnet routes egress through a firewall, that firewall must permit **both** Entra authority FQDNs so the client's host choice does not silently determine whether the request is dropped.

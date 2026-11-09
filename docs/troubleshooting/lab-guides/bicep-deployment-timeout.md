@@ -193,16 +193,14 @@ az group delete \
 <!-- diagram-id: bicep-deployment-timeout-page-flow -->
 ```mermaid
 flowchart TD
-    A["Bicep Deployment Timeout Lab"]
-    B["Lab Metadata"]
-    C["1. Question"]
-    D["2. Setup"]
-    E["3. Hypothesis"]
-    A --> B
-    B --> C
-    C --> D
-    D --> E
+    BASE[Deploy baseline app] --> TRIGGER[Create revision with the lab bad startup probe]
+    TRIGGER --> CAPTURE[Capture revision state and system logs]
+    CAPTURE --> FIX[Correct only the startup-probe configuration]
+    FIX --> VERIFY[Deploy and capture the recovery revision]
+    VERIFY --> COMPARE[Compare this run before and after evidence]
 ```
+
+The `bicep-deployment-timeout-page-flow` diagram isolates startup-probe configuration as the changed variable by comparing the non-ready deployment and system logs with the corrected revision's recovery.
 
 ## See Also
 

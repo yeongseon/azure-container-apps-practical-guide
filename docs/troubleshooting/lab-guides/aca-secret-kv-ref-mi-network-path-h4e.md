@@ -53,14 +53,20 @@ This is why the evidence discipline matters:
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    A["Operator: az containerapp secret set --identity system --key-vault-url"] --> B["ACA control-plane worker resolves KV URL"]
-    B --> C["MI token acquisition begins:<br/>GET https://login.microsoftonline.com/{tenant}/.well-known/openid-configuration"]
-    C --> D["Azure-provided DNS for VNet vnet-{baseName}-{suffix}"]
-    D --> E{"Custom linked Private DNS zone for<br/>login.microsoftonline.com or login.microsoft.com?"}
-    E -->|H0 / H2: No| F["Public Microsoft IP returned<br/>OIDC discovery succeeds<br/>secret set succeeds<br/>revision unchanged"]
-    E -->|H1: Yes| G["Apex A record -> 192.0.2.1<br/>TCP connection goes to sink IP<br/>OIDC discovery fails before Key Vault read<br/>secret set fails<br/>revision unchanged, ingress HTTP 200"]
-    G --> H["Replica nslookup login.microsoftonline.com<br/>returns 192.0.2.1"]
+    accTitle: Bound H4e DNS evidence to captured outcomes
+    accDescr: The lab first records whether the custom Entra-authority DNS override is present. With no override, the secret-set command succeeds. With the override, the replica lookup returns the sink address and the separately captured secret-set attempt fails. Removing the override restores both a public replica answer and secret-set success. Whether the managed resolver used the replica's DNS view remains inferred.
+    ATTEMPT["Run the lab secret-set attempt"] --> OVERRIDE{"Custom linked Entra-authority DNS override present?"}
+    OVERRIDE -->|No: H0 and H2| PUBLIC["Public authority answer; this attempt succeeds"]
+    OVERRIDE -->|Yes: H1| SINK["Replica lookup returns the lab sink address"]
+    SINK --> RESULT{"Captured secret-set result?"}
+    RESULT -->|Non-zero: H1| FAIL["Secret set fails; Key Vault reference is not added"]
+    RESULT -->|Zero: falsifies trigger| OTHER["DNS override alone did not reproduce the failure"]
+    PUBLIC --> SUCCESS["Secret set succeeds in the captured attempt"]
+    FAIL --> LIMIT["Managed-resolver use of the replica DNS view remains inferred"]
+    SUCCESS --> LIMIT
 ```
+
+The `architecture` diagram branches on the captured secret-set exit result after recording the replica DNS answer; it does not claim that a managed resolver connection to the public Entra authority was directly observed.
 
 !!! warning "The replica DNS view is not the same thing as a proven control-plane DNS view"
     The `az containerapp exec --command "nslookup login.microsoftonline.com"` result is the DNS view from a running replica. [Observed] That result is valid evidence for the **data plane**. [Inferred] The control-plane secret resolver likely used a compatible DNS view because H0 succeeded without the override, H1 failed with the override present, and H2 succeeded after the override was removed. However, Azure does **not** document that these two components must share an identical resolver path, so the guide never states that equivalence as proven.
