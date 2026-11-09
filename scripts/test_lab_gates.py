@@ -749,6 +749,66 @@ class EvaluationReplayTests(unittest.TestCase):
                         output,
                     )
 
+    def test_batch_e_direct_replay_is_hermetic_in_fresh_copy(self) -> None:
+        for name in ("cd-reconnect-rbac-conflict", "observability-tracing", "probe-and-port-mismatch"):
+            outputs, arguments = REPLAY_LABS[name]
+            with self.subTest(lab=name), self.replay_fixture(name) as lab:
+                for path in lab.rglob("*"):
+                    if path.is_file():
+                        path.touch()
+                for output in outputs:
+                    path = lab / "evidence" / output
+                    tampered = json.loads(path.read_text())
+                    tampered["gate_classification"] = "tampered_existing_gate_must_not_be_reused"
+                    path.write_text(json.dumps(tampered))
+
+                env = os.environ.copy()
+                for variable in (
+                    "GATE_REPLAY_BASELINE_DIR", "AZ_SUBSCRIPTION", "RG", "APP_NAME",
+                    "ACR_NAME", "APPINSIGHTS_NAME",
+                ):
+                    env.pop(variable, None)
+                start = datetime.now(timezone.utc).replace(microsecond=0)
+                result = subprocess.run(
+                    ["bash", "verify.sh", *arguments], cwd=lab, env=env,
+                    capture_output=True, text=True, timeout=60, check=False,
+                )
+                end = datetime.now(timezone.utc).replace(microsecond=0)
+
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                for output in outputs:
+                    actual = json.loads((lab / "evidence" / output).read_text())
+                    self.assertNotEqual(
+                        actual.get("gate_classification"),
+                        "tampered_existing_gate_must_not_be_reused",
+                    )
+                    self.assertNotIn("utc_captured", actual)
+                    stamp_value = actual.pop("evaluated_at_utc")
+                    stamp = datetime.strptime(stamp_value, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+                    self.assertLessEqual(start, stamp)
+                    self.assertLessEqual(stamp, end)
+                    expected = json.loads((lab.parent / "committed-gates" / output).read_text())
+                    expected.pop("evaluated_at_utc", None)
+                    expected.pop("utc_captured", None)
+                    if name == "cd-reconnect-rbac-conflict" and output == "07-h1-gate.json":
+                        expected["initial_deploy_window"]["start_utc"] = "2026-06-23T12:22:11.177411+00:00"
+                        expected["reconnect_deploy_window"]["start_utc"] = "2026-06-23T12:23:05.503886+00:00"
+                        expected["reconnect_deploy_window"]["fresh_role_assignment_name"] = "not_recorded_in_raw_evidence"
+                    elif name == "cd-reconnect-rbac-conflict" and output == "14-h2-gate.json":
+                        expected["reverify_window"]["start_utc"] = "2026-06-23T12:25:00.658016+00:00"
+                        expected["delete_window"]["start_utc"] = "2026-06-23T12:25:00.658016+00:00"
+                        expected["recovery_window"]["start_utc"] = "2026-06-23T12:32:56.311469+00:00"
+                    elif name == "probe-and-port-mismatch" and output == "11-h1-gate.json":
+                        expected["build_window"]["start_utc"] = "2026-06-23T14:05:17Z"
+                        expected["trigger_window"]["start_utc"] = "2026-06-23T14:06:13.4898709"
+                    elif name == "probe-and-port-mismatch" and output == "22-h2-gate.json":
+                        expected["fix_window"]["start_utc"] = "2026-06-23T22:39:51Z"
+                    self.assertEqual(
+                        json.dumps(actual, sort_keys=True),
+                        json.dumps(expected, sort_keys=True),
+                        output,
+                    )
+
     def test_existing_old_stamps_cannot_pin_the_replay_clock(self) -> None:
         for name, (outputs, _) in REPLAY_LABS.items():
             for key in ("evaluated_at_utc", "utc_captured"):
@@ -793,6 +853,9 @@ class EvaluationReplayTests(unittest.TestCase):
                 ).replace(
                     'document["evaluated_at_utc"] = stamp',
                     'document["utc_captured"] = stamp',
+                ).replace(
+                    '"evaluated_at_utc": stamp,',
+                    '"utc_captured": stamp,',
                 )
                 self.assertNotEqual(stale, original)
                 _ = verify.write_text(stale)
