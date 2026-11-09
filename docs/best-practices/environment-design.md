@@ -6,15 +6,17 @@ content_sources:
       source: self-generated
       justification: Synthesizes Azure Container Apps environment boundaries with Azure naming, tagging, and regional guidance.
       based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/environment
         - https://learn.microsoft.com/en-us/azure/container-apps/structure
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks
         - https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming
         - https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-tagging
         - https://learn.microsoft.com/en-us/azure/reliability/regions-list
 content_validation:
   status: verified
-  last_reviewed: 2026-09-11
-  reviewer: ai-agent
+  last_reviewed: 2026-11-08
+  reviewer: agent
   core_claims:
     - claim: Workload profiles (v2) is the default Azure Container Apps environment type for new environments.
       source: https://learn.microsoft.com/en-us/azure/container-apps/structure
@@ -22,11 +24,14 @@ content_validation:
     - claim: Once created, a Container Apps environment can't change between the default Azure network and an existing VNet.
       source: https://learn.microsoft.com/en-us/azure/container-apps/networking
       verified: true
+    - claim: Microsoft Learn presents single versus multiple environments as a design choice; multiple environments can isolate teams or lifecycle stages such as test and production.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/environment
+      verified: true
+    - claim: A workload-profile environment requires a /27 or larger delegated custom VNet subnet, while a consumption-only environment requires a /23 or larger subnet with no service delegation.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks
+      verified: true
     - claim: Cloud Adoption Framework guidance says most Azure resource names can't be changed after creation and recommends using tags for information that can change.
       source: https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming
-      verified: true
-    - claim: Cloud Adoption Framework guidance recommends using the same core tagging schema for all resources and not storing sensitive values in tags.
-      source: https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-tagging
       verified: true
 ---
 # Environment Design
@@ -38,12 +43,26 @@ Environment design determines the blast radius, networking flexibility, and oper
 <!-- diagram-id: environment-boundary-patterns -->
 ```mermaid
 flowchart TD
-    A[One app team] --> B{Shared boundary or isolated boundary?}
-    B -->|Shared| C[One environment per tier]
-    B -->|Isolated| D[Separate environment per trust boundary]
-    C --> E[Lower cost and simpler sharing]
-    D --> F[Higher isolation and clearer blast radius]
+    accTitle: Choose a Container Apps environment boundary
+    accDescr: Chooses shared or separate environments from compute isolation, lifecycle stage, team ownership, networking, Dapr, and logging requirements.
+
+    START["Group related apps and jobs"]
+    ISOLATE{"Must workloads avoid shared compute,<br/>team, or lifecycle-stage boundaries?"}
+    NETWORK{"Do networking, Dapr, or log-destination<br/>requirements differ?"}
+    SHARED["Use one shared environment<br/>for related trusted workloads"]
+    SEPARATE["Use separate environments<br/>for the distinct boundary"]
+    PLAN["Document ownership, region,<br/>profile mix, and subnet capacity"]
+
+    START --> ISOLATE
+    ISOLATE -->|"Yes"| SEPARATE
+    ISOLATE -->|"No"| NETWORK
+    NETWORK -->|"Yes"| SEPARATE
+    NETWORK -->|"No"| SHARED
+    SHARED --> PLAN
+    SEPARATE --> PLAN
 ```
+
+*Figure: Environment separation is a design choice driven by isolation and shared platform requirements, not a mandatory one-environment-per-team rule.*
 
 Environment choices affect:
 
@@ -52,17 +71,21 @@ Environment choices affect:
 - Cost shape and profile reuse.
 - How safely you can separate dev, staging, and production change windows.
 
+For custom VNet integration, keep the environment types distinct: workload-profile environments require a `/27` or larger subnet delegated to `Microsoft.App/environments`; consumption-only environments require a `/23` or larger subnet that is not delegated to any service. Larger ranges provide more scaling and deployment headroom.
+
 ## Recommended Practices
 
-### Use one environment per lifecycle tier by default
+### Separate lifecycle tiers when they need distinct boundaries
 
-Start with separate environments for:
+Use separate environments for development, staging, and production when they must not share compute, networking, operational ownership, or change windows. Microsoft Learn supports both single and multiple environments; stage separation is a recommended boundary choice, not a platform requirement.
+
+Common separate tiers are:
 
 - Development
 - Staging / pre-production
 - Production
 
-This keeps production networking, quota, and rollback boundaries separate from lower environments.
+This can keep production networking, capacity planning, and change boundaries separate from lower environments.
 
 ### Share environments only when the boundary is truly shared
 
@@ -119,7 +142,7 @@ Suggested baseline tags:
 
 **[Observed]** `cae-basics-d38538` `Container Apps Environment` `Refresh` `Delete` `Essentials` `View Cost` `JSON View` `Resource group (move)` `rg-aca-basics-d38538` `Status` `Succeeded` `Location (move)` `Korea Central` `Subscription (move)` `Visual Studio Enterprise Subscription` `Subscription ID` `00000000-0000-0000-0000-000000000000` `Aspire Dashboard` `Not yet active (set up)` `Tags (edit)` `Add tags` `Environment type` `Workload profiles` `Static IP` `4.230.156.3` `Applications` `1` `KEDA version` `2.18.1` `Dapr version` `1.16.4-msft.7` `Applications` `Get started` `Monitoring` `Tutorials` `Name` `App Type` `Resource Group` `ca-sample-d38538` `Container App` `rg-aca-basics-d38538` `Overview` `Activity log` `Access control (IAM)` `Tags` `Diagnose and solve problems` `Resource visualizer` `Settings` `Apps` `Services` `Monitoring` `Automation` `Help`.
 
-**[Inferred]** The `Tags (edit)` field with value `Add tags` is consistent with the baseline-tag schema discussed in [Standardize names and tags](#standardize-names-and-tags), where stable metadata such as `environment`, `workload`, and `region` is expected to be applied to the environment resource. The `Location` value `Korea Central` is consistent with the region-selection criteria listed in [Choose regions deliberately](#choose-regions-deliberately). The `Environment type` value `Workload profiles` is consistent with the workload-profile availability bullet listed under [Choose regions deliberately](#choose-regions-deliberately). The environment-scoped page header `cae-basics-d38538` paired with the `Container Apps Environment` resource type is consistent with treating the environment as a lifecycle-tier boundary as discussed in [Use one environment per lifecycle tier by default](#use-one-environment-per-lifecycle-tier-by-default).
+**[Inferred]** The `Tags (edit)` field with value `Add tags` is consistent with the baseline-tag schema discussed in [Standardize names and tags](#standardize-names-and-tags), where stable metadata such as `environment`, `workload`, and `region` is expected to be applied to the environment resource. The `Location` value `Korea Central` is consistent with the region-selection criteria listed in [Choose regions deliberately](#choose-regions-deliberately). The `Environment type` value `Workload profiles` is consistent with the workload-profile availability bullet listed under [Choose regions deliberately](#choose-regions-deliberately). The environment-scoped page header `cae-basics-d38538` paired with the `Container Apps Environment` resource type is consistent with treating the environment as a lifecycle-tier boundary as discussed in [Separate lifecycle tiers when they need distinct boundaries](#separate-lifecycle-tiers-when-they-need-distinct-boundaries).
 
 **[Not Proven]** Additional environment configuration detail, profile capacity detail, network topology detail, and provisioning detail are not visible on this view.
 
@@ -153,7 +176,9 @@ Suggested baseline tags:
 ## Sources
 
 - [Compute and billing structures in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/structure)
+- [Azure Container Apps environments (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/environment)
 - [Networking in Azure Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Configure virtual networks in Azure Container Apps environments (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks)
 - [Define your naming convention (Cloud Adoption Framework)](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming)
 - [Define your tagging strategy (Cloud Adoption Framework)](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-tagging)
 - [List of Azure regions (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/reliability/regions-list)
