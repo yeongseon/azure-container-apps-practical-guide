@@ -35,8 +35,22 @@ Use this query to identify failures caused by missing secrets, invalid secret re
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by app] --> B[Filter secret and Key Vault signals] --> C[Project reason and revision] --> D[Sort by time]
+    accTitle: Find secret reference failures in legacy system logs
+    accDescr: Select one Container App, keep secret and Key Vault reference messages, retain revision and platform-reason context, and order the newest evidence first.
+
+    SOURCE["ContainerAppSystemLogs_CL<br/>legacy Log Analytics schema"]
+    APP["Filter ContainerAppName_s"]
+    TERMS["Match secret, secretRef,<br/>Key Vault, denied, or reference terms"]
+    CONTEXT["Project TimeGenerated,<br/>RevisionName_s, Reason_s, and Log_s"]
+    RESULT["Newest secret-reference<br/>messages first"]
+
+    SOURCE --> APP
+    APP --> TERMS
+    TERMS --> CONTEXT
+    CONTEXT --> RESULT
 ```
+
+The result identifies secret-related platform messages, not the secret value. Correlate the revision and reason with secret-reference and managed-identity configuration.
 
 ## Query
 

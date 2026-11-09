@@ -1,4 +1,5 @@
 ---
+description: Production-oriented KQL catalog for Azure Container Apps system logs, console logs, HTTP telemetry, scaling, identity, Dapr, jobs, and correlation.
 content_sources:
   diagrams:
     - id: use-this-section-as-a-query
@@ -16,9 +17,13 @@ Use this section as a query catalog. Each page includes scenario context, data-s
 <!-- diagram-id: use-this-section-as-a-query -->
 ```mermaid
 flowchart TD
+    accTitle: Choose a Container Apps KQL query family by evidence source
+    accDescr: Legacy system logs feed platform, revision, scaling, job, and correlation investigations. Legacy console logs feed application, HTTP, ingress, identity, Dapr, and correlation investigations. Application Insights supplies request and exception telemetry when configured.
+
     subgraph Sources["Data Sources"]
-        SYS["ContainerAppSystemLogs_CL"]
-        CON["ContainerAppConsoleLogs_CL"]
+        SYS["ContainerAppSystemLogs_CL<br/>legacy platform events"]
+        CON["ContainerAppConsoleLogs_CL<br/>legacy stdout and stderr"]
+        AI["Application Insights<br/>requests and exceptions"]
     end
     subgraph Categories["Query Categories"]
         HTTP["HTTP"]
@@ -35,13 +40,19 @@ flowchart TD
     SYS --> SYSREV
     SYS --> SCL
     SYS --> DAPR
+    SYS --> IDSEC
     CON --> HTTP
     CON --> CONRT
     CON --> ING
     CON --> IDSEC
+    CON --> DAPR
     SYS --> COR
     CON --> COR
+    AI --> HTTP
+    AI --> COR
 ```
+
+Select a query family only after confirming the destination and schema in the workspace. The `_CL` tables use suffixed fields such as `Log_s` and `RevisionName_s`; resource-specific tables use native field names, while Application Insights uses its request and exception schemas.
 
 ## Schema Note
 

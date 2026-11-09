@@ -35,8 +35,25 @@ Use this query when the app emits both startup and ready messages and you need t
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by app and time window] --> B[Match startup and ready log markers] --> C[Pair first start and ready events per container group] --> D[Calculate startup duration]
+    accTitle: Estimate application startup duration from paired console markers
+    accDescr: Build startup and ready event sets from legacy console logs, pair them by revision and container instance, then calculate the elapsed time between the first matching markers.
+
+    SOURCE["ContainerAppConsoleLogs_CL<br/>legacy Log Analytics schema"]
+    START["Startup set<br/>first start marker per container"]
+    READY["Ready set<br/>first ready marker per container"]
+    JOIN["Inner join on revision,<br/>container group, and container"]
+    VALID["Keep readyAt<br/>at or after startupAt"]
+    DURATION["Calculate app-level<br/>startup duration"]
+
+    SOURCE --> START
+    SOURCE --> READY
+    START --> JOIN
+    READY --> JOIN
+    JOIN --> VALID
+    VALID --> DURATION
 ```
+
+This estimates application startup between emitted markers. It excludes image pull, scheduling, and other platform provisioning time.
 
 ## Query
 

@@ -28,11 +28,25 @@ content_validation:
 
 <!-- diagram-id: purpose-ranks-request-paths-by-p95 -->
 ```mermaid
-graph TD
-    A[requests / ConsoleLogs] --> B[Group by URL Path]
-    B --> C[Calculate P50 / P95 / P99]
-    C --> D[Rank by P95 Descending]
+flowchart TD
+    accTitle: Rank request paths by tail latency
+    accDescr: Select request telemetry, derive a path, group requests by that path, calculate latency percentiles and sample count, then retain sufficiently sampled paths and rank them by p95.
+
+    SOURCE["Application Insights<br/>requests table"]
+    WINDOW["Filter the one-hour window<br/>and exclude 5xx requests"]
+    PATH["Derive UrlPath<br/>from the request URL"]
+    SUMMARY["Calculate p50, p95, p99,<br/>and count by path"]
+    SAMPLE["Keep paths with<br/>more than ten requests"]
+    RANK["Top 20 paths by<br/>descending p95"]
+
+    SOURCE --> WINDOW
+    WINDOW --> PATH
+    PATH --> SUMMARY
+    SUMMARY --> SAMPLE
+    SAMPLE --> RANK
 ```
+
+The count threshold protects the ranking from very small samples. The console-log alternative is valid only when request method, path, and duration are emitted in a parseable format.
 
 ## Query (Application Insights)
 

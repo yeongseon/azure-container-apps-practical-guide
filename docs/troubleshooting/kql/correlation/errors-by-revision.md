@@ -35,8 +35,22 @@ Use this query to compare error volume across revisions and detect rollout regre
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by app] --> B[Filter error patterns] --> C[Summarize by revision] --> D[Sort by error volume]
+    accTitle: Compare application error messages by revision
+    accDescr: Select one app in the legacy console-log table, keep error-like messages, aggregate counts and time bounds by revision, and rank revisions by error volume.
+
+    SOURCE["ContainerAppConsoleLogs_CL<br/>legacy Log Analytics schema"]
+    APP["Filter ContainerAppName_s"]
+    ERRORS["Match error-like terms<br/>in Log_s"]
+    REVISION["Count errors and capture<br/>first/last time by RevisionName_s"]
+    RESULT["Rank revisions by<br/>descending error count"]
+
+    SOURCE --> APP
+    APP --> ERRORS
+    ERRORS --> REVISION
+    REVISION --> RESULT
 ```
+
+The output compares raw error-message counts, not error rates. Check traffic distribution or request volume before treating a higher count as a rollout regression.
 
 ## Query
 

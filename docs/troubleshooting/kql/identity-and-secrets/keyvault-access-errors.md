@@ -35,8 +35,22 @@ Use this query to analyze Key Vault secret reference resolution failures and sep
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by app] --> B[Filter Key Vault signals] --> C[Classify failure category] --> D[Project revision and reason]
+    accTitle: Classify Key Vault reference failures in legacy system logs
+    accDescr: Select one Container App, keep Key Vault reference messages with failure terms, classify the symptom, and retain revision and platform-reason context.
+
+    SOURCE["ContainerAppSystemLogs_CL<br/>legacy Log Analytics schema"]
+    APP["Filter ContainerAppName_s"]
+    VAULT["Match Key Vault reference<br/>and failure terms in Log_s"]
+    CLASSIFY["Classify access denied,<br/>not found, timeout, or resolution failure"]
+    CONTEXT["Project RevisionName_s,<br/>Reason_s, class, and Log_s"]
+
+    SOURCE --> APP
+    APP --> VAULT
+    VAULT --> CLASSIFY
+    CLASSIFY --> CONTEXT
 ```
+
+The category is inferred from message text. Pair it with identity, Key Vault permissions, DNS, and firewall checks before assigning a root cause.
 
 ## Query
 

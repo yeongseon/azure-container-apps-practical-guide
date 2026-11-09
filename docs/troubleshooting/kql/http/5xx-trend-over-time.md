@@ -28,11 +28,25 @@ content_validation:
 
 <!-- diagram-id: purpose-tracks-5xx-volume-over-time -->
 ```mermaid
-graph TD
-    A[requests / ConsoleLogs] -->|resultCode >= 500| B[Filter 5xx]
-    B --> C[Count by 15m bins + Status]
-    C --> D[Timechart: Spike Detection]
+flowchart TD
+    accTitle: Build a 5xx trend from one selected telemetry source
+    accDescr: Choose Application Insights requests or a documented log fallback, isolate 5xx evidence, aggregate counts by time and status, and render a trend for spike detection.
+
+    AI["Application Insights<br/>requests table"]
+    CONSOLE["ContainerAppConsoleLogs_CL<br/>structured app messages"]
+    SYSTEM["ContainerAppSystemLogs_CL<br/>platform messages"]
+    FILTER["Keep 5xx evidence<br/>for the selected source"]
+    AGGREGATE["Count by 15-minute bin<br/>and status or reason"]
+    TREND["Timechart for<br/>spike detection"]
+
+    AI --> FILTER
+    CONSOLE --> FILTER
+    SYSTEM --> FILTER
+    FILTER --> AGGREGATE
+    AGGREGATE --> TREND
 ```
+
+The three inputs are alternatives, not a union in the sample queries. Application Insights supplies request result codes; the legacy log fallbacks depend on matching text emitted by the app or platform.
 
 ## Query (Application Insights)
 

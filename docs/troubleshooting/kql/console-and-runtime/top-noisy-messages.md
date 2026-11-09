@@ -35,8 +35,22 @@ Use this query to identify repetitive log lines that may indicate error storms o
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by app and time window] --> B[Normalize message text] --> C[Count by message] --> D[Top noisy entries]
+    accTitle: Rank repeated legacy console messages
+    accDescr: Select one app and time window, group identical log text, count occurrences, and return the twenty most frequent messages.
+
+    SOURCE["ContainerAppConsoleLogs_CL<br/>legacy Log Analytics schema"]
+    SCOPE["Filter ContainerAppName_s<br/>and the six-hour window"]
+    GROUP["Group identical Log_s text"]
+    COUNT["Count occurrences"]
+    TOP["Return top 20<br/>by descending count"]
+
+    SOURCE --> SCOPE
+    SCOPE --> GROUP
+    GROUP --> COUNT
+    COUNT --> TOP
 ```
+
+Because grouping uses the complete `Log_s` value, dynamic identifiers can split otherwise similar messages into separate rows.
 
 ## Query
 

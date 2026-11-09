@@ -35,8 +35,22 @@ Use this query when your app emits request duration values (for example `duratio
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by app] --> B[Parse duration field] --> C[Summarize p50 and p95] --> D[Trend by time bin]
+    accTitle: Calculate request latency from structured console messages
+    accDescr: Select one app, keep messages containing duration_ms, parse the numeric duration, and calculate latency percentiles for each time bin and revision.
+
+    SOURCE["ContainerAppConsoleLogs_CL<br/>legacy Log Analytics schema"]
+    APP["Filter ContainerAppName_s"]
+    MARKER["Keep Log_s containing<br/>duration_ms="]
+    PARSE["Parse duration_ms<br/>as a long value"]
+    SUMMARY["Calculate p50, p95, p99,<br/>and max by time and revision"]
+
+    SOURCE --> APP
+    APP --> MARKER
+    MARKER --> PARSE
+    PARSE --> SUMMARY
 ```
+
+The query measures only application messages that follow the documented `duration_ms=` format; it does not read the platform HTTP-log table or infer missing requests.
 
 ## Query
 

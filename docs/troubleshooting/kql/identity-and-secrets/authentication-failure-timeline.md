@@ -35,8 +35,22 @@ Use this query to track authentication failures over time and spot recurring 401
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by app] --> B[Filter auth failure terms] --> C[Classify 401 403 and token expiry] --> D[Summarize by 15 minute bins]
+    accTitle: Classify authentication failure messages over time
+    accDescr: Select one app in the legacy console-log table, keep authentication-related text, classify each message as 401, 403, token expiry, or other, and count classes by fifteen-minute bins.
+
+    SOURCE["ContainerAppConsoleLogs_CL<br/>legacy Log Analytics schema"]
+    APP["Filter ContainerAppName_s"]
+    TERMS["Match status codes and<br/>authentication terms in Log_s"]
+    CLASSIFY["Classify token expiry,<br/>401, 403, or other"]
+    TIMELINE["Count by 15-minute bin<br/>and failure class"]
+
+    SOURCE --> APP
+    APP --> TERMS
+    TERMS --> CLASSIFY
+    CLASSIFY --> TIMELINE
 ```
+
+This pipeline classifies application-emitted text. A 401 or 403 message alone does not identify the failing identity provider, token audience, or missing permission.
 
 ## Query
 

@@ -1,4 +1,5 @@
 ---
+description: KQL query pack for investigating Azure Container Apps HTTP latency, 5xx trends, and slow request paths with Application Insights or structured logs.
 content_sources:
   diagrams:
     - id: query-pipeline-overview
@@ -29,11 +30,24 @@ HTTP request analysis queries for Azure Container Apps. Use these to investigate
 <!-- diagram-id: query-pipeline-overview -->
 ```mermaid
 flowchart TD
-    A[Raw Logs] --> B[Filter HTTP Patterns]
-    B --> C[Extract Status/Latency]
-    C --> D[Aggregate by Time]
-    D --> E[Visualize Trends]
+    accTitle: HTTP telemetry analysis pipeline
+    accDescr: Select Application Insights request telemetry or structured legacy console logs, isolate HTTP records, extract request dimensions, calculate aggregates, and present trends or ranked paths.
+
+    AI["Application Insights<br/>requests and dependencies"]
+    CONSOLE["ContainerAppConsoleLogs_CL<br/>structured HTTP messages"]
+    FILTER["Filter the target app,<br/>time window, and HTTP records"]
+    EXTRACT["Read or parse status,<br/>duration, and request path"]
+    AGGREGATE["Calculate counts,<br/>percentiles, or rates"]
+    OUTPUT["Trend by time or<br/>rank by request path"]
+
+    AI --> FILTER
+    CONSOLE --> FILTER
+    FILTER --> EXTRACT
+    EXTRACT --> AGGREGATE
+    AGGREGATE --> OUTPUT
 ```
+
+Choose one schema before running a query. Application Insights uses request fields such as `resultCode` and `duration`; the legacy console-log fallback parses equivalent values from `Log_s` only when the application emits a consistent format.
 
 ## Available Queries
 

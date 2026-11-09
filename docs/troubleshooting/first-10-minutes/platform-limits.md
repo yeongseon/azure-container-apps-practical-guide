@@ -32,13 +32,32 @@ Use this page as a quick checkpoint before scaling, rollout, or incident respons
 <!-- diagram-id: use-this-page-as-a-quick -->
 ```mermaid
 flowchart TD
-    REQ[Incoming Request] --> TIMEOUT{"Ingress Timeout (~240s)"}
-    TIMEOUT -->|Under limit| SCALE{"Scale Rules"}
-    TIMEOUT -->|Over limit| ASYNC["Move to Async Pattern"]
-    SCALE --> REPLICA["Replica Sizing (CPU/Memory)"]
-    REPLICA --> MINMAX["Min/Max Replicas"]
-    MINMAX --> QUOTA["Subscription Quota"]
+    accTitle: Decide whether a workload fits synchronous Container Apps ingress and scaling constraints
+    accDescr: Check request duration, replica sizing, scaling bounds, and subscription quota. Long-running work branches to an asynchronous pattern, while synchronous work continues through capacity checks.
+
+    REQ["Incoming workload"]
+    DURATION{"Can the operation finish<br/>within the documented<br/>ingress request timeout?"}
+    ASYNC["Use an asynchronous pattern<br/>such as a queue and worker"]
+    SIZING{"Does one replica have<br/>enough CPU and memory?"}
+    RESIZE["Adjust container<br/>CPU and memory"]
+    BOUNDS{"Do min/max replicas and<br/>the scale rule cover demand?"}
+    TUNE["Adjust replica bounds<br/>or scaling threshold"]
+    QUOTA{"Does subscription quota<br/>allow the requested capacity?"}
+    REQUEST["Review quota usage<br/>or request an increase"]
+    READY["Proceed with a bounded<br/>load test"]
+
+    REQ --> DURATION
+    DURATION -->|No| ASYNC
+    DURATION -->|Yes| SIZING
+    SIZING -->|No| RESIZE
+    SIZING -->|Yes| BOUNDS
+    BOUNDS -->|No| TUNE
+    BOUNDS -->|Yes| QUOTA
+    QUOTA -->|No| REQUEST
+    QUOTA -->|Yes| READY
 ```
+
+Each decision has an explicit remediation branch. Passing the checks does not prove production capacity; it establishes the inputs for a bounded load test.
 
 ## Common Limits and Timeouts
 
@@ -74,8 +93,11 @@ az containerapp show \
 
 | Command | Purpose |
 |---|---|
-| `az containerapp env list --resource-group "$RG"` | Lists Container Apps environments in the resource group so you can verify which environment exists before checking quota, capacity, or scale bounds. |
-| `az containerapp show \ --name "$APP_NAME" \ --resource-group "$RG" \ --query "properties.template.scale"` | Reads the Container App resource and extracts the full scale configuration, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp env list` | Lists environments in the resource group before capacity and quota investigation. |
+| `az containerapp show` | Reads the selected app's configured scale bounds and rules. |
+| `--resource-group` | Selects the resource group containing the environments and app. |
+| `--name` | Selects the Container App inspected by `az containerapp show`. |
+| `--query` | Makes `az containerapp show` extract only `properties.template.scale` from the app resource. |
 
 Observed baseline before limit testing:
 
