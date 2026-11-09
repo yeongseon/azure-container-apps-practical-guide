@@ -50,10 +50,12 @@ See [`evidence/README.md`](evidence/README.md) for the 16-file index, capture pu
 
 The committed Phase B verifier is hermetic:
 
+Gate 14 through Gate 17 were originally emitted on 2026-06-26 and can be re-evaluated later offline from the unchanged raw cohort. Each replay records its own invocation time in top-level `evaluated_at_utc`; that value is not a capture date and implies no current Azure replay or validation.
+
 | Command | Why it is used |
 |---|---|
 | `cd labs/revision-provisioning-failure/` | Enters the lab directory so the relative evidence paths resolve correctly. |
-| `bash verify.sh` | Recomputes Gate 14 through Gate 17 from the committed evidence cohort without touching Azure. |
+| `bash verify.sh` | Recomputes Gate 14 through Gate 17 from current raw evidence without touching Azure or reusing an existing gate timestamp. |
 
 ```bash
 cd labs/revision-provisioning-failure/

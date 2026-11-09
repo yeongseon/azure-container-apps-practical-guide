@@ -1,6 +1,7 @@
 {
   "claim": "The 12-file revision-provisioning-failure raw cohort is internally consistent: every file is present and parseable, the identity and lineage bind to ca-labrevprov-e2upm2 / rg-aca-lab-revprov, the temporal span uses the documented <=5400-second fallback ceiling, and evidence/README.md cross-references all four Phase B gate JSON files.",
   "claim_level": "Observed",
+  "evaluated_at_utc": "2026-11-09T13:06:01Z",
   "gate_classification": "Cohort integrity gate: structural pre-condition for the bounded-falsification pack. The temporal bound uses the documented fallback ceiling because the 53-minute baseline-to-fix span exceeds the 30-minute strong ceiling.",
   "hypothesis": "H_cohort_integrity",
   "path_used": "fallback",
@@ -178,6 +179,5 @@
     "canonical_count_strong": 12,
     "temporal_span_fallback_seconds_max": 5400,
     "temporal_span_strong_seconds_max": 1800
-  },
-  "utc_captured": "2026-06-26T06:14:47Z"
+  }
 }

@@ -1,6 +1,7 @@
 {
   "claim": "The H2 fix restored recovery: ca-labrevprov-e2upm2--badpath3 is Healthy/Provisioned with startup probe path=/ on port 80, and the post-fix KQL verification shows badpath3 with startup success events but zero ProbeFailed / zero ContainerTerminated while the historical H1 failures remain isolated to badpath2.",
   "claim_level": "Observed",
+  "evaluated_at_utc": "2026-11-09T13:06:01Z",
   "gate_classification": "H2 gate: confirms recovery on the fixed revision and explicitly scopes the retained ProbeFailed history to the old failed revision.",
   "hypothesis": "H2_fix_restores_recovery",
   "path_used": "single",
@@ -122,6 +123,5 @@
     "badpath2_probefailed_floor": 56,
     "badpath3_containerterminated_expected": 0,
     "badpath3_probefailed_expected": 0
-  },
-  "utc_captured": "2026-06-26T06:14:47Z"
+  }
 }

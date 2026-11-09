@@ -327,6 +327,8 @@ Healthy        Provisioned
 
 ## 4) Experiment Log
 
+Gate 14 through Gate 17 were originally emitted on 2026-06-26 and can be re-evaluated later offline from unchanged raw evidence. Their top-level `evaluated_at_utc` records each replay invocation, not a new evidence capture or current Azure validation date.
+
 | Step | Action | Expected | Actual | Pass/Fail |
 |---|---|---|---|---|
 | 1 | Deploy baseline infrastructure | Deployment succeeds | | |
