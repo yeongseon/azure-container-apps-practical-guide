@@ -695,6 +695,64 @@ class EvaluationReplayTests(unittest.TestCase):
                     data.pop("evaluated_at_utc")
                     self.assertEqual(json.dumps(data, sort_keys=True), json.dumps(first[output], sort_keys=True))
 
+    def test_batch_f_direct_replay_is_hermetic_in_fresh_copy(self) -> None:
+        for name in ("revision-failover", "scale-rule-mismatch", "traffic-routing-canary"):
+            outputs, arguments = REPLAY_LABS[name]
+            with self.subTest(lab=name), self.replay_fixture(name) as lab:
+                for path in lab.rglob("*"):
+                    if path.is_file():
+                        path.touch()
+                for output in outputs:
+                    (lab / "evidence" / output).unlink()
+
+                env = os.environ.copy()
+                env.pop("GATE_REPLAY_BASELINE_DIR", None)
+                start = datetime.now(timezone.utc).replace(microsecond=0)
+                result = subprocess.run(
+                    ["bash", "verify.sh", *arguments], cwd=lab, env=env,
+                    capture_output=True, text=True, timeout=60, check=False,
+                )
+                end = datetime.now(timezone.utc).replace(microsecond=0)
+
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                for output in outputs:
+                    actual = json.loads((lab / "evidence" / output).read_text())
+                    self.assertNotIn("utc_captured", actual)
+                    stamp_value = actual.pop("evaluated_at_utc")
+                    stamp = datetime.strptime(stamp_value, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+                    self.assertLessEqual(start, stamp)
+                    self.assertLessEqual(stamp, end)
+                    expected = json.loads((lab.parent / "committed-gates" / output).read_text())
+                    expected.pop("evaluated_at_utc", None)
+                    expected.pop("utc_captured", None)
+                    self.assertEqual(json.dumps(actual, sort_keys=True), json.dumps(expected, sort_keys=True), output)
+
+    def test_batch_f_existing_gate_tampering_cannot_influence_direct_replay(self) -> None:
+        for name in ("revision-failover", "scale-rule-mismatch", "traffic-routing-canary"):
+            outputs, arguments = REPLAY_LABS[name]
+            with self.subTest(lab=name), self.replay_fixture(name) as lab:
+                for output in outputs:
+                    path = lab / "evidence" / output
+                    tampered = json.loads(path.read_text())
+                    tampered["gate_classification"] = "tampered-existing-gate"
+                    path.write_text(json.dumps(tampered))
+
+                env = os.environ.copy()
+                env.pop("GATE_REPLAY_BASELINE_DIR", None)
+                result = subprocess.run(
+                    ["bash", "verify.sh", *arguments], cwd=lab, env=env,
+                    capture_output=True, text=True, timeout=60, check=False,
+                )
+
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                for output in outputs:
+                    actual = json.loads((lab / "evidence" / output).read_text())
+                    actual.pop("evaluated_at_utc")
+                    expected = json.loads((lab.parent / "committed-gates" / output).read_text())
+                    expected.pop("evaluated_at_utc", None)
+                    expected.pop("utc_captured", None)
+                    self.assertEqual(json.dumps(actual, sort_keys=True), json.dumps(expected, sort_keys=True), output)
+
     def test_existing_old_stamps_cannot_pin_the_replay_clock(self) -> None:
         for name, (outputs, _) in REPLAY_LABS.items():
             for key in ("evaluated_at_utc", "utc_captured"):
