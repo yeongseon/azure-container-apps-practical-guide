@@ -12,6 +12,8 @@ The lab evidence was assembled in two phases on **2026-06-23**:
 
 All H1 and H2 sub-gate decisions reference artifacts from the strengthened-window capture (`07-*` through `24-*`). The earlier `01-*` through `06-*` files are preserved as honest evidence of the infra-resolve and fault-injection chain.
 
+The direct offline evaluator reads only raw evidence, not the existing gate documents. The original shell-local `build_window.start_utc`, `trigger_window.start_utc`, and `fix_window.start_utc` values were not persisted as standalone raw fields. Regenerated gates therefore use the first timestamp in `03-acr-build.log`, `05-containerapp-update-image.json.systemData.lastModifiedAt`, and the first timestamp in `15-wait-recovery.log`, respectively. These transparent non-stamp changes do not affect any H1 or H2 predicate.
+
 ## Non-gating artifact: `06-wait-provisioning.log`
 
 `06-wait-provisioning.log` is a **single-line snapshot** from the original 14:05–14:06 UTC fault-injection phase that pre-dates the Phase 5 strengthening (which moved from 1 attempt to 30 attempts). It is preserved as honest historical evidence of the polling-window variance described in the lab guide's `### Observed Evidence (Live Azure Test — 2026-06-23)` subsection, but it is **explicitly non-gating**:
