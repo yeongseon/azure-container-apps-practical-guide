@@ -182,16 +182,25 @@ az group delete \
 <!-- diagram-id: egress-ip-change-page-flow -->
 ```mermaid
 flowchart TD
-    A["Egress IP Change Lab"]
-    B["Lab Metadata"]
-    C["1. Question"]
-    D["2. Setup"]
-    E["3. Hypothesis"]
-    A --> B
-    B --> C
-    C --> D
-    D --> E
+    accTitle: Measure and control Container Apps outbound identity
+    accDescr: Measure a dependency-visible outbound IP before and after an environment change, then choose a workload-profiles NAT or firewall path when a stable allow-list identity is required.
+
+    REPLICA[Container app replica]
+    MANAGED[Platform-managed outbound path]
+    CONTROLLED[Customer-controlled outbound path<br/>NAT Gateway or firewall]
+    DEPENDENCY[External dependency]
+    BASELINE[Record dependency-visible<br/>source IP before the change]
+    COMPARE[Compare the post-change<br/>source IP and downstream policy]
+
+    REPLICA ==>|Outbound request| MANAGED
+    MANAGED ==>|SNAT request| DEPENDENCY
+    DEPENDENCY ==>|Observed source IP| BASELINE
+    REPLICA ==>|Outbound request| CONTROLLED
+    CONTROLLED ==>|Stable egress identity| DEPENDENCY
+    DEPENDENCY ==>|Response and observed source IP| COMPARE
 ```
+
+*Figure: The lab measures outbound identity at the dependency and keeps the platform-managed path separate from an explicitly configured NAT Gateway or firewall path.*
 
 ## See Also
 
