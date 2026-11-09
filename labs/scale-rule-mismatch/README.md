@@ -40,7 +40,7 @@ labs/scale-rule-mismatch/
     ├── 07-replicas-load-60s.json                     # Phase 7: replica list at load+60 s (expect 1 replica)
     ├── 08-replicas-load-90s.json                     # Phase 7: replica list at load+90 s (expect 1 replica)
     ├── 09-system-logs-scale-events-pre-fix.json      # Phase 8: az monitor log-analytics query for ContainerAppSystemLogs_CL scale events in the load window (expect 0 rows)
-    ├── 10-h1-gate.json                               # Phase 9: parsed H1 gate classification (expect scale_rule_mismatch_replicas_capped)
+    ├── 10-h1-gate.json                               # Phase 9: derived H1 gate classification (expect scale_rule_mismatch_replicas_capped)
     ├── 11-containerapp-update-fix.json               # Phase 11: az containerapp update applying the fix (concurrentRequests=10, maxReplicas=10) — creates new revision (note: the `concurrentRequests` field is reported as `""` blank by the `--query` projection on the freshly-created new revision because the scale rule was not yet fully resolved on the immediate post-update response; see 12 for the post-fix `=10` confirmation)
     ├── 12-containerapp-show-after-fix.json           # Phase 13: az containerapp show post-fix (expect concurrentRequests=10, maxReplicas=10)
     ├── 13-replicas-pre-load-after-fix.json           # Phase 14: replica list post-fix pre-load (expect 1 replica after KEDA stabilizes)
@@ -49,7 +49,7 @@ labs/scale-rule-mismatch/
     ├── 16-replicas-load-60s-after-fix.json           # Phase 16: replica list post-fix at load+60 s
     ├── 17-replicas-load-90s-after-fix.json           # Phase 16: replica list post-fix at load+90 s
     ├── 18-system-logs-scale-events-after-fix.json    # Phase 17: az monitor log-analytics query for ContainerAppSystemLogs_CL scale events in the post-fix load window (strict filter: `Reason_s startswith "Scal" or "KEDA"`; may return 0 rows when the platform emits only replica-lifecycle events like `AssigningReplica`)
-    ├── 19-h2-gate.json                               # Phase 18: parsed H2 gate classification (`scale_rule_fixed_replicas_scaled_events_observed` when strict KQL gate fires, or `scale_rule_fixed_replicas_scaled_no_events` partial-pass when only replica count fires)
+    ├── 19-h2-gate.json                               # Phase 18: derived H2 gate classification (`scale_rule_fixed_replicas_scaled_events_observed` when strict KQL gate fires, or `scale_rule_fixed_replicas_scaled_no_events` partial-pass when only replica count fires)
     ├── 20-cli-versions.json                          # Post-run: `az version`
     ├── 21-cli-containerapp-ext.json                  # Post-run: containerapp extension version
     ├── 22-region.json                                # Post-run: deployment region
@@ -167,7 +167,7 @@ When you ship this lab's evidence into a docs PR or a support ticket, ALWAYS rec
 
 - **Azure region** (e.g., `koreacentral`). Captured to `evidence/22-region.json`.
 - **Azure CLI version** and **`containerapp` extension version** (`az version`, `az extension list --query "[?name=='containerapp']"`). Captured to `evidence/20-cli-versions.json` and `evidence/21-cli-containerapp-ext.json`.
-- **Date of the run in UTC** (visible at the top of `00-trigger-run.txt` and `00-verify-run.txt`, and on the `utc_captured` field of `10-h1-gate.json` and `19-h2-gate.json`).
+- **Date of the live run in UTC** (visible at the top of `00-trigger-run.txt` and `00-verify-run.txt`). Gates 10 and 19 were originally emitted during that run and were later re-evaluated offline from the unchanged raw evidence; each replay records its invocation time as top-level `evaluated_at_utc`, which is not a capture or current validation date.
 - **The exit code of `trigger.sh` and `verify.sh`** (0 = hypothesis supported, 1 = invalid run, 2 = falsified).
 - **The deployment outputs blob** captured to `evidence/23-deployment-outputs.json`. Six resource identifiers are returned by the Bicep template: Container App name and URL, ACR name and login server, environment name, and Log Analytics workspace name. The LAW customer ID is queried separately via `az monitor log-analytics workspace show --query customerId` because it is a resource property, not a Bicep output.
 - **The load window UTC range** for both H1 and H2. These are recorded as `load_window.start_utc` / `end_utc` on `10-h1-gate.json` and `post_fix_load_window.start_utc` / `end_utc` on `19-h2-gate.json`. The KQL queries in Phase 8 and Phase 17 use these exact windows; widening them risks pulling in benign teardown noise from previous revisions.
