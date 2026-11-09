@@ -28,15 +28,23 @@ Use this query to investigate repeated retry loops, backoff escalation, and exha
 
 | Table | Schema Note |
 |---|---|
-| `ContainerAppConsoleLogs_CL` | Legacy schema. If empty, try `ContainerAppConsoleLogs` (non-`_CL`). |
+| `ContainerAppConsoleLogs_CL` | This query uses the legacy Log Analytics schema (`_CL` table and `_s` columns). Translate both the table and column names before using a resource-specific schema. |
 
 ## Query Pipeline
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by app] --> B[Filter retry and backoff terms] --> C[Project revision context] --> D[Sort by time]
+    accTitle: Query application logs for timeout and retry patterns
+    accDescr: The query selects one app from the legacy console log table, keeps retry, backoff, and deadline terms, projects revision evidence, and sorts results from newest to oldest.
+
+    SOURCE[Legacy console logs<br/>ContainerAppConsoleLogs_CL] --> APP[Select ContainerAppName_s]
+    APP --> SIGNALS[Keep retry, backoff,<br/>attempt, and deadline terms]
+    SIGNALS --> CONTEXT[Project timestamp,<br/>revision, and message]
+    CONTEXT --> RESULT[Order newest first]
 ```
+
+*Figure: The pipeline depends on application or client-library logging. It reveals retry evidence but does not determine whether an operation was safe to retry.*
 
 ## Query
 

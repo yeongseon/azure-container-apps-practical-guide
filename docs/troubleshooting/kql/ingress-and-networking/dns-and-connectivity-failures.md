@@ -28,15 +28,23 @@ Use this query when dependency calls fail due to DNS lookup errors, timeouts, or
 
 | Table | Schema Note |
 |---|---|
-| `ContainerAppConsoleLogs_CL` | Legacy schema. If empty, try `ContainerAppConsoleLogs` (non-`_CL`). |
+| `ContainerAppConsoleLogs_CL` | This query uses the legacy Log Analytics schema (`_CL` table and `_s` columns). Translate both the table and column names before using a resource-specific schema. |
 
 ## Query Pipeline
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by app] --> B[Filter DNS and network terms] --> C[Project replica context] --> D[Sort by time]
+    accTitle: Query application logs for DNS and connectivity failures
+    accDescr: The query selects one app from the legacy console log table, keeps DNS and transport error terms, projects revision evidence, and sorts the results from newest to oldest.
+
+    SOURCE[Legacy console logs<br/>ContainerAppConsoleLogs_CL] --> APP[Select ContainerAppName_s]
+    APP --> SIGNALS[Keep DNS, timeout,<br/>connection, and TLS terms]
+    SIGNALS --> CONTEXT[Project timestamp,<br/>revision, and message]
+    CONTEXT --> RESULT[Order newest first]
 ```
+
+*Figure: The pipeline narrows application-emitted console logs to DNS and transport symptoms. It does not independently prove DNS-zone linkage or the failing network hop.*
 
 ## Query
 

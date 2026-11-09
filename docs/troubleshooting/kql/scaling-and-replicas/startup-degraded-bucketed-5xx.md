@@ -52,20 +52,18 @@ content_validation:
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[k6 Job stdout<br/>req + bucket JSON<br/>embedded client ts] --> B[ContainerAppConsoleLogs_CL<br/>ContainerName_s == 'k6']
-    C[perturbation-sampler stdout<br/>RevisionStateSample every 5s<br/>PerturbationWindowMarker] --> D[ContainerAppConsoleLogs_CL<br/>ContainerName_s == 'sampler']
-    E[audit Job stdout<br/>ReplicaInventorySample every 5min] --> F[ContainerAppConsoleLogs_CL<br/>ContainerName_s == 'audit']
-    G[Platform events<br/>ContainerStarted, AssigningReplica, RevisionReady] --> H[ContainerAppSystemLogs_CL]
-    B --> I[Q1 per-run summary<br/>err_pct, percentiles]
-    B --> J[Q2 10s bucket time series<br/>sum across VUs]
-    D --> K[Q3 RevisionStateSample timeline<br/>5s cadence]
-    F --> L[Q4 ReplicaInventory snapshot<br/>5min audit]
-    B --> M[Q5 falsification check<br/>3+ consecutive bad buckets]
-    B --> N[Q6 baseline vs perturbation<br/>vs supplemental restart]
-    H --> O[Q7 system-event timeline<br/>rollout milestones]
-    J --> P[Manual overlay:<br/>perturbation_id windows<br/>vs bucket err_pct]
-    K --> P
+    accTitle: Build the startup-degraded falsification evidence set
+    accDescr: Three lab containers write structured observations to the legacy console-log table, while platform lifecycle events enter the legacy system-log table. Seven queries summarize requests, buckets, revision state, replica inventory, falsification windows, phase comparisons, and rollout milestones. A manual overlay aligns client error buckets with perturbation windows.
+
+    SOURCES[Lab sources<br/>k6, perturbation sampler, audit Job] --> CONSOLE[Legacy console logs<br/>separated by ContainerName_s]
+    PLATFORM[Container Apps<br/>platform lifecycle events] --> SYSTEMLOG[Legacy system logs]
+    CONSOLE --> QUERIES[Q1-Q6<br/>run, bucket, state, inventory,<br/>falsification, and phase analyses]
+    SYSTEMLOG --> Q7[Q7 rollout milestone timeline]
+    QUERIES --> SYNTHESIS[Align error buckets,<br/>perturbation windows, and state]
+    Q7 --> SYNTHESIS
 ```
+
+*Figure: Lab-emitted observations and platform-emitted events remain separate evidence streams. Their time alignment can strengthen attribution, but client-visible errors alone do not prove which rollout mechanism caused them.*
 
 ## Why bucket sum-across-VUs is mandatory
 
@@ -206,7 +204,7 @@ ContainerAppConsoleLogs_CL
 | order by perturbation_id asc, client_ts asc
 ```
 
-**Interpretation**: The sequence of `(revision, active, traffic_weight, replicas, provisioning_state)` rows captures the exact moment of revision transition. Healthy rollout: old revision goes `active=false, traffic_weight=0` while new revision goes `active=true, traffic_weight=100` and `replicas` ramps to 3. Look for the duration between `PerturbationWindowMarker(phase=start)` and the new revision's first `provisioning_state=Succeeded` sample — that bracket is where Q2 5xx spikes are causally attributable to the rollout.
+**Interpretation**: The sequence of `(revision, active, traffic_weight, replicas, provisioning_state)` rows samples the revision transition at five-second intervals. Healthy rollout evidence in the checked-in run shows the old revision moving to `active=false, traffic_weight=0` while the new revision moves to `active=true, traffic_weight=100`, ramps to 3 replicas, and reports `provisioning_state=Provisioned`. The transition is bracketed by the last sample before a state change and the first sample after it; compare that sampled bracket with Q2 5xx buckets. Temporal overlap is `[Correlated]` evidence consistent with rollout-related degradation, not proof that the rollout caused each 5xx response.
 
 The perturbation-sampler is unlike the slow audit Job — it does not emit `event` (which `parse_json` parses cleanly out of raw stdout) but emits `kind` directly. The shell script writes JSON to stdout via `jq --null-input`, so the Container Apps log shipper records the raw JSON in `Log_s` without the Logrus wrapper. That is why this query uses `parse_json(Log_s)` directly, while Q1/Q2 use the `extract`+`replace_string`+`parse_json` chain.
 
@@ -218,8 +216,9 @@ The perturbation-sampler is unlike the slow audit Job — it does not emit `even
     The audit-sampler is a cron-triggered job (`*/5 * * * *`) with `replicaTimeout=240`s, but the `audit` container runs as a long-lived sampler daemon. The platform sends SIGTERM at 240s, the container exits non-zero, and Container Apps marks the execution as `Failed`. **Data ingestion is unaffected** — every audit container's first ~240 seconds of `ReplicaInventorySample` rows are present in `ContainerAppConsoleLogs_CL`. Operators must NOT alert on audit-sampler execution failure count. See the companion lab guide's "audit-sampler 'Failed' executions are benign" subsection.
 
 ```kusto
+let Lookback = 3h;
 ContainerAppConsoleLogs_CL
-| where TimeGenerated >= ago(<hours_back>h)
+| where TimeGenerated >= ago(Lookback)
 | where ContainerName_s == "audit"
 | extend payload = parse_json(Log_s)
 | extend event_kind = tostring(payload.kind)
@@ -240,7 +239,7 @@ ContainerAppConsoleLogs_CL
 | order by app asc
 ```
 
-**Healthy baseline**: `running_pct == 100.0` and `unique_replicas` close to `3 × number_of_revisions_in_window`. If `running_pct < 99` during a window with no perturbation, the platform is producing background churn unrelated to the lab and downstream Q2/Q5 results should be re-interpreted accordingly.
+**Healthy baseline**: `running_pct == 100.0` and `unique_replicas` close to `3 × number_of_revisions_in_window`. If `running_pct < 99` during a window with no recorded perturbation, the samples show reduced observed running-state coverage; the cause is not established, and downstream Q2/Q5 results should be re-interpreted accordingly.
 
 ## Q5 — Falsification: 3+ Consecutive Bad Buckets
 
@@ -347,7 +346,7 @@ allBuckets
 **Interpretation**:
 
 - `overall_err_pct` is the **client-visible** error rate over all buckets in the phase. This is `[Measured]` regardless of cause.
-- `worst_bucket_err_pct` is the peak transient — the bucket where the platform's protection was thinnest.
+- `worst_bucket_err_pct` identifies the peak client-visible error bucket in the phase; it does not identify the cause of that peak.
 - `buckets_above_0p5pct` is the count of bad buckets across all runs in the phase. If the perturbation phase has materially more than the baseline phase, that is `[Measured]` evidence of perturbation-induced client-visible degradation.
 
 **Causal attribution caveat**: Even when perturbation-phase numbers are decisively worse than baseline, attributing the cause to "platform-initiated rolling rollout behavior" rather than "the new replicas of the subject app are slow to warm up" or "the LB cached connections to terminating replicas" is capped at **[Strongly Suggested]** per the lab's design constraints. Q3 (RevisionStateSample timeline) and Q7 (system events) provide circumstantial corroboration but no smoking gun.
@@ -357,8 +356,9 @@ allBuckets
 `[Observed]` evidence — platform-emitted rollout milestones for the subject app. Use to corroborate the `perturbation-sampler`-derived view in Q3 and to detect anomalies (failed scale-up, container restart loops) that the sampler cannot see.
 
 ```kusto
+let Lookback = 3h;
 ContainerAppSystemLogs_CL
-| where TimeGenerated >= ago(<hours_back>h)
+| where TimeGenerated >= ago(Lookback)
 | where ContainerAppName_s == "subject-app"
 | where Reason_s in ("ContainerTerminated", "ContainerStarted", "AssigningReplica",
                      "RevisionReady", "FailedScalingUp", "ContainerCreating")
@@ -369,7 +369,7 @@ ContainerAppSystemLogs_CL
 **Interpretation**:
 
 - A clean rollout fires `AssigningReplica` → `ContainerCreating` → `ContainerStarted` → `RevisionReady` for each new replica. The 25-second startup delay shows as ~25 seconds between `ContainerStarted` and `RevisionReady`.
-- `FailedScalingUp` rows indicate the platform could not satisfy the new revision's min-replicas constraint — this is a different failure mode than transient 5xx and would explain a `provisioning_state == "Failed"` row in Q3.
+- `FailedScalingUp` rows are system-log evidence of a scale-up failure. This is a different observed failure mode from transient 5xx and can be compared with a contemporaneous `provisioning_state == "Failed"` row in Q3; temporal alignment alone does not establish causation.
 - The 5-minute audit (Q4) under-samples this signal; the `perturbation-sampler` (Q3) and system-event timeline (Q7) are the high-resolution sources.
 
 ## Bucket time alignment between phases

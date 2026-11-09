@@ -1,4 +1,5 @@
 ---
+description: KQL queries for correlating Azure Container Apps restart signals with application startup and shutdown evidence across supported log schemas.
 content_sources:
   diagrams:
     - id: query-pipeline-overview
@@ -21,18 +22,23 @@ Queries for analyzing container and replica restart patterns in Azure Container 
 | `ContainerAppConsoleLogs_CL` | Application logs showing shutdown/startup sequences |
 
 !!! note "Schema Variation"
-    If `_CL` tables are empty, try the non-`_CL` variants.
+    The queries in this pack use the legacy direct Log Analytics schema: `ContainerAppConsoleLogs_CL` and `ContainerAppSystemLogs_CL`, with fields such as `Log_s`, `RevisionName_s`, and `ContainerGroupName_g`. In legacy console logs, `ContainerGroupName_g` is the replica name. Azure Monitor diagnostic settings instead populate the resource-specific `ContainerAppConsoleLogs` and `ContainerAppSystemLogs` tables; the resource-specific console table maps that value to `ContainerGroupName`, alongside fields such as `Log` and `RevisionName`. Choose the query variant for the ingestion path; do not only remove the `_CL` suffix because the column names also differ.
 
 ## Query Pipeline Overview
 
 <!-- diagram-id: query-pipeline-overview -->
 ```mermaid
 flowchart TD
-    A[System Logs] --> B[Filter Restart Events]
-    B --> C[Correlate with Timeline]
-    C --> D[Identify Patterns]
-    D --> E[Root Cause Analysis]
+    accTitle: Build restart evidence from legacy Container Apps logs
+    accDescr: Platform system logs provide restart and lifecycle signals while application console logs provide shutdown and startup context. The investigation aligns both sources by time, revision, and replica before testing a root-cause hypothesis.
+
+    SOURCES[Legacy system and console logs<br/>platform plus application evidence] --> SCOPE[Scope app and incident window]
+    SCOPE --> ALIGN[Align timestamps,<br/>revisions, and replicas]
+    ALIGN --> PATTERN[Identify repeated or<br/>clustered restart patterns]
+    PATTERN --> HYPOTHESIS[Test a root-cause hypothesis<br/>with supporting evidence]
 ```
+
+*Figure: Restart analysis correlates platform and application evidence. Temporal alignment supports an investigation but does not by itself prove why a replica restarted.*
 
 ## Available Queries
 
@@ -68,5 +74,6 @@ flowchart TD
 ## Sources
 
 - [Log monitoring in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)
+- [ContainerAppConsoleLogs table reference](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappconsolelogs)
 - [Health probes in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)
 - [Kusto Query Language (KQL) overview](https://learn.microsoft.com/en-us/kusto/query/)

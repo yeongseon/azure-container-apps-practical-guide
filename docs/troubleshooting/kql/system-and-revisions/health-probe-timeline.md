@@ -28,15 +28,24 @@ Use this query to reconstruct the sequence of probe-related events so you can se
 
 | Table | Schema Note |
 |---|---|
-| `ContainerAppSystemLogs_CL` | Legacy schema. If empty, try `ContainerAppSystemLogs` (non-`_CL`). |
+| `ContainerAppSystemLogs_CL` | This query uses the legacy Log Analytics schema (`_CL` table and `_s` columns). Translate both the table and column names before using a resource-specific schema. |
 
 ## Query Pipeline
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by app] --> B[Filter probe signals] --> C[Project timeline columns] --> D[Sort oldest to newest]
+    accTitle: Reconstruct a log-derived health probe timeline
+    accDescr: The query selects one app from legacy system logs, keeps probe-related text and reasons, classifies the mentioned probe phase, projects revision and replica context, and orders the evidence from oldest to newest.
+
+    SOURCE[Legacy system logs<br/>ContainerAppSystemLogs_CL] --> APP[Select ContainerAppName_s]
+    APP --> SIGNALS[Keep probe text and<br/>matching reason values]
+    SIGNALS --> PHASE[Classify startup, readiness,<br/>liveness, or unspecified]
+    PHASE --> CONTEXT[Project timestamp, revision,<br/>replica, reason, and message]
+    CONTEXT --> RESULT[Order oldest to newest]
 ```
+
+*Figure: Probe phases are inferred from emitted text. The timeline does not guarantee that every probe attempt is logged or establish the underlying failure cause.*
 
 ## Query
 

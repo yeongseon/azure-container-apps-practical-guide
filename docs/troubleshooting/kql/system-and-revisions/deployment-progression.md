@@ -28,15 +28,24 @@ Use this query to follow a revision from initial configuration change through pr
 
 | Table | Schema Note |
 |---|---|
-| `ContainerAppSystemLogs_CL` | Legacy schema. If empty, try `ContainerAppSystemLogs` (non-`_CL`). |
+| `ContainerAppSystemLogs_CL` | This query uses the legacy Log Analytics schema (`_CL` table and `_s` columns). Translate both the table and column names before using a resource-specific schema. |
 
 ## Query Pipeline
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by app] --> B[Filter revision lifecycle signals] --> C[Project deployment milestones] --> D[Sort oldest to newest]
+    accTitle: Reconstruct log-derived revision deployment milestones
+    accDescr: The query selects one app from legacy system logs, keeps revision lifecycle terms, classifies matching messages into deployment stages, projects revision and replica context, and orders the stages from oldest to newest.
+
+    SOURCE[Legacy system logs<br/>ContainerAppSystemLogs_CL] --> APP[Select ContainerAppName_s]
+    APP --> SIGNALS[Keep revision lifecycle<br/>reasons and message terms]
+    SIGNALS --> CLASSIFY[Classify a log-derived<br/>deployment stage]
+    CLASSIFY --> CONTEXT[Project timestamp, revision,<br/>replica, reason, and message]
+    CONTEXT --> RESULT[Order oldest to newest]
 ```
+
+*Figure: Deployment stages are classifications of matching log text, not a complete platform state machine. Missing rows can reflect ingestion or message variation as well as a stalled rollout.*
 
 ## Query
 

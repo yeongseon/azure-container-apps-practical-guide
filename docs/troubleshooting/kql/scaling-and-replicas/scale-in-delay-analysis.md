@@ -28,15 +28,24 @@ Use this query to estimate how long a revision waits between the previous scale 
 
 | Table | Schema Note |
 |---|---|
-| `ContainerAppSystemLogs_CL` | Legacy schema. If empty, try `ContainerAppSystemLogs` (non-`_CL`). |
+| `ContainerAppSystemLogs_CL` | This query uses the legacy Log Analytics schema (`_CL` table and `_s` columns). Translate both the table and column names before using a resource-specific schema. |
 
 ## Query Pipeline
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter scale lifecycle logs] --> B[Sort by revision and time] --> C[Attach previous signal] --> D[Calculate delay and cooldown hint]
+    accTitle: Estimate delay between adjacent scale-related log signals
+    accDescr: The query selects scale-related legacy system-log rows, orders them by revision and time, attaches the previous row from the same revision, calculates the elapsed seconds, and labels the result as a cooldown hint rather than a timer measurement.
+
+    SOURCE[Legacy system logs<br/>ContainerAppSystemLogs_CL] --> SIGNALS[Keep scale, KEDA, replica,<br/>cooldown, and termination terms]
+    SIGNALS --> ORDER[Order by revision and time]
+    ORDER --> PREVIOUS[Attach previous same-revision<br/>timestamp and reason]
+    PREVIOUS --> DELAY[Calculate adjacent-event delay]
+    DELAY --> ASSESS[Label a cooldown hint]
 ```
+
+*Figure: Adjacent log timestamps support an inferred cooldown assessment. They do not expose the platform's internal cooldown timer, and the 300-second default applies only to custom-rule scale-to-zero behavior.*
 
 ## Query
 

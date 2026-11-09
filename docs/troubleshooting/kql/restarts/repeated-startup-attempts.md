@@ -29,11 +29,17 @@ content_validation:
 <!-- diagram-id: purpose-identifies-replicas-with-multiple-startup -->
 ```mermaid
 graph TD
-    A[ContainerAppSystemLogs_CL] --> B[Filter Startup Events]
-    B --> C[Group by Replica]
-    C --> D[Count Failures]
-    D --> E[Identify Crash Loops]
+    accTitle: Find replicas with repeated startup failures
+    accDescr: The query scopes legacy system logs to one app and time window, keeps selected startup failure reasons, groups events by revision and replica, and returns groups above the configured count threshold.
+
+    SOURCE[Legacy system logs<br/>ContainerAppSystemLogs_CL] --> SCOPE[Select app and six-hour window]
+    SCOPE --> SIGNALS[Keep configured startup<br/>failure reasons]
+    SIGNALS --> GROUP[Group by revision and replica]
+    GROUP --> COUNT[Count failures and<br/>capture first and last time]
+    COUNT --> RESULT[Return groups with<br/>more than three events]
 ```
+
+*Figure: The result identifies repeated matching events; calling a result a crash loop still requires checking the event text and application console logs.*
 
 ## Query
 
@@ -99,7 +105,7 @@ let AppName = "my-container-app";
 let FailingReplica = "ca-myapp--abc123-7d8f9";
 ContainerAppConsoleLogs_CL
 | where ContainerAppName_s == AppName
-| where ContainerGroupName_s has FailingReplica or ReplicaName_s == FailingReplica
+| where ContainerGroupName_g has FailingReplica
 | where TimeGenerated > ago(2h)
 | project TimeGenerated, Stream_s, Log_s
 | order by TimeGenerated asc
@@ -119,7 +125,7 @@ ContainerAppConsoleLogs_CL
 - Threshold of 3 failures may need adjustment based on your app's normal behavior.
 - Some startup issues may not emit explicit failure events.
 - Query cannot distinguish between expected restarts (deployments, scale-in) and problematic restarts.
-- ReplicaName_s format may vary; adjust filtering as needed.
+- In the legacy console schema, `ContainerGroupName_g` carries the observed replica identifier. Azure Monitor's resource-specific `ContainerAppConsoleLogs` table maps the replica name to `ContainerGroupName`; translate the table and all column names together when using that ingestion path.
 
 ## See Also
 
@@ -132,5 +138,6 @@ ContainerAppConsoleLogs_CL
 ## Sources
 
 - [Log monitoring in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring)
+- [ContainerAppConsoleLogs table reference](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerappconsolelogs)
 - [Troubleshoot Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
 - [Health probes in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/health-probes)

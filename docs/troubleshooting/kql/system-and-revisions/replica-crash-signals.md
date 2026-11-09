@@ -28,15 +28,23 @@ Use this query to identify restart-heavy replicas and crash-loop patterns by rev
 
 | Table | Schema Note |
 |---|---|
-| `ContainerAppSystemLogs_CL` | Legacy schema. If empty, try `ContainerAppSystemLogs` (non-`_CL`). |
+| `ContainerAppSystemLogs_CL` | This query uses the legacy Log Analytics schema (`_CL` table and `_s` columns). Translate both the table and column names before using a resource-specific schema. |
 
 ## Query Pipeline
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by app] --> B[Filter crash and restart terms] --> C[Summarize by replica and revision] --> D[Sort by event count]
+    accTitle: Rank replicas by crash-related log activity
+    accDescr: The query selects one app from legacy system logs, keeps crash, termination, exit, restart, and out-of-memory terms, groups matches by revision and replica, and orders groups by event count.
+
+    SOURCE[Legacy system logs<br/>ContainerAppSystemLogs_CL] --> APP[Select ContainerAppName_s]
+    APP --> SIGNALS[Keep crash, termination, exit,<br/>restart, and OOM terms]
+    SIGNALS --> SUMMARY[Count events and capture<br/>first and last time by replica]
+    SUMMARY --> RESULT[Order by event count]
 ```
+
+*Figure: The ranking identifies replicas with repeated matching messages. Application console logs and resource metrics are still needed to distinguish memory pressure from application failures.*
 
 ## Query
 

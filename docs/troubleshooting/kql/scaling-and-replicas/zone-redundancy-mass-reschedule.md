@@ -34,7 +34,7 @@ content_validation:
 | Table | Used for |
 |---|---|
 | `ContainerAppConsoleLogs_CL` | Parsing `ReplicaInventorySample` JSON lines emitted every 5 min by the audit Job (`audit-sampler`). |
-| `ContainerAppSystemLogs_CL` | Restart / probe / `AssigningReplica` events; ground truth for replica lifecycle. |
+| `ContainerAppSystemLogs_CL` | Platform-emitted restart, probe, and `AssigningReplica` events used as lifecycle evidence; event coverage can be limited by emission and ingestion gaps. |
 
 **Companion lab**: [Zone redundancy is best-effort](../../lab-guides/zone-redundancy-best-effort.md).
 
@@ -43,18 +43,15 @@ content_validation:
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Audit Job stdout<br/>ReplicaInventorySample JSON] --> B[ContainerAppConsoleLogs_CL]
-    C[Platform events<br/>ContainerStarted, ContainerTerminated, ProbeFailed] --> D[ContainerAppSystemLogs_CL]
-    B --> E[Q1 Ingestion check]
-    B --> F[Q2 Per-app baseline]
-    D --> G[Q3 Clustered churn detection]
-    D --> H[Q4 Recovery duration]
-    P[App Insights instrumentation<br/>provisioned by lab<br/>requires opt-in custom image] --> Q[AppRequests / requests table]
-    Q --> I[Q5 app-handled 5xx correlation - opt-in]
-    D --> J[Q6 Baseline vs perturbation]
-    D --> K[Q7 Multi-app comparison]
-    B --> J
+    accTitle: Build the zone-redundancy churn evidence set
+    accDescr: Audit Job observations enter legacy console logs, platform lifecycle events enter legacy system logs, and an optional instrumented application writes request telemetry to Application Insights. Seven queries test ingestion, baselines, clustered churn, recovery, app-handled 5xx correlation, perturbation differences, and multi-app patterns.
+
+    SOURCES[Evidence sources<br/>audit Job, platform events,<br/>optional instrumented app] --> STORES[Legacy console and system logs<br/>plus optional AppRequests]
+    STORES --> PIPELINES[Q1-Q7<br/>ingestion, baseline, churn, recovery,<br/>5xx, perturbation, and multi-app views]
+    PIPELINES --> BOUNDS[Bounded result<br/>churn and app-handled 5xx evidence]
 ```
+
+*Figure: The optional request stream records only requests that reached the instrumented app. Ingress-generated 503 responses and per-replica availability-zone placement remain outside this evidence path.*
 
 ## Q1 — Ingestion Check
 
@@ -80,7 +77,7 @@ ContainerAppConsoleLogs_CL
 | extend HealthRatio = round(todouble(OkSamples) / todouble(ExpectedOkSamples), 2)
 ```
 
-**Healthy result**: `HealthRatio` close to `1.0` (within ±10%), `UniqueApps == 3`, and `ErrorSamples == 0`. `HealthRatio` is computed only from `resolutionStatus == "ok"` samples — error-shaped rows (timeouts, ARM throttling, missing replica list) intentionally do **not** count toward health. A `HealthRatio < 0.5` means the audit Job is failing or the workload profile is throttling its cold-starts — diagnose the Job, **do not** interpret downstream results as authoritative. If `ErrorSamples > 0`, run Q1b to see which apps and which `resolutionStatus` values are appearing before treating any downstream baseline as clean.
+**Healthy result**: `HealthRatio` close to `1.0` (within ±10%), `UniqueApps == 3`, and `ErrorSamples == 0`. `HealthRatio` is computed only from `resolutionStatus == "ok"` samples — error-shaped rows (timeouts, ARM throttling, missing replica list) intentionally do **not** count toward health. A `HealthRatio < 0.5` shows that too few successful samples arrived to treat downstream results as authoritative. `[Not Proven]` Possible causes include audit Job execution failures, delayed starts, collection errors, or ingestion gaps; inspect Job executions and Q1b before choosing a cause. If `ErrorSamples > 0`, run Q1b to see which apps and which `resolutionStatus` values are appearing before treating any downstream baseline as clean.
 
 ### Q1b — Error Sample Breakdown (drill-down)
 
@@ -138,7 +135,7 @@ ContainerAppConsoleLogs_CL
 
 ## Q3 — Clustered Churn Detection
 
-Identify time windows where two or more replicas of the **same app** are replaced (terminated + started) within a 60-second window. This is the central observable for the lab's H0a hypothesis: "platform does NOT produce clustered multi-replica churn for the same app within a short window."
+Identify time windows where termination events cover two or more replicas of the **same app** within a fixed 60-second bin. This termination-cluster signal is the central observable for the lab's H0a hypothesis. It does not pair each termination with startup evidence and therefore does not prove replacement.
 
 ```kusto
 let Window = 24h;
@@ -147,10 +144,9 @@ let ReplicaEvents =
     ContainerAppSystemLogs_CL
     | where TimeGenerated > ago(Window)
     | where ContainerAppName_s in ("app-min2", "app-min3", "app-min6")
-    | where Reason_s in ("ContainerTerminated", "ContainerStarted", "AssigningReplica")
+    | where Reason_s == "ContainerTerminated"
     | project TimeGenerated, ContainerAppName_s, RevisionName_s, ReplicaName_s, Reason_s;
 ReplicaEvents
-| where Reason_s == "ContainerTerminated"
 | extend BinEnd = TimeGenerated + (ClusterSecs * 1s)
 | summarize TerminatedReplicas = dcount(ReplicaName_s),
             ReplicaList = make_set(ReplicaName_s)
@@ -165,14 +161,15 @@ ReplicaEvents
 
 **Interpretation**:
 
-- A returned row with `TerminatedReplicas >= 2` is `[Observed]` evidence of a clustered churn event for that app.
-- Zero rows across a full 24-hour baseline is `[Observed]` evidence consistent with H0a (no clustered churn).
+- A returned row with `TerminatedReplicas >= 2` is `[Observed]` evidence of a same-bin termination cluster for that app.
+- Zero rows across a full 24-hour baseline means no qualifying same-bin termination cluster was observed; interpret that result with the fixed-bin and ingestion caveats below.
 - Repeated rows aligned to perturbation timestamps from `trigger.sh --perturb restart` are **expected** — that perturbation is the positive control.
 - The 60-second window matches the lab's pre-registered definition. Do not adjust without amending the lab guide's analysis plan.
+- Fixed `bin()` boundaries can split terminations less than 60 seconds apart into adjacent bins, so this query can miss a cluster that crosses a boundary. A returned row proves same-bin co-occurrence; an empty result does not prove that no rolling 60-second cluster occurred.
 
 ## Q4 — Recovery Duration After Churn
 
-For each clustered churn event from Q3, measure how long it took the app to return to `configuredMinReplicas` running replicas. `[Measured]` evidence of the platform's MTTR for self-induced churn windows.
+For each termination cluster from Q3, measure the elapsed time until the first audit sample that reports at least `configuredMinReplicas` running replicas. This is `[Measured]` sampled recovery evidence; it does not establish the cause of the terminations.
 
 ```kusto
 let Window = 24h;
@@ -211,13 +208,13 @@ Churns
 
 **Interpretation**:
 
-- `RecoverySecs` is a lower-bound estimate (granularity = the 5-minute audit cron, so true MTTR could be up to 5 min shorter).
+- `RecoverySecs` is an upper-bound estimate of elapsed recovery time (granularity = the 5-minute audit cron, so actual recovery could have occurred up to 5 minutes before the first qualifying sample).
 - `WithinDeadline == false` (>10 min recovery) indicates a slow path that warrants escalation review.
 - Use this column to set realistic SLOs: do not promise sub-recovery-window availability solely from `zoneRedundant=true`.
 
 ## Q5 — App-Handled 5xx Correlation During Churn (requires custom subject-app image)
 
-Overlay app-handled HTTP 5xx incidence against clustered-churn windows from Q3. This surfaces app-emitted 5xx telemetry (the `/error` route plus unhandled exceptions) correlated to platform churn events, using the optional custom image at [`labs/zone-redundancy-best-effort/apps/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/zone-redundancy-best-effort/apps) (Python Flask + Azure Monitor OpenTelemetry Distro). **This is not a replacement for the lab's H0b verdict** — `AppRequests` only captures requests that reach the Flask process, so ingress-generated `503`s returned by Azure Container Apps before the request reaches the app produce no telemetry row. The H0b verdict continues to use `trigger.sh` stdout `LoadEnd.fail / LoadEnd.total` totals, which capture client-visible failures including ingress 503s.
+Overlay app-handled HTTP 5xx incidence against termination-cluster bins from Q3. This surfaces app-emitted 5xx telemetry (the `/error` route plus unhandled exceptions) correlated to observed termination clusters, using the optional custom image at [`labs/zone-redundancy-best-effort/apps/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/zone-redundancy-best-effort/apps) (Python Flask + Azure Monitor OpenTelemetry Distro). **This is not a replacement for the lab's H0b verdict** — `AppRequests` only captures requests that reach the Flask process, so ingress-generated `503`s returned by Azure Container Apps before the request reaches the app produce no telemetry row. The H0b verdict continues to use `trigger.sh` stdout `LoadEnd.fail / LoadEnd.total` totals, which capture client-visible failures including ingress 503s.
 
 !!! info "Requires the optional custom subject-app image"
     The lab ships an opt-in [custom subject-app image](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/zone-redundancy-best-effort/apps) and provisions a workspace-based Application Insights resource in `infra/main.bicep` (linked to the existing `law` workspace via `APPLICATIONINSIGHTS_CONNECTION_STRING` injected as a secret-backed env var on each subject app). To populate this query, override the lab's `appImage` parameter with the custom image (see [`apps/README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/zone-redundancy-best-effort/apps) for the `az deployment group create --parameters appImage=...` command). Without that opt-in, the default sample image (`mcr.microsoft.com/azuredocs/containerapps-helloworld`) emits no `AppRequests`, and Q5 will return zero rows. **Scope of this query**: Q5 detects app-emitted 5xx telemetry only (requests that reached the Flask process and either hit `/error` or raised an unhandled exception). It does **not** detect ingress-side 503s returned by Container Apps before the request reaches the app — those are the dominant failure mode during clustered churn. The lab's H0b verdict — regardless of whether the custom image is deployed — remains the client-visible failure rate printed by `trigger.sh --client no-retry` (`LoadEnd.fail / LoadEnd.total`), which captures both ingress 503s and app-handled 5xx as the client sees them.
@@ -252,14 +249,14 @@ Churns
 
 **Interpretation** (valid when subject apps are running the custom OpenTelemetry image and `AppRequests` is populated):
 
-- `CorrelationStrong == true` across multiple churn windows is `[Correlated]` evidence that clustered churn produces client-visible failures.
+- `CorrelationStrong == true` across multiple churn windows is `[Correlated]` evidence that clustered churn and app-handled 5xx responses occurred in the same fixed 60-second bins. The query does not establish causation and does not observe ingress-generated failures.
 - `CorrelationStrong == false` across all churn windows is consistent with H0b (no client impact), but only if traffic was actively driving requests during the churn window. Verify by running `AppRequests | where AppRoleName in ("app-min2", "app-min3", "app-min6") | summarize count() by bin(TimeGenerated, 1m)` over the same window and confirming non-zero request counts.
 - Causation requires the `trigger.sh --perturb restart` control: see Q6.
 - Zero rows in the `Errors` CTE means either the custom image is not deployed or telemetry routing is broken. **This is not evidence in favor of H0b** — it is evidence that the data source is not connected. Verify the image is wired by running `AppRequests | where AppRoleName startswith "app-min" | take 10` and confirming at least one row. If empty, check that `APPLICATIONINSIGHTS_CONNECTION_STRING` is set on the subject app's container env (via the secret named `appinsights-connection-string`).
 
 ## Q6 — Baseline vs Perturbation Comparison
 
-Quantify the difference between the 24-hour baseline and the controlled perturbation windows (±10 min around each `trigger.sh --perturb restart` call). Sharper a measurement of the platform's true contribution to churn vs operator-induced churn.
+Quantify the difference between the 24-hour baseline and the controlled perturbation windows (±10 min around each `trigger.sh --perturb restart` call). This comparison separates termination clusters observed near recorded perturbations from those observed outside those windows; it does not assign a cause to baseline events.
 
 ```kusto
 let Window = 24h;
@@ -289,21 +286,46 @@ let PerturbedChurns =
 let BaselineChurns =
     AllChurns
     | join kind=leftanti PerturbedChurns on ChurnTime, App;
-union
+let PerturbDurationByApp =
+    PerturbWindows
+    | summarize PerturbationMinutes = count() * (PerturbPad / 1m * 2) by App;
+let ChurnCounts = union
     (BaselineChurns | summarize ChurnEvents = count(), Bucket = "Baseline (no perturb)" by App),
-    (PerturbedChurns | summarize ChurnEvents = count(), Bucket = "Perturbation window" by App)
-| extend WindowMinutes = case(Bucket == "Baseline (no perturb)",
-                              ((Window / 1m) - (toscalar(PerturbWindows | count) * (PerturbPad / 1m * 2))),
-                              toscalar(PerturbWindows | count) * (PerturbPad / 1m * 2))
+    (PerturbedChurns | summarize ChurnEvents = count(), Bucket = "Perturbation window" by App);
+let SubjectApps = datatable(App: string)
+[
+  "app-min2",
+  "app-min3",
+  "app-min6",
+];
+let Buckets = datatable(Bucket: string)
+[
+  "Baseline (no perturb)",
+  "Perturbation window",
+];
+SubjectApps
+| extend JoinKey = 1
+| join kind=inner (Buckets | extend JoinKey = 1) on JoinKey
+| project-away JoinKey, JoinKey1
+| join kind=leftouter ChurnCounts on App, Bucket
+| join kind=leftouter PerturbDurationByApp on App
+| extend ChurnEvents = coalesce(ChurnEvents, 0)
+| extend PerturbationMinutes = coalesce(PerturbationMinutes, 0.0)
+| extend WindowMinutes = case(Bucket == "Baseline (no perturb)", (Window / 1m) - PerturbationMinutes,
+                              Bucket == "Perturbation window", PerturbationMinutes,
+                              real(null))
+| where WindowMinutes > 0
 | extend ChurnPerHour = round(todouble(ChurnEvents) / (WindowMinutes / 60.0), 3)
+| project App, Bucket, ChurnEvents, WindowMinutes, ChurnPerHour
 | order by App asc, Bucket asc
 ```
 
 **Interpretation**:
 
 - Baseline `ChurnPerHour ≈ 0` and Perturbation `ChurnPerHour >> 0` confirms the perturbation control is working.
-- Baseline `ChurnPerHour > 0` is `[Observed]` evidence that the **platform itself** produces clustered churn even without operator action — the central claim the lab is set up to falsify.
+- Baseline `ChurnPerHour > 0` is `[Observed]` evidence of clustered churn outside the recorded perturbation windows. `[Not Proven]` The query does not exclude deployments, scaling actions, unrecorded operator activity, or other causes, so it cannot attribute that baseline churn to the platform itself.
 - Keep the `PerturbWindows` table in sync with your actual `trigger.sh` invocation log (`/tmp/perturb.log` if you redirect stdout).
+- The denominator is computed per app from that app's recorded perturbation windows. Keep windows non-overlapping; overlapping entries would double-count duration and require interval merging before rate calculation.
 
 ## Q7 — Multi-App Comparison
 
@@ -343,9 +365,9 @@ MinConfig
 
 **Interpretation**:
 
-- `MaxReplacementFraction == 1.0` means the platform replaced **all** replicas of the app inside one 60-second window — the worst-case zone-redundancy-cannot-help scenario.
-- A monotonically decreasing `ClusteredChurnEvents` from `app-min2` to `app-min6` is `[Correlated]` (not `[Inferred]`) evidence that scaling minimums dilute platform churn impact.
-- Stable or increasing `ClusteredChurnEvents` with higher `minReplicas` is `[Observed]` evidence that zone redundancy is best-effort and that adding replicas alone is not a sufficient mitigation.
+- `MaxReplacementFraction == 1.0` means termination events in one fixed 60-second bin covered as many distinct replicas as the configured minimum. The query does not pair those events with starts or prove that every replica was replaced.
+- A monotonically decreasing `ClusteredChurnEvents` from `app-min2` to `app-min6` is `[Correlated]` evidence of an association between configured minimum and the observed termination-cluster count; the query does not establish why the counts differ.
+- Stable or increasing `ClusteredChurnEvents` with higher `minReplicas` shows that this sample did not exhibit fewer termination clusters at higher configured minimums. It does not by itself establish the effect of zone redundancy or the cause of the terminations.
 
 ## Example Output
 
@@ -354,7 +376,7 @@ MinConfig
 | ClusterStart | App | TerminatedReplicas | ReplicaList |
 |---|---|---:|---|
 
-`[Observed]` Empty result over a 24-hour baseline is consistent with H0a — the platform did not produce clustered multi-replica churn for any of the three subject apps without operator perturbation.
+`[Observed]` Empty result over a 24-hour baseline means no qualifying same-bin termination cluster was observed for the three subject apps. This is consistent with H0a but does not rule out clusters split across fixed-bin boundaries, missing or delayed ingestion, or other unobserved churn.
 
 ### Q3 — Clustered Churn Detection (after `trigger.sh --perturb restart --app app-min3`)
 
@@ -362,7 +384,7 @@ MinConfig
 |---|---|---:|---|
 | 2026-06-08T12:00:14Z | app-min3 | 3 | `["app-min3--rev1-7d9f-aaa","app-min3--rev1-7d9f-bbb","app-min3--rev1-7d9f-ccc"]` |
 
-`[Observed]` All three replicas of `app-min3` were replaced inside the same 60-second window — direct positive-control evidence that the lab's clustered-churn detection signature fires correctly.
+`[Observed]` Termination events for three distinct `app-min3` replicas occurred inside the same fixed 60-second bin — direct positive-control evidence that the lab's termination-cluster signature fires correctly. Startup evidence is required to characterize subsequent replacement.
 
 ### Q4 — Recovery Duration
 
@@ -370,7 +392,7 @@ MinConfig
 |---|---|---|---:|---|
 | 2026-06-08T12:00:14Z | app-min3 | 2026-06-08T12:02:18Z | 124 | true |
 
-`[Measured]` Recovery to `configuredMinReplicas=3` took 124 seconds after a deliberate revision restart. This sets a floor for the platform's MTTR under the lab's resource-spec; production workloads with heavier startup paths will be slower.
+`[Measured]` The first sample at `configuredMinReplicas=3` arrived 124 seconds after a deliberate revision restart. With sampled inventory, 124 seconds is an upper-bound estimate of elapsed recovery time; the actual recovery could have occurred earlier between samples.
 
 ## Interpretation Notes
 

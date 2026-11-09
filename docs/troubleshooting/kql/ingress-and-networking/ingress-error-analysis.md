@@ -28,15 +28,23 @@ Use this query to investigate ingress-related request failures such as 502/504 a
 
 | Table | Schema Note |
 |---|---|
-| `ContainerAppSystemLogs_CL` | Legacy schema. If empty, try `ContainerAppSystemLogs` (non-`_CL`). |
+| `ContainerAppSystemLogs_CL` | This query uses the legacy Log Analytics schema (`_CL` table and `_s` columns). Translate both the table and column names before using a resource-specific schema. |
 
 ## Query Pipeline
 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by app] --> B[Filter ingress and gateway signals] --> C[Project revision and reason] --> D[Sort by time]
+    accTitle: Query legacy system logs for ingress error signals
+    accDescr: The query selects one app, keeps ingress, gateway, upstream, and 5xx terms, projects revision and reason context, and sorts the evidence from newest to oldest.
+
+    SOURCE[Legacy system logs<br/>ContainerAppSystemLogs_CL] --> APP[Select ContainerAppName_s]
+    APP --> SIGNALS[Keep ingress, gateway,<br/>upstream, and 5xx terms]
+    SIGNALS --> CONTEXT[Project timestamp, revision,<br/>reason, and message]
+    CONTEXT --> RESULT[Order newest first]
 ```
+
+*Figure: This legacy-system-log pipeline finds platform messages that mention ingress failures. For request-level status, latency, or retry evidence, use the separately enabled `ContainerAppHTTPLogs` resource-specific table and its PascalCase columns.*
 
 ## Query
 

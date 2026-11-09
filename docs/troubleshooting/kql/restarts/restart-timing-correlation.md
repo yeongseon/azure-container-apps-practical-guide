@@ -29,10 +29,17 @@ content_validation:
 <!-- diagram-id: purpose-lists-restart-related-platform-events-to -->
 ```mermaid
 graph TD
-    A[ContainerAppSystemLogs_CL] -->|Restart Events| B[Filter by Reason]
-    B --> C[Timeline Projection]
-    C --> D[Correlate with Incident Window]
+    accTitle: Correlate restart-related events with an incident window
+    accDescr: The query scopes legacy system logs to one app and 24 hours, keeps selected restart-related reasons, projects the timeline fields, and compares timestamps with independently observed incident signals.
+
+    SOURCE[Legacy system logs plus<br/>independent incident timeline] --> SCOPE[Select app and 24-hour window]
+    SCOPE --> SIGNALS[Keep configured<br/>restart-related reasons]
+    SIGNALS --> TIMELINE[Project timestamp, revision,<br/>replica, reason, and message]
+    TIMELINE --> RESULT[Order newest first]
+    RESULT --> CORRELATE[Compare with the independent<br/>latency or error window]
 ```
+
+*Figure: Co-occurrence between restart events and degradation is correlation evidence. This query does not infer platform maintenance or another root cause from timing alone.*
 
 ## Query
 
