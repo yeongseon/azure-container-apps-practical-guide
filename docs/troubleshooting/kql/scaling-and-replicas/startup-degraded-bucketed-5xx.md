@@ -239,7 +239,7 @@ ContainerAppConsoleLogs_CL
 | order by app asc
 ```
 
-**Healthy baseline**: `running_pct == 100.0` and `unique_replicas` close to `3 × number_of_revisions_in_window`. If `running_pct < 99` during a window with no perturbation, the platform is producing background churn unrelated to the lab and downstream Q2/Q5 results should be re-interpreted accordingly.
+**Healthy baseline**: `running_pct == 100.0` and `unique_replicas` close to `3 × number_of_revisions_in_window`. If `running_pct < 99` during a window with no recorded perturbation, the samples show reduced observed running-state coverage; the cause is not established, and downstream Q2/Q5 results should be re-interpreted accordingly.
 
 ## Q5 — Falsification: 3+ Consecutive Bad Buckets
 
@@ -346,7 +346,7 @@ allBuckets
 **Interpretation**:
 
 - `overall_err_pct` is the **client-visible** error rate over all buckets in the phase. This is `[Measured]` regardless of cause.
-- `worst_bucket_err_pct` is the peak transient — the bucket where the platform's protection was thinnest.
+- `worst_bucket_err_pct` identifies the peak client-visible error bucket in the phase; it does not identify the cause of that peak.
 - `buckets_above_0p5pct` is the count of bad buckets across all runs in the phase. If the perturbation phase has materially more than the baseline phase, that is `[Measured]` evidence of perturbation-induced client-visible degradation.
 
 **Causal attribution caveat**: Even when perturbation-phase numbers are decisively worse than baseline, attributing the cause to "platform-initiated rolling rollout behavior" rather than "the new replicas of the subject app are slow to warm up" or "the LB cached connections to terminating replicas" is capped at **[Strongly Suggested]** per the lab's design constraints. Q3 (RevisionStateSample timeline) and Q7 (system events) provide circumstantial corroboration but no smoking gun.
@@ -369,7 +369,7 @@ ContainerAppSystemLogs_CL
 **Interpretation**:
 
 - A clean rollout fires `AssigningReplica` → `ContainerCreating` → `ContainerStarted` → `RevisionReady` for each new replica. The 25-second startup delay shows as ~25 seconds between `ContainerStarted` and `RevisionReady`.
-- `FailedScalingUp` rows indicate the platform could not satisfy the new revision's min-replicas constraint — this is a different failure mode than transient 5xx and would explain a `provisioning_state == "Failed"` row in Q3.
+- `FailedScalingUp` rows are system-log evidence of a scale-up failure. This is a different observed failure mode from transient 5xx and can be compared with a contemporaneous `provisioning_state == "Failed"` row in Q3; temporal alignment alone does not establish causation.
 - The 5-minute audit (Q4) under-samples this signal; the `perturbation-sampler` (Q3) and system-event timeline (Q7) are the high-resolution sources.
 
 ## Bucket time alignment between phases
