@@ -69,6 +69,18 @@ REPLAY_LABS: Final = {
         ),
         (),
     ),
+    "revision-failover": (
+        ("11-h1-gate.json", "17-h2-gate.json"),
+        ("--offline",),
+    ),
+    "scale-rule-mismatch": (
+        ("10-h1-gate.json", "19-h2-gate.json"),
+        ("--offline",),
+    ),
+    "traffic-routing-canary": (
+        ("12-h1-gate.json", "22-h2-gate.json"),
+        ("--offline",),
+    ),
     "zone-redundancy-best-effort": (
         (
             "14-cohort-integrity-gate.json",
@@ -709,6 +721,9 @@ class EvaluationReplayTests(unittest.TestCase):
             "acr-network-path-firewall-allowlist",
             "acr-network-path-pe-direct",
             "acr-network-path-record-split-brain",
+            "revision-failover",
+            "scale-rule-mismatch",
+            "traffic-routing-canary",
         ):
             with self.subTest(lab=name), self.replay_fixture(name) as lab:
                 verify = lab / "verify.sh"
@@ -719,9 +734,20 @@ class EvaluationReplayTests(unittest.TestCase):
                 ).replace(
                     '"evaluated_at_utc": EVALUATED_AT_UTC,',
                     '"utc_captured": EVALUATED_AT_UTC,',
+                ).replace(
+                    '"evaluated_at_utc": STAMP,',
+                    '"utc_captured": STAMP,',
                 )
-                self.assertNotEqual(stale, original)
+                offline = lab / "verify_offline.py"
+                offline_original = offline.read_text() if offline.exists() else ""
+                offline_stale = offline_original.replace(
+                    '"evaluated_at_utc": STAMP,',
+                    '"utc_captured": STAMP,',
+                )
+                self.assertTrue(stale != original or offline_stale != offline_original)
                 _ = verify.write_text(stale)
+                if offline.exists():
+                    _ = offline.write_text(offline_stale)
 
                 with self.assertRaisesRegex(AssertionError, "utc_captured"):
                     self.assert_replay(lab)
