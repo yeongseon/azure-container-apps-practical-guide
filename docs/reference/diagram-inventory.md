@@ -67,8 +67,8 @@ The following summary tables are generated directly from `docs/reference/diagram
 <!-- BEGIN GENERATED: diagram-inventory:type -->
 | Type | Count |
 |---|---:|
-| flowchart | 437 |
-| graph | 26 |
+| flowchart | 438 |
+| graph | 25 |
 | pie | 2 |
 | quadrantChart | 1 |
 | sequenceDiagram | 9 |
@@ -112,12 +112,12 @@ Asset groups are path-based claims, not visual verification. Wildcard `paths` en
 | Exceptions | Count |
 |---|---:|
 | duplicate_ids_on_page | 0 |
-| fences_without_frontmatter_entry | 5 |
+| fences_without_frontmatter_entry | 2 |
 | frontmatter_duplicate_ids | 0 |
 | frontmatter_entries_without_fence | 16 |
 | frontmatter_unparseable | 1 |
 | id_reused_on_other_pages | 18 |
-| missing_id_comment | 4 |
+| missing_id_comment | 1 |
 | unclassified_assets | 0 |
 | unclosed_fences | 0 |
 | unrecognized_mermaid_fences | 0 |
