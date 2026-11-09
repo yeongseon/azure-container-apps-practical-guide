@@ -123,7 +123,7 @@ flowchart TD
     end
 
     NSG{"NSG outbound rule<br/>allows destination?"}
-    ROUTE{"Route table<br/>matching UDR?"}
+    ROUTE["Route table<br/>selects matching route"]
     POLICY{"Firewall policy<br/>allows destination?"}
     DEST["Approved public dependency"]
     DENY["DENY<br/>blocked before destination"]
@@ -255,9 +255,10 @@ flowchart TD
     REPLICAS ==>|"3  Outbound packet"| NSG
     NSG ==>|"Allow"| NAT
     NSG -.->|"Deny"| DENY
-    NAT ==>|"4  SNAT and internet egress"| DEST
+    NAT ==>|"4  SNAT request"| DEST
     DEST -->|"5  Evaluate request"| AUTH
-    AUTH ==>|"Accept; response flow"| NAT
+    AUTH -->|"Accept"| DEST
+    DEST ==>|"6  Response on established flow"| NAT
     AUTH -.->|"Reject"| DENY
 
     LEGEND["Arrow key<br/>thick = packet transport<br/>solid = evaluation or resource use<br/>dotted = DNS, association, logical relationship, or denied branch"]
@@ -408,6 +409,11 @@ The same egress dependency applies to control-plane operations that authenticate
 - [User-defined routes in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes)
 - [Firewall integration in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration)
 - [Use Azure Firewall with Azure Container Apps — outbound FQDNs (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall)
+- [Overview of user-defined routes (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview)
+- [Integrate NAT Gateway with an Azure Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks#azure-nat-gateway-integration)
+- [Azure NAT Gateway overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/nat-gateway/nat-overview)
 - [Azure Firewall integration with NAT Gateway (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/firewall/integrate-with-nat-gateway)
 - [Pull ACR images with managed identity (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
+- [Authenticate with Azure Container Registry (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication)
 - [ACR dedicated data endpoints (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-dedicated-data-endpoints)
+- [Azure Container Registry built-in roles (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-built-in-roles-directory-reference)

@@ -66,7 +66,7 @@ Azure Container Apps provides a managed ingress layer in front of your app. Micr
 ```mermaid
 flowchart TD
     accTitle: Azure Container Apps ingress request lifecycle
-    accDescr: Internet, virtual network, private endpoint, and same-environment callers reach the managed environment only through allowed entry paths. The managed ingress proxy terminates TLS and routes accepted requests to an active revision and its replicas. Dotted arrows show configuration rather than request traffic.
+    accDescr: Internet, virtual network, private endpoint, and same-environment callers reach the managed environment only through allowed entry paths. The managed ingress proxy terminates TLS and selects replicas under revision traffic rules. Dotted arrows show app, revision, and replica membership or configuration rather than request traffic.
 
     INTERNET["Internet caller"]
     PRIVATE["Private caller<br/>VNet or private endpoint path"]
@@ -85,17 +85,17 @@ flowchart TD
     PRIVATE ==>|"When private entry is configured"| ENTRY
     INTERNAL ==>|"Internal app call"| INGRESS
     ENTRY ==>|"Accepted inbound request"| INGRESS
-    INGRESS ==>|"Route by revision traffic rule"| REV_ACTIVE
-    REV_ACTIVE ==>|"Select replica"| REPLICAS
+    INGRESS ==>|"Select replica under revision traffic rules"| REPLICAS
 
     CONFIG -.->|"CONTROL: apply exposure and routing settings"| ENTRY
     CONFIG -.->|"CONTROL: apply app ingress policy"| INGRESS
     APP -.->|"Logical revision membership"| REV_ACTIVE
+    REV_ACTIVE -.->|"Logical replica membership"| REPLICAS
 
     LEGEND["Arrow key<br/>thick = request path<br/>dotted = configuration or logical relationship"]
 ```
 
-*Figure: Accepted ingress traffic crosses the environment entry boundary, then follows the managed ingress → active revision → replica path. App-level external ingress does not by itself prove public internet reachability; environment accessibility and public network access also apply.*
+*Figure: Accepted ingress traffic crosses the environment entry boundary, then managed ingress selects a replica under revision traffic rules. Dotted app → revision → replica relationships describe configuration membership, not request hops. App-level external ingress does not by itself prove public internet reachability; environment accessibility and public network access also apply.*
 
 The default FQDN uses the environment DNS suffix. For internal service-to-service calls, Microsoft Learn documents an internal FQDN pattern that includes `.internal.` and is scoped to the same Container Apps environment.
 
@@ -356,6 +356,7 @@ Microsoft Learn explicitly documents these ingress-forwarded headers for HTTP in
 - [Ingress in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview)
 - [Communicate between container apps in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/connect-apps)
 - [Networking in Azure Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Configure ingress for a Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration)
 - [Configure virtual networks in Azure Container Apps environments (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks)
 - [Use a private endpoint with an Azure Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/how-to-use-private-endpoint)
 - [Ingress for your app in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to)
