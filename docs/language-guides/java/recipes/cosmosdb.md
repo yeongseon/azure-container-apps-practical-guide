@@ -7,6 +7,7 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-connect-role-based-access-control
         - https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/quickstart-java
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 ---
 # Cosmos DB Integration (Managed Identity)
 
@@ -17,15 +18,35 @@ Use this recipe to connect a Java Container App to Azure Cosmos DB for NoSQL wit
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Java Container App]
-    APP --> COSMOS[Azure Cosmos DB]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> COSMOS
+    accTitle: Passwordless Cosmos DB request from a Spring Boot container app
+    accDescr: A client request reaches the app through managed ingress. DefaultAzureCredential obtains a Cosmos DB access token through the app's managed identity, then the Java SDK sends a data request. Cosmos DB separately evaluates the identity's data-plane role assignment.
+    CLIENT[Client]
+    INGRESS[Managed ingress]
+    APP[Spring Boot app<br/>Azure Cosmos DB SDK]
+    ENDPOINT[Container Apps identity endpoint]
+    ENTRA[Microsoft Entra ID]
+    COSMOS[Azure Cosmos DB for NoSQL]
+    AUTHZ[Data-plane authorization result]
+    RESULT[Read or write result]
+    DENIED[Authorization failure]
+
+    CLIENT ==>|"HTTPS request"| INGRESS
+    INGRESS ==>|"Routed request"| APP
+    APP ==>|"Request Cosmos DB token"| ENDPOINT
+    ENDPOINT ==>|"Token request"| ENTRA
+    ENTRA ==>|"Access token response"| ENDPOINT
+    ENDPOINT ==>|"Return access token"| APP
+    APP ==>|"Cosmos DB request + token"| COSMOS
+    COSMOS -->|"Evaluate data-plane role"| AUTHZ
+    AUTHZ -->|"Allowed"| RESULT
+    AUTHZ -.->|"Denied"| DENIED
+    RESULT ==>|"Data response"| APP
+    DENIED -.->|"Authorization error"| APP
+    APP ==>|"Application response"| INGRESS
+    INGRESS ==>|"HTTPS response"| CLIENT
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+*Figure: Token acquisition, service transport, and Cosmos DB data-plane authorization are separate steps. A management-plane role alone does not grant document access.*
 
 ## Prerequisites
 
@@ -228,3 +249,4 @@ az role assignment list \
 
 - [Azure Cosmos DB for NoSQL RBAC](https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-connect-role-based-access-control)
 - [Azure Cosmos DB for NoSQL Java quickstart](https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/quickstart-java)
+- [Managed identities in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)

@@ -28,7 +28,53 @@ export JOB_NAME="job-java-manual"
 export EVENT_JOB_NAME="job-java-servicebus"
 export SERVICEBUS_NAMESPACE="sb-aca-prod"
 export SERVICEBUS_QUEUE="orders"
+export JOB_IDENTITY_ID="<user-assigned-identity-resource-id>"
 ```
+
+Grant the user-assigned identity permission to pull from ACR and receive Service Bus messages. The registry role depends on its permission mode:
+
+```bash
+export JOB_IDENTITY_PRINCIPAL_ID=$(az identity show --ids "$JOB_IDENTITY_ID" --query principalId --output tsv)
+export JOB_IDENTITY_CLIENT_ID=$(az identity show --ids "$JOB_IDENTITY_ID" --query clientId --output tsv)
+export ACR_ID=$(az acr show --name "$ACR_NAME" --resource-group "$RG" --query id --output tsv)
+export ACR_ROLE_ASSIGNMENT_MODE=$(az acr show --name "$ACR_NAME" --resource-group "$RG" --query roleAssignmentMode --output tsv)
+
+if [[ "$ACR_ROLE_ASSIGNMENT_MODE" == "AbacRepositoryPermissions" ]]; then
+  export ACR_PULL_ROLE="Container Registry Repository Reader"
+else
+  export ACR_PULL_ROLE="AcrPull"
+fi
+
+az role assignment create \
+  --assignee-object-id "$JOB_IDENTITY_PRINCIPAL_ID" \
+  --assignee-principal-type ServicePrincipal \
+  --role "$ACR_PULL_ROLE" \
+  --scope "$ACR_ID"
+
+export SERVICEBUS_NAMESPACE_ID=$(az servicebus namespace show --name "$SERVICEBUS_NAMESPACE" --resource-group "$RG" --query id --output tsv)
+
+az role assignment create \
+  --assignee-object-id "$JOB_IDENTITY_PRINCIPAL_ID" \
+  --assignee-principal-type ServicePrincipal \
+  --role "Azure Service Bus Data Receiver" \
+  --scope "$SERVICEBUS_NAMESPACE_ID"
+```
+
+| Command / Parameter | Purpose |
+|---|---|
+| `az identity show` | Reads the job identity principal ID for role grants and client ID for Java credential selection. |
+| `--ids` | Selects the user-assigned identity by `$JOB_IDENTITY_ID`. |
+| `--query` | Extracts identity IDs, ACR properties, or the Service Bus namespace resource ID needed by the next operation. |
+| `--output` | Emits each queried value as unquoted `tsv` for shell assignment. |
+| `az acr show` | Reads `$ACR_NAME` resource ID and `roleAssignmentMode` so the pull grant matches the registry permission model. |
+| `--name` | Selects `$ACR_NAME` for registry lookups and `$SERVICEBUS_NAMESPACE` for its resource ID. |
+| `--resource-group` | Locates the registry and Service Bus namespace in `$RG`. |
+| `az role assignment create` | Grants the job identity the selected registry pull role and Service Bus receiver role. |
+| `--assignee-object-id` | Assigns both permissions to `$JOB_IDENTITY_PRINCIPAL_ID`. |
+| `--assignee-principal-type` | Declares the managed identity principal as `ServicePrincipal`. |
+| `--role` | Uses `$ACR_PULL_ROLE` for image pulls and `Azure Service Bus Data Receiver` for worker access. |
+| `--scope` | Restricts each role to `$ACR_ID` or `$SERVICEBUS_NAMESPACE_ID`. |
+| `az servicebus namespace show` | Retrieves the Service Bus namespace resource ID used for the receiver grant. |
 
 ## What You'll Build
 
@@ -41,12 +87,36 @@ export SERVICEBUS_QUEUE="orders"
 <!-- diagram-id: java-jobs-recipe-flow -->
 ```mermaid
 flowchart TD
-    A[Create Spring Boot CLI runner] --> B[Build JAR and image]
-    B --> C[Create manual job]
-    C --> D[Run execution]
-    D --> E[Switch to Service Bus consumer]
-    E --> F[Add dedup table]
+    accTitle: Java Container Apps Jobs recipe flow
+    accDescr: Build the manual runner as its own immutable image for a manually triggered job. Then replace the runner with the Service Bus worker, rebuild it as a separate immutable image, and deploy that image to an authenticated event-driven job. The event path demonstrates ordering-only duplicate suppression: receive a message, insert its ID, process or skip it, and then complete it.
+    CODE[Manual runner source]
+    MANUAL_IMAGE[Manual image<br/>manual:v1]
+    MANUAL[Manual Container Apps Job]
+    START[Explicit start]
+    EXECUTION[Job execution<br/>bounded work then exit]
+    ADAPT[Replace runner with<br/>Service Bus worker]
+    EVENT_IMAGE[Event-worker image<br/>servicebus:v1]
+    QUEUE[Azure Service Bus queue]
+    AUTH[Managed identity<br/>scaler: resource ID<br/>worker: client ID]
+    EVENT[Event-driven Container Apps Job]
+    RECEIVE[Receive one message]
+    COMPLETE[Complete received message]
+    DEDUP[Insert received<br/>message ID]
+    PROCESS[New ID:<br/>process message]
+    SKIP[Existing ID:<br/>record duplicate]
+
+    CODE --> MANUAL_IMAGE --> MANUAL
+    START -.->|"Triggers"| MANUAL
+    MANUAL --> EXECUTION --> ADAPT
+    ADAPT --> EVENT_IMAGE --> EVENT
+    QUEUE -.->|"Scale signal"| EVENT
+    AUTH -.->|"Used by scaler and worker"| EVENT
+    EVENT --> RECEIVE --> DEDUP
+    DEDUP -->|"Inserted"| PROCESS --> COMPLETE
+    DEDUP -->|"Already exists"| SKIP --> COMPLETE
 ```
+
+*Figure: The manual runner is built as `java-jobs/manual:v1`. Replacing that runner with the Service Bus worker changes the application, so the recipe rebuilds it as the separate `java-jobs/servicebus:v1` image for the event-driven job. The event scaler and Java worker must both authenticate. `--scale-rule-identity` selects the attached user-assigned identity for the scaler by resource ID, while `AZURE_CLIENT_ID` selects it for the worker's `DefaultAzureCredential` by client ID. Role assignments grant the identity access to Service Bus. The event path shows ordering-only duplicate suppression under at-least-once delivery. A crash after the ID insert but before the business operation causes a retry to take the duplicate branch and complete unprocessed work.*
 
 ### 1. Create a manual Spring Boot Job
 
@@ -161,13 +231,30 @@ az containerapp job create \
   --environment "$ACA_ENV_NAME" \
   --trigger-type "Manual" \
   --image "$ACR_NAME.azurecr.io/java-jobs/manual:v1" \
+  --registry-server "$ACR_NAME.azurecr.io" \
+  --registry-identity "$JOB_IDENTITY_ID" \
+  --mi-user-assigned "$JOB_IDENTITY_ID" \
   --replica-timeout 600 \
   --replica-retry-limit 1
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az acr build ...` | Builds and pushes the container image to Azure Container Registry. |
+| `az acr build` | Builds the manual Spring Boot job image in ACR. |
+| `--registry` | Selects registry `$ACR_NAME` for the remote build. |
+| `--image` | Tags the built image as `java-jobs/manual:v1`. |
+| `--file` | Uses the recipe's `Dockerfile` for the ACR build. |
+| `az containerapp job create` | Creates the manually triggered Java job from the private image. |
+| `--name` | Names the manual job `$JOB_NAME`. |
+| `--resource-group` | Creates the job in `$RG`. |
+| `--environment` | Places the job in Container Apps environment `$ACA_ENV_NAME`. |
+| `--trigger-type` | Configures explicit manual execution. |
+| `--image` | Runs `$ACR_NAME.azurecr.io/java-jobs/manual:v1`. |
+| `--registry-server` | Identifies `$ACR_NAME.azurecr.io` as the private image source. |
+| `--registry-identity` | Uses `$JOB_IDENTITY_ID` to authenticate the ACR image pull. |
+| `--mi-user-assigned` | Attaches `$JOB_IDENTITY_ID` to the job execution. |
+| `--replica-timeout` | Allows each execution up to 600 seconds. |
+| `--replica-retry-limit` | Retries a failed execution replica once. |
 
 ### 2. Receive one Service Bus message and exit
 
@@ -197,7 +284,9 @@ CommandLineRunner serviceBusRunner() {
 }
 ```
 
-Create the event-driven Job:
+This minimal event runner completes the message immediately after logging it. The deduplication code in Step 3 is a separate snippet: integrate its received-message-ID check and processing branch before `client.complete(message)` for ordering-only duplicate suppression under at-least-once delivery.
+
+After replacing the manual runner, rebuild the application as a distinct event-worker image and create the event-driven Job:
 
 ```bash
 az acr build \
@@ -212,38 +301,70 @@ az containerapp job create \
   --environment "$ACA_ENV_NAME" \
   --trigger-type "Event" \
   --image "$ACR_NAME.azurecr.io/java-jobs/servicebus:v1" \
+  --registry-server "$ACR_NAME.azurecr.io" \
+  --registry-identity "$JOB_IDENTITY_ID" \
+  --mi-user-assigned "$JOB_IDENTITY_ID" \
   --scale-rule-name "orders-queue" \
   --scale-rule-type "azure-servicebus" \
-  --scale-rule-metadata "queueName=$SERVICEBUS_QUEUE" "messageCount=1" "namespace=$SERVICEBUS_NAMESPACE.servicebus.windows.net" \
-  --env-vars SERVICEBUS_NAMESPACE="$SERVICEBUS_NAMESPACE" SERVICEBUS_QUEUE="$SERVICEBUS_QUEUE"
+  --scale-rule-metadata "queueName=$SERVICEBUS_QUEUE" "messageCount=1" "namespace=$SERVICEBUS_NAMESPACE" \
+  --scale-rule-identity "$JOB_IDENTITY_ID" \
+  --env-vars AZURE_CLIENT_ID="$JOB_IDENTITY_CLIENT_ID" SERVICEBUS_NAMESPACE="$SERVICEBUS_NAMESPACE" SERVICEBUS_QUEUE="$SERVICEBUS_QUEUE"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az acr build ...` | Builds and pushes the container image to Azure Container Registry. |
+| `az acr build` | Builds the Service Bus worker image in ACR. |
+| `--registry` | Sends the event-worker build to `$ACR_NAME`. |
+| `--image` | Tags that image as `java-jobs/servicebus:v1`. |
+| `--file` | Builds the worker from the documented `Dockerfile`. |
+| `az containerapp job create` | Creates the authenticated event-driven Java job. |
+| `--name` | Names the event job `$EVENT_JOB_NAME`. |
+| `--resource-group` | Creates the event job in `$RG`. |
+| `--environment` | Runs the job in `$ACA_ENV_NAME`. |
+| `--trigger-type` | Selects event-driven execution. |
+| `--image` | Runs `$ACR_NAME.azurecr.io/java-jobs/servicebus:v1`. |
+| `--registry-server` | Points the job at `$ACR_NAME.azurecr.io`. |
+| `--registry-identity` | Authenticates the private image pull with `$JOB_IDENTITY_ID`. |
+| `--mi-user-assigned` | Attaches the identity used by the scaler and Java worker. |
+| `--scale-rule-name` | Names the Service Bus scaling rule `orders-queue`. |
+| `--scale-rule-type` | Selects the `azure-servicebus` KEDA scaler. |
+| `--scale-rule-metadata` | Polls queue `$SERVICEBUS_QUEUE` in namespace `$SERVICEBUS_NAMESPACE` and starts work at one message. |
+| `--scale-rule-identity` | Authenticates scaler polling with `$JOB_IDENTITY_ID`. |
+| `--env-vars` | Passes `AZURE_CLIENT_ID`, namespace, and queue values so `DefaultAzureCredential` selects the same identity for message processing. |
 
 ### 3. Add a dedup table
 
-For a runnable demo, use an embedded H2 table. In production, move the same insert-if-absent logic to a shared database.
+For a runnable demo, use an embedded H2 table. In production, move the same insert-if-absent logic to a shared durable database. This helper is separate from the event runner above; integrate it into that runner before `client.complete(message)` so a delivery is never completed before its received message ID is checked. This is ordering-only duplicate suppression under at-least-once delivery: if the worker crashes after inserting the ID but before completing the business operation, the retry sees an existing ID and can complete an unprocessed message. Commit the deduplication record and business result atomically, or use recoverable `pending` and `completed` states, to close that failure window.
 
 ```java
-@Bean
-CommandLineRunner dedupRunner(org.springframework.jdbc.core.JdbcTemplate jdbcTemplate) {
-    return args -> {
-        jdbcTemplate.execute("create table if not exists processed_messages (message_id varchar(200) primary key)");
-        int inserted = jdbcTemplate.update(
-            "merge into processed_messages key(message_id) values (?)",
-            "message-123"
-        );
-        if (inserted > 0) {
-            System.out.println("{\"event\":\"process-message\",\"messageId\":\"message-123\"}");
-        } else {
-            System.out.println("{\"event\":\"duplicate-message\",\"messageId\":\"message-123\"}");
-        }
-        System.exit(0);
-    };
+static boolean shouldProcess(
+        org.springframework.jdbc.core.JdbcTemplate jdbcTemplate,
+        String messageId) {
+    jdbcTemplate.execute("create table if not exists processed_messages (message_id varchar(200) primary key)");
+    try {
+        jdbcTemplate.update("insert into processed_messages(message_id) values (?)", messageId);
+        return true;
+    } catch (org.springframework.dao.DuplicateKeyException duplicate) {
+        return false;
+    }
 }
 ```
+
+Replace the event runner's loop with this ordering so both new and duplicate deliveries are settled only after the dedup decision:
+
+```java
+for (var message : messages) {
+    String messageId = message.getMessageId();
+    if (shouldProcess(jdbcTemplate, messageId)) {
+        System.out.println("{\"event\":\"process-message\",\"messageId\":\"" + messageId + "\"}");
+    } else {
+        System.out.println("{\"event\":\"duplicate-message\",\"messageId\":\"" + messageId + "\"}");
+    }
+    client.complete(message);
+}
+```
+
+The runner bean must accept `org.springframework.jdbc.core.JdbcTemplate jdbcTemplate` as a parameter when you integrate this loop. In a production implementation, record the durable business result and deduplication key atomically where the chosen data store supports transactions, or persist recoverable `pending` and `completed` states; do not treat an ephemeral per-replica H2 file as cross-execution deduplication.
 
 ## Verification
 
