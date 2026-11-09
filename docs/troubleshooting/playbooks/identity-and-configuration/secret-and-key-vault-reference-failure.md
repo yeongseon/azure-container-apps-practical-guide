@@ -8,6 +8,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
         - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets#reference-secret-from-key-vault
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
+        - https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
 content_validation:
   status: verified
   last_reviewed: 2026-09-11
@@ -40,15 +41,48 @@ Secret failures span configuration mapping, revision lifecycle behavior, and Key
 <!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
 flowchart TD
-    A[Secret-related failure observed] --> B{secretRef exists in app secret set?}
-    B -->|No| C[Create or fix secret name mapping]
-    B -->|Yes| D{Key Vault reference used?}
-    D -->|Yes| E[Validate identity and Key Vault permissions]
-    D -->|No| F[Check revision freshness after secret update]
-    C --> G[Deploy new revision and test]
-    E --> G
-    F --> G
+    accTitle: Diagnose Container Apps secret resolution
+    accDescr: Check the application secret name, optional Key Vault reference identity and access, then apply the documented refresh behavior for updated secrets.
+
+    FAILURE[Secret-related failure]
+    DEFINED{Referenced app secret exists?}
+    KEYVAULT{Secret uses a Key Vault reference?}
+    IDENTITY{Configured identity can read the Key Vault secret?}
+    NETWORK{Identity and Key Vault network paths succeed?}
+    CHANGE{Was the secret value updated or deleted?}
+    MAP[Create or correct the secret name and secretRef mapping]
+    ACCESS[Correct the identity, role, vault policy, or secret URI]
+    PATH[Correct DNS, route, firewall, or private endpoint policy]
+    REFRESH[Deploy a new revision or restart affected revisions after an update]
+    DELETE[Remove references before deleting a secret]
+    COLLECT[Collect logs, revision state, secret mapping, and dependency evidence]
+    RECLASSIFY[Reclassify the failure using the new evidence]
+    VERIFY[Verify secret resolution and application behavior]
+
+    FAILURE --> DEFINED
+    DEFINED -->|No| MAP
+    DEFINED -->|Yes| KEYVAULT
+    KEYVAULT -->|No| CHANGE
+    KEYVAULT -->|Yes| IDENTITY
+    IDENTITY -->|No| ACCESS
+    IDENTITY -->|Yes| NETWORK
+    NETWORK -->|No| PATH
+    NETWORK -->|Yes| CHANGE
+    CHANGE -->|Updated| REFRESH
+    CHANGE -->|Deleted or planned deletion| DELETE
+    CHANGE -->|Neither| COLLECT
+    COLLECT --> RECLASSIFY
+    RECLASSIFY --> FAILURE
+    MAP --> VERIFY
+    ACCESS --> VERIFY
+    PATH --> VERIFY
+    REFRESH --> VERIFY
+    DELETE --> VERIFY
+
+    LEGEND["Arrow key<br/>solid = diagnostic progression"]
 ```
+
+*Figure: Secret updates and deletions require different actions; Key Vault references add identity, authorization, and network gates.*
 
 ## 2. Common Misreadings
 
@@ -89,11 +123,17 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json
 ```
 
-| Command | Purpose |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp secret list --name "$APP_NAME" --resource-group "$RG"` | Lists the secret names currently defined on the app so you can verify that every `secretRef` used by the revision points to a real secret. |
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].env" --output json` | Reads the Container App resource and extracts the container environment-variable mapping in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json` | Reads the app's identity object so you can confirm whether a system-assigned or user-assigned managed identity is attached and inspect its `principalId`/`clientId` before checking the Key Vault reference's access. |
+| `az containerapp secret list` | Lists secret names and Key Vault references to determine whether the expected reference exists on the app. |
+| `--name` (`az containerapp secret list`) | Lists secrets defined on `$APP_NAME`, where the unresolved `secretRef` is consumed. |
+| `--resource-group` (`az containerapp secret list`) | Scopes the secret inventory to the resource group containing the app with the unresolved `secretRef`. |
+| `az containerapp show` | Projects container environment-variable bindings so each `secretRef` can be matched to the secret inventory. |
+| `--name` (`az containerapp show`) | Reads environment mappings and identity from `$APP_NAME`. |
+| `--resource-group` (`az containerapp show`) | Retrieves the affected app configuration from `$RG`. |
+| `--query` (`az containerapp show`) | Places the first container's environment references beside app identity data to correlate a failing secret reference with its accessor. |
+| `--output` (`az containerapp show`) | Preserves environment and identity structures as JSON for correlation. |
+
 
 ## 5. Evidence to Collect
 
@@ -122,10 +162,6 @@ $ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query provisi
 "Succeeded"
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
-
 ## 6. Validation and Disproof by Hypothesis
 
 ### H1: Missing secret or wrong `secretRef`
@@ -148,9 +184,17 @@ az containerapp secret list --name "$APP_NAME" --resource-group "$RG"
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].env" --output json
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp secret list ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+| `az containerapp secret list` | Rechecks the app's secret reference metadata after the Key Vault URI or identity assignment is corrected. |
+| `--name` (`az containerapp secret list`) | Lists secret names defined on `$APP_NAME`. |
+| `--resource-group` (`az containerapp secret list`) | Reads `$APP_NAME` secret names from `$RG`. |
+| `az containerapp show` | Shows which environment variables consume each secret, identifying references that still use an obsolete name. |
+| `--name` (`az containerapp show`) | Reads environment mappings from `$APP_NAME`. |
+| `--resource-group` (`az containerapp show`) | Opens the app in `$RG` before comparing environment references with its secret inventory. |
+| `--query` (`az containerapp show`) | Lists the first container's environment entries so the misspelled or absent `secretRef` can be found directly. |
+| `--output` (`az containerapp show`) | Returns the environment array as JSON so every `secretRef` remains visible. |
+
 
 **Disproof logic:**
 
@@ -178,15 +222,28 @@ az keyvault secret show --vault-name "my-kv" --name "my-secret" --query "attribu
 az role assignment list --scope "$(az keyvault show --name "my-kv" --resource-group "$RG" --query id --output tsv)" --assignee "$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query identity.principalId --output tsv)" --output table
 ```
 
-| Command | Purpose |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json` | Reads the app's identity object so you can confirm whether a system-assigned or user-assigned managed identity is attached and inspect its `principalId`/`clientId` before checking the Key Vault reference's access. |
-| `az keyvault secret show --vault-name "my-kv" --name "my-secret" --query "attributes.enabled" --output tsv` | Reads the Key Vault secret metadata so you can confirm the referenced secret exists and is enabled before troubleshooting app-side mapping. |
-| `az role assignment list --scope "$(az keyvault show --name "my-kv" --resource-group "$RG" --query id --output tsv)" --assignee "$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query identity.principalId --output tsv)" --output table` | Lists RBAC grants for one principal at one exact scope, which is the quickest way to verify whether the workload has the right permission on the dependency that is failing. |
+| `az keyvault show` | Resolves the Key Vault ARM ID used as the exact RBAC scope for the access check. |
+| `--name` (`az keyvault show`) | Selects `my-kv`, matching the vault named in the nested command. |
+| `--resource-group` (`az keyvault show`) | Selects the resource group containing `my-kv` so the command returns the exact vault ARM scope used by RBAC. |
+| `--query` (`az keyvault show`) | Selects the vault resource ID used as the expected RBAC assignment scope. |
+| `--output` (`az keyvault show`) | Assigns the full vault ARM ID to the shell variable without enclosing quotes. |
+| `az containerapp show` | Returns the app identity used for Key Vault access so its object can be checked against vault permissions. |
+| `--name` (`az containerapp show`) | Selects `$APP_NAME`, whose managed-identity principal is the RBAC assignee. |
+| `--resource-group` (`az containerapp show`) | Reads the affected app from `$RG` before extracting its principal ID. |
+| `--query` (`az containerapp show`) | Returns the principal ID with its identity configuration to identify which app identity should have vault access. |
+| `--output` (`az containerapp show`) | Emits only the principal GUID for use by the role-assignment filter. |
+| `az keyvault secret show` | Reads the referenced secret's enabled state independently of the app configuration. |
+| `--vault-name` (`az keyvault secret show`) | Opens `my-kv`, the vault backing this example reference. |
+| `--name` (`az keyvault secret show`) | Inspects `my-secret`, the referenced secret whose disabled state could mimic access denial. |
+| `--query` (`az keyvault secret show`) | Reads the secret's enabled attribute to separate authorization failures from a disabled secret version. |
+| `--output` (`az keyvault secret show`) | Prints the enabled state as a plain Boolean for the access check. |
+| `az role assignment list` | Enumerates role assignments at the requested principal or scope to evaluate the vault URI, identity, and authorization path. |
+| `--scope` (`az role assignment list`) | Limits the RBAC lookup to the Key Vault resource ID returned by the nested `az keyvault show` command. |
+| `--assignee` (`az role assignment list`) | Filters grants to the app principal ID returned by the nested `az containerapp show` command. |
+| `--output` (`az role assignment list`) | Displays matching vault grants in a table so role and scope can be verified together. |
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 ```kusto
 let AppName = "ca-myapp";
@@ -224,9 +281,13 @@ If the same identity can access the vault, the secret is enabled, and role assig
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
 ```
 
-| Command | Purpose |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists all revisions after the secret change so you can confirm whether the app ever switched to a fresh revision that could read the updated secret. |
+| `az containerapp revision list` | Lists revision provisioning states to identify the revision rejected while resolving its secret reference. |
+| `--name` (`az containerapp revision list`) | Lists revisions belonging to `$APP_NAME` after the secret update. |
+| `--resource-group` (`az containerapp revision list`) | Reads revision history for the app in `$RG`. |
+| `--output` (`az containerapp revision list`) | Shows active state and creation order in a table to identify whether the expected revision was created. |
+
 
 **Disproof logic:**
 
@@ -295,26 +356,47 @@ az keyvault show --name "$KEY_VAULT_NAME" --resource-group "$RG" \
     --output json
 ```
 
-| Command | Purpose |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp secret set --name "$APP_NAME" --resource-group "$RG" --secrets "kvref-diag=keyvaultref:https://<vault>.vault.azure.net/secrets/<name>,identityref:system" 2> /tmp/secret-set-stderr.txt || true` | Writes or updates the Container Apps secret definition so you can reproduce or fix secret-resolution behavior without exposing the underlying value in plain text. |
-| `grep -E "Failed to update secrets|Unable to get value using Managed identity|openid-configuration" /tmp/secret-set-stderr.txt` | Filters the captured output down to the marker strings that confirm whether the expected failure signature actually occurred. |
-| `az network route-table route list --route-table-name "$(basename "$ROUTE_TABLE_ID")" --resource-group "$RG" --output table` | Lists effective route entries on the route table so you can confirm whether default egress is being forced through a firewall or other appliance. |
-| `az network firewall policy rule-collection-group collection list --policy-name "$FIREWALL_POLICY_NAME" --resource-group "$RG" --rule-collection-group-name "$FIREWALL_POLICY_RCG_NAME" --query "[?ruleCollectionType=='FirewallPolicyFilterRuleCollection'].{name:name, rules:rules[?ruleType=='ApplicationRule'].{name:name, targetFqdns:targetFqdns}}" --output json` | Lists the firewall collections and application rules so you can see whether the required FQDN allow-list is already present. |
-| `echo "Managed identity principalId: $APP_MI_PRINCIPAL_ID"` | Prints the captured value so you can confirm the lookup or calculation before using it in later troubleshooting commands. |
-| `az role assignment list --assignee "$APP_MI_PRINCIPAL_ID" --scope "$KEY_VAULT_ID" --query "[].{roleDefinitionName:roleDefinitionName, scope:scope}" --output table` | Lists RBAC grants for one principal at one exact scope, which is the quickest way to verify whether the workload has the right permission on the dependency that is failing. |
-| `az keyvault show --name "$KEY_VAULT_NAME" --resource-group "$RG" --query "{networkAcls:properties.networkAcls, publicNetworkAccess:properties.publicNetworkAccess}" --output json` | Reads Key Vault configuration so you can verify its resource ID, firewall posture, and network ACLs for the failing secret path. |
+| `az containerapp env show` | Reads the managed environment to discover its infrastructure subnet. |
+| `--name` (`az containerapp env show`) | Selects `$ACA_ENV_NAME`, whose infrastructure subnet owns the forced egress route. |
+| `--resource-group` (`az containerapp env show`) | Scopes the lookup to the environment whose infrastructure subnet supplies the starting point for the forced-egress route trace. |
+| `--query` (`az containerapp env show`) | Identifies the environment infrastructure subnet whose route table controls managed-identity discovery traffic. |
+| `--output` (`az containerapp env show`) | Captures the subnet ARM ID as a raw string for the nested subnet inspection. |
+| `az network vnet subnet show` | Resolves the route table attached to the infrastructure subnet. |
+| `--ids` (`az network vnet subnet show`) | Targets the full resource ID `$INFRA_SUBNET_ID`, avoiding ambiguous name-and-scope reconstruction. |
+| `--query` (`az network vnet subnet show`) | Selects the attached route-table ID to locate the UDR that may divert identity endpoints through Azure Firewall. |
+| `--output` (`az network vnet subnet show`) | Returns the route-table resource ID alone for subsequent route inspection. |
+| `az containerapp show` | Retrieves the app's managed-identity principal ID for RBAC comparison. |
+| `--name` (`az containerapp show`) | Extracts the managed-identity principal from `$APP_NAME`. |
+| `--resource-group` (`az containerapp show`) | Reads the affected app from `$RG` to recover its managed-identity principal. |
+| `--query` (`az containerapp show`) | Obtains the managed-identity object ID whose vault role assignments must remain valid after network checks. |
+| `--output` (`az containerapp show`) | Emits the identity object ID in command-ready text form for the RBAC query. |
+| `az keyvault show` | Reads the Key Vault resource ID and network-access configuration. |
+| `--name` (`az keyvault show`) | Opens `$KEY_VAULT_NAME` to verify its network ACLs and ARM scope. |
+| `--resource-group` (`az keyvault show`) | Locates the vault in `$RG` before comparing its network ACLs with the egress path. |
+| `--query` (`az keyvault show`) | Combines the vault ID with network ACL and public-access settings to test whether the vault path itself is restricted. |
+| `--output` (`az keyvault show`) | Returns the selected vault network settings as JSON for the H4 exclusion check. |
+| `az containerapp secret set` | Sets `az containerapp secret set` to obtain or change the app identity used for token acquisition. |
+| `--name` (`az containerapp secret set`) | Applies the diagnostic Key Vault reference to `$APP_NAME`. |
+| `--resource-group` (`az containerapp secret set`) | Applies the diagnostic Key Vault reference to the app deployed in `$RG`. |
+| `--secrets` (`az containerapp secret set`) | Creates `kvref-diag` with the shown vault URI and system identity so the failing control-plane lookup can be reproduced. |
+| `az network route-table route list` | Lists routes affecting vault traffic to expose a next hop that prevents the app from reaching Key Vault. |
+| `--route-table-name` (`az network route-table route list`) | Uses the basename of `$ROUTE_TABLE_ID`, the route table attached to the environment subnet. |
+| `--resource-group` (`az network route-table route list`) | Opens the route table from `$RG` that is attached to the environment infrastructure subnet. |
+| `--output` (`az network route-table route list`) | Displays routes in columns so the `0.0.0.0/0` next hop can be recognized immediately. |
+| `az network firewall policy rule-collection-group collection list` | Lists `az network firewall policy rule-collection-group collection list` to obtain or change the app identity used for token acquisition. |
+| `--policy-name` (`az network firewall policy rule-collection-group collection list`) | Selects `$FIREWALL_POLICY_NAME`, the policy on the forced egress path. |
+| `--resource-group` (`az network firewall policy rule-collection-group collection list`) | Reads the firewall policy in `$RG` whose collections govern the forced egress route. |
+| `--rule-collection-group-name` (`az network firewall policy rule-collection-group collection list`) | Limits inspection to `$FIREWALL_POLICY_RCG_NAME`, where the Entra authority allow rule should reside. |
+| `--query` (`az network firewall policy rule-collection-group collection list`) | Filters to firewall policy filter collections and summarizes their rules to find identity-discovery or vault destinations that are denied. |
+| `--output` (`az network firewall policy rule-collection-group collection list`) | Returns the projected application rules as JSON so both Entra FQDNs can be checked. |
+| `az role assignment list` | Enumerates role assignments at the requested principal or scope to evaluate the app identity used for token acquisition. |
+| `--assignee` (`az role assignment list`) | Filters grants to `$APP_MI_PRINCIPAL_ID`, the app's managed identity. |
+| `--scope` (`az role assignment list`) | Restricts results to `$KEY_VAULT_ID`, proving authorization at the actual vault boundary. |
+| `--query` (`az role assignment list`) | Reduces the app identity's assignments to role names and scopes so valid vault authorization can be confirmed independently of egress. |
+| `--output` (`az role assignment list`) | Renders role names and scopes as a table for the non-network hypothesis check. |
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp secret set ...` | Reproduces the failure surface so `stderr` marker strings can be captured verbatim. |
-| `az containerapp env show ...` | Reads the environment's infrastructure subnet ID so route table attachment can be inspected. |
-| `az network vnet subnet show ...` | Retrieves the route table ID attached to the workload subnet. |
-| `az network route-table route list ...` | Lists the effective routes so a `0.0.0.0/0 → VirtualAppliance` next-hop to the firewall private IP can be confirmed. |
-| `az network firewall policy rule-collection-group collection list ...` | Lists the Application Rules in the firewall policy so the Entra authority FQDNs (`login.microsoftonline.com`, `login.microsoft.com`) can be verified as present or absent. |
-| `az containerapp show --query identity.principalId` | Confirms the app has a managed identity assigned. If empty, the failure is not H4 — it is an identity-not-assigned problem. |
-| `az role assignment list --assignee ... --scope $KEY_VAULT_ID` | Confirms the identity holds `Key Vault Secrets User` (or equivalent) at the target vault scope. If absent, the failure is not H4 — it is an RBAC gap (H2). |
-| `az keyvault show --query properties.networkAcls` | Confirms the Key Vault's own network ACL and `publicNetworkAccess` posture. If the vault blocks the caller's outbound path, the failure signature is typically an HTTP 403 from Key Vault, not a transport-level `EOF` on the OIDC discovery URL — this points elsewhere, not to H4. |
 
 ```kusto
 // Firewall log for Entra authority FQDN during the failure window (schema-tolerant, host-tolerant)
@@ -428,10 +510,6 @@ For a fully reproducible end-to-end proof of this hypothesis — including an of
 4. Validate app behavior with expected config value present.
 5. If the workload subnet routes egress through Azure Firewall (or another NVA), verify the firewall policy contains an Application Rule permitting outbound HTTPS to **both** `login.microsoftonline.com` and `login.microsoft.com` from the workload subnet, and confirm the firewall log shows an `Allow` row for **either** Entra authority FQDN in the failure window. If the rule is missing, add or restore it:
 
-    | Command | Why it is used |
-    |---|---|
-    | `az network firewall policy rule-collection-group collection add-filter-collection ...` | Adds an `ApplicationRule` collection to the existing firewall policy rule-collection group that permits outbound HTTPS to **both** `login.microsoftonline.com` and `login.microsoft.com` from the workload subnet CIDR. Both FQDNs are listed because the managed-identity OIDC discovery client picks one Entra authority host at runtime; a rule that names only one FQDN will silently drop discovery attempts that happen to pick the other host. |
-
     ```bash
     az network firewall policy rule-collection-group collection add-filter-collection \
         --resource-group "$RG" \
@@ -447,9 +525,20 @@ For a fully reproducible end-to-end proof of this hypothesis — including an of
         --target-fqdns "login.microsoftonline.com" "login.microsoft.com"
     ```
 
-    | Command | Purpose |
+    | Command/Parameter | Purpose |
     |---|---|
-    | `az network firewall policy rule-collection-group collection add-filter-collection --resource-group "$RG" --policy-name "$FIREWALL_POLICY_NAME" --rule-collection-group-name "$FIREWALL_POLICY_RCG_NAME" --name "aca-entra-authority-allow" --collection-priority 200 --action Allow --rule-type ApplicationRule --rule-name "allow-entra-authority" --source-addresses "$ACA_WORKLOAD_SUBNET_CIDR" --protocols Https=443 --target-fqdns "login.microsoftonline.com" "login.microsoft.com"` | Adds the firewall application rule that permits both Entra authority FQDNs from the workload subnet, which is the direct mitigation when OIDC discovery is being dropped on the egress path. |
+    | `az network firewall policy rule-collection-group collection add-filter-collection` | Adds the Entra authority allow collection to the selected firewall policy rule-collection group. |
+    | `--resource-group` (`az network firewall policy rule-collection-group collection add-filter-collection`) | Uses `$RG`, which contains the firewall policy being repaired. |
+    | `--policy-name` (`az network firewall policy rule-collection-group collection add-filter-collection`) | Selects `$FIREWALL_POLICY_NAME`, the policy on the Container Apps egress path. |
+    | `--rule-collection-group-name` (`az network firewall policy rule-collection-group collection add-filter-collection`) | Selects `$FIREWALL_POLICY_RCG_NAME`, where the application rule collection is added. |
+    | `--name` (`az network firewall policy rule-collection-group collection add-filter-collection`) | Names the new collection `aca-entra-authority-allow`. |
+    | `--collection-priority` (`az network firewall policy rule-collection-group collection add-filter-collection`) | Assigns priority `200` within the rule-collection group. |
+    | `--action` (`az network firewall policy rule-collection-group collection add-filter-collection`) | Allows traffic matching the new application rules. |
+    | `--rule-type` (`az network firewall policy rule-collection-group collection add-filter-collection`) | Creates an `ApplicationRule` collection for FQDN-based HTTPS matching. |
+    | `--rule-name` (`az network firewall policy rule-collection-group collection add-filter-collection`) | Names the rule `allow-entra-authority`. |
+    | `--source-addresses` (`az network firewall policy rule-collection-group collection add-filter-collection`) | Limits the rule source to `$ACA_WORKLOAD_SUBNET_CIDR`. |
+    | `--protocols` (`az network firewall policy rule-collection-group collection add-filter-collection`) | Allows HTTPS on port 443. |
+    | `--target-fqdns` (`az network firewall policy rule-collection-group collection add-filter-collection`) | Allows both documented Entra authority hosts: `login.microsoftonline.com` and `login.microsoft.com`. |
 
 6. If Step 5 confirms the firewall Application Rule for both Entra authority FQDNs is already present AND the base H4 KQL returns zero rows in the failure window, work through the [H4 Variants table](#h4-variants-when-base-h4-kql-returns-zero-rows) in rule-out order. Cheapest verification first: check AzFW diagnostic settings enabled at the Firewall resource (H4b, one CLI call), then verify DNS resolution of the Entra authority hosts from the workload path (H4e, one `az containerapp exec` call for `nslookup` plus a check of the workload VNet's `dhcpOptions.dnsServers`), then inspect the outbound NSG rules on the workload subnet for a Deny on 443/tcp to `AzureActiveDirectory` or Entra IP ranges (H4c), then verify Virtual WAN Hub Routing Intent and effective routes if the customer environment uses Virtual WAN (H4d), then verify whether outbound TLS to the Entra authority is being intercepted by running `openssl s_client` from a workload replica and inspecting the returned certificate chain (H4g — if intercepted, exempt the Entra authority FQDNs from TLS inspection at the intercepting device rather than modifying the workload image), and finally 3rd-party NVA policy if the customer environment has a vendor NVA in path (H4f). The customer scenario "Virtual WAN Hub + Firewall + Routing Intent + no firewall block logs" typically resolves as H4d combined with H4b — verify Routing Intent state and Firewall diagnostic settings in parallel, and if effective routes look correct but the base H4 KQL is still empty, re-check the effective routes after the routing policy's provisioning state reaches `Succeeded` before concluding the route topology is not the controlling variable.
 

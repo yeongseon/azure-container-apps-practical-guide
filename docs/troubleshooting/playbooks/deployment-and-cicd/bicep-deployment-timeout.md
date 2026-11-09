@@ -35,13 +35,37 @@ An ARM or Bicep deployment that updates a Container App takes much longer than e
 <!-- diagram-id: bicep-deployment-timeout-flow -->
 ```mermaid
 flowchart TD
-    A[Bicep deployment starts] --> B[Container App revision-scope change applied]
-    B --> C[New revision created]
-    C --> D{Revision becomes ready?}
-    D -->|Yes| E[Deployment completes]
-    D -->|No| F[Deployment waits on failed or stalled provisioning]
-    F --> G[Inspect revision health probes logs and image startup]
+    accTitle: Diagnose a Bicep deployment waiting on a revision
+    accDescr: Determine whether an accepted deployment created a revision that became healthy or stalled during image startup, configuration, or health verification.
+
+    DEPLOY[Bicep or ARM deployment accepted]
+    SCOPE{Revision-scope change?}
+    APP[Application-scope configuration updates]
+    APP_RESULT{Application-scope operation result}
+    REVISION[New immutable revision]
+    READY{Revision becomes healthy?}
+    COMPLETE_APP[Application-scope operation completes]
+    COMPLETE_REV[Revision deployment completes]
+    WAIT_APP[Application-scope operation reports failure]
+    WAIT_REV[Revision deployment waits or reports failure]
+    EVIDENCE[Inspect provisioning state, system logs, console logs, and probes]
+
+    DEPLOY --> SCOPE
+    SCOPE -->|No| APP
+    SCOPE -->|Yes| REVISION
+    APP --> APP_RESULT
+    APP_RESULT -->|Succeeded| COMPLETE_APP
+    APP_RESULT -->|Failed| WAIT_APP
+    REVISION --> READY
+    READY -->|Yes| COMPLETE_REV
+    READY -->|No| WAIT_REV
+    WAIT_APP --> EVIDENCE
+    WAIT_REV --> EVIDENCE
+
+    LEGEND["Arrow key<br/>solid = deployment and diagnostic progression"]
 ```
+
+*Figure: First distinguish application-scope updates from revision-scope changes, then use revision evidence to explain the wait.*
 
 ## Possible Causes
 
@@ -75,11 +99,21 @@ az containerapp show \
     --output json
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Shows whether the newest revision is stuck in a failed or incomplete lifecycle state. |
-| `az containerapp revision show --name "$APP_NAME" --resource-group "$RG" --revision "<revision-name>"` | Retrieves detailed state for the specific revision that is blocking the deployment. |
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --output json` | Confirms the current app configuration and whether the deployment introduced revision-scope changes. |
+| `az containerapp revision list` | Lists revision provisioning states to reveal whether the timed-out deployment nevertheless created a revision. |
+| `--name` (`az containerapp revision list`) | Lists revisions belonging to `$APP_NAME`. |
+| `--resource-group` (`az containerapp revision list`) | Looks for revision history in `$RG`, where the timed-out deployment created the app. |
+| `--output` (`az containerapp revision list`) | Emits the response as `table` so the decisive fields remain usable in this diagnostic step. |
+| `az containerapp revision show` | Reads the selected revision's provisioning details to evaluate the Azure state that distinguishes this hypothesis. |
+| `--name` (`az containerapp revision show`) | Resolves `<revision-name>` under `$APP_NAME`. |
+| `--resource-group` (`az containerapp revision show`) | Resolves `<revision-name>` within `$RG` before inspecting its provisioning details. |
+| `--revision` (`az containerapp revision show`) | Selects revision `<revision-name>`, whose provisioning or replica state is being tested. |
+| `az containerapp show` | Reads the app's latest revision and provisioning details to correlate the ARM timeout with the resulting resource state. |
+| `--name` (`az containerapp show`) | Reads the parent app `$APP_NAME` after revision inspection. |
+| `--resource-group` (`az containerapp show`) | Reads the parent app from `$RG` after the revision-level checks. |
+| `--output` (`az containerapp show`) | Keeps the diagnosis steps result in the representation required by the next comparison or shell assignment. |
+
 
 ```bash
 az containerapp logs show \
@@ -88,9 +122,13 @@ az containerapp logs show \
     --type system
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | Captures revision creation, provisioning, and readiness-related platform events. |
+| `az containerapp logs show` | Reads the selected Container App log stream so the operator can evaluate runtime log stream. |
+| `--name` (`az containerapp logs show`) | Retrieves timeout evidence for `$APP_NAME`. |
+| `--resource-group` (`az containerapp logs show`) | Searches `$RG` for the app's system-log stream that records deployment timeout causes. |
+| `--type` (`az containerapp logs show`) | Chooses the `system` log stream because it carries the expected failure signal. |
+
 
 ## Resolution
 

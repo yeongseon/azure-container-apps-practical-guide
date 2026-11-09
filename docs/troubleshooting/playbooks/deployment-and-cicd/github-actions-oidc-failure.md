@@ -35,13 +35,29 @@ GitHub Actions deployment jobs fail during Azure sign-in or before the Container
 <!-- diagram-id: github-actions-oidc-failure-flow -->
 ```mermaid
 flowchart TD
-    A[GitHub Actions job requests OIDC token] --> B[Azure validates issuer audience and subject]
-    B --> C{Federated credential matches exactly?}
-    C -->|No| D[AADSTS70021 returned]
-    C -->|Yes| E[Azure issues access token]
-    E --> F[Workflow deploys Container App]
-    D --> G[Check issuer audience subject and propagation]
+    accTitle: Diagnose GitHub Actions workload identity federation
+    accDescr: GitHub issues an OIDC token, Microsoft Entra ID compares its issuer, audience, and subject with a federated identity credential, and returns either an access token or an authentication error.
+
+    GITHUB[GitHub Actions job]
+    ENTRA[Microsoft Entra ID token endpoint]
+    MATCH{Issuer, audience, and subject match?}
+    ACCESS[Azure access token]
+    ERROR[AADSTS70021 or related federation error]
+    DEPLOY[Container Apps deployment step]
+    CHECK[Compare claims and allow for documented propagation behavior]
+
+    GITHUB ==>|OIDC token assertion| ENTRA
+    ENTRA --> MATCH
+    MATCH -->|Yes| ACCESS
+    MATCH -->|No| ERROR
+    ACCESS ==>|Token response| GITHUB
+    GITHUB ==>|Authenticated deployment request| DEPLOY
+    ERROR --> CHECK
+
+    LEGEND["Arrow key<br/>thick = token or deployment transport<br/>solid = validation or diagnostic progression"]
 ```
+
+*Figure: Federation succeeds only when the token claims match the configured credential; token request and response are shown separately.*
 
 ## Possible Causes
 
@@ -70,11 +86,16 @@ az rest \
     --uri "https://graph.microsoft.com/v1.0/applications(appId='<app-id>')/federatedIdentityCredentials"
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az ad app show --id "<app-id>"` | Confirms the target application object used for federation. |
-| `az ad app federated-credential list --id "<app-id>"` | Lists federated credentials so you can inspect issuer, audience, and subject values. |
-| `az rest --method GET --uri "https://graph.microsoft.com/v1.0/applications(appId='<app-id>')/federatedIdentityCredentials"` | Retrieves the raw Microsoft Graph representation when you need exact claim details. |
+| `az ad app show` | Returns the application registration identifiers needed to inspect the workflow's federated identity configuration. |
+| `--id` (`az ad app show`) | Selects directory or Azure object `<app-id>` for this exact lookup or mutation. |
+| `az ad app federated-credential list` | Runs `az ad app federated-credential list` to collect or change the Azure state evaluated by diagnosis steps. |
+| `--id` (`az ad app federated-credential list`) | Selects directory or Azure object `<app-id>` for this exact lookup or mutation. |
+| `az rest` | Calls the exact ARM or Microsoft Graph resource URL to evaluate the Azure state that distinguishes this hypothesis. |
+| `--method` (`az rest`) | Uses HTTP `GET`, matching the read or delete operation performed on the exact resource URL. |
+| `--uri` (`az rest`) | Addresses `https://graph.microsoft.com/v1.0/applications(appId='<app-id>')/federat…`, the Microsoft Graph object needed for the identity check. |
+
 
 Use this matching rule for a branch-based workflow:
 
@@ -110,9 +131,12 @@ az ad app federated-credential create \
     --parameters "credential.json"
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az ad app federated-credential create --id "<app-id>" --parameters "credential.json"` | Creates or re-creates the federated credential with an exact JSON payload instead of relying on a partial manual configuration. |
+| `az ad app federated-credential create` | Adds the GitHub subject, issuer, and audience trust described in `credential.json` to the application. |
+| `--id` (`az ad app federated-credential create`) | Selects directory or Azure object `<app-id>` for this exact lookup or mutation. |
+| `--parameters` (`az ad app federated-credential create`) | Supplies `credential.json`, whose repository and branch subject must match the failing workflow token. |
+
 
 ## Prevention
 

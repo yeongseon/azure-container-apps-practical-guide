@@ -49,16 +49,41 @@ Also confusing: the edge proxy listens on `31443` (HTTPS) and `31080` (HTTP) beh
 <!-- diagram-id: appgw-nsg-decision-flow -->
 ```mermaid
 flowchart TD
-    A[Symptom: AppGW backend Unhealthy<br/>curl to staticIp times out] --> B{NSG inbound rule Destination<br/>= container app's subnet CIDR?}
-    B -->|No, Destination = staticIp only| H1[H1: NSG Destination pinned to staticIp]
-    B -->|Yes| C{NSG allows both 443 and 31443<br/>and both 80 and 31080?}
-    C -->|No| H2[H2: Missing edge proxy ports]
-    C -->|Yes| D{Effective NSG permits AzureLoadBalancer<br/>to 30000-32767, i.e., default rule<br/>at priority 65001 not shadowed?}
-    D -->|No| H3[H3: Custom Deny shadows ILB probe path]
-    D -->|Yes| E{AppGW backend targets FQDN<br/>and probe path returns 2xx or 3xx?}
-    E -->|No| H4[H4: AppGW backend or probe misconfigured]
-    E -->|Yes| F[Investigate app-level issues<br/>see ingress-not-reachable playbook]
+    accTitle: Diagnose Application Gateway access to an internal Container Apps environment
+    accDescr: Check private DNS, Application Gateway backend and probe settings, then the documented subnet NSG destination and edge-proxy and load-balancer probe ports.
+
+    CLIENT[Client request]
+    APPGW[Azure Application Gateway]
+    DNS{Backend FQDN resolves to the environment static IP?}
+    PROBE{Backend and health probe use the expected host and path?}
+    DEST{NSG destination is the Container Apps infrastructure subnet?}
+    PORTS{NSG permits documented ingress and Azure Load Balancer probe ports?}
+    INGRESS[Managed environment ingress]
+    REVISION[Healthy revision replicas]
+    DNS_FIX[Correct the private DNS zone and VNet link]
+    APPGW_FIX[Correct backend FQDN, host selection, or probe]
+    DEST_FIX[Replace static IP destination with the infrastructure subnet]
+    PORT_FIX[Correct NSG priorities and required port ranges]
+
+    CLIENT ==> APPGW
+    APPGW --> DNS
+    DNS -->|No| DNS_FIX
+    DNS -->|Yes| PROBE
+    PROBE -->|No| APPGW_FIX
+    PROBE -->|Yes| DEST
+    DEST -->|No| DEST_FIX
+    DEST -->|Yes| PORTS
+    PORTS -->|No| PORT_FIX
+    PORTS -->|Yes| INGRESS
+    INGRESS ==>|Forward| REVISION
+    REVISION ==>|Return| INGRESS
+    INGRESS ==>|Return| APPGW
+    APPGW ==> CLIENT
+
+    LEGEND["Arrow key<br/>thick = request or response transport<br/>solid = diagnostic progression"]
 ```
+
+*Figure: Preserve the Application Gateway request and response path while testing DNS, probe, subnet-destination, and NSG-port hypotheses in order.*
 
 ## 2. Common Misreadings
 
@@ -130,11 +155,19 @@ az network nsg rule list \
   --output table
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp env show ... --query "properties.staticIp"` | Retrieves the environment ingress IP so it can be compared against the NSG Destination values. |
-| `az containerapp env show ... --query "properties.vnetConfiguration.infrastructureSubnetId"` | Retrieves the container app's subnet resource ID so its CIDR can be verified against the NSG Destination values. |
-| `az network nsg rule list ...` | Lists inbound NSG rules on the container app subnet's NSG so Source, Destination, and Destination ports can be compared against the workload-profile NSG table. |
+| `az containerapp env show` | Reads the internal environment's static IP and subnet so the NSG destination can be checked against the actual platform path. |
+| `--name` (`az containerapp env show`) | Reads `$ACA_ENV_NAME`, whose static IP and infrastructure subnet must not be confused in the NSG destination. |
+| `--resource-group` (`az containerapp env show`) | Locates the environment in `$RG` for network-value extraction. |
+| `--query` (`az containerapp env show`) | Returns the environment static IP and infrastructure subnet ID to distinguish the frontend address from the NSG destination range. |
+| `--output` (`az containerapp env show`) | Writes the two selected network values as tab-separated fields for quick comparison. |
+| `az network nsg rule list` | Lists NSG rules that can affect the tested network path to evaluate the Azure state that distinguishes this hypothesis. |
+| `--resource-group` (`az network nsg rule list`) | Reads `$ACA_SUBNET_NSG_NAME` from `$RG`. |
+| `--nsg-name` (`az network nsg rule list`) | Selects `$ACA_SUBNET_NSG_NAME`, the NSG governing traffic from Application Gateway to the environment subnet. |
+| `--query` (`az network nsg rule list`) | Filters inbound NSG rules and exposes priorities, actions, sources, destinations, and ports that govern the App Gateway path. |
+| `--output` (`az network nsg rule list`) | Presents inbound rule priorities, destinations, and ports as a table for the App Gateway path review. |
+
 
 ## 5. Evidence to Collect
 
@@ -186,9 +219,14 @@ az network nsg rule list \
   --output table
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az network nsg rule list ...` | Reads the inbound NSG rules on the container app subnet's NSG so the Destination column can be compared against the workload-profile NSG table. |
+| `az network nsg rule list` | Lists inbound NSG destinations to find rules incorrectly pinned to the environment `staticIp`. |
+| `--resource-group` (`az network nsg rule list`) | Locates the Container Apps subnet NSG in `$RG`. |
+| `--nsg-name` (`az network nsg rule list`) | Inspects `$ACA_SUBNET_NSG_NAME`, the NSG attached to the Container Apps infrastructure subnet. |
+| `--query` (`az network nsg rule list`) | Keeps only inbound allow rules and their destination fields to reveal a rule incorrectly pinned to the environment static IP. |
+| `--output` (`az network nsg rule list`) | Displays the selected allow rules as a table so a `/32` destination is immediately visible. |
+
 
 Expected values in a working configuration for the AppGW-facing rule: Source = Application Gateway subnet CIDR, Destination = the container app's subnet CIDR, Destination ports = `443, 31443` (add `80, 31080` if HTTP is used). Any rule where Destination is set to `staticIp` (a single IP address) is by-design broken on workload profiles environments.
 
@@ -215,9 +253,15 @@ az network nsg rule show \
   --output json
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az network nsg rule show ...` | Reads a single NSG rule so the exact Destination port list can be inspected against the required set (`443, 31443` for HTTPS; `80, 31080` for HTTP). |
+| `az network nsg rule show` | Returns the candidate rule's protocol and source prefixes to verify that the gateway subnet is actually allowed. |
+| `--resource-group` (`az network nsg rule show`) | Selects the resource group containing the Container Apps subnet NSG whose inbound edge-proxy ports are under review. |
+| `--nsg-name` (`az network nsg rule show`) | Finds the named inbound rule within `$ACA_SUBNET_NSG_NAME`, not an unrelated gateway-side NSG. |
+| `--name` (`az network nsg rule show`) | Inspects `$APPGW_TO_ACA_RULE_NAME`, the App Gateway-facing rule that must include edge proxy ports. |
+| `--query` (`az network nsg rule show`) | Presents protocol, source, destination, and port ranges for the selected rule to verify coverage of edge proxy ports `31443` and `31080`. |
+| `--output` (`az network nsg rule show`) | Keeps source, destination, protocol, and port arrays as JSON for exact coverage checks. |
+
 
 Compare `destinationPortRanges` against the required set. If `31443` is missing on an HTTPS-serving app, this hypothesis is the cause.
 
@@ -245,9 +289,14 @@ az network nsg rule list \
   --output table
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az network nsg rule list ... sort_by(..., &priority)` | Lists inbound NSG rules sorted by priority so you can see whether any custom Deny rule matches `AzureLoadBalancer` source or the `30000-32767` port range at a higher priority than the default `AllowAzureLoadBalancerInBound` rule (priority 65001) or any explicit low-priority Allow rule. |
+| `az network nsg rule list` | Lists NSG rules that can affect the tested network path to evaluate the effective network rule and destination path. |
+| `--resource-group` (`az network nsg rule list`) | Reads the infrastructure-subnet NSG from `$RG`. |
+| `--nsg-name` (`az network nsg rule list`) | Uses `$ACA_SUBNET_NSG_NAME` for the priority-ordered inbound rule review. |
+| `--query` (`az network nsg rule list`) | Orders inbound rules by priority and exposes service-tag and port coverage to find the first rule affecting Azure Load Balancer probes. |
+| `--output` (`az network nsg rule list`) | Displays the priority-sorted inbound rules as a table to reveal the first matching deny. |
+
 
 Expected in a properly locked-down workload profiles NSG: an explicit Allow rule with Source = `AzureLoadBalancer` service tag, Destination = the container app's subnet CIDR, Destination ports = `30000-32767`, at a priority lower than any custom Deny rule (typically 200-500). If no explicit rule exists, verify the default `AllowAzureLoadBalancerInBound` rule (priority 65001) is not shadowed by any higher-priority custom Deny — sort the rules by priority and look for any Deny that matches `AzureLoadBalancer` source or the `30000-32767` destination port range.
 
@@ -301,12 +350,31 @@ az network application-gateway show-backend-health \
   --output json
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az network application-gateway address-pool show ...` | Confirms whether the backend targets an FQDN (required for the container app FQDN to be resolved to `staticIp` and for SNI to work) or an IP address. |
-| `az network application-gateway http-settings show ...` | Confirms `pickHostNameFromBackendAddress`, backend protocol, and backend port. Wrong Host header causes the edge proxy to return 404. |
-| `az network application-gateway probe show ...` | Confirms probe path, protocol, host, and match conditions. The default probe path `/` with `200-399` match fails silently on any app that returns 401, 403, 404, or 5xx on `/`. |
-| `az network application-gateway show-backend-health ...` | Captures the exact backend health status and any probe error message emitted by Application Gateway. |
+| `az network application-gateway address-pool show` | Displays backend FQDNs and IPs to confirm that the pool points at the internal Container Apps endpoint. |
+| `--gateway-name` (`az network application-gateway address-pool show`) | Selects `$APPGW_NAME`, the gateway forwarding requests to Container Apps. |
+| `--resource-group` (`az network application-gateway address-pool show`) | Locates that gateway in `$RG`. |
+| `--name` (`az network application-gateway address-pool show`) | Reads `$APPGW_BACKEND_POOL_NAME`, whose targets should be FQDNs rather than the environment IP. |
+| `--query` (`az network application-gateway address-pool show`) | Summarizes backend FQDNs and IPs to confirm that Application Gateway targets the internal Container Apps endpoint. |
+| `--output` (`az network application-gateway address-pool show`) | Preserves backend FQDN and IP arrays as JSON for the target-type check. |
+| `az network application-gateway http-settings show` | Reads the backend HTTP setting that controls protocol, port, Host selection, and probe binding. |
+| `--gateway-name` (`az network application-gateway http-settings show`) | Selects Application Gateway `$APPGW_NAME`. |
+| `--resource-group` (`az network application-gateway http-settings show`) | Locates that gateway in `$RG`. |
+| `--name` (`az network application-gateway http-settings show`) | Reads `$APPGW_HTTP_SETTING_NAME`. |
+| `--query` (`az network application-gateway http-settings show`) | Projects the setting's protocol, port, Host-selection flag, and probe resource ID. |
+| `--output` (`az network application-gateway http-settings show`) | Emits the HTTP setting and bound probe fields as JSON. |
+| `az network application-gateway probe show` | Shows probe protocol, host header, and path so health-check requests can be compared with the app's ingress contract. |
+| `--gateway-name` (`az network application-gateway probe show`) | Opens probe configuration on `$APPGW_NAME`. |
+| `--resource-group` (`az network application-gateway probe show`) | Finds the gateway in `$RG`. |
+| `--name` (`az network application-gateway probe show`) | Selects `$APPGW_PROBE_NAME`, the probe reporting the backend unhealthy. |
+| `--query` (`az network application-gateway probe show`) | Displays probe protocol, host selection, path, and interval so the health request can be matched to the Container App ingress contract. |
+| `--output` (`az network application-gateway probe show`) | Keeps the probe path, protocol, host, and match object in JSON. |
+| `az network application-gateway show-backend-health` | Returns each backend server's current health and the probe failure detail. |
+| `--name` (`az network application-gateway show-backend-health`) | Queries `$APPGW_NAME`. |
+| `--resource-group` (`az network application-gateway show-backend-health`) | Reads the gateway from `$RG`. |
+| `--output` (`az network application-gateway show-backend-health`) | Returns detailed backend-health diagnostics as JSON. |
+
 
 ## 7. Likely Root Cause Patterns
 
@@ -337,9 +405,15 @@ az network application-gateway show-backend-health \
       --destination-port-ranges "443" "31443"
     ```
 
-    | Command | Why it is used |
+    | Command/Parameter | Purpose |
     |---|---|
-    | `az network nsg rule update ...` | Rewrites the AppGW-facing inbound rule so the Destination is the container app's subnet CIDR (which is what NSGs behind an ILB actually evaluate against) instead of `staticIp`. |
+    | `az network nsg rule update` | Rewrites the existing Application Gateway-to-Container Apps allow rule instead of creating a competing rule. |
+    | `--resource-group` (`az network nsg rule update`) | Finds the NSG rule in resource group `$RG`. |
+    | `--nsg-name` (`az network nsg rule update`) | Selects `$ACA_SUBNET_NSG_NAME`, which protects the Container Apps infrastructure subnet. |
+    | `--name` (`az network nsg rule update`) | Updates `$APPGW_TO_ACA_RULE_NAME`, the inbound rule previously pinned to `staticIp`. |
+    | `--source-address-prefixes` (`az network nsg rule update`) | Limits allowed sources to `$APPGW_SUBNET_CIDR`. |
+    | `--destination-address-prefixes` (`az network nsg rule update`) | Replaces the `/32` destination with the full `$ACA_SUBNET_CIDR`. |
+    | `--destination-port-ranges` (`az network nsg rule update`) | Allows both frontend HTTPS port `443` and edge-proxy HTTPS port `31443`. |
 
 2. **If port `31443` (HTTPS) or `31080` (HTTP) is missing (H2):** add the edge-proxy ports.
 
@@ -351,9 +425,13 @@ az network application-gateway show-backend-health \
       --destination-port-ranges "443" "31443"
     ```
 
-    | Command | Why it is used |
+    | Command/Parameter | Purpose |
     |---|---|
-    | `az network nsg rule update ...` | Adds the edge-proxy port `31443` alongside `443`. If the app uses HTTP, add `80` and `31080` on the same rule (or a sibling rule). |
+    | `az network nsg rule update` | Adds the missing edge-proxy port to the established Application Gateway ingress rule. |
+    | `--resource-group` | Resolves the target NSG from `$RG`. |
+    | `--nsg-name` | Chooses `$ACA_SUBNET_NSG_NAME`, whose inbound ports control this path. |
+    | `--name` | Modifies `$APPGW_TO_ACA_RULE_NAME` rather than another inbound rule. |
+    | `--destination-port-ranges` | Sets the complete HTTPS pair, `443` and `31443`; neither value is omitted. |
 
 3. **If the effective `AzureLoadBalancer` probe path is blocked (H3), either because a restrictive custom Deny rule shadows the default `AllowAzureLoadBalancerInBound` rule (priority 65001) or because you want an explicit low-priority Allow for auditability:** add or restore the explicit rule.
 
@@ -374,9 +452,20 @@ az network application-gateway show-backend-health \
       --destination-port-ranges "30000-32767"
     ```
 
-    | Command | Why it is used |
+    | Command/Parameter | Purpose |
     |---|---|
-    | `az network nsg rule create ... allow-azure-lb-probes-to-aca` | Guarantees the environment's internal load balancer can probe edge-proxy backends. Azure NSG has a default `AllowAzureLoadBalancerInBound` rule at priority 65001; adding this explicit rule at a low priority (200-500) prevents higher-priority custom Deny rules from shadowing the probe path. |
+    | `az network nsg rule create` | In **8. Immediate Mitigations**, creates the remediation resource with the displayed settings. |
+    | `--name` | Names the explicit rule `allow-azure-lb-probes-to-aca`. |
+    | `--nsg-name` | Adds the rule to `$ACA_SUBNET_NSG_NAME`. |
+    | `--resource-group` | Creates the rule in `$RG`. |
+    | `--priority` | Evaluates this allow at priority `210`, before later custom denies. |
+    | `--direction` | Applies the rule to inbound packets. |
+    | `--access` | Allows matching probe traffic. |
+    | `--protocol` | Supplies the protocol input for `Tcp`, anchoring required network allowance to the exact value used by this operation. |
+    | `--source-address-prefixes` | Accepts probes from the `AzureLoadBalancer` service tag. |
+    | `--source-port-ranges` | Accepts any ephemeral source port used by the probe. |
+    | `--destination-address-prefixes` | Supplies the destination address prefixes input for `$ACA_SUBNET_CIDR`, anchoring required network allowance to the exact value used by this operation. |
+    | `--destination-port-ranges` | Allows the documented load-balancer probe range `30000-32767`. |
 
 4. **If AppGW backend or probe is misconfigured (H4):** switch the backend to the container app FQDN and enable Host-header pick-up.
 
@@ -410,12 +499,29 @@ az network application-gateway show-backend-health \
       --match-status-codes "200-399"
     ```
 
-    | Command | Why it is used |
+    | Command/Parameter | Purpose |
     |---|---|
-    | `az containerapp show ... --query ingress.fqdn` | Reads the container app FQDN so it can be used as the backend pool target. |
-    | `az network application-gateway address-pool update ... --servers` | Switches the backend pool target to the container app FQDN so Application Gateway resolves through the linked Private DNS Zone. |
-    | `az network application-gateway http-settings update ... --host-name-from-backend-pool true` | Ensures the Host header sent to the edge proxy matches the container app FQDN, which the edge proxy uses to route to the correct app. |
-    | `az network application-gateway probe update ...` | Points the probe at a health path the app actually returns 200 on, and sets a permissive match range. |
+    | `az containerapp show` | In **8. Immediate Mitigations**, reads `properties.configuration.ingress.fqdn` from the live resource so this hypothesis can be tested. |
+    | `az network application-gateway address-pool update` | Replaces the backend pool target with the app FQDN read by the first command. |
+    | `az network application-gateway http-settings update` | Makes the HTTP setting derive its Host header from that FQDN target. |
+    | `az network application-gateway probe update` | Changes the health probe to the app's working path and accepted status range. |
+    | `--name` (`az containerapp show`) | Reads ingress settings from `$APP_NAME`. |
+    | `--resource-group` (`az containerapp show`) | Scopes the FQDN lookup to the resource group containing the internal app used as the Application Gateway backend. |
+    | `--query` (`az containerapp show`) | Extracts `properties.configuration.ingress.fqdn` for use as the backend server. |
+    | `--output` (`az containerapp show`) | Returns the FQDN as an unquoted scalar assigned to `$APP_FQDN`. |
+    | `--gateway-name` (`az network application-gateway address-pool update`) | Selects Application Gateway `$APPGW_NAME`. |
+    | `--resource-group` (`az network application-gateway address-pool update`) | Locates that gateway in `$RG`. |
+    | `--name` (`az network application-gateway address-pool update`) | Chooses backend pool `$APPGW_BACKEND_POOL_NAME`. |
+    | `--servers` (`az network application-gateway address-pool update`) | Sets `$APP_FQDN` as the pool's backend target. |
+    | `--gateway-name` (`az network application-gateway http-settings update`) | Applies the Host-header change on `$APPGW_NAME`. |
+    | `--resource-group` (`az network application-gateway http-settings update`) | Resolves the gateway from `$RG`. |
+    | `--name` (`az network application-gateway http-settings update`) | Modifies HTTP setting `$APPGW_HTTP_SETTING_NAME`. |
+    | `--host-name-from-backend-pool` (`az network application-gateway http-settings update`) | Enables the backend target FQDN as the Host header. |
+    | `--gateway-name` (`az network application-gateway probe update`) | Applies the probe correction on `$APPGW_NAME`. |
+    | `--resource-group` (`az network application-gateway probe update`) | Finds the probe's gateway in `$RG`. |
+    | `--name` (`az network application-gateway probe update`) | Selects `$APPGW_PROBE_NAME`. |
+    | `--path` (`az network application-gateway probe update`) | Probes `/healthz`, the example application health endpoint. |
+    | `--match-status-codes` (`az network application-gateway probe update`) | Treats HTTP responses from `200` through `399` as healthy. |
 
 ## 9. Prevention
 
@@ -443,6 +549,7 @@ az network application-gateway show-backend-health \
 
 ## Sources
 
+- [Use Azure Firewall with Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration)
 - [Securing a Virtual Network in Azure Container Apps (workload profiles) (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration?tabs=workload-profiles)
 - [Protect Azure Container Apps with Application Gateway and Web Application Firewall (WAF) (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/waf-app-gateway)
 - [Provide an internal environment for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom-internal)

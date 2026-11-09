@@ -35,13 +35,31 @@ Deployments, revisions, or scale operations fail with messages such as `QuotaExc
 <!-- diagram-id: subscription-quota-exceeded-flow -->
 ```mermaid
 flowchart TD
-    A[Create or scale Container App] --> B[Azure checks subscription and region quota]
-    B --> C{Enough quota available?}
-    C -->|Yes| D[Provision environment or replicas]
-    C -->|No| E[Return QuotaExceeded or core limit error]
-    E --> F[Inspect environment usage and regional quota]
-    F --> G[Reduce demand, change region, or request increase]
+    accTitle: Diagnose a Container Apps quota failure
+    accDescr: A create or scale operation is compared with environment usage and subscription-region quota before the operator reduces demand or requests more quota.
+
+    REQUEST[Create environment, deploy revision, or scale replicas]
+    SCOPE{Which limit rejected the request?}
+    ENVIRONMENT[Managed environment usage and limit]
+    REGIONAL[Subscription and region quota]
+    CAPACITY{Requested capacity fits?}
+    PROVISION[Operation can continue]
+    BLOCKED[Quota or limit error]
+    ACTION[Reduce demand, use another region, or request an increase]
+
+    REQUEST --> SCOPE
+    SCOPE -->|Environment usage| ENVIRONMENT
+    SCOPE -->|Subscription and region| REGIONAL
+    ENVIRONMENT --> CAPACITY
+    REGIONAL --> CAPACITY
+    CAPACITY -->|Yes| PROVISION
+    CAPACITY -->|No| BLOCKED
+    BLOCKED --> ACTION
+
+    LEGEND["Arrow key<br/>solid = diagnostic progression"]
 ```
+
+*Figure: Distinguish managed-environment usage from subscription-and-region quota before selecting a mitigation.*
 
 ## Possible Causes
 
@@ -63,9 +81,14 @@ az containerapp env show \
     --output tsv
 ```
 
-| Command | Purpose |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.provisioningState" --output tsv` | Reads the managed environment and extracts the field selected by `properties.provisioningState`, which tells you whether the environment-level network or subnet context matches the scenario under investigation. |
+| `az containerapp env show` | Returns the environment provisioning state to distinguish a quota rejection from an app-level deployment failure. |
+| `--name` (`az containerapp env show`) | Checks `$ACA_ENV_NAME`, the environment whose provisioning request reported insufficient quota. |
+| `--resource-group` (`az containerapp env show`) | Finds the target in `$RG`, keeping this lookup within the deployment being diagnosed. |
+| `--query` (`az containerapp env show`) | Selects the environment provisioning state to distinguish a completed deployment from one blocked during capacity allocation. |
+| `--output` (`az containerapp env show`) | Prints the provisioning state as plain text for an immediate success-or-failure check. |
+
 
 3. Inspect current environment usage:
 
@@ -75,9 +98,12 @@ az containerapp env list-usages \
     --resource-group "$RG"
 ```
 
-| Command | Purpose |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp env list-usages --name "$ACA_ENV_NAME" --resource-group "$RG"` | Lists current environment capacity consumption and limits so you can see whether the failure is caused by exhausted Container Apps environment quota before requesting a regional increase. |
+| `az containerapp env list-usages` | Returns the managed-environment usage counters and limits that can block another workload-profile or replica allocation. |
+| `--name` (`az containerapp env list-usages`) | Checks capacity consumption for `$ACA_ENV_NAME`, the environment reporting the quota-related deployment failure. |
+| `--resource-group` (`az containerapp env list-usages`) | Scopes usage counters to the resource group containing the environment that could not allocate additional capacity. |
+
 
 4. Inspect subscription quota for the target region:
 
@@ -86,11 +112,11 @@ az quota list \
     --scope "/subscriptions/<subscription-id>/providers/Microsoft.App/locations/$LOCATION"
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp env show --query "properties.provisioningState"` | Confirms whether the managed environment is healthy or blocked during provisioning. |
-| `az containerapp env list-usages` | Shows current usage versus available capacity inside the environment boundary. |
-| `az quota list --scope "/subscriptions/<subscription-id>/providers/Microsoft.App/locations/$LOCATION"` | Confirms whether the subscription and region quota is the actual blocking constraint. |
+| `az quota list` | Returns Microsoft.App quota limits and current usage for the selected subscription and region. |
+| `--scope` (`az quota list`) | Queries the Microsoft.App provider scope for `$LOCATION`, where the deployment exhausted capacity. |
+
 
 5. Compare the requested scale change with the current usage numbers. If the gap between current usage and requested capacity is smaller than the requested increase, quota is the likely blocker.
 6. In the Azure portal, open **Subscriptions** → **Usage + quotas** and confirm whether the same region shows a pending or exhausted quota state.
@@ -114,9 +140,16 @@ az containerapp update \
     --memory "1Gi"
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp update --min-replicas 1 --max-replicas 2 --cpu 0.5 --memory "1Gi"` | Temporarily lowers requested runtime capacity so the app can fit within the current quota envelope. |
+| `az containerapp update` | Reduces replica and per-replica resource demand so the app fits within the available subscription quota. |
+| `--name` (`az containerapp update`) | Targets `$APP_NAME`, the workload whose requested replicas and resource size exceeded available quota. |
+| `--resource-group` (`az containerapp update`) | Finds the quota-constrained app in `$RG` before changing its resource envelope. |
+| `--min-replicas` (`az containerapp update`) | Reduces always-on demand to one replica. |
+| `--max-replicas` (`az containerapp update`) | Caps scale-out at two replicas while quota is constrained. |
+| `--cpu` (`az containerapp update`) | Requests `0.5` vCPU per replica to lower core consumption. |
+| `--memory` (`az containerapp update`) | Requests `1Gi` per replica to shrink the app's memory envelope. |
+
 
 ## Prevention
 

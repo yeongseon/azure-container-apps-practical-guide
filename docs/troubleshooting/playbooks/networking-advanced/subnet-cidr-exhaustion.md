@@ -7,7 +7,10 @@ content_sources:
     - id: subnet-cidr-exhaustion-flow
       type: flowchart
       source: self-generated
-      justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
+      justification: Diagnostic decision flow synthesized from the documented Container Apps subnet-size, delegation, exclusivity, and IP-consumption rules.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom
 content_validation:
   status: verified
   last_reviewed: 2026-07-18
@@ -25,14 +28,33 @@ content_validation:
 <!-- diagram-id: subnet-cidr-exhaustion-flow -->
 ```mermaid
 flowchart TD
-    A[Environment creation requested] --> B{Subnet size check}
-    B -->|Too small /29 or /28| C[Provisioning error: subnet exhausted]
-    B -->|Meets minimum /27 or /23| D[Environment provisioned]
-    C --> E[Identify subnet CIDR in use]
-    E --> F[Create new compliant subnet /27+]
-    F --> G[Re-create environment with new subnet]
-    G --> D
+    accTitle: Diagnose Container Apps subnet capacity
+    accDescr: Identify the environment type, compare the subnet with its documented minimum and delegation rules, then assess available addresses and rollout headroom.
+
+    FAILURE[Environment creation or scale operation fails]
+    TYPE{Environment type?}
+    WP[Workload profiles environment<br/>minimum /27, delegated]
+    CONSUMPTION[Consumption-only environment<br/>minimum /23, not delegated]
+    COMPLIANT{Subnet meets type-specific size and configuration rules?}
+    CAPACITY{Enough usable addresses for current demand and rollout overlap?}
+    CONFIG_FIX[Create a dedicated subnet with the correct size and delegation state]
+    GROW[Plan a larger subnet and migrate or recreate the environment]
+    OTHER[Investigate a non-address-capacity cause]
+
+    FAILURE --> TYPE
+    TYPE -->|Workload profiles| WP
+    TYPE -->|Consumption-only| CONSUMPTION
+    WP --> COMPLIANT
+    CONSUMPTION --> COMPLIANT
+    COMPLIANT -->|No| CONFIG_FIX
+    COMPLIANT -->|Yes| CAPACITY
+    CAPACITY -->|No| GROW
+    CAPACITY -->|Yes| OTHER
+
+    LEGEND["Arrow key<br/>solid = diagnostic progression"]
 ```
+
+*Figure: Apply the subnet minimum and delegation rule for the actual environment type, then evaluate growth and rollout headroom separately.*
 
 ## Symptom
 
@@ -76,10 +98,20 @@ az containerapp env show \
   --output json
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az network vnet subnet show ...` | Verifies the actual subnet size, attached delegation, and whether extra network objects were attached to the same subnet. |
-| `az containerapp env show ...` | Confirms the environment is using the intended VNet-integrated subnet and helps scope the affected environment. |
+| `az network vnet subnet show` | Retrieves the subnet prefix and delegation so available address capacity can be assessed against Container Apps requirements. |
+| `--name` (`az network vnet subnet show`) | Inspects the delegated Container Apps subnet named in the command. |
+| `--vnet-name` (`az network vnet subnet show`) | Searches `vnet-myapp` for the environment subnet whose CIDR capacity is under investigation. |
+| `--resource-group` (`az network vnet subnet show`) | Finds `vnet-myapp` and its delegated subnet in `$RG`. |
+| `--query` (`az network vnet subnet show`) | Condenses the subnet prefix, delegation, and routing details needed to judge whether the delegated range can accommodate more infrastructure. |
+| `--output` (`az network vnet subnet show`) | Renders the selected prefix and delegation columns as a readable table for the capacity check. |
+| `az containerapp env show` | Returns the environment's infrastructure subnet and static IP to confirm which subnet consumes addresses. |
+| `--name` (`az containerapp env show`) | Reads `$ACA_ENV_NAME`, the environment consuming addresses from the delegated subnet. |
+| `--resource-group` (`az containerapp env show`) | Locates that environment in `$RG` before comparing subnet attachment and static IP. |
+| `--query` (`az containerapp env show`) | Pairs the environment VNet configuration with its static IP to confirm which subnet the environment consumes. |
+| `--output` (`az containerapp env show`) | Formats the environment subnet ID and static IP as columns that can be compared with the VNet result. |
+
 
 Interpretation guidance:
 
@@ -109,10 +141,20 @@ az containerapp env create \
   --infrastructure-subnet-resource-id "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.Network/virtualNetworks/vnet-myapp/subnets/snet-aca-large"
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az network vnet subnet create ...` | Creates a right-sized dedicated subnet for the environment. |
-| `az containerapp env create ...` | Recreates the environment against the corrected subnet instead of continuing with an unsupported network design. |
+| `az network vnet subnet create` | Allocates a larger delegated subnet to restore address headroom for environment infrastructure and replicas. |
+| `--name` (`az network vnet subnet create`) | Creates the replacement subnet `snet-aca-large`. |
+| `--vnet-name` (`az network vnet subnet create`) | Creates the replacement delegated subnet inside `vnet-myapp`, where additional address space was reserved. |
+| `--resource-group` (`az network vnet subnet create`) | Adds the replacement subnet to `vnet-myapp` in `$RG`. |
+| `--address-prefixes` (`az network vnet subnet create`) | Assigns `10.10.0.0/27`, providing the documented minimum range for a workload profiles environment. |
+| `--delegations` (`az network vnet subnet create`) | Delegates the subnet to `Microsoft.App/environments` so Container Apps can use it. |
+| `az containerapp env create` | Provisions the replacement environment on the expanded subnet because an existing environment cannot be moved in place. |
+| `--name` (`az containerapp env create`) | Creates `$ACA_ENV_NAME` on the larger delegated range. |
+| `--resource-group` (`az containerapp env create`) | Places the replacement environment in `$RG`. |
+| `--location` (`az containerapp env create`) | Deploys the environment in `$LOCATION`, matching the VNet region. |
+| `--infrastructure-subnet-resource-id` (`az containerapp env create`) | Attaches the environment to the full ARM ID of `snet-aca-large` rather than the exhausted subnet. |
+
 
 ## Prevention
 

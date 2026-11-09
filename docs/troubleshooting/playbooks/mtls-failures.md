@@ -37,16 +37,45 @@ content_validation:
 <!-- diagram-id: aca-mtls-troubleshooting-flow -->
 ```mermaid
 flowchart TD
-    Start[mTLS failure] --> Edge{Edge or internal?}
-    Edge -->|Ingress| IngressCheck[Check clientCertificateMode and client cert send path]
-    Edge -->|App code| AppCheck[Parse and validate leaf certificate]
-    Edge -->|Dapr| DaprCheck[Review Dapr sidecar logs and App IDs]
-    Edge -->|Peer encryption| EnvCheck[Review managed environment encryption settings]
-    IngressCheck --> Fix[Apply targeted fix and retest]
-    AppCheck --> Fix
-    DaprCheck --> Fix
-    EnvCheck --> Fix
+    accTitle: Classify a Container Apps mutual TLS symptom
+    accDescr: Separate client-certificate ingress, application certificate validation, Dapr service invocation, and environment peer-to-peer encryption before applying a fix.
+
+    SYMPTOM[mTLS-related symptom]
+    SURFACE{Which security surface failed?}
+    CLIENT{Client sends a certificate during the TLS handshake?}
+    MODE{Client certificate mode is Accept or Require?}
+    HEADER{Application receives X-Forwarded-Client-Cert?}
+    VALIDATION{Application validates the forwarded certificate as required?}
+    DAPR{Dapr enabled and correct app ID used?}
+    PEER{Peer-to-peer encryption enabled on the intended environment?}
+    CLIENT_FIX[Correct client certificate presentation]
+    MODE_FIX[Correct client certificate mode]
+    APP_FIX[Correct XFCC parsing and certificate validation]
+    DAPR_FIX[Correct Dapr enablement, app ID, or sidecar call]
+    PEER_FIX[Correct the environment encryption setting]
+    VERIFY[Retest the same security surface]
+
+    SYMPTOM --> SURFACE
+    SURFACE -->|Ingress client certificate| CLIENT
+    SURFACE -->|Dapr service invocation| DAPR
+    SURFACE -->|Peer-to-peer encryption| PEER
+    CLIENT -->|No| CLIENT_FIX
+    CLIENT -->|Yes| MODE
+    MODE -->|No| MODE_FIX
+    MODE -->|Yes| HEADER
+    HEADER -->|No| MODE_FIX
+    HEADER -->|Yes| VALIDATION
+    VALIDATION -->|No| APP_FIX
+    VALIDATION -->|Yes| VERIFY
+    DAPR -->|No| DAPR_FIX
+    DAPR -->|Yes| VERIFY
+    PEER -->|No| PEER_FIX
+    PEER -->|Yes| VERIFY
+
+    LEGEND["Arrow key<br/>solid = diagnostic progression"]
 ```
+
+*Figure: Certificate presentation, forwarded-certificate validation, Dapr mTLS, and peer-to-peer encryption are distinct controls.*
 
 ## Possible Causes
 
@@ -70,9 +99,14 @@ az containerapp show \
   --output tsv
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the selected Container App configuration to evaluate client-certificate enforcement and forwarding. |
+| `--name` (`az containerapp show`) | Selects `$APP_NAME`, the resource whose state contributes to client-certificate enforcement and forwarding. |
+| `--resource-group` (`az containerapp show`) | Resolves the target from the resource group used by the 1. missing `x-forwarded-client-cert` header at the app workflow. |
+| `--query` (`az containerapp show`) | Isolates `clientCertificateMode` to establish whether ingress requests a client certificate before investigating the forwarded header. |
+| `--output` (`az containerapp show`) | Emits the certificate mode without JSON quoting so the shell variable contains only the configured mode. |
+
 
 If the value is `ignore`, the absence of the header is expected.
 
@@ -117,9 +151,18 @@ az containerapp logs show \
   --type system
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the selected Container App configuration to evaluate Dapr enablement and sidecar failure signals. |
+| `--name` (`az containerapp show`) | Selects `$APP_NAME`, the resource whose state contributes to Dapr enablement and sidecar failure signals. |
+| `--resource-group` (`az containerapp show`) | Scopes the Dapr configuration lookup to the resource group containing the app with the failed sidecar handshake. |
+| `--query` (`az containerapp show`) | Projects the Dapr configuration used to check whether the sidecar is enabled and participating in the failing service call. |
+| `--output` (`az containerapp show`) | Keeps the nested Dapr configuration as JSON for sidecar enablement and app-ID inspection. |
+| `az containerapp logs show` | Retrieves the requested Container Apps log stream to evaluate Dapr enablement and sidecar failure signals. |
+| `--name` (`az containerapp logs show`) | Selects `$APP_NAME`, the resource whose state contributes to Dapr enablement and sidecar failure signals. |
+| `--resource-group` (`az containerapp logs show`) | Retrieves the app's log stream from `$RG`, matching the resource inspected immediately above. |
+| `--type` (`az containerapp logs show`) | Chooses system logs because Dapr sidecar startup and handshake failures are emitted there. |
+
 
 Confirm that:
 
@@ -139,9 +182,14 @@ az containerapp env show \
   --output json
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
+| `az containerapp env show` | Reads the selected managed environment configuration to evaluate the Azure state that distinguishes this hypothesis. |
+| `--name` (`az containerapp env show`) | Selects `$ACA_ENV_NAME`, whose peer-traffic setting governs internal app-to-app encryption. |
+| `--resource-group` (`az containerapp env show`) | Locates the managed environment in `$RG` before reading its peer-traffic policy. |
+| `--query` (`az containerapp env show`) | Narrows the environment response to peer-traffic settings that determine encryption between apps in the environment. |
+| `--output` (`az containerapp env show`) | Preserves the peer-traffic configuration as JSON so encryption settings remain visible. |
+
 
 If the property is empty or encryption is disabled, peer encryption was never turned on for that environment.
 
