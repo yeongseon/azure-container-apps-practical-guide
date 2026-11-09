@@ -1,4 +1,5 @@
 ---
+description: Hands-on Azure Container Apps troubleshooting labs for reproducing failures, collecting evidence, applying targeted fixes, and verifying recovery.
 content_sources:
   references:
     - type: mslearn-adapted
@@ -133,13 +134,17 @@ Use this section when you want a repeatable learning loop (reproduce → observe
 <!-- diagram-id: use-this-section-when-you-want -->
 ```mermaid
 flowchart TD
-    A[Choose Lab by Symptom] --> B[Deploy Lab Infrastructure]
-    B --> C[Trigger Failure]
-    C --> D[Collect Evidence]
-    D --> E[Apply Targeted Fix]
-    E --> F[Verify Recovery]
-    F --> G[Capture Lessons Learned]
+    CHOOSE["Choose a lab by symptom"] --> QUESTION["State a falsifiable question"]
+    QUESTION --> DEPLOY["Deploy the documented setup"]
+    DEPLOY --> TRIGGER["Apply one controlled trigger"]
+    TRIGGER --> EVIDENCE["Collect run-specific evidence"]
+    EVIDENCE --> FIX["Apply the targeted fix"]
+    FIX --> VERIFY["Verify recovery"]
+    VERIFY --> FALSIFY["Test whether reverting only the fix restores the failure"]
+    FALSIFY --> CLEANUP["Clean up and record limitations"]
 ```
+
+This workflow shows the evidence-driven loop shared by the lab catalog: choose a symptom, change one controlled variable, collect run-specific evidence, verify recovery, and test falsification before cleanup.
 
 !!! info "Run labs like incident drills"
     Treat each lab as an on-call simulation. Time-box your investigation and record which signal (revision state, system log, console log, metrics) gave you the fastest root-cause clue.
@@ -154,7 +159,7 @@ flowchart TD
 | ACR Image Pull Failure | Revision never starts | `ContainerAppSystemLogs_CL` pull errors | Bad image tag / registry auth | Push valid image + update app image |
 | Revision Failover and Rollback | New revision unhealthy | `az containerapp revision list` | Risky config change in latest revision | Shift traffic back to healthy revision |
 | Scale Rule Mismatch | Load increases, replicas do not | Replica count + KEDA events | Threshold too high / max replicas too low | Tune scale rule and retry load |
-| Probe and Port Mismatch | Probe failures, no stable ready state | Probe failure warnings | App bind port != ingress target port | Align target port and rollout new revision |
+| Probe and Port Mismatch | Probe failures, no stable ready state | Probe failure warnings | App bind port != ingress target port | Align the ingress target port to restore the existing revision |
 | Managed Identity Key Vault Failure | Route returns 500/403 | App logs with identity errors | Missing role assignment on Key Vault scope | Assign RBAC role and re-verify |
 | Revision Provisioning Failure | Revision stuck/failed provisioning | Revision lifecycle events | `secretRef` points to missing secret | Add secret and redeploy revision |
 | Ingress Target Port Mismatch | External endpoint unreachable | Ingress target port config | Target port doesn't match app listen port | Fix target port to match app |
@@ -184,9 +189,13 @@ flowchart TD
     az extension add --name containerapp --upgrade
     ```
 
-    | Command | Why it is used |
+    | Command/Parameter | Purpose |
     |---|---|
-    | `az account show ...` | Confirms the active Azure subscription context before changes are made. |
+    | `az account show` | Reads the active account so this catalog workflow can confirm the intended Azure context before deployment. |
+    | `az extension add` | Installs or refreshes the Container Apps extension required by the lab-specific commands that follow. |
+    | `--output` (`az account show`) | Formats the account context as a readable table for the pre-deployment check. |
+    | `--name` (`az extension add`) | Selects the `containerapp` extension rather than another Azure CLI extension. |
+    | `--upgrade` (`az extension add`) | Updates an existing Container Apps extension before the reader starts the selected lab. |
 
     Expected output: active subscription metadata and extension upgrade confirmation.
 
@@ -200,9 +209,13 @@ flowchart TD
       --parameters baseName="labrun"
     ```
 
-    | Command | Why it is used |
+    | Command/Parameter | Purpose |
     |---|---|
-    | `az deployment group create ...` | Deploys the Bicep or ARM template into the target resource group. |
+    | `az deployment group create` | Deploys the selected lab's Bicep template into the shared troubleshooting resource group. |
+    | `--name` | Assigns `lab-run` as the deployment record used to inspect this generic execution pattern. |
+    | `--resource-group` | Targets `$RG`, the resource group prepared for the selected lab. |
+    | `--template-file` | Loads `"./labs/<lab-name>/infra/main.bicep"`, the selected lab's infrastructure definition. |
+    | `--parameters` | Supplies `baseName="labrun"` to generate the example resources consistently. |
 
     Expected output pattern:
 
@@ -226,9 +239,12 @@ flowchart TD
     az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
     ```
 
-    | Command | Purpose |
+    | Command/Parameter | Purpose |
     |---|---|
-    | `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists revisions, so you can see whether rollout state matches the failure pattern. |
+    | `az containerapp revision list` | Lists the selected app's revisions so the reader can verify recovery and intended traffic state. |
+    | `--name` | Targets `$APP_NAME`, the Container App used by the chosen lab. |
+    | `--resource-group` | Looks up that app in the lab resource group stored in `$RG`. |
+    | `--output` | Renders revision health and state as a table for the post-fix check. |
 
     Expected output pattern: at least one `Healthy` revision with intended traffic weight.
 

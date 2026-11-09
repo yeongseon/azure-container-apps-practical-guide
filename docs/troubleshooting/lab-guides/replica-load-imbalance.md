@@ -43,7 +43,7 @@ Demonstrate how sticky sessions or overly permissive concurrency can create unev
 ## Lab Metadata
 
 | Field | Value |
-|---|---|
+|---| --- |
 | Difficulty | Advanced |
 | Duration | 30-40 minutes |
 | Tier | Inline guide only |
@@ -52,13 +52,15 @@ Demonstrate how sticky sessions or overly permissive concurrency can create unev
 <!-- diagram-id: replica-load-imbalance-lab-flow -->
 ```mermaid
 flowchart TD
-    A[Deploy app with multiple replicas] --> B[Enable affinity or high concurrency]
-    B --> C[Generate steady client traffic]
-    C --> D[Observe uneven replica behavior]
-    D --> E[Disable affinity or tune scaling]
-    E --> F[Repeat traffic]
-    F --> G[Compare distribution pattern]
+    DEPLOY["Deploy one revision with multiple replicas"] --> TRIGGER["Apply the lab's affinity or concurrency condition"]
+    TRIGGER --> LOAD["Generate controlled client traffic"]
+    LOAD --> EVIDENCE["Record per-replica responses and resource signals"]
+    EVIDENCE --> FIX["Change only the tested affinity or scaling setting"]
+    FIX --> REPEAT["Repeat the same traffic pattern"]
+    REPEAT --> COMPARE["Compare the two observed distributions"]
 ```
+
+Microsoft Learn does not promise a particular intra-revision load-balancing algorithm or perfectly even replica distribution. The diagram compares this lab's samples without generalizing them.
 
 !!! note "Evidence depth"
     This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/replica-load-imbalance/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/replica-load-imbalance/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.
@@ -159,8 +161,8 @@ curl -D - https://<container-app-fqdn>/
 ```
 
 | Command | Why it is used |
-|---|---|
-| `az containerapp replica list ...` | Runs the Azure CLI operation required by the documented step. |
+|---| --- |
+| `az containerapp replica list ...` | Counts the active replicas returned for `ca-replica-lab5`; the expected evidence is `3` before sticky-session behavior is evaluated. |
 
 - `[Observed]` 3 replicas confirmed: `az containerapp replica list | length(@)` → 3.
 - `[Observed]` `stickySessions.affinity: sticky`: `acaAffinity="b516773606a5761b"` cookie set in response headers.
@@ -202,9 +204,16 @@ az containerapp update \
     --scale-rule-http-concurrency 20
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp update` | Restores `"$APP_NAME"` to HTTP autoscaling with 1-3 replicas and a concurrency threshold of 20 by using the flags shown below. |
+| `--name` | Restores scaling on `"$APP_NAME"` after the fixed-replica imbalance sample is complete. |
+| `--resource-group` | Updates the tested app within `"$RG"`, leaving unrelated Container Apps untouched. |
+| `--min-replicas` | In `az containerapp update`, sets the lower replica bound used by this scaling experiment as `1` for **Clean Up** in the `replica-load-imbalance` lab. |
+| `--max-replicas` | In `az containerapp update`, sets the upper replica bound used by this scaling experiment as `3` for **Clean Up** in the `replica-load-imbalance` lab. |
+| `--scale-rule-name` | In `az containerapp update`, identifies the scaling rule whose behavior the lab changes as `"http-rule"` for **Clean Up** in the `replica-load-imbalance` lab. |
+| `--scale-rule-type` | In `az containerapp update`, selects the scaler type exercised by this lab as `"http"` for **Clean Up** in the `replica-load-imbalance` lab. |
+| `--scale-rule-http-concurrency` | In `az containerapp update`, sets the HTTP concurrency threshold evaluated in this run as `20` for **Clean Up** in the `replica-load-imbalance` lab. |
 
 ## Related Playbook
 

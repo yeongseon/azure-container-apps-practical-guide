@@ -55,7 +55,7 @@ Test the operator claim that the Consumption profile distributes replicas across
 ## Lab Metadata
 
 | Field | Value |
-|---|---|
+|---| --- |
 | Difficulty | Advanced |
 | Duration | ~70 minutes (deploy + H3 gate + sample sweep + analysis + cleanup) |
 | Tier | Workload profiles (Consumption profile + Dedicated D8 profile in one environment) |
@@ -66,20 +66,16 @@ Test the operator claim that the Consumption profile distributes replicas across
 <!-- diagram-id: experiment-architecture -->
 ```mermaid
 flowchart TD
-    A[deploy.sh<br/>RG + ACR + diag image + Bicep env + 2 apps] --> B[health-check.sh<br/>env, both profiles, /diag responds 200]
-    B --> C[falsify.sh<br/>H3 gate — proxy validity]
-    C -->|PASS| D[trigger.sh]
-    C -->|FAIL| Z[STOP — proxy invalid, do not publish H1/H2]
-    D --> E[Consumption profile<br/>app-consumption<br/>scale 1 → 3 → 10 → 30]
-    D --> F[Dedicated D8 profile<br/>app-dedicated-d8<br/>scale 1 → 3 → 10]
-    E --> G[At each step:<br/>scale.sh + sample.sh /diag]
-    F --> G
-    G --> H[Top step ×3 repeats]
-    H --> I[evidence/*.jsonl<br/>boot_id, uptime, boot_time_estimate per sample]
-    I --> J[analyze.py<br/>cluster by boot_id and boot_time_estimate]
-    J --> K[evidence/analysis-summary.md]
-    K --> L[H1 verdict — Consumption multi-cluster?<br/>H2 verdict — Dedicated D8 single-cluster?]
+    DEPLOY["Deploy identical diagnostics apps on Consumption and Dedicated profiles"] --> HEALTH["Verify both apps respond"]
+    HEALTH --> PROXY["Run the pre-registered proxy-validity gate"]
+    PROXY -->|Pass| SCALE["Scale each app through its planned replica steps"]
+    PROXY -->|Fail| STOP["Stop: do not publish placement conclusions"]
+    SCALE --> SAMPLE["Collect repeated boot-id, uptime, and boot-time estimates"]
+    SAMPLE --> ANALYZE["Cluster the kernel-context proxy samples"]
+    ANALYZE --> VERDICT["Report bounded H1 and H2 verdicts"]
 ```
+
+The proxies can distinguish sampled kernel contexts but cannot identify Azure physical hosts or prove a node-placement guarantee. Conclusions remain capped at the evidence level stated by the lab.
 
 ## 1. Question
 
@@ -104,10 +100,13 @@ az account set --subscription "$SUBSCRIPTION_ID"
 az extension add --name containerapp --upgrade
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az account set --subscription "$SUBSCRIPTION_ID"` | Pins the active subscription so the lab's defensive guard in every script does not fail on a stale context. |
-| `az extension add --name containerapp --upgrade` | Ensures the `containerapp` extension is at a current version so `--workload-profile-name` and the workload-profile management commands behave as documented. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az account set` | Selects subscription `"$SUBSCRIPTION_ID"` for every `replica-node-spread` resource operation that follows. |
+| `az extension add` | Prepares the `containerapp` extension for the Container Apps operations in **Required environment variables**. |
+| `--subscription` (`az account set`) | In `az account set`, pins the command to the subscription that owns the experiment as `"$SUBSCRIPTION_ID"` for **Required environment variables** in the `replica-node-spread` lab. |
+| `--name` (`az extension add`) | Loads the `containerapp` extension required by the Container Apps commands in **Required environment variables**. |
+| `--upgrade` (`az extension add`) | Upgrades an existing Container Apps extension before the commands in **Required environment variables** run. |
 
 ### Deploy the lab
 
@@ -118,7 +117,7 @@ cd labs/replica-node-spread
 ```
 
 | Command | Why it is used |
-|---|---|
+|---| --- |
 | `./deploy.sh` | Wraps `az group create`, `az acr create`, `az acr build` of the `diag` image, and `az deployment group create` against `infra/main.bicep`. Provisions the resource group, an ACR (Basic SKU), Log Analytics workspace (30-day retention), user-assigned managed identity with AcrPull on the registry, a workload-profile Container Apps environment with both Consumption **and** Dedicated D8 profiles, and the two subject apps (`app-consumption` on Consumption, `app-dedicated-d8` on D8). |
 | `./health-check.sh` | Runs five health checks against the RG, env (with both workload profiles), both apps, and each `/diag` endpoint. Confirms both apps return HTTP 200 from `/diag` before any sampling begins. Before the 2026-06-24 Phase B refactor this script was named `verify.sh`; `verify.sh` now refers to the Phase B evidence-pack verifier described in §11b. |
 
@@ -131,10 +130,15 @@ ACR_NAME="$(az acr list --resource-group "$RG" --query '[0].name' --output tsv)"
 az acr build --registry "$ACR_NAME" --image "rns-lab/diag:latest" ./diag
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az acr list --resource-group "$RG" --query '[0].name' --output tsv` | Resolves the lab's ACR name without hardcoding the deploy-time random suffix (`rnslabacr<hex>`). |
-| `az acr build --registry "$ACR_NAME" --image "rns-lab/diag:latest" ./diag` | Cloud-side Buildah build that pushes the image to ACR in one step. Avoids requiring a local Docker daemon. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az acr list` | Finds the registry selected by `'[0].name'` so **Build the diag image** uses the deployed ACR rather than a guessed name. |
+| `az acr build` | Builds and pushes image `"rns-lab/diag:latest"` in registry `"$ACR_NAME"` for **Build the diag image**. |
+| `--resource-group` (`az acr list`) | Scopes az acr list to resource group `"$RG"`, which contains the replica-node-spread resources used in **Build the diag image**. |
+| `--query` (`az acr list`) | In `az acr list`, extracts the named property used as evidence in this step as `'[0].name'` for **Build the diag image** in the `replica-node-spread` lab. |
+| `--output` (`az acr list`) | Renders the **Build the diag image** result as `tsv`, plain scalar text suitable for assignment to the shell variable or comparison in this step. |
+| `--registry` (`az acr build`) | In `az acr build`, selects the Azure Container Registry that builds the workload image as `"$ACR_NAME"` for **Build the diag image** in the `replica-node-spread` lab. |
+| `--image` (`az acr build`) | In `az acr build`, sets the workload image or image tag used by this experiment state as `"rns-lab/diag:latest"` for **Build the diag image** in the `replica-node-spread` lab. |
 
 ## 3. Hypothesis
 
@@ -153,7 +157,7 @@ Three pre-registered hypotheses. H3 is a methodology gate: H1 and H2 are scienti
 > The kernel-context signal triple (`boot_id`, `uptime_seconds`, `boot_time_estimate_ms`) is a deterministic per-replica reading: within one replica, `boot_id` is stable across samples, `uptime_seconds` increases monotonically with wall-clock time, and `boot_id` is a non-trivial UUID rather than an empty or zero-sentinel value.
 
 | Variable | Control State (H2) | Experimental State (H1) |
-|---|---|---|
+|---| --- |---|
 | Workload profile | Dedicated D8 (8 vCPU / 32 GiB, 1 node) | Consumption (per-replica microVM, no node binding) |
 | Resource requests per replica | 0.25 vCPU / 0.5 GiB | 0.25 vCPU / 0.5 GiB |
 | Container image | `rns-lab/diag:latest` (identical) | `rns-lab/diag:latest` (identical) |
@@ -198,7 +202,7 @@ If the platform's behavior differs:
 ```
 
 | Command | Why it is used |
-|---|---|
+|---| --- |
 | `./falsify.sh` | Pins `app-consumption` to `min=max=1`, settles 30s, samples `/diag` five times at 10s intervals, and verifies all four sub-checks (replica-consistent, boot-consistent, uptime-monotonic, boot-nontrivial) PASS. Writes `evidence/h3-<timestamp>.jsonl` (raw samples) and `evidence/h3-<timestamp>.verdict.txt` (verdict). Exits non-zero on any sub-check failure. |
 
 H3 must PASS before Phase 2. The lab's `trigger.sh` invokes `./falsify.sh` automatically (unless `SKIP_FALSIFY=1` is set, which is reserved for debugging only — H1 / H2 results are not publishable when H3 was skipped).
@@ -253,7 +257,7 @@ cat evidence/analysis-summary.md
 ```
 
 | Command | Why it is used |
-|---|---|
+|---| --- |
 | `python3 ./analyze.py` | Reads every per-run JSONL under `evidence/` (skipping the H3 file by filename prefix), computes unique replica count, unique `boot_id` count, and `boot_time_estimate_ms` cluster count per run with a 5,000 ms gap threshold. Writes `evidence/analysis-summary.md` (human-readable per-run table + top-scale concurrence rollup + evidence-ceiling reminder) and `evidence/analysis-summary.json` (machine-readable counts). |
 | `cat evidence/analysis-summary.md` | Inspect the per-run verdict table and the per-profile top-scale concurrence rollup. The lab's H1 / H2 verdict is read directly from the concurrence section. |
 
@@ -306,7 +310,7 @@ The lab is built to be falsifiable in three complementary directions:
 The 2026-06-24 evidence-pack overlay adds a Phase B verifier under `labs/replica-node-spread/`. Unlike the live-Azure Phase A workflow (`falsify.sh` + `trigger.sh` + `analyze.py`), the rewritten `labs/replica-node-spread/verify.sh` is a pure file processor: it reads the committed canonical cohort under `labs/replica-node-spread/evidence/` (15 canonical files — 2 summary + 2 H3 anchor + 6 Consumption scale + 5 Dedicated D8 scale, anchored on `h3-20260614-143432`) plus `evidence/README.md` (for Gate 13(b)) and emits four derived gate JSONs. Gate 12(a)-(e) and Gate 13(b)/(c) each have a single named path; other documented tiered gates retain distinct Strong/Fallback paths, and Gate 11(d) cannot rescue refuted raw evidence with verdict text. The four gates encode the Oracle Lab 19 strategy consult's four anti-pattern blocks (deterministic-spread claims, cross-profile pooling, scale mixing, summary-first reasoning) plus the "raw JSONL wins over summary on conflict" rule. All 16 sub-gates pass on the 2026-06-14 cohort.
 
 | Gate | Claim | Sub-gates | Predicate inputs | PASS / FAIL | Rationale |
-|---|---|---:|---|---|---|
+|---| --- |---:|---|---|---|
 | `10-cohort-integrity-gate.json` | `evidence_cohort_is_internally_consistent_and_uncontaminated` | 4 | Anchor JSONL + verdict text + 11 scale JSONLs + cohort directory listing | PASS | Cohort integrity gate. Confirms (a) the anchor file `h3-20260614-143432.jsonl` exists with ≥4 samples (5 observed) and the matching verdict file reads `Overall: PASS`; (b) all 1117 records parse with the minimal common 4-key set `{boot_id, replica_name, uptime_seconds, run_id}` (the minimal set because anchor records carry `phase` while scale records carry `profile`/`scale_target`/`sample_index`); (c) 100% of records carry the `20260614` date prefix (single-window provenance). For (d), [Observed] the committed cohort contains exactly the 15 canonical files after excluding `README.md` and the four Phase B gate outputs from the extras check. Only regular files are listed. The Strong path requires exactly those canonical files after the exclusions; the Fallback path still requires every canonical file but also tolerates names ending in `.swp`, `.bak` or `.tmp`, or named `.DS_Store`. |
 | `11-matrix-coherence-gate.json` | `test_matrix_is_internally_coherent_with_one_to_one_file_to_cell_mapping` | 4 | 11 scale JSONLs + `analysis-summary.json` + anchor verdict text | PASS | Matrix-coherence gate. Each file maps to one cell through the explicit filename-to-record case map (a), with zero duplicate cells observed (b). The committed cohort reconciles 11/11 raw-derived count entries; enforcement permits at least 9/11, not exact reconciliation, with exactly 11 valid unique-filename entries (c). The H3 verdict's four asserted checks and additional sample-count/boot-time-span requirements hold on the committed anchor (d). |
 | `12-claim-eligibility-gate.json` | `observed_node_spread_behavior_under_this_test_matrix` | 5 | All 15 canonical files + verifier-declared claim string + per-cell cluster counts | PASS | Headline self-consistency, not published-prose validation (a); separate non-empty per-profile tables (b); variability in both named top-scale repeat sets, not proof of independence (c); both named counterexamples required, with 7 cases observed (d); all 11 raw recomputes exist and reconcile with a valid summary without discrepancies (e). Each sub-gate reports its named path tier. |
@@ -325,7 +329,7 @@ Together with Gate 10 (cohort integrity) and Gate 13 (packaging), the four-gate 
 ### Required CLI evidence (always collected)
 
 | Evidence | Command / Query | Purpose |
-|---|---|---|
+|---| --- |---|
 | Env workload-profile list | `az containerapp env workload-profile list --resource-group "$RG" --name "$ENV_NAME" --output table` | Confirms both Consumption and Dedicated D8 profiles exist on the same env |
 | Per-app workload-profile binding | `az containerapp show --resource-group "$RG" --name "app-consumption" --query "properties.workloadProfileName"` and same for `app-dedicated-d8` | Confirms each app is bound to its intended profile |
 | Per-app resource shape | `az containerapp show --resource-group "$RG" --name "$APP_NAME" --query "properties.template.containers[].resources"` | Confirms both apps use identical `0.25 vCPU / 0.5 GiB` requests — eliminates the "different resource shapes" confounder |
@@ -379,7 +383,7 @@ The five captures specified during this reproduction are committed under [`docs/
 ![app-consumption Overview Essentials section showing Environment type Workload profiles for the parent environment](../../assets/troubleshooting/replica-node-spread/05-app-consumption-workload-profile.png)
 
 | Tag | Measurement | Value | Evidence file |
-|---|---|---|---|
+|---| --- |---|---|
 | `[Measured]` | H3a-replica-consistent | `yes` (5/5 samples hit `app-consumption--0000001-65f97bcd78-k4j8r`) | `evidence/h3-20260614-143432.verdict.txt` |
 | `[Measured]` | H3a-boot-consistent | `yes` (`boot_id=6c70d7c6-d797-4c74-8d6d-40bede5858ea` across all 5 samples) | `evidence/h3-20260614-143432.verdict.txt` |
 | `[Measured]` | H3a-uptime-monotonic | `yes` (`2054.0 → 2064.13 → 2074.24 → 2084.36 → 2094.48` s) | `evidence/h3-20260614-143432.verdict.txt` |
@@ -410,7 +414,7 @@ The five captures specified during this reproduction are committed under [`docs/
 This lab tests three distinct claims about Container Apps replica placement. Each claim has a different evidence ceiling, and the ceilings are **independent** of how cleanly any single reproduction passes. Even with a perfect multi-cluster signal on Consumption and a perfect single-cluster signal on Dedicated D8, the lab cannot prove physical-host distribution because the underlying signal is not exposed by the platform.
 
 | Claim | Stated As | Evidence Ceiling | Why Capped | This Lab's Verdict |
-|---|---|---|---|---|
+|---| --- |---|---|---|
 | **Claim 1** — "Consumption isolates each replica in its own microVM" | MS Learn: "On the Consumption plan, Container Apps runs your container in a microVM with Hyper-V isolation." [(Plans)](https://learn.microsoft.com/en-us/azure/container-apps/plans) | `[Measured]` (this lab) | The kernel-context proxy directly observes per-replica kernel state inside the microVM. Multi-cluster `boot_time_estimate_ms` is direct evidence of multiple distinct kernel contexts, which by Hyper-V isolation design implies distinct microVMs. | `[Measured]` — `27` distinct kernel contexts on `app-consumption` at `N=30`, reproducible across all 3 repeats. |
 | **Claim 2** — "Consumption replicas distribute across multiple physical hosts" | Operator inference from Claim 1 + scaling behavior | `[Strongly Suggested]` (permanent ceiling) | Container Apps does not expose per-replica `Microsoft.Compute` virtual-machine identity. Even a perfect multi-cluster boot_time signal is `[Strongly Suggested]` evidence of multi-host placement, not `[Observed]` proof. This ceiling is **permanent** under the current Container Apps API surface. | `[Strongly Suggested]` confirmed — 27 distinct kernel contexts at `N=30` consistent with placement across multiple hosts. Co-location of 3 replicas (27 < 30) is consistent with the scheduler reusing existing hosts when capacity permits. |
 | **Claim 3** — "A single Dedicated D8 profile concentrates all replicas on one host" | Operator inference from the Dedicated profile billing model | `[Strongly Suggested]` for this lab | Same management-plane visibility gap as Claim 2 applies in reverse. The lab measures kernel-context concentration (boot_time clusters == 1) as `[Strongly Suggested]` evidence of single-host placement. Multi-node Dedicated profiles (D8 × N) are explicitly out of scope. | `[Strongly Suggested]` confirmed — 1 kernel context across all 10 replicas on all 3 top-scale repeats on a single-node D8 profile. |
@@ -422,7 +426,7 @@ This lab tests three distinct claims about Container Apps replica placement. Eac
 Pick the profile that matches the placement property your workload actually needs. The lab's results justify the following operator guidance:
 
 | Workload property | Profile choice | Why |
-|---|---|---|
+|---| --- |---|
 | Each replica must be independent of any other replica's host failure | Consumption | `[Strongly Suggested]` multi-host distribution at scale; no shared host means no shared blast radius. |
 | Workload needs predictable per-node cost and resource pooling | Dedicated D8 (or larger) | Billed per node, not per replica; replicas share the node's vCPU / GiB pool. |
 | Workload needs both fault isolation **and** Dedicated profile features (custom egress, customer-managed VNet) | Multi-node Dedicated (D8 × 3 or larger) | Out of scope for this lab; requires its own reproduction. |
@@ -464,7 +468,7 @@ When a customer escalates a Container Apps "we expected per-replica fault isolat
 ```
 
 | Command | Why it is used |
-|---|---|
+|---| --- |
 | `./cleanup.sh` | Issues `az group delete --yes --no-wait` after an interactive confirmation. The 24-hour `expires-at` tag (from the Bicep template) is informational only — Azure may keep delete-pending resources for up to 24 hours after the delete call, but billing stops once the deletion completes. |
 
 ## Related Playbook

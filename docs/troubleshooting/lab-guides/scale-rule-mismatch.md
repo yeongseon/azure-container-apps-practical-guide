@@ -38,7 +38,7 @@ Diagnose non-scaling behavior caused by unrealistic HTTP concurrency thresholds,
 ## Lab Metadata
 
 | Attribute | Value |
-|---|---|
+|---| --- |
 | Difficulty | Intermediate |
 | Estimated Duration | 25-35 minutes |
 | Tier | Consumption |
@@ -56,21 +56,23 @@ The initial scale rule uses `concurrentRequests=500`, which is too high for the 
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    A[Incoming traffic increases] --> B[KEDA observes HTTP concurrency]
-    B --> C{Threshold realistic?}
-    C -->|No, 500| D[Replica count stays flat]
-    C -->|Yes, 10| E[Scale out replicas]
-    D --> F[High latency and queued requests]
-    F --> G[Tune threshold and max replicas]
-    G --> E
+    LOAD["Apply the controlled HTTP load"] --> METRIC["HTTP scaling rule evaluates concurrent requests"]
+    METRIC --> CHECK{"Does the observed metric cross the configured threshold?"}
+    CHECK -->|Yes| SCALE["The rule can request additional replicas within its limits"]
+    CHECK -->|No| FLAT["The rule does not request scale-out from this sample"]
+    FLAT --> EVIDENCE["Compare replica count, latency, and request evidence"]
+    EVIDENCE --> FIX["Tune the threshold and replica limits"]
+    FIX --> RETEST["Repeat the same load"]
 ```
+
+Both decision outcomes are conditional on the observed metric and configured limits. The diagram does not promise a fixed scale-out time or attribute every flat replica count to a threshold mismatch.
 
 ## 2) Hypothesis
 
 **IF** the Container App keeps the HTTP scale rule at `concurrentRequests=500`, **THEN** sustained lab load will not increase replicas above the baseline; **IF** the rule is corrected to `concurrentRequests=10` with `maxReplicas=10`, **THEN** the same workload will scale out.
 
 | Variable | Control State | Experimental State |
-|---|---|---|
+|---| --- |---|
 | HTTP scale threshold | `concurrentRequests=10` | `concurrentRequests=500` |
 | Maximum replicas | `10` | `2` |
 | Load profile | Sustained `/load` requests | Sustained `/load` requests |
@@ -96,9 +98,20 @@ az deployment group create \
     --parameters baseName="labscale"
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az extension add` | Enables registry, scaling-rule, and replica commands required by the load experiment. |
+| `az login` | Authenticates the shell for deployment, image rollout, and Log Analytics evidence collection. |
+| `az group create` | Creates resource group `"$RG"` in `"$LOCATION"` for the `scale-rule-mismatch` experiment. |
+| `az deployment group create` | Deploys `"./labs/scale-rule-mismatch/infra/main.bicep"` as `"lab-scale"` into `"$RG"`. |
+| `--name` (`az extension add`) | Selects the `containerapp` extension that provides scale-rule update support. |
+| `--name` (`az group create`) | Assigns `"$RG"` to the controlled HTTP-scaling workload and the logs collected before and after the threshold correction. |
+| `--name` (`az deployment group create`) | Stores the baseline as `"lab-scale"`, the deployment queried later for the generated Container App name. |
+| `--upgrade` (`az extension add`) | Refreshes extension behavior before applying the mismatched and corrected scaler settings. |
+| `--location` (`az group create`) | In `az group create`, places the new resource group in the lab's selected Azure region as `"$LOCATION"` for **Deploy baseline infrastructure** in the `scale-rule-mismatch` lab. |
+| `--resource-group` (`az deployment group create`) | Places the scaling baseline deployment inside `"$RG"`. |
+| `--template-file` (`az deployment group create`) | In `az deployment group create`, loads the infrastructure template used to create this lab as `"./labs/scale-rule-mismatch/infra/main.bicep"` for **Deploy baseline infrastructure** in the `scale-rule-mismatch` lab. |
+| `--parameters` (`az deployment group create`) | In `az deployment group create`, passes the lab-specific values consumed by the deployment template as `baseName="labscale"` for **Deploy baseline infrastructure** in the `scale-rule-mismatch` lab. |
 
 Expected output pattern: deployment `Succeeded`.
 
@@ -124,11 +137,13 @@ export ACA_ENV_NAME="$(az deployment group show \
     --output tsv)"
 ```
 
-| Command | Purpose |
-|---|---|
-| `export APP_NAME="$(az deployment group show ... --query "properties.outputs.containerAppName.value" --output tsv)"` | Captures the Container App name emitted by the lab deployment so later replica, scale-rule, and log queries target the exact workload under load. |
-| `export ACR_NAME="$(az deployment group show ... --query "properties.outputs.containerRegistryName.value" --output tsv)"` | Captures the registry name required to build and push the workload image before applying the mismatched HTTP scale rule. |
-| `export ACA_ENV_NAME="$(az deployment group show ... --query "properties.outputs.environmentName.value" --output tsv)"` | Captures the environment name for any environment-scoped diagnostics that accompany the scale-rule investigation. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az deployment group show` | Returns `"properties.outputs.containerAppName.value"` from deployment `"lab-scale"` for **Capture deployment outputs**. |
+| `--resource-group` | Finds the scale lab deployment record in `"$RG"` for output extraction. |
+| `--name` | Opens `"lab-scale"`, whose output supplies the app name used by load and replica checks. |
+| `--query` | Extracts `"properties.outputs.containerAppName.value"`, `"properties.outputs.containerRegistryName.value"`, and `"properties.outputs.environmentName.value"` into the app, registry, and environment shell variables. |
+| `--output` | Emits the app name as unquoted `tsv` text for reuse by the scaling and load commands. |
 
 Expected output: no output.
 
@@ -138,9 +153,12 @@ Expected output: no output.
 az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp replica list ...` | Runs the Azure CLI operation required by the documented step. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp replica list` | Returns replicas for app `"$APP_NAME"` so **Record the baseline replica count** can measure the `scale-rule-mismatch` runtime state. |
+| `--name` | Counts replicas only for `"$APP_NAME"`, establishing the one-replica baseline before sustained load. |
+| `--resource-group` | Restricts the baseline replica inventory to the workload in `"$RG"`. |
+| `--output` | Lists baseline replica names and states as a `table` before the scaler is challenged. |
 
 Expected output pattern:
 
@@ -167,13 +185,17 @@ The trigger script builds the workload image, applies the mismatched scale rule,
 ```bash
 az acr build --registry "$ACR_NAME" --image "${APP_NAME}:v1" ./workload
 
+az containerapp registry set \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --server "$ACR_LOGIN_SERVER" \
+    --username "$ACR_USERNAME" \
+    --password "$ACR_PASSWORD"
+
 az containerapp update \
     --name "$APP_NAME" \
     --resource-group "$RG" \
     --image "${ACR_LOGIN_SERVER}/${APP_NAME}:v1" \
-    --registry-server "$ACR_LOGIN_SERVER" \
-    --registry-username "$ACR_USERNAME" \
-    --registry-password "$ACR_PASSWORD" \
     --min-replicas 1 \
     --max-replicas 2 \
     --scale-rule-name "http-rule" \
@@ -181,10 +203,24 @@ az containerapp update \
     --scale-rule-metadata "concurrentRequests=500"
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az acr build --registry ...` | Builds and pushes the container image to Azure Container Registry. |
-| `az containerapp update --scale-rule-metadata "concurrentRequests=500"` | Applies the mismatched scale-rule threshold so the H1 failure state materializes. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az acr build` | Builds and pushes image `"${APP_NAME}:v1"` in registry `"$ACR_NAME"` for **Trigger sustained load with the mismatched scale rule**. |
+| `az containerapp registry set` | Stores pull credentials for `"$ACR_LOGIN_SERVER"` on app `"$APP_NAME"` before its private image is deployed. |
+| `az containerapp update` | Deploys the `v1` workload to `"$APP_NAME"` with one-to-two replicas and HTTP threshold `concurrentRequests=500`. |
+| `--registry` (`az acr build`) | In `az acr build`, selects the Azure Container Registry that builds the workload image as `"$ACR_NAME"` for **Trigger sustained load with the mismatched scale rule** in the `scale-rule-mismatch` lab. |
+| `--image` (`az acr build`) | Tags the locally built load workload as `"${APP_NAME}:v1"` inside ACR. |
+| `--image` (`az containerapp update`) | Deploys the fully qualified `"${ACR_LOGIN_SERVER}/${APP_NAME}:v1"` image to the test app. |
+| `--name` (`az containerapp registry set`, `az containerapp update`) | Selects `"$APP_NAME"` first for private-registry configuration and then for the image and mismatched scaling-rule rollout. |
+| `--resource-group` (`az containerapp registry set`, `az containerapp update`) | Finds `"$APP_NAME"` in `"$RG"` for both the credential attachment and the subsequent scaling configuration update. |
+| `--server` (`az containerapp registry set`) | In `az containerapp registry set`, identifies the private registry login server used by the Container App as `"$ACR_LOGIN_SERVER"` for **Trigger sustained load with the mismatched scale rule** in the `scale-rule-mismatch` lab. |
+| `--username` (`az containerapp registry set`) | In `az containerapp registry set`, supplies the registry user recorded for this lab's image pull as `"$ACR_USERNAME"` for **Trigger sustained load with the mismatched scale rule** in the `scale-rule-mismatch` lab. |
+| `--password` (`az containerapp registry set`) | In `az containerapp registry set`, supplies the matching registry credential without embedding it in the image reference as `"$ACR_PASSWORD"` for **Trigger sustained load with the mismatched scale rule** in the `scale-rule-mismatch` lab. |
+| `--min-replicas` (`az containerapp update`) | In `az containerapp update`, sets the lower replica bound used by this scaling experiment as `1` for **Trigger sustained load with the mismatched scale rule** in the `scale-rule-mismatch` lab. |
+| `--max-replicas` (`az containerapp update`) | In `az containerapp update`, sets the upper replica bound used by this scaling experiment as `2` for **Trigger sustained load with the mismatched scale rule** in the `scale-rule-mismatch` lab. |
+| `--scale-rule-name` (`az containerapp update`) | In `az containerapp update`, identifies the scaling rule whose behavior the lab changes as `"http-rule"` for **Trigger sustained load with the mismatched scale rule** in the `scale-rule-mismatch` lab. |
+| `--scale-rule-type` (`az containerapp update`) | In `az containerapp update`, selects the scaler type exercised by this lab as `"http"` for **Trigger sustained load with the mismatched scale rule** in the `scale-rule-mismatch` lab. |
+| `--scale-rule-metadata` (`az containerapp update`) | In `az containerapp update`, passes the scaler threshold metadata used by the failure or recovery state as `"concurrentRequests=500"` for **Trigger sustained load with the mismatched scale rule** in the `scale-rule-mismatch` lab. |
 
 `trigger.sh` then generates sustained load directly from the script (no external load generator) using 60 concurrent background `curl` processes against `/load` sustained for 90 s, and samples the replica count at +15 s, +30 s, +60 s, and +90 s into the load window. The 60-concurrent / 90 s shape is intentionally tight: it keeps the H1 KQL load window strict (`load_start_utc` to `load_start_utc + 90s`) so benign teardown noise from previous revisions cannot leak in, and it costs well under USD $0.01 per run. See the lab's [`README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/scale-rule-mismatch/README.md) section "Why the lab uses 60 concurrent requests and not `hey -z 8m -c 80`" for the full rationale (legacy capture runs used `hey -z 8m -c 80` or `hey -z 45s -c 80` from a separate host; the script-driven 60-concurrent / 90 s pattern supersedes both).
 
@@ -206,9 +242,12 @@ az monitor log-analytics query \
     --output json
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az monitor log-analytics query ...` | Runs the strict KEDA-attribution KQL query for the load window. The two-clause `startswith` filter (`Scal` / `KEDA`) is intentionally narrow — broader filters (`Reason_s contains 'scale'`) leak rows where the workload image name contains the substring "scale". |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az monitor log-analytics query` | Reads scale- and KEDA-related system-log rows for the active revision during the exact 90-second load window. |
+| `--workspace` | In `az monitor log-analytics query`, targets the Log Analytics workspace captured from the lab deployment as `"$WORKSPACE_CUSTOMER_ID"` for **Inspect scaling-related signals** in the `scale-rule-mismatch` lab. |
+| `--analytics-query` | Runs `"ContainerAppSystemLogs_CL | where TimeGenerated between (datetime('${LOAD_START_UTC}') .. datetime('${LOAD_END_UTC}')) | where RevisionName_s == '${ACTIVE_REVISION_NAME}' | where Reason_s startswith 'Scal' or Reason_s startswith 'KEDA' | project TimeGenerated, RevisionName_s, Reason_s, Type, Log_s | order by TimeGenerated asc"` to isolate scaling evidence. |
+| `--output` | Returns the strict-window system-log evidence as `json` so an empty result remains the literal array `[]`. |
 
 Expected diagnostic output: the query returns the literal empty JSON array `[]` (captured to `evidence/09-system-logs-scale-events-pre-fix.json`), confirming the H1 KEDA-attribution leg passes.
 
@@ -229,9 +268,16 @@ az containerapp update \
     --scale-rule-metadata "concurrentRequests=10"
 ```
 
-| Command | Purpose |
-|---|---|
-| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --min-replicas 1 --max-replicas 10 --scale-rule-name "http-rule" --scale-rule-type "http" --scale-rule-metadata "concurrentRequests=10"` | Adjusts replica bounds and updates autoscale rules, which is the corrective action this step is validating or applying. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp update` | Raises `"$APP_NAME"` to a ten-replica ceiling and lowers the HTTP threshold to `concurrentRequests=10` while keeping one warm replica. |
+| `--name` | Applies the lower HTTP threshold and larger ceiling to `"$APP_NAME"`, preserving the workload used in the failed run. |
+| `--resource-group` | Applies the scaler tuning to the experiment app in `"$RG"`. |
+| `--min-replicas` | In `az containerapp update`, sets the lower replica bound used by this scaling experiment as `1` for **Apply the tuning fix** in the `scale-rule-mismatch` lab. |
+| `--max-replicas` | In `az containerapp update`, sets the upper replica bound used by this scaling experiment as `10` for **Apply the tuning fix** in the `scale-rule-mismatch` lab. |
+| `--scale-rule-name` | In `az containerapp update`, identifies the scaling rule whose behavior the lab changes as `"http-rule"` for **Apply the tuning fix** in the `scale-rule-mismatch` lab. |
+| `--scale-rule-type` | In `az containerapp update`, selects the scaler type exercised by this lab as `"http"` for **Apply the tuning fix** in the `scale-rule-mismatch` lab. |
+| `--scale-rule-metadata` | In `az containerapp update`, passes the scaler threshold metadata used by the failure or recovery state as `"concurrentRequests=10"` for **Apply the tuning fix** in the `scale-rule-mismatch` lab. |
 
 Expected output: update succeeds and a new healthy revision is created.
 
@@ -247,16 +293,20 @@ The verify script replays the load test before and after the fix, checks replica
 az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --query "length(@)" --output tsv
 ```
 
-| Command | Purpose |
-|---|---|
-| `az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --query "length(@)" --output tsv` | Counts the current replicas as a single number so the verifier can compare pre-fix and post-fix scale behavior without manual table parsing. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp replica list` | Returns replicas for app `"$APP_NAME"` so **Verify post-fix scaling behavior** can measure the `scale-rule-mismatch` runtime state. |
+| `--name` | Measures replicas for `"$APP_NAME"` after tuning so the result is directly comparable with its baseline. |
+| `--resource-group` | Counts post-fix replicas from the same resource group `"$RG"` as the baseline. |
+| `--query` | Evaluates `"length(@)"` to reduce the live replica collection to the post-fix count used by the pass criterion. |
+| `--output` | Emits the replica count as `tsv`, allowing the verifier to assert that it increased above one. |
 
 Expected result: replica count stays at or below 1 before the fix and increases above 1 after the fix.
 
 ## 4) Experiment Log
 
 | Step | Action | Expected | Actual (2026-06-22 reproduction) | Pass/Fail |
-|---|---|---|---|---|
+|---| --- |---|---|---|
 | 1 | Deploy baseline | Deployment succeeds | `provisioningState=Succeeded`, six outputs populated | Pass |
 | 2 | Capture outputs | Variables populated | `APP_NAME=ca-labscale-q2xnsr`, `ACR_NAME=acrlabscaleq2xnsr` | Pass |
 | 3 | Record baseline replicas | One running replica at idle | 1 replica (see `evidence/04-replicas-pre-load.json`) | Pass |
@@ -268,7 +318,7 @@ Expected result: replica count stays at or below 1 before the fix and increases 
 ## Expected Evidence
 
 | Evidence Source | Expected State |
-|---|---|
+|---| --- |
 | `az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table` | Baseline remains at one running replica before sustained load |
 | `az containerapp update --name "$APP_NAME" --resource-group "$RG" --scale-rule-metadata "concurrentRequests=500"` | Mismatched threshold remains too high for the workload |
 | `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | `KEDAScalersStarted` appears without effective early scale-out |
@@ -405,9 +455,12 @@ Expected result: replica count stays at or below 1 before the fix and increases 
 az group delete --name "$RG" --yes --no-wait
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az group delete ...` | Removes the lab resource group and its contained resources. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az group delete` | Removes the app, registry, and monitoring resources that generated the scaling evidence in `"$RG"`. |
+| `--name` | Points deletion at `"$RG"`, the isolated group holding the scaler, load-test app, registry, and monitoring data. |
+| `--yes` | Authorizes removal of the completed scaling experiment without an interactive confirmation. |
+| `--no-wait` | Lets the shell exit after the deletion request is accepted while Azure removes the load-test stack asynchronously. |
 
 ## Related Playbook
 

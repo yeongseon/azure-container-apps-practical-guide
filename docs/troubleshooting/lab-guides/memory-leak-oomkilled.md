@@ -45,7 +45,7 @@ Reproduce the canonical Azure Container Apps memory-pressure failure pattern (ex
 ## Lab Metadata
 
 | Attribute | Value |
-|---|---|
+|---| --- |
 | Difficulty | Intermediate |
 | Estimated Duration | 30-45 minutes (10 min wait for log ingestion, ~5 min for leak to reach the cgroup ceiling) |
 | Tier | Consumption |
@@ -68,21 +68,20 @@ The exit code does **not** include an explicit "OOM" string in platform logs. Op
 <!-- diagram-id: memory-leak-oomkilled-experiment -->
 ```mermaid
 flowchart TD
-    A["Azure Container Apps environment<br/>cae-memleak-* (koreacentral)"] --> B["Scenario A: ca-oom-hard"]
-    A --> C["Scenario B: ca-oom-leak"]
-    A --> D["Scenario C: ca-oom-healthy"]
-    B --> B1["MODE=hard-oom<br/>allocate 600 MiB at startup<br/>memory 0.5Gi"]
-    C --> C1["MODE=leak<br/>+30 MiB every 20s<br/>in background thread<br/>memory 0.5Gi"]
-    D --> D1["MODE=healthy<br/>no allocations<br/>memory 1.0Gi"]
-    B1 --> E["Observe:<br/>ContainerAppSystemLogs_CL<br/>WorkingSetBytes<br/>RestartCount<br/>D&S Exit Events detector"]
-    C1 --> E
-    D1 --> E
-    E --> F["Apply fix to Scenario A:<br/>MODE=healthy + memory 1Gi<br/>creates new revision"]
-    F --> G["Verify:<br/>HealthState=Healthy<br/>old revision retained for evidence"]
+    ENV["Azure Container Apps environment"] --> HARD["Scenario A<br/>startup allocation exceeds the configured limit"]
+    ENV --> LEAK["Scenario B<br/>background allocation grows over time"]
+    ENV --> CONTROL["Scenario C<br/>healthy control workload"]
+    HARD --> EVIDENCE["Compare system logs, memory metrics, restarts, and revision state"]
+    LEAK --> EVIDENCE
+    CONTROL --> EVIDENCE
+    EVIDENCE --> FIX["Change Scenario A to the healthy mode and create a new revision"]
+    FIX --> VERIFY["Verify the new revision while retaining the failed revision as evidence"]
 ```
 
+The three branches describe this experiment's configured workloads. Exit code 137 and memory growth must still be correlated; neither the diagram nor one run proves that every SIGKILL is an out-of-memory termination.
+
 | Scenario | App name | Mode | Memory | Expected behavior |
-|---|---|---|---|---|
+|---| --- |---|---|---|
 | **A. Hard OOM** | `ca-oom-hard` | `hard-oom` (allocate 600 MiB at startup) | 0.5Gi | Immediate OOMKill before HTTP server starts. CrashLoopBackOff. ProvisioningState=Failed. |
 | **B. Gradual leak** | `ca-oom-leak` | `leak` (+30 MiB / 20s in background thread) | 0.5Gi | Healthy for ~5-7 minutes, then OOMKill. Restart re-runs the leak. |
 | **C. Healthy control** | `ca-oom-healthy` | `healthy` (no allocations) | 1.0Gi | Stable. RSS ~30-50 MiB. RestartCount=0. HealthState=Healthy. |
@@ -121,11 +120,20 @@ export ENV_NAME="$(az deployment group show --resource-group "$RG" --name main \
     --query properties.outputs.environmentName.value --output tsv)"
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az group create` | Creates the resource group that scopes all lab resources for easy teardown. |
-| `az deployment group create` | Deploys the Bicep template that provisions Log Analytics workspace, Azure Container Registry, and the Container Apps environment with `appLogsConfiguration.destination=log-analytics`. |
-| `az deployment group show` | Reads the Bicep outputs to capture the generated ACR and environment names (both use random suffixes for uniqueness). |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az group create` | Establishes the boundary for the leaking workload, registry, and memory evidence. |
+| `az deployment group create` | Provisions the constrained-memory baseline used to force an OOM termination. |
+| `az deployment group show` | Resolves the generated registry and environment names used by the trigger workflow. |
+| `--name` (`az group create`) | Places the constrained-memory scenarios and their restart evidence under the dedicated scope `"$RG"`. |
+| `--name` (`az deployment group create`) | Labels the infrastructure deployment `main`, matching the output lookups that populate `ACR_NAME` and `ENV_NAME`. |
+| `--name` (`az deployment group show`) | Reads deployment `main` to recover the outputs consumed by **Deploy infrastructure**. |
+| `--location` (`az group create`) | Places the memory-pressure experiment in `"$LOCATION"`. |
+| `--resource-group` (`az deployment group create`, `az deployment group show`) | Creates the constrained-memory stack in `"$RG"` and locates that deployment there when retrieving its registry and environment outputs. |
+| `--template-file` (`az deployment group create`) | Loads `labs/memory-leak-oomkilled/infra/main.bicep`, which configures the low memory limit. |
+| `--parameters` (`az deployment group create`) | Uses `baseName="$BASE_NAME"` for deterministic registry and environment discovery. |
+| `--query` (`az deployment group show`) | Extracts `properties.outputs.containerRegistryName.value` and `properties.outputs.environmentName.value` into `ACR_NAME` and `ENV_NAME`. |
+| `--output` (`az deployment group show`) | Returns deployment output names as `tsv` for direct shell assignment. |
 
 ### Deploy the three scenarios
 
@@ -136,7 +144,7 @@ bash labs/memory-leak-oomkilled/trigger-scenario-c.sh
 ```
 
 | Command | Why it is used |
-|---|---|
+|---| --- |
 | `trigger-scenario-a.sh` | Builds the image, pushes to ACR, and creates `ca-oom-hard` with `MODE=hard-oom` and `HARD_OOM_MB=600`, `cpu=0.25`, `memory=0.5Gi`. The container tries to allocate 600 MiB at startup, exceeds the 0.5Gi cgroup limit, and gets SIGKILL'd before the HTTP server binds. |
 | `trigger-scenario-b.sh` | Creates `ca-oom-leak` with `MODE=leak` and `LEAK_MB_PER_TICK=30`, `cpu=0.25`, `memory=0.5Gi`. A background thread retains 30 MiB every 20 seconds. The HTTP server stays healthy until the leak crosses the ceiling, then OOMKills. |
 | `trigger-scenario-c.sh` | Creates `ca-oom-healthy` with `MODE=healthy`, `cpu=0.5`, `memory=1.0Gi`. No allocations beyond the Python runtime. Provides the control for comparing captured workload signatures, without excluding an environmental contribution. |
@@ -163,7 +171,7 @@ APP_NAME=ca-oom-hard bash labs/memory-leak-oomkilled/verify.sh
 ```
 
 | Command | Why it is used |
-|---|---|
+|---| --- |
 | `trigger-fix.sh` | Updates `ca-oom-hard` with `MODE=healthy` and `--memory 1.0Gi --cpu 0.5`. This creates a new revision (`--0000001`); the failing revision (`--18xosgl`) is retained but deactivated. |
 | Second `verify.sh` | Confirms the new revision is `HealthState: Healthy` and the old revision is preserved as evidence. The Portal **Metrics** blade is the authoritative source for confirming `MemoryPercentage` returned to baseline. |
 
@@ -278,7 +286,7 @@ RunningState:     Stopped
 `verify.sh` is a pure file processor against the 35 historical-capture artifacts under `evidence/ca-oom-{hard,leak,healthy}/` and emits four falsifiable gate JSONs under `evidence/`. Most sub-gates retain a **Strong path** matching the exact lab specification (e.g. the record-scoped 2-form OOM predicate or §7 leak-tick regex parse) and a **Fallback path** using weaker evidence (e.g. the §6 bin histogram as a proxy for the §5 record count). Gate 13(c) has only one admissible path, requiring all three reported health states. Against the canonical evidence, the other sub-gates pass both paths except Gate 12(a), whose Fallback is **intentionally `false`** (see the detailed disclosure below). Every `*_pass` flag is `true`; Gate 13(c) passes its only path, while the others compose as `Strong OR Fallback`.
 
 | Gate | File | Hypothesis | Sub-gates | Result |
-|---|---|---|---|---|
+|---| --- |---|---|---|
 | 10 | `10-h1-hard-oom-immediate-gate.json` | H1.a (Scenario A hard-oom): a workload that allocates beyond the cgroup memory ceiling at startup produces an immediate, dense OOM burst signature distinct from a gradual leak | 3 — (a) signal observed: §5 has ≥ 10 OOM records (record-scoped 2-form predicate, see below) OR §6 max 5-min bin count ≥ 10; (b) hard signature: §6 max 5-min bin ≥ 10 (dense burst) OR §6 bin count ≥ 3 (multi-bin sustained pattern); (c) state eventually fixed: sidecar `healthState == "Healthy"` (Strong) OR sidecar `provisioningState != "Failed"` (Fallback) | PASS — 16 §5 OOM records (11 form-A + 5 form-B), §6 max bin 26 events @ 04:10 UTC, §6 has 23 bins spanning 04:10–06:00 UTC, sidecar `healthState: Healthy` + `provisioningState: Provisioned` + `runningState: RunningAtMaxScale` + `trafficWeight: 0` (POST-fix revision) |
 | 11 | `11-h1-leak-delayed-oom-gate.json` | H1.b (Scenario B leak): a workload that allocates +30 MiB / 20 s in a background thread produces a delayed OOM signature with a measurable memory runway (monotonic tick prints) | 3 — (a) leak runway observed: §7 parses ≥ 12 leak-tick records via regex `\[leak\] tick (\d+): \+30 MiB, total retained (\d+) MiB` OR ≥ 8 ticks (fallback); (b) tick + retained monotonic: tick numbers strictly increasing AND retained MiB strictly increasing OR retained values fit arithmetic invariant `retained[i] = 30 × tick[i]`; (c) leak eventually kills: §5 has ≥ 1 OOM record OR §6 has any nonzero bin | PASS — 16 §7 ticks parsed (1→16, retained 30→480 MiB, strict monotonic both ways, arithmetic invariant holds), 1 §5 OOM record (form-A), §6 has 2 bins (13/3 at 04:10/04:15) |
 | 12 | `12-h2-healthy-control-gate.json` | H2 (Scenario C healthy baseline): no matching OOM records in the captured section for the control revision, supporting the workload contrast without excluding an environmental contribution | 3 — (a) no OOM records: §5 has 0 OOM records (Strong) — Fallback intentionally `false` because §6 `has_any('memory')` KQL filter produces false-positives on the healthy scenario; (b) healthy state: sidecar `healthState: Healthy` OR sidecar `provisioningState: Provisioned`; (c) stable replicas: sidecar `runningState: RunningAtMaxScale` AND `replicas ≥ 1` (substitutes for absent §10c restart-count metric) OR sidecar `trafficWeight: 100` | PASS — 0 §5 OOM records, sidecar `healthState: Healthy` + `provisioningState: Provisioned` + `runningState: RunningAtMaxScale` + `replicas: 1` + `trafficWeight: 100` |
@@ -614,7 +622,7 @@ bash labs/memory-leak-oomkilled/cleanup.sh
 ```
 
 | Command | Why it is used |
-|---|---|
+|---| --- |
 | `cleanup.sh` | Deletes the resource group `rg-aca-memleak-lab` and all child resources asynchronously. |
 
 ## Related Playbook

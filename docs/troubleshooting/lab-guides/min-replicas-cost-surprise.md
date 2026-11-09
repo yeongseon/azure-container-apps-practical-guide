@@ -49,7 +49,7 @@ validation:
 ## Lab Metadata
 
 | Field | Value |
-|---|---|
+|---| --- |
 | Difficulty | Beginner |
 | Duration | 20-30 min |
 | Tier | Inline guide only |
@@ -101,7 +101,7 @@ Record before-and-after CLI output, ContainerAppSystemLogs or ConsoleLogs eviden
 ## 8. Measurement
 
 | Evidence | What confirms the hypothesis |
-|---|---|
+|---| --- |
 | `az containerapp show --query "properties.template.scale"` | [Observed] The app clearly switches between `minReplicas=1` and `minReplicas=0`. |
 | `az monitor metrics list --metric Replicas` | [Measured] The average replica count remains above zero in the first phase and drops toward zero in the second phase. |
 | `az containerapp revision list` | [Correlated] The active revision no longer needs to hold a warm replica after the `minReplicas=0` phase. |
@@ -121,7 +121,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 ## 12. Evidence
 
 | Evidence | What confirms the hypothesis |
-|---|---|
+|---| --- |
 | `az containerapp show --query "properties.template.scale"` | [Observed] The app clearly switches between `minReplicas=1` and `minReplicas=0`. |
 | `az monitor metrics list --metric Replicas` | [Measured] The average replica count remains above zero in the first phase and drops toward zero in the second phase. |
 | `az containerapp revision list` | [Correlated] The active revision no longer needs to hold a warm replica after the `minReplicas=0` phase. |
@@ -189,10 +189,13 @@ az containerapp show \
     --output json
 ```
 
-
-| Command | Why it is used |
-|---|---|
-| `az containerapp show --query "properties.template.scale"` | Confirms the app was left in the desired post-lab state. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp show` | Reads the restored scale object to confirm the cost-producing minimum replica setting is gone. |
+| `--name` | Reads `"$APP_NAME"` after cleanup to verify its costly minimum replica setting was restored. |
+| `--resource-group` | Resolves the cleaned app inside the experiment group `"$RG"`. |
+| `--query` | Isolates `"properties.template.scale"` so cleanup verification centers on the restored replica bounds. |
+| `--output` | Keeps the entire cleaned scale object in `json`, including its minimum and maximum replica values. |
 
 ## Related Playbook
 
@@ -203,16 +206,14 @@ az containerapp show \
 <!-- diagram-id: min-replicas-cost-surprise-page-flow -->
 ```mermaid
 flowchart TD
-    A["Min Replicas Cost Surprise Lab"]
-    B["Lab Metadata"]
-    C["1. Question"]
-    D["2. Setup"]
-    E["3. Hypothesis"]
-    A --> B
-    B --> C
-    C --> D
-    D --> E
+    BASELINE["Record minimum replicas and the idle workload"] --> OBSERVE["Collect replica and billing-meter evidence"]
+    OBSERVE --> FIX["Set the intended minimum replica count"]
+    FIX --> VERIFY["Confirm the resulting replica floor"]
+    VERIFY --> COMPARE["Compare idle and zero-replica intervals"]
+    COMPARE --> FALSIFY["Restore only the original minimum and repeat"]
 ```
+
+The diagram distinguishes the replica floor from the measured charge. Exact cost depends on the plan, resource allocation, activity, and billing interval; this lab does not establish a universal amount.
 
 ## See Also
 

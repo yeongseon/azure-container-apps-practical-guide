@@ -51,13 +51,16 @@ Create a controlled burst scenario for an event-driven job, then reduce concurre
 <!-- diagram-id: event-job-storm-lab-diagram -->
 ```mermaid
 flowchart TD
-    A[Populate queue or event source] --> B[Event job sees backlog]
-    B --> C[Executions fan out quickly]
-    C --> D[Capture execution count and timing]
-    D --> E[Reduce concurrency or trigger aggressiveness]
-    E --> F[Replay same backlog]
-    F --> G[Compare bounded execution pattern]
+    SOURCE["Intended experiment: authenticated event source with controlled backlog"] --> RULE["Event-driven job scaling rule"]
+    RULE --> EXPECTED["Measure scaler-created executions"]
+    MANUAL["Recorded run: enqueue 10 messages and manually start 10 executions"] --> OBSERVED["Observe 10 concurrent running executions"]
+    EXPECTED -.->|Not isolated in recorded run| ATTRIBUTION["Scaler attribution remains unproven"]
+    OBSERVED --> ATTRIBUTION
+    ATTRIBUTION --> FIX["Reduce parallelism and max executions"]
+    FIX --> REPLAY["Future run: replay backlog without manual starts"]
 ```
+
+The intended event-driven experiment assumes scaler authentication is configured. The recorded run mixed queue input with ten simultaneous manual starts, so it proves concurrent execution pressure but does not prove that the event scaler created those executions.
 
 !!! note "Evidence depth"
     This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/event-job-storm/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/event-job-storm/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.
@@ -110,15 +113,15 @@ Record before-and-after CLI output, ContainerAppSystemLogs or ConsoleLogs eviden
 
 ## 9. Analysis
 
-The observations confirm that the failure is isolated to the trigger condition identified in the hypothesis. Metric and log data collected during the experiment support the causal chain described. No confounding factors were introduced between the failure run and the corrected run.
+[Observed] The captured run reached 10 concurrent `Running` executions and exhausted the environment's available CPU quota. Because the run mixed a 10-message backlog with 10 manual starts, scaler attribution is `[Not Proven]`; the concurrent execution pressure is the bounded finding.
 
 ## 10. Conclusion
 
-The hypothesis is confirmed. The trigger condition directly causes the observed failure, and removing or correcting it restores expected behaviour. The root cause is not platform-level instability but a misconfiguration or missing resource.
+[Inferred] `parallelism=10` and `maxExecutions=10` allowed enough simultaneous work to create CPU pressure in this environment. The run does not prove that the event scaler alone created the storm or that the reduced settings drained a backlog successfully.
 
 ## 11. Falsification
 
-To falsify: revert only the corrective change and confirm the failure re-appears. Then re-apply the fix and confirm recovery. This rules out coincidental platform recovery and proves the fix is the controlling variable.
+[Not Proven] A complete falsification run remains: enqueue a fixed backlog without manual starts, capture scaler-created executions and queue depth, apply `parallelism=2` and `maxExecutions=5`, and show that the same backlog drains without reproducing the CPU-pressure state. Until that backlog-only run is captured, scaler causality and queue-drain recovery remain open.
 
 ## 12. Evidence
 
@@ -151,6 +154,8 @@ When escalating or handing off: confirm the trigger condition is present before 
 
 [Observed] After enqueuing 10 messages to `lab6-queue` and triggering 10 manual job starts simultaneously, `az containerapp job execution list` returned **10 executions in `Running` state**.
 
+[Not Proven] Because the run combined event-source messages with manual starts, the execution list cannot attribute those 10 executions to the event-driven scaler. A future scaler-attribution run must enqueue the controlled backlog without calling `az containerapp job start`.
+
 [Observed] With parallelism=10 and maxExecutions=10, all 10 job replicas started concurrently, exhausting available CPU quota for the environment.
 
 [Observed] Fix applied: `az containerapp job update --parallelism 2 --max-executions 5`.
@@ -178,4 +183,5 @@ When escalating or handing off: confirm the trigger condition is present before 
 ## Sources
 
 - [Azure Container Apps jobs](https://learn.microsoft.com/en-us/azure/container-apps/jobs)
+- [Create and manage jobs with the Azure CLI](https://learn.microsoft.com/en-us/azure/container-apps/jobs-get-started-cli)
 - [Azure CLI `az containerapp job` reference](https://learn.microsoft.com/en-us/cli/azure/containerapp/job)

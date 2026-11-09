@@ -42,7 +42,7 @@ Measure the latency impact of scale-to-zero, then compare it with a configuratio
 ## Lab Metadata
 
 | Attribute | Value |
-|---|---|
+|---| --- |
 | Difficulty | Intermediate |
 | Estimated Duration | 30-40 minutes |
 | Tier | Consumption or Dedicated |
@@ -54,15 +54,17 @@ Measure the latency impact of scale-to-zero, then compare it with a configuratio
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    A[Client sends request after idle period] --> B{minReplicas setting}
-    B -->|0| C[Revision scaled to zero]
-    C --> D[Platform creates new replica]
-    D --> E[First request sees cold start latency]
-    B -->|1| F[Replica remains running]
-    F --> G[First request is served immediately]
-    E --> H[Measure latency in client output and logs]
-    G --> H
+    REQUEST["Client sends a request after the lab idle window"] --> MIN{"What minimum replica setting is under test?"}
+    MIN -->|0| ZERO["Observe whether the revision reached zero replicas"]
+    ZERO --> START["A request requires an available replica"]
+    START --> LATENCY["Measure this run's first-response latency"]
+    MIN -->|1| READY["At least one replica is configured to remain running"]
+    READY --> COMPARE["Measure the same request pattern"]
+    LATENCY --> RESULT["Compare client timing, replicas, and logs"]
+    COMPARE --> RESULT
 ```
+
+Microsoft Learn documents scale-to-zero behavior, but it does not promise a fixed cold-start duration. The latency comparison is therefore evidence from this lab run, not a platform constant.
 
 ## 1) Question
 
@@ -93,9 +95,20 @@ az deployment group create \
     --parameters baseName="coldstartlab"
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az extension add` | Makes the Container Apps scaling and replica commands available for the cold-start experiment. |
+| `az login` | Establishes the Azure session used to provision and time the cold-start workload. |
+| `az group create` | Creates resource group `"$RESOURCE_GROUP"` in `"$LOCATION"` for the `cold-start-scale-to-zero` experiment. |
+| `az deployment group create` | Deploys `"./labs/scale-rule-mismatch/infra/main.bicep"` as `"$DEPLOYMENT_NAME"` into `"$RESOURCE_GROUP"`. |
+| `--name` (`az extension add`) | Selects the `containerapp` extension that supplies update and replica-list operations. |
+| `--name` (`az group create`) | Sets `"$RESOURCE_GROUP"` as the boundary containing the app whose first-request latency is measured after scale-to-zero. |
+| `--name` (`az deployment group create`) | Records the deployment as `"$DEPLOYMENT_NAME"`, which later lookups use to export `APP_NAME`, `ACA_ENV_NAME`, and `APP_URL`. |
+| `--upgrade` (`az extension add`) | Refreshes the extension before the runbook relies on its current scaling flags. |
+| `--location` (`az group create`) | In `az group create`, places the new resource group in the lab's selected Azure region as `"$LOCATION"` for **2) Setup** in the `cold-start-scale-to-zero` lab. |
+| `--resource-group` (`az deployment group create`) | Places the deployment inside `"$RESOURCE_GROUP"`, alongside the app later used for latency measurements. |
+| `--template-file` (`az deployment group create`) | Reuses `"./labs/scale-rule-mismatch/infra/main.bicep"` to provide the HTTP-scaled workload measured for cold latency. |
+| `--parameters` (`az deployment group create`) | In `az deployment group create`, passes the lab-specific values consumed by the deployment template as `baseName="coldstartlab"` for **2) Setup** in the `cold-start-scale-to-zero` lab. |
 
 Capture outputs for later steps:
 
@@ -125,22 +138,22 @@ export LOG_ANALYTICS_WORKSPACE_NAME="$(az deployment group show \
     --output tsv)"
 ```
 
-Expected starting state: one revision exists and the app responds successfully over HTTPS.
+| Command/Parameter | Purpose |
+|---| --- |
+| `az deployment group show` | Returns `"properties.outputs.containerAppName.value"` from deployment `"$DEPLOYMENT_NAME"` for **2) Setup**. |
+| `--name` | Selects `"$DEPLOYMENT_NAME"`, the record that publishes the Container App name for latency tests. |
+| `--resource-group` | Locates the deployment record in `"$RESOURCE_GROUP"` when resolving `APP_NAME`. |
+| `--query` | Extracts `"properties.outputs.containerAppName.value"`, `"properties.outputs.environmentName.value"`, `"properties.outputs.containerAppUrl.value"`, and `"properties.outputs.logAnalyticsWorkspaceName.value"` into the four shell variables used by the experiment. |
+| `--output` | Emits each queried value as unquoted `tsv`, allowing the four command substitutions to populate `APP_NAME`, `ACA_ENV_NAME`, `APP_URL`, and `LOG_ANALYTICS_WORKSPACE_NAME`. |
 
-| Command | Why it is used |
-|---|---|
-| `az extension add --name containerapp --upgrade` | Ensures the Azure Container Apps CLI extension is installed and current. |
-| `az login` | Authenticates the Azure CLI session before creating resources. |
-| `az group create --name "$RESOURCE_GROUP" --location "$LOCATION"` | Creates an isolated resource group for the lab. |
-| `az deployment group create --name "$DEPLOYMENT_NAME" --resource-group "$RESOURCE_GROUP" --template-file "./labs/scale-rule-mismatch/infra/main.bicep" --parameters baseName="coldstartlab"` | Deploys the baseline Azure Container Apps environment, registry, workspace, and app. |
-| `az deployment group show ... --query "properties.outputs..."` | Extracts deployment outputs needed for later steps. |
+Expected starting state: one revision exists and the app responds successfully over HTTPS.
 
 ## 3) Hypothesis
 
 **IF** `minReplicas=0`, **THEN** the first request after the app has been idle long enough to scale to zero will show higher latency than steady-state requests; **IF** `minReplicas=1` is configured to keep one replica always ready, **THEN** the cold start latency spike is eliminated for the same test path.
 
 | Variable | Control State | Experimental State |
-|---|---|---|
+|---| --- |---|
 | Minimum replicas | `1` | `0` |
 | Idle behavior | One replica remains available | Revision can scale to zero |
 | First request latency after idle | Near warm-request latency | Noticeably higher than warm-request latency |
@@ -179,9 +192,16 @@ az containerapp update \
     --scale-rule-http-concurrency 10
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp update` | Sets `"$APP_NAME"` to `minReplicas=0` and `maxReplicas=3` for the scale-to-zero measurement. |
+| `--name` | Selects `"$APP_NAME"` as the workload whose idle replica floor is changed from the deployed baseline. |
+| `--resource-group` | Applies the zero-minimum configuration to the app instance hosted in `"$RESOURCE_GROUP"`. |
+| `--min-replicas` | Sets the lower bound to `0`, permitting the revision to become genuinely cold after idle time. |
+| `--max-replicas` | Caps this latency experiment at `3` replicas so burst scaling remains bounded. |
+| `--scale-rule-name` | Updates `"http-rule"`, the request-driven scaler used to wake the app from zero. |
+| `--scale-rule-type` | Keeps the trigger type as `"http"`, matching the HTTPS request used for timing. |
+| `--scale-rule-http-concurrency` | In `az containerapp update`, sets the HTTP concurrency threshold evaluated in this run as `10` for **Configure the scale-to-zero state** in the `cold-start-scale-to-zero` lab. |
 
 ### Confirm the active scale settings
 
@@ -193,9 +213,13 @@ az containerapp show \
     --output json
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp show` | Reads the deployed scale object so the zero minimum, replica ceiling, and HTTP rule can be checked together. |
+| `--name` | Identifies `"$APP_NAME"` as the app whose persisted scaling configuration must match the trigger state. |
+| `--resource-group` | Resolves the configured app within `"$RESOURCE_GROUP"` for scale-object inspection. |
+| `--query` | Isolates `"properties.template.scale"`, excluding unrelated revision and ingress fields from the scale-to-zero check. |
+| `--output` | Preserves the nested scale rule as `json` so its minimum, maximum, and metadata remain visible. |
 
 [Observed] The Scale blade for revision `app-test-20240709--0000005` shows `Min replicas: 0`, `Max replicas: 10`, `Cooldown period: 300`, `Polling interval: 30`, `Current number of replicas: 0`, and one scale rule named `http-scaler` with type `HTTP scaling`:
 
@@ -215,9 +239,12 @@ while true; do
 done
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp replica list ...` | Runs the Azure CLI operation required by the documented step. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp replica list` | Lists live replicas after warm-up to establish that the revision became available before idle timing begins. |
+| `--name` | Directs the warm-up check at `"$APP_NAME"`, preventing another app's replicas from satisfying the readiness gate. |
+| `--resource-group` | Searches `"$RESOURCE_GROUP"` for replicas created by the warm-up request. |
+| `--output` | Displays replica names and states as a `table` for the pre-idle readiness check. |
 
 When no replicas remain, stop the loop with `Ctrl+C` and measure the first request:
 
@@ -256,9 +283,16 @@ az containerapp update \
     --scale-rule-http-concurrency 10
 ```
 
-| Command | Purpose |
-|---|---|
-| `az containerapp update --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" --min-replicas 1 --max-replicas 3 --scale-rule-name "http-rule" --scale-rule-type "http" --scale-rule-http-concurrency 10` | Adjusts replica bounds and updates autoscale rules, which is the corrective action this step is validating or applying. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp update` | Sets `"$APP_NAME"` to `minReplicas=1` and `maxReplicas=3` for the always-ready control measurement. |
+| `--name` | Applies the one-warm-replica control to the same `"$APP_NAME"` used for the zero-replica measurement. |
+| `--resource-group` | Changes the same app in `"$RESOURCE_GROUP"` from zero minimum to the always-ready control. |
+| `--min-replicas` | Raises the floor to `1`, creating the always-ready control for latency comparison. |
+| `--max-replicas` | Retains the same `3`-replica ceiling so only the minimum changes between experiment states. |
+| `--scale-rule-name` | Reuses `"http-rule"` to hold scaler identity constant across cold and warm runs. |
+| `--scale-rule-type` | Preserves `"http"` scaling while the minimum-replica variable is isolated. |
+| `--scale-rule-http-concurrency` | In `az containerapp update`, sets the HTTP concurrency threshold evaluated in this run as `10` for **Apply the always-ready control state** in the `cold-start-scale-to-zero` lab. |
 
 Wait at least the same idle interval, then repeat the request measurements:
 
@@ -276,13 +310,12 @@ curl \
     "$APP_URL"
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp update --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" --min-replicas 0 ...` | Reproduces scale-to-zero behavior for the experimental state. |
-| `az containerapp show --query "properties.template.scale"` | Verifies the revision uses the intended minimum replica setting. |
-| `az containerapp replica list --output table` in a loop | Confirms whether the revision has fully scaled in before the cold request. |
-| `curl --write-out ... "$APP_URL"` | Measures first-request and warm-request latency from the client perspective. |
-| `az containerapp update --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" --min-replicas 1 ...` | Switches the app into the always-ready control state. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp replica list` | Confirms the control configuration keeps a replica present after the minimum is raised to one. |
+| `--name` | Restricts the control-state inventory to `"$APP_NAME"`, the workload compared with the scale-to-zero run. |
+| `--resource-group` | Retrieves control-state replicas from the experiment group `"$RESOURCE_GROUP"`. |
+| `--output` | Shows the retained control replica in `table` form so its running state is immediately visible. |
 
 ## 7) Observation
 
@@ -297,13 +330,12 @@ az containerapp replica list \
     --output table
 ```
 
-| Command | Purpose |
-|---|---|
-| `az containerapp replica list --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" --output table` | Lists live replicas so you can confirm how many instances exist and whether the platform is creating, restarting, or recycling them. |
-
-| Command | Why it is used |
-|---|---|
-| `az containerapp replica list ...` | Runs the Azure CLI operation required by the documented step. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp replica list` | Captures the initial replica inventory that distinguishes a genuinely cold request from an already-warm request. |
+| `--name` | Checks `"$APP_NAME"` immediately before latency sampling so the cold-start classification has a runtime basis. |
+| `--resource-group` | Restricts the pre-request inventory to replicas in `"$RESOURCE_GROUP"`. |
+| `--output` | Formats the pre-request inventory as a `table`, making an empty replica set unambiguous. |
 
 Expected experimental-state pattern:
 
@@ -326,9 +358,12 @@ az containerapp logs show \
     --type system
 ```
 
-| Command | Purpose |
-|---|---|
-| `az containerapp logs show --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" --type system` | Pulls system events for the scaled-to-zero app so you can see the revision provisioning and cold-start activity that follows the first request. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp logs show` | Reads the `system` log stream for app `"$APP_NAME"` during **Revision and system log signals**. |
+| `--name` | Limits system-log retrieval to `"$APP_NAME"`, correlating activation messages with the measured first request. |
+| `--resource-group` | Reads system events from the app deployed in `"$RESOURCE_GROUP"` during the measured activation window. |
+| `--type` | In `az containerapp logs show`, selects the application or system log stream required for this diagnosis as `system` for **Revision and system log signals** in the `cold-start-scale-to-zero` lab. |
 
 Expected log pattern:
 
@@ -342,7 +377,7 @@ ReplicaStarted        Normal
 Interpretation: [Observed] the platform creates a replica only when traffic arrives after idle scale-to-zero.
 
 | Command | Why it is used |
-|---|---|
+|---| --- |
 | `az containerapp replica list --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" --output table` | Captures the raw replica state before each measurement. |
 | `az containerapp logs show --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" --type system` | Captures scale, revision, and replica lifecycle events around the cold request. |
 
@@ -351,7 +386,7 @@ Interpretation: [Observed] the platform creates a replica only when traffic arri
 Capture the latency delta between cold and warm requests.
 
 | Measurement | Experimental State (`minReplicas=0`) | Control State (`minReplicas=1`) |
-|---|---|---|
+|---| --- |---|
 | First request total latency | Higher | Lower |
 | Warm request total latency | Lower than first request | Similar to first request |
 | Running replicas before request | `0` | `1` |
@@ -430,7 +465,7 @@ That result would mean the latency issue is not primarily caused by scale-to-zer
 ## 12) Evidence
 
 | Evidence Source | Expected State |
-|---|---|
+|---| --- |
 | `az containerapp show --query "properties.template.scale"` | Shows `minReplicas` as `0` in the experimental phase and `1` in the control phase |
 | `az containerapp replica list --output table` before cold request | No running replicas in the experimental phase |
 | `curl --write-out ... "$APP_URL"` first request after idle | Highest total latency sample in the experimental phase |
@@ -503,9 +538,12 @@ az group delete \
     --no-wait
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az group delete --name "$RESOURCE_GROUP" --yes --no-wait` | Removes all lab resources after evidence collection is complete. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az group delete` | Requests deletion of `"$RESOURCE_GROUP"` after the `cold-start-scale-to-zero` evidence has been collected. |
+| `--name` | Directs teardown to `"$RESOURCE_GROUP"`, the boundary containing the scale-to-zero app and its cold-start evidence resources. |
+| `--yes` | Confirms deletion of the `cold-start-scale-to-zero` resource group without pausing **Clean Up** for an interactive prompt. |
+| `--no-wait` | Returns control after Azure accepts the `cold-start-scale-to-zero` cleanup request rather than blocking until deletion finishes. |
 
 ## See Also
 

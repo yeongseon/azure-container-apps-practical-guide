@@ -48,7 +48,7 @@ validation:
 ## Lab Metadata
 
 | Field | Value |
-|---|---|
+|---| --- |
 | Difficulty | Advanced |
 | Duration | 35-45 min |
 | Tier | Inline guide only |
@@ -175,9 +175,13 @@ az containerapp update \
     --output table
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --yaml app.yaml --output table` | Applies the final post-lab Azure Files configuration that you want to keep. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp update` | Applies the operator-supplied `app.yaml` to `"$APP_NAME"`, restoring the known-good volume definition saved before the permission test. |
+| `--name` | Applies the permission-restoring configuration to `"$APP_NAME"` after evidence collection. |
+| `--resource-group` | Locates the volume test workload inside `"$RG"` for cleanup. |
+| `--yaml` | Supplies `app.yaml`, which the operator must prepare from the known-good volume definition saved before the experiment; this lab does not include that manifest. |
+| `--output` | Renders the **Clean Up** result as `table`, a human-readable table for the operator's side-by-side check. |
 
 ## Related Playbook
 
@@ -188,16 +192,15 @@ az containerapp update \
 <!-- diagram-id: volume-permission-denied-page-flow -->
 ```mermaid
 flowchart TD
-    A["Volume Permission Denied Lab"]
-    B["Lab Metadata"]
-    C["1. Question"]
-    D["2. Setup"]
-    E["3. Hypothesis"]
-    A --> B
-    B --> C
-    C --> D
-    D --> E
+    TRIGGER["Apply incompatible Azure Files access or mount options"] --> MOUNT["Revision attempts to mount the share"]
+    MOUNT --> FAILURE["VolumeMountFailure and mount error(13): Permission denied"]
+    FAILURE --> BLOCKED["Container cannot reach the application write step"]
+    BLOCKED --> FIX["Correct the tested access mode or mount options"]
+    FIX --> RECOVER["Next revision mounts the same share successfully"]
+    RECOVER --> WRITE["Application can proceed to its write operation"]
 ```
+
+The failing run stops at the mount operation, before any application write occurs. The recovery separates successful mounting from later write authorization and does not generalize this access-mode failure to every Azure Files write problem.
 
 ## See Also
 

@@ -51,14 +51,15 @@ Validate a two-region Container Apps failover design by breaking the primary pat
 <!-- diagram-id: multi-region-failover-lab-diagram -->
 ```mermaid
 flowchart TD
-    A[Deploy app in region A and region B] --> B[Front Door probes both origins]
-    B --> C[Send baseline traffic]
-    C --> D[Break primary region health path]
-    D --> E[Front Door marks primary unhealthy]
-    E --> F[Traffic shifts to secondary]
-    F --> G[Restore primary]
-    G --> H[Validate failback behavior]
+    DEPLOY["Deploy equivalent apps in two regions"] --> ORIGINS["Configure both apps as Front Door origins"]
+    ORIGINS --> BASELINE["Record origin health and baseline responses"]
+    BASELINE --> TRIGGER["Break only the primary origin health path"]
+    TRIGGER --> OBSERVE["Observe probe state and client responses"]
+    OBSERVE --> RESTORE["Restore the primary health path"]
+    RESTORE --> VERIFY["Verify the configured routing behavior after recovery"]
 ```
+
+This is the drill sequence, not a guarantee of a fixed detection, failover, or failback interval. The measured timings and routing results belong to the documented run and Front Door configuration.
 
 !!! note "Evidence depth"
     This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/multi-region-failover/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/multi-region-failover/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.

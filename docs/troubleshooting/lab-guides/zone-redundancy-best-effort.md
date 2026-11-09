@@ -50,7 +50,7 @@ Test the operator assumption that `zoneRedundant=true` plus `minReplicas=N` guar
 ## Lab Metadata
 
 | Field | Value |
-|---|---|
+|---| --- |
 | Difficulty | Advanced |
 | Duration | 8-26 hours (24 h primary baseline + perturbation runs) |
 | Tier | Workload profiles (Consumption profile inside a zone-redundant environment) |
@@ -61,21 +61,18 @@ Test the operator assumption that `zoneRedundant=true` plus `minReplicas=N` guar
 <!-- diagram-id: experiment-architecture -->
 ```mermaid
 flowchart TD
-    A[Zone-redundant Container Apps env] --> B[app-min2 min=max=2]
-    A --> C[app-min3 min=max=3]
-    A --> D[app-min6 min=max=6]
-    E[Audit Job cron 5m] --> F[ARM REST list replicas]
-    F --> G[ContainerAppConsoleLogs_CL<br/>ReplicaInventorySample JSON]
-    B --> H[ContainerAppSystemLogs_CL<br/>ContainerTerminated / Started]
-    C --> H
-    D --> H
-    I[trigger.sh --perturb restart] --> J[az containerapp revision restart]
-    J --> H
-    K[trigger.sh --load --client no-retry/retry-backoff] --> L[Local stdout JSON<br/>LoadEnd success/fail totals<br/>not ingested into LAW]
-    G --> M[KQL pack Q1-Q4, Q6, Q7<br/>H0a falsification]
-    H --> M
-    L --> N[Local analysis<br/>H0b client-visible failure rate]
+    ENV["Zone-redundant Container Apps environment"] --> APPS["Subject apps<br/>fixed replica counts 2, 3, and 6"]
+    APPS --> SYSTEM["Start and termination events<br/>in system logs"]
+    AUDIT["Scheduled audit job"] --> INVENTORY["Replica inventory samples<br/>in console logs"]
+    PERTURB["Operator-controlled<br/>revision restart"] --> SYSTEM
+    LOAD["Local clients<br/>with and without retries"] --> CLIENT["Local success and<br/>failure totals"]
+    INVENTORY --> ANALYSIS["Pre-registered KQL analysis"]
+    SYSTEM --> ANALYSIS
+    CLIENT --> VERDICT["Client-visible result<br/>for this run"]
+    ANALYSIS --> VERDICT
 ```
+
+The environment configuration and experiment instrumentation are documented facts. Replica placement across zones and the cause of any unprompted churn remain hypotheses unless this run's evidence supports them.
 
 ## 1. Question
 
@@ -100,10 +97,13 @@ az account set --subscription "$SUBSCRIPTION_ID"
 az extension add --name containerapp --upgrade
 ```
 
-| Command | Purpose |
-|---|---|
-| `az account set --subscription "$SUBSCRIPTION_ID"` | Switches the CLI context to the subscription that owns the lab resources so every subsequent environment, revision, and metrics command runs against the intended zone-redundancy scenario. |
-| `az extension add --name containerapp --upgrade` | Ensures the Container Apps CLI extension is installed and current before you run the environment and revision commands used by this zone-redundancy lab. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az account set` | Selects subscription `"$SUBSCRIPTION_ID"` for every `zone-redundancy-best-effort` resource operation that follows. |
+| `az extension add` | Prepares the `containerapp` extension for the Container Apps operations in **Required environment variables**. |
+| `--subscription` (`az account set`) | In `az account set`, pins the command to the subscription that owns the experiment as `"$SUBSCRIPTION_ID"` for **Required environment variables** in the `zone-redundancy-best-effort` lab. |
+| `--name` (`az extension add`) | Loads the `containerapp` extension required by the Container Apps commands in **Required environment variables**. |
+| `--upgrade` (`az extension add`) | Upgrades an existing Container Apps extension before the commands in **Required environment variables** run. |
 
 ### Deploy the lab
 
@@ -114,7 +114,7 @@ cd labs/zone-redundancy-best-effort
 ```
 
 | Command | Why it is used |
-|---|---|
+|---| --- |
 | `./deploy.sh` | Wraps `az group create` + `az deployment group create` against `infra/main.bicep`. Provisions VNet `/16` + delegated `/23` subnet, Log Analytics (90-day retention), UAMI with RG-scoped Reader role, zone-redundant Container Apps environment with a workload profile, three identical subject apps with `minReplicas==maxReplicas==2/3/6`, and an audit Job firing every 5 minutes. |
 | `./verify.sh` | Confirms `properties.zoneRedundant==true` on the environment, each subject app reports `Running` with the expected `minReplicas`, the audit Job is provisioned, and a Log Analytics workspace exists in the RG. The script does **not** validate the cron schedule on the audit Job or the Log Analytics wiring on the env — confirm those manually via Section 12's CLI evidence commands or the Portal. |
 
@@ -136,10 +136,15 @@ az deployment group create \
     --parameters auditAcrName="$(basename "$ACR" .azurecr.io)"
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az acr build ...` | Builds the audit container (Mariner + bash + curl + jq) from the `audit/` directory and pushes to your ACR in one cloud-side step. |
-| `az deployment group create ... auditImage=... auditAcrName=...` | Re-deploys the Bicep template with the real audit image. `auditAcrName` is required so the Bicep grants the Job's UAMI `AcrPull` on the registry and emits a `registries` block; without it the first image pull fails with `401 Unauthorized`. The ACR must live in the same resource group as the lab (the Bicep looks it up as an `existing` resource in `resourceGroup()`). Idempotent so the env and apps are not recreated. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az acr build` | Sends `./audit` to ACR Tasks, then publishes the resulting `"zr-lab/audit:latest"` image in the registry named by `"$(basename "$ACR" .azurecr.io)"`. |
+| `az deployment group create` | Reapplies `./infra/main.bicep` so the sampler uses the freshly built audit image and its managed-identity registry configuration. |
+| `--registry` (`az acr build`) | Derives the unqualified ACR name with `"$(basename "$ACR" .azurecr.io)"`, which is the form accepted by `az acr build`. |
+| `--image` (`az acr build`) | In `az acr build`, sets the workload image or image tag used by this experiment state as `"zr-lab/audit:latest"` for **Build the audit image** in the `zone-redundancy-best-effort` lab. |
+| `--resource-group` (`az deployment group create`) | Scopes az deployment group create to resource group `"$RG"`, which contains the zone-redundancy-best-effort resources used in **Build the audit image**. |
+| `--template-file` (`az deployment group create`) | In `az deployment group create`, loads the infrastructure template used to create this lab as `./infra/main.bicep` for **Build the audit image** in the `zone-redundancy-best-effort` lab. |
+| `--parameters` (`az deployment group create`) | Loads `./infra/main.parameters.json`, overrides `auditImage="${ACR}/zr-lab/audit:latest"`, and supplies `auditAcrName="$(basename "$ACR" .azurecr.io)"` for the audit job's image pull. |
 
 ## 3. Hypothesis
 
@@ -158,7 +163,7 @@ Two pre-registered null hypotheses. Both are stated **before** running any pertu
 > When clustered multi-replica churn occurs (regardless of cause), the rate of HTTP `503` responses observed at the ingress for that app does **not** spike above the baseline rate during the 60-second window covering the churn event, when the calling client uses default `no-retry` behavior.
 
 | Variable | Control State | Experimental State |
-|---|---|---|
+|---| --- |---|
 | `zoneRedundant` on env | `true` | `true` |
 | Resource requests | Explicit (`0.5 vCPU`, `1 Gi`) | Explicit (`0.5 vCPU`, `1 Gi`) |
 | `minReplicas == maxReplicas` per app | `2`, `3`, `6` | `2`, `3`, `6` |
@@ -207,16 +212,14 @@ If the platform delivers best-effort distribution (the published MS Learn behavi
 date -u +"%Y-%m-%dT%H:%M:%SZ" > /tmp/zr-baseline-start.txt
 
 # Wait 24 hours. Do not touch the apps, env, or audit Job.
-# Optional: tail the audit output via az containerapp job execution list.
 
 date -u +"%Y-%m-%dT%H:%M:%SZ" > /tmp/zr-baseline-end.txt
 ```
 
 | Command | Why it is used |
-|---|---|
+|---| --- |
 | `./verify.sh` | Health-check wrapper that confirms the resource group, env `zoneRedundant=true` flag, each subject app's `runningStatus == Running` + `minReplicas == N` + replica count, the audit Job's `provisioningState == Succeeded`, and the presence of a Log Analytics workspace. It does **not** query the workspace for `ReplicaInventorySample` ingestion — that signal only appears after the 5-minute audit cron has fired at least once, and is verified separately by KQL Q1 in Section 7. Wait at least one audit tick after deploy before running Q1. |
 | `date -u +"..." > /tmp/zr-baseline-start.txt` / `end.txt` | Bookend timestamps for the baseline window. Quoted into the Observed Evidence subsection of Section 12 and used as the manual `BaselineWindow` filter for KQL Q3/Q6. |
-| `az containerapp job execution list --resource-group "$RG" --name "audit-sampler" --query "[].{name:name, status:properties.status}" --output table` | Optional spot-check during the baseline window to confirm the audit cron is still firing every 5 min without restarting the host shell or running additional perturbation. |
 
 ### Phase 2 — Perturbation (controlled — three runs total against `app-min3`)
 
@@ -244,7 +247,7 @@ sleep 1800   # Record the actual gap before Run 3 in the evidence filename/times
 ```
 
 | Command | Why it is used |
-|---|---|
+|---| --- |
 | `./trigger.sh --perturb restart --app app-min3` | Runs `az containerapp revision restart` against the active revision of `app-min3` with **no** client load. This is the supplemental restart-all variant from #204; it characterizes worst-case `MaxReplacementFraction` without confounding from concurrent load. Emits no `LoadEnd` event. |
 | `./trigger.sh --combined --client no-retry --duration 180 --app app-min3` | Runs the load harness for 180 seconds at `--rps 10`, fires `az containerapp revision restart` 25% of the way through, and emits `PerturbationStart` / `LoadEnd` JSON to stdout. This is the **H0b primary metric** run — the single `LoadEnd.fail / LoadEnd.total` total is the falsification signal per Section 3 item 2. |
 | `./trigger.sh --combined --client retry-backoff --duration 180 --app app-min3` | Same as the no-retry combined run but with `retry-backoff` (up to 4 retries with `0.2s, 0.4s, 0.8s, 1.6s` backoff). Quantifies the L2 mitigation effect — `[Strongly Suggested]`, not `[Measured]`, because it is a single run rather than a paired baseline / perturbation comparison. |
@@ -264,7 +267,7 @@ Run **Phase 1** continuously for 24 hours with no other lab activity in `$RG`. F
 After Phase 1 + 2 + (optional) 3, run the [KQL pack](../kql/scaling-and-replicas/zone-redundancy-mass-reschedule.md) queries in order:
 
 | Query | What you record |
-|---|---|
+|---| --- |
 | Q1 | `HealthRatio` of audit-Job ingestion. Anything `< 0.5` invalidates the downstream baseline. |
 | Q2 | Per-app `SteadyStateOK` over the 24-h baseline. |
 | Q3 | Every clustered-churn event (baseline **and** perturbation). |
@@ -315,7 +318,7 @@ The lab is built to be falsifiable in two complementary directions:
 ### Required CLI evidence (always collected)
 
 | Evidence | Command / Query | Purpose |
-|---|---|---|
+|---| --- |---|
 | Env zone-redundant flag | `az containerapp env show --resource-group "$RG" --name "$ENV_NAME" --query properties.zoneRedundant` | Confirms `true`; falsifies "zone-redundancy never claimed" defense |
 | Per-app scale config | `az containerapp show --resource-group "$RG" --name "$APP_NAME" --query properties.template.scale` | Confirms `minReplicas == maxReplicas` per app |
 | Resource shape | `az containerapp show --resource-group "$RG" --name "$APP_NAME" --query "properties.template.containers[].resources"` | Confirms explicit requests; eliminates the "underspecified scheduler input" confounder |
@@ -357,7 +360,7 @@ The `infra/main.bicep` template now provisions a workspace-based Application Ins
 **Audit Job**: `audit-sampler` cron `*/5 * * * *`, observed `ReplicaInventorySample` count = **867 samples** over the 24-h baseline window across 3 apps (Q1: `HealthRatio=1.0`, 867 / 864 expected = 100.3% completeness, 0 error samples).
 
 | Tag | Measurement | Value | Evidence file |
-|---|---|---|---|
+|---| --- |---|---|
 | `[Measured]` | BaselineChurnEvents per app over 24 h (Q3, baseline window) | **0** on `app-min2` / **0** on `app-min3` / **0** on `app-min6` | `evidence/q3-baseline-fixed-clustered-churn-20260614114618.{json,table.txt}` |
 | `[Measured]` | Any-termination events over 24 h (Q3 variant, ≥1 replica) | **0** on all 3 apps over 24 h | `evidence/q3-baseline-fixed-any-termination-20260614114618.{json,table.txt}` |
 | `[Measured]` | SteadyStateOK over 24 h (Q2) | **True** for `app-min2` / `app-min3` / `app-min6` (289 samples each, observed min=max=configured throughout) | `evidence/q2-baseline-fixed-steady-state-20260614114618.{json,table.txt}` |
@@ -416,7 +419,7 @@ The Portal captures from this reproduction are committed under [`docs/assets/tro
 This lab tests three distinct claims about Container Apps zone redundancy. Each claim has a different evidence ceiling, and the ceilings are **independent** of how cleanly any single reproduction passes. Even with a perfect 24-h baseline, Claims 2 and 3 remain capped because the underlying signal is not exposed by the platform.
 
 | Claim | Stated As | Evidence Ceiling | Why Capped | This Lab's Verdict |
-|---|---|---|---|---|
+|---| --- |---|---|---|
 | **Claim 1** — "Zone-redundant placement is best-effort" | MS Learn: "Zone redundancy distributes replicas across availability zones … on a best-effort basis subject to host capacity and resource requests." [(Reliability docs)](https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps) | `[Strongly Suggested]` | This is a documented platform contract phrased as a non-guarantee. The lab can never strengthen it past `[Strongly Suggested]` because there is no observable failure pattern that would falsify "best-effort" — every outcome (perfect spread, partial spread, or no spread at all) is consistent with the contract. | `[Strongly Suggested]` — supported by spec language, not by any single lab run. |
 | **Claim 2** — "Replicas distribute evenly across zones" | Operator inference from Claim 1 + `minReplicas=N` | `[Strongly Suggested]` (permanent ceiling) | Container Apps does not expose per-replica AZ identity. The `revisions/{rev}/replicas` ARM API has no `zone` field; IMDS is unsupported inside Container Apps replicas. Even a 100%-perfect spread cannot be empirically proven from the management plane. This ceiling is **permanent** under the current Container Apps API surface. | `[Strongly Suggested]` — cannot be raised by this or any future run involving only Container Apps. |
 | **Claim 3** — "Multiple replicas of the same app can be affected simultaneously during platform events" | MS Learn implicitly via the [Planned maintenance](https://learn.microsoft.com/en-us/azure/container-apps/planned-maintenance) and [Reliability](https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps) articles | `[Strongly Suggested]` for this lab; `[Measured]` would require platform-initiated churn during the test window | The lab's 24-h baseline observed **zero** platform-driven clustered churn (Q3 returned 0 rows). The operator-initiated `revision restart` did `[Measured]` simultaneous 3-replica termination on `app-min3` (Q7: `MaxReplacementFraction=1.0`). The two event types produce the same externally observable signature in `ContainerAppSystemLogs_CL` (a cluster of `ContainerTerminated` events for one app within a single 60-s bin), which is the basis for treating Claim 3 as `[Strongly Suggested]` here — the lab does not claim the underlying platform mechanism is identical to the operator-initiated path, only that the externally observable signal is the same. `[Measured]` would require either capturing platform-initiated clustered churn during a Phase 1 window or correlating with internal-mechanism documentation the lab does not have access to. | `[Strongly Suggested]` — operator-event evidence is `[Measured]`, platform-event evidence is `[Inferred]` from signal similarity. |
@@ -432,7 +435,7 @@ The committed Phase B overlay for this lab is a **non-falsification with bounded
 ### Gate semantics
 
 | Gate | Name | What it proves |
-|---|---|---|
+|---| --- |---|
 | 14 | Cohort / corpus integrity | The required files exist, the app cohort is coherent (`app-min2`, `app-min3`, `app-min6`), the baseline spans exactly 24 hours, and the audit cron/sample math matches the design. |
 | 15 | Negative-control baseline validity | The fixed-range 24-hour baseline is trustworthy: ingestion is healthy, steady state held, and both baseline Q3 variants returned zero rows. |
 | 16 | Positive-control perturbation validity | The three successful perturbations are complete, Q3/Q4 see the expected churn/recovery windows, and the H0b primary metric remains unfalsified under the tested load. |
@@ -441,7 +444,7 @@ The committed Phase B overlay for this lab is a **non-falsification with bounded
 ### Phase B 16-sub-gate result table
 
 | Gate | Sub-gate | Result | Evidence |
-|---|---|---|---|
+|---| --- |---|---|
 | 14 | 14a — Required corpus exists | PASS | `baseline-window.txt`, `deployment-outputs.json`, `audit-job-config.json`, fixed Q1/Q2/Q3 files, Q4/Q7, and the three successful perturbation logs all exist in the committed corpus. |
 | 14 | 14b — Cohort identity is coherent | PASS | `deployment-outputs.json`, fixed-range Q2, and Q7 all contain exactly `app-min2`, `app-min3`, and `app-min6` with no extras. |
 | 14 | 14c — Temporal structure is coherent | PASS | `baseline-window.txt` spans exactly `2026-06-12T11:51:46Z` → `2026-06-13T11:51:46Z` (24 h), and the three `PerturbationSubmitted` timestamps are strictly increasing at `11:04:37Z`, `11:15:46Z`, and `11:29:11Z`, all after baseline end. |
@@ -471,7 +474,7 @@ The committed Phase B overlay for this lab is a **non-falsification with bounded
 Apply the [four-layer mitigation matrix](../playbooks/platform-features/zone-redundancy-best-effort.md#resolution-four-layer-mitigation-matrix) from the companion playbook. Summary:
 
 | Layer | Lever | Measured in this lab |
-|---|---|---|
+|---| --- |---|
 | **L1 — Container Apps inputs** | Explicit resource requests, `minReplicas >= 3`, probe tuning | Q7 cross-app comparison |
 | **L2 — App resilience** | Client retry with backoff, circuit breakers | `no-retry` vs `retry-backoff` delta in Section 8 |
 | **L3 — Multi-region** | Front Door + second region, or AKS escalation when zone control is required | Out of scope for this lab — see [Multi-Region Failover Lab](./multi-region-failover.md) |
@@ -513,7 +516,7 @@ When a customer escalates a "zone-redundant environment had a brief 5xx outage" 
 ```
 
 | Command | Why it is used |
-|---|---|
+|---| --- |
 | `./cleanup.sh` | Issues `az group delete --yes --no-wait` after an interactive confirmation. The 48-hour `expires-at` tag (from the Bicep template) is informational only — Azure may keep delete-pending resources for up to 24 hours after the delete call, but billing stops once the deletion completes. |
 
 ## Related Playbook

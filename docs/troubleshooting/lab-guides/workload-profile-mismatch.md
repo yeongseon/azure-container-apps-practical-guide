@@ -48,7 +48,7 @@ validation:
 ## Lab Metadata
 
 | Field | Value |
-|---|---|
+|---| --- |
 | Difficulty | Intermediate |
 | Duration | 30-40 min |
 | Tier | Inline guide only |
@@ -100,7 +100,7 @@ Record before-and-after CLI output, ContainerAppSystemLogs or ConsoleLogs eviden
 ## 8. Measurement
 
 | Evidence | What confirms the hypothesis |
-|---|---|
+|---| --- |
 | Profile update and app update output | [Observed] A constraint error such as `WorkloadProfileMaximumCoresConstraint` appears, or the update stalls during provisioning. |
 | App configuration | [Measured] The requested CPU and replica count exceed the deliberately constrained profile envelope. |
 | Control profile expansion | [Correlated] Increasing `max-nodes` allows the same or a smaller request to succeed. |
@@ -120,7 +120,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 ## 12. Evidence
 
 | Evidence | What confirms the hypothesis |
-|---|---|
+|---| --- |
 | Profile update and app update output | [Observed] A constraint error such as `WorkloadProfileMaximumCoresConstraint` appears, or the update stalls during provisioning. |
 | App configuration | [Measured] The requested CPU and replica count exceed the deliberately constrained profile envelope. |
 | Control profile expansion | [Correlated] Increasing `max-nodes` allows the same or a smaller request to succeed. |
@@ -196,10 +196,13 @@ az containerapp show \
     --output json
 ```
 
-
-| Command | Why it is used |
-|---|---|
-| `az containerapp show --query "{workloadProfile:...,scale:...,resources:...}"` | Verifies that cleanup returned the app to a known-good state. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp show` | Reads workload profile, scale, and container resources together to prove cleanup restored a compatible placement request. |
+| `--name` | Reads `"$APP_NAME"` to prove its profile and resource request are compatible again. |
+| `--resource-group` | Resolves the placement-test app within `"$RG"` for final inspection. |
+| `--query` | Projects `"{workloadProfile:properties.workloadProfileName,scale:properties.template.scale,resources:properties.template.containers[0].resources}"` for the placement compatibility check. |
+| `--output` | Preserves the projected profile and nested resources as `json` for cleanup evidence. |
 
 ## Related Playbook
 
@@ -210,16 +213,14 @@ az containerapp show \
 <!-- diagram-id: workload-profile-mismatch-page-flow -->
 ```mermaid
 flowchart TD
-    A["Workload Profile Mismatch Lab"]
-    B["Lab Metadata"]
-    C["1. Question"]
-    D["2. Setup"]
-    E["3. Hypothesis"]
-    A --> B
-    B --> C
-    C --> D
-    D --> E
+    BASELINE["Inventory environment workload profiles"] --> TRIGGER["Deploy with the lab's unavailable or unsuitable profile selection"]
+    TRIGGER --> OBSERVE["Capture revision and profile-assignment evidence"]
+    OBSERVE --> FIX["Select an available profile with suitable resources"]
+    FIX --> VERIFY["Repeat the deployment"]
+    VERIFY --> FALSIFY["Restore only the mismatched selection and retest"]
 ```
+
+This flow validates profile selection, not the identity of an underlying node. Azure Container Apps does not expose a customer contract for predictable node placement.
 
 ## See Also
 

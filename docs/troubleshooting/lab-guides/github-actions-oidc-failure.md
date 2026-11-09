@@ -167,9 +167,10 @@ az ad app federated-credential list \
     --id "$APP_REGISTRATION_ID"
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az ad app federated-credential list --id "$APP_REGISTRATION_ID"` | Verifies the application now retains only the intended credential definitions after the lab. |
+| `az ad app federated-credential list` | Lists federated credentials for Entra application `"$APP_REGISTRATION_ID"` to compare its subject with the failing GitHub token. |
+| `--id` | In `az ad app federated-credential list`, selects the Entra application whose federated credentials are under review as `"$APP_REGISTRATION_ID"` for **Clean Up** in the `github-actions-oidc-failure` lab. |
 
 ## Related Playbook
 
@@ -180,16 +181,15 @@ az ad app federated-credential list \
 <!-- diagram-id: github-actions-oidc-failure-page-flow -->
 ```mermaid
 flowchart TD
-    A["GitHub Actions OIDC Failure Lab"]
-    B["Lab Metadata"]
-    C["1. Question"]
-    D["2. Setup"]
-    E["3. Hypothesis"]
-    A --> B
-    B --> C
-    C --> D
-    D --> E
+    BASELINE["Record the working federated credential"] --> TRIGGER["Introduce the subject mismatch"]
+    TRIGGER --> RUN["Run the GitHub Actions login step"]
+    RUN --> OBSERVE["Compare the token context with the credential subject"]
+    OBSERVE --> FIX["Restore the matching federated credential"]
+    FIX --> VERIFY["Rerun the same workflow"]
+    VERIFY --> FALSIFY["Reintroduce only the mismatch to test causality"]
 ```
+
+The flow tests one credential-subject mismatch. It does not classify every GitHub Actions authentication failure as an OIDC subject mismatch.
 
 ## See Also
 
