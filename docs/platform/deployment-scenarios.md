@@ -125,9 +125,9 @@ flowchart TD
     end
 
     CLIENT ==>|"HTTPS request"| INGRESS
-    INGRESS ==>|"Route request"| REV_ACTIVE
+    INGRESS ==>|"Select replica under revision traffic rules"| REPLICAS
     APP -.->|"Logical grouping"| REV_ACTIVE
-    REV_ACTIVE ==>|"Serve request"| REPLICAS
+    REV_ACTIVE -.->|"Revision configuration"| REPLICAS
     IMAGE_PULL ==> ACR
     ACR ==>|"Image pull response<br/>and returned layers"| IMAGE_PULL
     APP -.->|"Configured registry authorization"| ACR
@@ -176,7 +176,7 @@ For workloads that need an internal environment endpoint, create an internal, VN
 ```mermaid
 flowchart TD
     accTitle: Private VNet-integrated Container Apps environment
-    accDescr: A connected client reaches the internal load balancer endpoint of an internal workload profiles environment. Managed ingress routes the request to a revision replica. The environment uses an exclusive delegated subnet of at least /27. A separate ACR private endpoint NIC and private DNS zone support image pulls; managed identity authorization is shown separately from transport.
+    accDescr: A connected client resolves the internal environment endpoint, reaches its internal load balancer, and managed ingress selects a replica under revision traffic rules. The environment uses an exclusive delegated subnet of at least /27. A separate ACR private endpoint NIC and private DNS zone support image pulls; managed identity authorization is shown separately from transport.
 
     CLIENT["Connected client<br/>VNet or peered network"]
     DNS_ENV["Private DNS for<br/>environment domain"]
@@ -201,19 +201,20 @@ flowchart TD
         end
     end
 
+    CLIENT -.->|"Resolve environment name"| DNS_ENV
+    DNS_ENV -.->|"Return private endpoint address"| ENV_ENDPOINT
     CLIENT ==>|"HTTPS request"| ENV_ENDPOINT
     ENV_ENDPOINT ==>|"Forward to managed ingress"| INGRESS
-    INGRESS ==>|"Route request"| REV_ACTIVE
+    INGRESS ==>|"Select replica under traffic rules"| REPLICAS
     APP -.->|"Logical grouping"| REV_ACTIVE
-    REV_ACTIVE ==>|"Serve request"| REPLICAS
-    INGRESS -.->|"Environment name resolution"| DNS_ENV
+    REV_ACTIVE -.->|"Revision configuration"| REPLICAS
     INFRA_SUB -.->|"Environment VNet integration"| VNET_LINK
     DNS_ACR -.->|"ACR private address"| PE_ACR
     IMAGE_PULL ==> PE_ACR
-    PE_ACR ==>|"Private Link image pull"| ACR
-    ACR ==>|"Returned image layers"| PE_ACR
+    PE_ACR ==>|"Private Link pull"| ACR
+    ACR ==>|"Image layers"| PE_ACR
     PE_ACR ==> IMAGE_PULL
-    IDENTITY -.->|"Registry authorization"| ACR
+    IDENTITY -.->|"ACR authorization"| ACR
 
     LEGEND["Arrow key<br/>thick = request or image transport<br/>dotted = DNS, authorization, or logical relationship"]
 ```
@@ -276,12 +277,12 @@ flowchart TD
     end
 
     CLIENT ==>|"HTTPS request"| INGRESS
-    INGRESS ==>|"Route API requests"| REV_CONS
-    INGRESS ==>|"Route memory-app requests"| REV_DED
+    INGRESS ==>|"Select API replica under traffic rules"| REP_CONS
+    INGRESS ==>|"Select memory-app replica under traffic rules"| REP_DED
     APP_CONS -.->|"Logical grouping"| REV_CONS
     APP_DED -.->|"Logical grouping"| REV_DED
-    REV_CONS ==>|"Serve request"| REP_CONS
-    REV_DED ==>|"Serve request"| REP_DED
+    REV_CONS -.->|"Revision configuration"| REP_CONS
+    REV_DED -.->|"Revision configuration"| REP_DED
     PROFILE_CONS -.->|"Compute placement"| REP_CONS
     PROFILE_DED -.->|"Compute placement"| REP_DED
 
