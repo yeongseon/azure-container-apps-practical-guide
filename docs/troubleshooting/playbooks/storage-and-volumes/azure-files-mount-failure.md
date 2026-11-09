@@ -35,29 +35,22 @@ flowchart TD
     accDescr: Verify the environment storage definition, credential and share values, revision volume references, and platform storage evidence before redeploying a corrected mount.
 
     START[Revision reports an Azure Files<br/>mount failure]
-    ENV[Check whether the expected environment<br/>storage definition exists]
-    CREATE[Create the storage definition<br/>with account, key, and share]
-    VALUES[Check account, key, share,<br/>and protocol values]
-    CREDENTIALS[Correct the storage values<br/>or update a rotated key]
-    REFERENCES[Check revision storageName,<br/>volume, and mount-name alignment]
-    YAML[Correct the revision volume<br/>and volumeMount references]
-    DETECTOR[Use Storage Mount Failures<br/>diagnostics for remaining evidence]
+    ENV[Verify the environment<br/>storage definition]
+    VALUES[Verify account, key,<br/>share, and protocol]
+    REFERENCES[Verify storageName, volume,<br/>and mount-name alignment]
+    DETECTOR[Run Storage Mount Failures<br/>diagnostics if needed]
+    CORRECT[Correct the identified<br/>configuration or credential]
     REDEPLOY[Deploy a corrected revision]
-    MOUNTED[Check the corrected revision's<br/>volume-mount result]
+    MOUNTED[Check the corrected revision's<br/>mount result]
     DONE[Mount path verified]
     CONTINUE[Investigate the detector result<br/>and storage network policy]
 
     START --> ENV
-    ENV -->|Definition missing| CREATE
-    ENV -->|Definition present| VALUES
-    VALUES -->|Value mismatch| CREDENTIALS
-    VALUES -->|Values correct| REFERENCES
-    REFERENCES -->|Names differ| YAML
-    REFERENCES -->|Names align| DETECTOR
-    CREATE --> REDEPLOY
-    CREDENTIALS --> REDEPLOY
-    YAML --> REDEPLOY
-    DETECTOR --> REDEPLOY
+    ENV --> VALUES
+    VALUES --> REFERENCES
+    REFERENCES --> DETECTOR
+    DETECTOR --> CORRECT
+    CORRECT --> REDEPLOY
     REDEPLOY --> MOUNTED
     MOUNTED -->|Mount succeeds| DONE
     MOUNTED -->|Mount still fails| CONTINUE
