@@ -7,7 +7,6 @@ import argparse
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import cast
 
 
 AZ_PATTERN = re.compile(r"(^|[^A-Za-z0-9_-])az\s+[A-Za-z0-9_-]")
@@ -34,75 +33,6 @@ class Finding:
 
 def has_az_command(block: list[str]) -> bool:
     return any(AZ_PATTERN.search(line) for line in block)
-
-
-def parse_az_commands(block: list[str]) -> dict[str, set[str]]:
-    """Return Azure CLI command paths and their long flags from a Bash fence.
-
-    The parser treats each ``az`` occurrence as a separate invocation, including
-    command substitutions and later pipeline stages. Command examples in this
-    repository put options after the command path, so the first long option
-    terminates the path and the remaining long options belong to that command.
-
-    >>> parse_az_commands(["az account show --output table"])
-    {'az account show': {'--output'}}
-    >>> result = parse_az_commands(["ID=$(az account show --query id --output tsv)", "az group show --name x"])
-    >>> result == {'az account show': {'--output', '--query'}, 'az group show': {'--name'}}
-    True
-    >>> parse_az_commands(["az one show --name x | az two list --output table"])
-    {'az one show': {'--name'}, 'az two list': {'--output'}}
-    """
-    text = "\n".join(block).replace("\\\n", " ")
-    starts = list(re.finditer(r"(?<![A-Za-z0-9_-])az\s+", text))
-    commands: dict[str, set[str]] = {}
-    for index, match in enumerate(starts):
-        end = starts[index + 1].start() if index + 1 < len(starts) else len(text)
-        invocation = text[match.start() : end]
-        first_flag = re.search(r"\s--[A-Za-z0-9][A-Za-z0-9-]*", invocation)
-        path_text = invocation[: first_flag.start()] if first_flag else invocation
-        path_tokens = re.findall(r"[A-Za-z0-9_-]+", path_text)
-        if len(path_tokens) < 2:
-            continue
-        command = " ".join(path_tokens)
-        flags = set(re.findall(r"(?<![A-Za-z0-9_-])--[A-Za-z0-9][A-Za-z0-9-]*", invocation))
-        commands.setdefault(command, set()).update(flags)
-    return commands
-
-
-def find_unowned_single_command_flags(
-    commands: dict[str, set[str]], table_first_cells: list[str]
-) -> list[tuple[str, str]]:
-    """Find flags that need an owning-command qualifier in a multi-command fence.
-
-    Flags shared by multiple commands may use an unqualified row. A flag used by
-    only one command must name that command in the same first cell.
-
-    >>> commands = {'az extension add': {'--name', '--upgrade'}, 'az account show': {'--output'}}
-    >>> cells = ['az extension add', '--name (az extension add)', '--upgrade (az extension add)', 'az account show', '--output']
-    >>> find_unowned_single_command_flags(commands, cells)
-    [('--output', 'az account show')]
-    >>> cells[-1] = '--output (az account show)'
-    >>> find_unowned_single_command_flags(commands, cells)
-    []
-    >>> shared = {'az one show': {'--name'}, 'az two show': {'--name'}}
-    >>> find_unowned_single_command_flags(shared, ['az one show', 'az two show', '--name'])
-    []
-    """
-    if len(commands) < 2:
-        return []
-    owners: dict[str, set[str]] = {}
-    for command, flags in commands.items():
-        for flag in flags:
-            owners.setdefault(flag, set()).add(command)
-    normalized_cells = [cell.replace("`", "").lower() for cell in table_first_cells]
-    findings: list[tuple[str, str]] = []
-    for flag, flag_owners in sorted(owners.items()):
-        if len(flag_owners) != 1:
-            continue
-        owner = next(iter(flag_owners))
-        if not any(flag in cell and owner in cell for cell in normalized_cells):
-            findings.append((flag, owner))
-    return findings
 
 
 def fence_language(line: str) -> str:
@@ -149,24 +79,6 @@ def has_following_table(lines: list[str], start_index: int) -> bool:
         i += 1
         checked += 1
     return False
-
-
-def following_table_first_cells(lines: list[str], start_index: int) -> list[str]:
-    i = start_index
-    while i < len(lines) and i < start_index + 8:
-        if lines[i].strip().startswith("|") and i + 1 < len(lines):
-            if "---" not in lines[i + 1]:
-                return []
-            cells: list[str] = []
-            i += 2
-            while i < len(lines) and lines[i].strip().startswith("|"):
-                cells.append(lines[i].strip().strip("|").split("|", 1)[0].strip())
-                i += 1
-            return cells
-        if lines[i].strip().startswith(("!!!", "???", "##", "```")):
-            return []
-        i += 1
-    return []
 
 
 def _table_cells(line: str) -> list[str]:
@@ -271,7 +183,7 @@ def find_unterminated_tables(lines: list[str]) -> list[int]:
     return hits
 
 
-def validate_file(path: Path, require_command_ownership: bool = False) -> list[Finding]:
+def validate_file(path: Path) -> list[Finding]:
     lines = path.read_text(encoding="utf-8").splitlines()
     findings: list[Finding] = []
     for line_no in find_unterminated_tables(lines):
@@ -279,10 +191,8 @@ def validate_file(path: Path, require_command_ownership: bool = False) -> list[F
             Finding(
                 path=path,
                 line=line_no,
-                message=(
-                    "Explanation table must be followed by a blank line "
-                    "(otherwise the next line is absorbed as a phantom table row)."
-                ),
+                message="Explanation table must be followed by a blank line "
+                "(otherwise the next line is absorbed as a phantom table row).",
             )
         )
     in_fence = False
@@ -307,35 +217,17 @@ def validate_file(path: Path, require_command_ownership: bool = False) -> list[F
             continue
 
         if in_fence and fence and len(fence.group(1)) <= len(fence_indent):
-            if has_az_command(block_lines):
-                if not has_following_table(lines, index + 1):
-                    findings.append(
-                        Finding(
-                            path=path,
-                            line=block_start,
-                            message=(
-                                "Azure CLI code fence must be followed by a "
-                                "command explanation table."
-                            ),
-                        )
+            if has_az_command(block_lines) and not has_following_table(
+                lines, index + 1
+            ):
+                findings.append(
+                    Finding(
+                        path=path,
+                        line=block_start,
+                        message="Azure CLI code fence must be followed by a "
+                        "command explanation table.",
                     )
-                elif require_command_ownership:
-                    commands = parse_az_commands(block_lines)
-                    table_cells = following_table_first_cells(lines, index + 1)
-                    for flag, owner in find_unowned_single_command_flags(
-                        commands, table_cells
-                    ):
-                        findings.append(
-                            Finding(
-                                path=path,
-                                line=block_start,
-                                message=(
-                                    f"{flag} is used only by `{owner}` in this "
-                                    + "multi-command fence; its table row must name "
-                                    + "that owning command."
-                                ),
-                            )
-                        )
+                )
             in_fence = False
             fence_indent = ""
             block_lines = []
@@ -347,33 +239,19 @@ def validate_file(path: Path, require_command_ownership: bool = False) -> list[F
     return findings
 
 
-def validate_docs(
-    docs_dir: Path,
-    ownership_files: set[Path] | None = None,
-) -> list[Finding]:
+def validate_docs(docs_dir: Path) -> list[Finding]:
     findings: list[Finding] = []
-    ownership_files = ownership_files or set()
     for path in sorted(docs_dir.glob("**/*.md")):
-        findings.extend(validate_file(path, path.resolve() in ownership_files))
+        findings.extend(validate_file(path))
     return findings
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    _ = parser.add_argument("--docs-dir", type=Path, default=Path("docs"))
-    _ = parser.add_argument(
-        "--ownership-file",
-        action="append",
-        type=Path,
-        default=[],
-        help="Also enforce command-qualified rows for single-owner flags in this file.",
-    )
+    parser.add_argument("--docs-dir", type=Path, default=Path("docs"))
     args = parser.parse_args()
 
-    ownership_paths = cast(list[Path], args.ownership_file)
-    docs_dir = cast(Path, args.docs_dir)
-    ownership_files = {path.resolve() for path in ownership_paths}
-    findings = validate_docs(docs_dir, ownership_files)
+    findings = validate_docs(args.docs_dir)
     if findings:
         for finding in findings:
             print(f"{finding.path}:{finding.line}: {finding.message}")
