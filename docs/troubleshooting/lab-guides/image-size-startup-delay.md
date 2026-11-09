@@ -49,12 +49,15 @@ Compare a large runtime image against a trimmed image so the effect of pull and 
 <!-- diagram-id: image-size-startup-delay-lab-flow -->
 ```mermaid
 flowchart TD
-    A[Deploy large image revision] --> B[Measure revision-ready delay]
-    B --> C[Collect startup evidence]
-    C --> D[Deploy trimmed image revision]
-    D --> E[Repeat measurement]
-    E --> F[Compare startup gap]
+    LARGE[Deploy the large compatible runtime image] --> LARGE_EVIDENCE[Capture cold-pull and healthy-start evidence]
+    LARGE_EVIDENCE --> MISMATCH[Deploy a smaller image without the required runtime]
+    MISMATCH --> MISMATCH_EVIDENCE[Capture fast pull plus container-create failure]
+    MISMATCH_EVIDENCE --> SMALL[Deploy the trimmed compatible runtime image]
+    SMALL --> SMALL_EVIDENCE[Capture cold-pull and healthy-start evidence]
+    SMALL_EVIDENCE --> COMPARE[Evaluate this cohort timing and compatibility gates]
 ```
+
+The `image-size-startup-delay-lab-flow` diagram distinguishes image-size effects from runtime compatibility by comparing a large valid image, a smaller invalid image, and a trimmed valid image against cold-pull and startup evidence.
 
 !!! note "Evidence depth"
     This lab is **fully reproducible** with dedicated infrastructure-as-code, helper scripts, and raw evidence committed under [`labs/image-size-startup-delay/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/image-size-startup-delay):

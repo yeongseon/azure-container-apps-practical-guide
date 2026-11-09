@@ -37,14 +37,15 @@ Reproducible bounded-observation lab for the Azure Container Apps preview settin
 <!-- diagram-id: revision-history-limit-lab -->
 ```mermaid
 flowchart TD
-    A[Deploy Container App with maxInactiveRevisions=2 via Bicep] --> B[Capture initial config + revision list]
-    B --> C[Burst 10 env-var-only updates with unique nonce]
-    C --> D[Capture revisions at t+0 immediately after burst]
-    D --> E[Wait to t+5m, capture revisions]
-    E --> F[Wait to t+15m, capture revisions and config readback]
-    F --> G[Observe: 11 revisions visible, 10 inactive, config still says 2]
-    G --> H[Conclude: setting persisted, pruning NOT prompt in 15 min window]
+    CONFIG[Deploy with maxInactiveRevisions set to the lab target] --> BEFORE[Capture configuration and initial revisions]
+    BEFORE --> BURST[Create the nonce-based revision burst]
+    BURST --> T0[Capture the run at burst completion]
+    T0 --> T5[Capture the five-minute checkpoint]
+    T5 --> T15[Capture the fifteen-minute checkpoint]
+    T15 --> EVALUATE[Evaluate persisted configuration and this cohort inactive count]
 ```
+
+The `revision-history-limit-lab` diagram distinguishes the configured inactive-revision limit from observed counts captured immediately after a revision burst and at later reconciliation checkpoints.
 
 !!! note "Evidence depth"
     This lab is **fully reproducible** with dedicated infrastructure-as-code, helper scripts, and raw evidence committed under [`labs/revision-history-limit/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/revision-history-limit):

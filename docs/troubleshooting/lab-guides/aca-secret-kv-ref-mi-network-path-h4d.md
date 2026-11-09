@@ -57,14 +57,16 @@ That evidence discipline matters:
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    A["Operator: az containerapp secret set --identity system --key-vault-url"] --> B["ACA control-plane worker resolves the Key Vault reference"]
-    B --> C["Managed identity OIDC discovery must reach login.microsoftonline.com / login.microsoft.com"]
-    C --> D["ACA infrastructure VNet"]
-    D --> E{"Routing Intent active on the Virtual Hub?"}
-    E -->|H0 / H2: No| F["No active secured-hub internet route on this path\nOIDC discovery reaches public Entra authority\nsecret set succeeds\nrevision unchanged"]
-    E -->|H1: Yes| G["InternetTraffic + PrivateTraffic -> secured-hub Azure Firewall\nFirewall policy still allows *.vault.azure.net only\nEntra authority remains blocked\nsecret set fails before Key Vault read\nrevision unchanged, ingress HTTP 200"]
-    G --> H["Virtual Hub effective routes show 0.0.0.0/0 -> hub firewall"]
+    ATTEMPT["Run the lab secret-set attempt"] --> INTENT{"Routing Intent directs this VNet connection to the secured hub?"}
+    INTENT -->|No: H0 and H2| DIRECT["This attempt reaches the public Entra authority and succeeds"]
+    INTENT -->|Yes: H1| HUB["Effective route points the default route to the hub firewall"]
+    HUB --> POLICY{"Stable firewall policy permits the Entra authority?"}
+    POLICY -->|No: lab state| FAIL["This attempt fails before the Key Vault read"]
+    POLICY -->|Yes: outside trigger| PASS["The routed attempt can proceed"]
+    FAIL --> LIMIT["Effective-route state is not packet capture"]
 ```
+
+The `architecture` diagram separates Virtual WAN Routing Intent configuration from the effective-route evidence that proves Entra-bound traffic is redirected through the secured hub firewall.
 
 !!! warning "Effective routes are not packet capture"
     [Observed] The effective-route output is the Virtual Hub control-plane view. [Not Proven] It does not prove that every packet followed the route exactly as shown at every instant. This lab therefore treats route-state plus H0/H1/H2 symptom flips as **bounded evidence**, not as universal proof of dataplane behavior.

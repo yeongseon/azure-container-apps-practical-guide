@@ -8,7 +8,7 @@ content_sources:
     - type: mslearn-adapted
       url: https://learn.microsoft.com/en-us/azure/container-apps/health-probes
     - type: mslearn-adapted
-      url: https://learn.microsoft.com/en-us/azure/container-apps/reliability-container-apps
+      url: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
   diagrams:
     - id: experiment-architecture
       type: flowchart
@@ -71,22 +71,19 @@ Test the operator assumption that Azure Container Apps' rolling-revision rollout
 <!-- diagram-id: experiment-architecture -->
 ```mermaid
 flowchart TD
-    A[Workload-profile Container Apps env<br/>zoneRedundant=true] --> B[subject-app<br/>min=max=3, custom Python image<br/>STARTUP_DELAY_SECONDS=25<br/>all probes -> /healthz]
-    C[loadgen-k6 Job<br/>constant-arrival-rate 200 RPS<br/>50 VUs, connection reuse OFF] --> D[subject-app public FQDN]
-    D --> B
-    C --> E[ContainerAppConsoleLogs_CL<br/>req + bucket JSON<br/>embedded client ts]
-    F[perturbation-sampler Job<br/>5s cadence, 10 min duration<br/>ARM REST listRevisions] --> G[ContainerAppConsoleLogs_CL<br/>RevisionStateSample +<br/>PerturbationWindowMarker]
-    H[audit Job cron 5m] --> I[ContainerAppConsoleLogs_CL<br/>ReplicaInventorySample]
-    J[trigger.sh --perturbation] --> K[az containerapp update<br/>set ROLLOUT_GENERATION env var]
-    K --> L[ACA-managed new revision rollout]
-    L --> B
-    L --> M[ContainerAppSystemLogs_CL<br/>AssigningReplica / ContainerStarted / RevisionReady]
-    E --> N[KQL Q1-Q6: per-run summary,<br/>10s buckets, falsification check,<br/>baseline vs perturbation]
-    G --> N
-    I --> N
-    M --> N
-    N --> O[H0 falsification verdict +<br/>causal attribution capped at Strongly Suggested]
+    LOAD[Constant-arrival-rate k6 job] --> REQUESTS[Requests to subject app public FQDN]
+    REQUESTS --> APP[Subject app with startup delay and health probes]
+    TRIGGER[Perturbation controller] --> ROLLOUT[Container Apps creates experiment revision]
+    ROLLOUT --> APP
+    SAMPLER[Five-second revision-state sampler] --> REVLOGS[RevisionStateSample evidence]
+    LOAD --> CLIENTLOGS[Client request and bucket evidence]
+    ROLLOUT --> SYSLOGS[Container Apps system-log evidence]
+    CLIENTLOGS --> ANALYSIS[Run-scoped KQL and falsification gates]
+    REVLOGS --> ANALYSIS
+    SYSLOGS --> ANALYSIS
 ```
+
+The `experiment-architecture` diagram aligns three concurrent timelines—rollout perturbation, bucketed client traffic, and high-frequency revision sampling—to expose the exact transient degradation window.
 
 ## 1. Question
 
@@ -215,17 +212,17 @@ The supplemental `revision restart` phase tests whether a non-rolling perturbati
 <!-- diagram-id: per-event-procedure-perturbation-phase -->
 ```mermaid
 flowchart TD
-    A[trigger.sh --perturbation --events 12 --interval 600] --> B[For event N in 1..12]
-    B --> C[Start perturbation-sampler Job<br/>PERTURBATION_ID=perturb-event-N<br/>SAMPLE_DURATION_SECONDS=300]
-    C --> D[Wait sampler stable<br/>~5 seconds]
-    D --> E[az containerapp update<br/>--set-env-vars ROLLOUT_GENERATION=perturb-event-N]
-    E --> F[ACA-managed new revision rollout begins]
-    F --> G[Sampler captures<br/>RevisionStateSample @ 5s cadence]
-    G --> H[Sampler completes 5min window]
-    H --> I[k6 continues running across all events]
-    I --> J[sleep INTERVAL_SECONDS]
-    J --> B
+    NEXT[Select next pre-registered event] --> SAMPLE[Start the five-second-cadence sampler window]
+    SAMPLE --> STABLE[Confirm the sampler is running]
+    STABLE --> UPDATE[Change only ROLLOUT_GENERATION]
+    UPDATE --> ROLLOUT[Container Apps starts a new-revision rollout]
+    ROLLOUT --> CAPTURE[Capture revision samples while k6 continues]
+    CAPTURE --> CLOSE[Close the event window and retain evidence]
+    CLOSE --> WAIT[Wait until the next scheduled event]
+    WAIT --> NEXT
 ```
+
+The `per-event-procedure-perturbation-phase` diagram distinguishes an environment-variable rollout trigger from an image re-pull while the sampler and client load continue through the event window.
 
 ### Why `--set-env-vars` (and not `--image`)
 

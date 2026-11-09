@@ -194,16 +194,15 @@ az containerapp env storage remove \
 <!-- diagram-id: azure-files-mount-failure-page-flow -->
 ```mermaid
 flowchart TD
-    A["Azure Files Mount Failure Lab"]
-    B["Lab Metadata"]
-    C["1. Question"]
-    D["2. Setup"]
-    E["3. Hypothesis"]
-    A --> B
-    B --> C
-    C --> D
-    D --> E
+    BASE[Capture working environment storage and app configuration] --> BREAK[Apply the lab invalid Azure Files mount condition]
+    BREAK --> REVISION[Create the experiment revision]
+    REVISION --> EVIDENCE[Capture mount and revision system-log evidence]
+    EVIDENCE --> FIX[Correct only the storage or mount configuration]
+    FIX --> VERIFY[Create and verify the recovery revision]
+    VERIFY --> COMPARE[Compare this run failure and recovery evidence]
 ```
+
+The `azure-files-mount-failure-page-flow` diagram pairs each mount configuration state with its observed revision and system-log outcome, enabling a before-and-after comparison of the targeted fix.
 
 ## See Also
 

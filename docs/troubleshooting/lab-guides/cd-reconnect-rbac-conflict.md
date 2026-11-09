@@ -68,26 +68,27 @@ This lab reproduces the conflict by simulating exactly that lifecycle: provision
 ```mermaid
 sequenceDiagram
     participant Op as Operator
-    participant AAD as Microsoft Entra ID
+    participant ARM as ARM deployment
     participant RBAC as Azure RBAC
-    participant ACR as Azure Container Registry
-    participant ACA as Container App
-    participant ARM as ARM Deployment
-    Op->>AAD: Create service principal (simulating CD setup)
-    Op->>ARM: Deploy role-assignment.bicep (initial, deterministic GUID)
-    ARM->>RBAC: Create AcrPush assignment on ACR scope
-    RBAC-->>ARM: Assignment created
-    Op->>Op: "Disconnect" CD (GitHub side only)
-    Op->>ARM: Deploy role-assignment.bicep (reconnect, fresh GUID)
-    ARM->>RBAC: Create AcrPush assignment on ACR scope (different name)
-    RBAC-->>ARM: 409 RoleAssignmentExists with existing assignment ID
-    ARM-->>Op: Deployment failed
-    Op->>RBAC: Look up conflicting assignment by ID
+    Op->>ARM: Deploy the initial role assignment
+    ARM->>RBAC: Request assignment for the principal, role, and scope
+    RBAC-->>ARM: Return assignment created
+    ARM-->>Op: Return deployment succeeded
+    Op->>ARM: Reconnect and deploy a differently named assignment
+    ARM->>RBAC: Request the same principal, role, and scope tuple
+    RBAC-->>ARM: Return RoleAssignmentExists and existing assignment ID
+    ARM-->>Op: Return deployment failed
+    Op->>RBAC: Request the conflicting assignment details
+    RBAC-->>Op: Return the existing assignment
     Op->>RBAC: Delete the orphaned assignment
-    Op->>ARM: Retry deployment
-    ARM->>RBAC: Create AcrPush assignment
-    RBAC-->>ARM: Assignment created
+    RBAC-->>Op: Confirm deletion
+    Op->>ARM: Retry the deployment
+    ARM->>RBAC: Request the role assignment
+    RBAC-->>ARM: Return assignment created
+    ARM-->>Op: Return deployment succeeded
 ```
+
+The `architecture` diagram distinguishes the desired RBAC tuple from its conflicting assignment GUID, then shows why deleting that assignment allows the reconnect deployment to retry successfully.
 
 ## 2) Hypothesis
 
@@ -465,11 +466,11 @@ if [ -n "$SP_APP_ID" ] && [ "$SP_APP_ID" != "null" ]; then
     SP_OBJECT_ID=$(az ad sp show --id "$SP_APP_ID" --query id --output tsv | tr -d '\r')
     az role assignment list --assignee "$SP_OBJECT_ID" --all --query "[].id" --output tsv \
         | tr -d '\r' \
-        | xargs -r --name 1 az role assignment delete --ids
+        | xargs -r -n 1 az role assignment delete --ids
     az ad sp delete --id "$SP_APP_ID"
     APP_OBJECT_ID=$(az ad app list --display-name "${APP_NAME}-github-actions-lab" \
         --query "[0].id" --output tsv | tr -d '\r')
-    [ --name "$APP_OBJECT_ID" ] && az ad app delete --id "$APP_OBJECT_ID"
+    [ -n "$APP_OBJECT_ID" ] && az ad app delete --id "$APP_OBJECT_ID"
 fi
 az group delete --name "$RG" --yes --no-wait
 ```
@@ -477,6 +478,8 @@ az group delete --name "$RG" --yes --no-wait
 | Command | Why it is used |
 |---|---|
 | `az ad sp list ...` | Creates or inspects service principal settings for automation identity. |
+| `az role assignment delete` | Deletes each remaining assignment returned for the service principal before identity cleanup. |
+| `--ids` | Supplies each full role-assignment resource ID emitted by the preceding list command. |
 
 ## Related Playbook
 

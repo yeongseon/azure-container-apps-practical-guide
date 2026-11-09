@@ -57,17 +57,27 @@ For pull failures, the fastest evidence usually comes from revision state and sy
 <!-- diagram-id: architecture -->
 ```mermaid
 sequenceDiagram
-    participant Dev as Operator
-    participant ACA as Container Apps Revision
+    participant Op as Operator
+    participant ARM as Azure Resource Manager
+    participant ACA as Container Apps revision provisioning
     participant ACR as Azure Container Registry
-    Dev->>ACA: Deploy app with non-existent image tag
-    ACA->>ACR: Pull image manifest
-    ACR-->>ACA: 404 / manifest not found
-    ACA-->>Dev: Revision unhealthy (ImagePullBackOff)
-    Dev->>ACR: Build and publish known-good image
-    Dev->>ACA: Update image reference
-    ACA-->>Dev: New healthy revision ready
+    Op->>ARM: Deploy the app with the missing image tag
+    ARM->>ACA: Start revision provisioning
+    ACA->>ACR: Request the image manifest
+    ACR-->>ACA: Return manifest-not-found
+    ACA-->>ARM: Return failed provisioning evidence
+    ARM-->>Op: Return the failed deployment result
+    Op->>ACR: Build and publish the known-good image
+    ACR-->>Op: Confirm the published image
+    Op->>ARM: Update the app to the valid image reference
+    ARM->>ACA: Start corrected revision provisioning
+    ACA->>ACR: Request the valid manifest and layers
+    ACR-->>ACA: Return the manifest and image layers
+    ACA-->>ARM: Return healthy revision readiness
+    ARM-->>Op: Return the successful deployment result
 ```
+
+The `architecture` diagram separates a successful image build and ARM submission from the later provisioning failure, where system logs expose the missing ACR manifest.
 
 ## 2) Hypothesis
 

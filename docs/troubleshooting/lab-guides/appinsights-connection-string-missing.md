@@ -6,7 +6,7 @@ content_sources:
     - type: mslearn-adapted
       url: https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings
     - type: mslearn-adapted
-      url: https://learn.microsoft.com/en-us/azure/azure-monitor/app/opentelemetry-python
+      url: https://learn.microsoft.com/en-us/azure/azure-monitor/app/opentelemetry-enable
   diagrams:
     - id: appinsights-connection-string-missing-lab
       type: flowchart
@@ -39,13 +39,15 @@ Demonstrate that an Azure Container App without `APPLICATIONINSIGHTS_CONNECTION_
 <!-- diagram-id: appinsights-connection-string-missing-lab -->
 ```mermaid
 flowchart TD
-    A[Deploy Container App on helloworld baseline] --> B[Switch to instrumented Python image WITHOUT env var]
-    B --> C[Send 20 requests, query AppRequests/AppTraces]
-    C --> D[Observe: 20 HTTP 200, 0 AI rows]
-    D --> E[Add APPLICATIONINSIGHTS_CONNECTION_STRING env var]
-    E --> F[Send 20 fresh requests, re-query AI]
-    F --> G[Observe: 20 HTTP 200, AppRequests aggregate=20, AppTraces aggregate=21]
+    DEPLOY[Deploy instrumented app without the connection-string setting] --> REQUESTS1[Send the pre-registered request cohort]
+    REQUESTS1 --> QUERY1[Capture client responses and query Application Insights]
+    QUERY1 --> FIX[Add only APPLICATIONINSIGHTS_CONNECTION_STRING]
+    FIX --> REQUESTS2[Send the matching post-fix request cohort]
+    REQUESTS2 --> QUERY2[Capture responses and query Application Insights again]
+    QUERY2 --> GATES[Evaluate this cohort telemetry and availability gates]
 ```
+
+The `appinsights-connection-string-missing-lab` diagram contrasts a running application with an empty telemetry backend, then connects restoration of the connection string to populated request and trace queries.
 
 !!! note "Evidence depth"
     This lab is **fully reproducible** with dedicated infrastructure-as-code, helper scripts, and raw evidence committed under [`labs/appinsights-connection-string-missing/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/appinsights-connection-string-missing):
@@ -453,5 +455,5 @@ az containerapp revision deactivate \
 
 - [Collect and read OpenTelemetry data in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents)
 - [Connection strings in Application Insights](https://learn.microsoft.com/en-us/azure/azure-monitor/app/connection-strings)
-- [Enable Azure Monitor OpenTelemetry for Python applications](https://learn.microsoft.com/en-us/azure/azure-monitor/app/opentelemetry-python)
+- [Enable OpenTelemetry in Application Insights for Python](https://learn.microsoft.com/en-us/azure/azure-monitor/app/opentelemetry-enable?tabs=python)
 - [Observability in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/observability)

@@ -191,16 +191,15 @@ az group delete \
 <!-- diagram-id: private-endpoint-dns-failure-page-flow -->
 ```mermaid
 flowchart TD
-    A["Private Endpoint DNS Failure Lab"]
-    B["Lab Metadata"]
-    C["1. Question"]
-    D["2. Setup"]
-    E["3. Hypothesis"]
-    A --> B
-    B --> C
-    C --> D
-    D --> E
+    BASE[Capture healthy private-endpoint baseline] --> BREAK[Remove or misconfigure the lab DNS relationship]
+    BREAK --> DNS[Capture name-resolution evidence]
+    DNS --> TRANSPORT[Test transport separately from DNS]
+    TRANSPORT --> FIX[Restore the documented private DNS zone and link]
+    FIX --> VERIFY[Repeat resolution and application checks]
+    VERIFY --> COMPARE[Compare this run H1 and H2 evidence]
 ```
+
+The `private-endpoint-dns-failure-page-flow` diagram separates name-resolution evidence from transport tests so a broken private DNS relationship is not mistaken for a network-path failure.
 
 ## See Also
 

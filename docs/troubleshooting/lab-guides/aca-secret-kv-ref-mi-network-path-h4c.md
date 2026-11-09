@@ -54,14 +54,16 @@ This is why the evidence discipline matters:
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    A["Operator: az containerapp secret set --identity system --key-vault-url"] --> B["ACA control-plane worker resolves KV URL"]
-    B --> C["MI token acquisition begins:<br/>GET https://login.microsoftonline.com/{tenant}/.well-known/openid-configuration"]
-    C --> D["Subnet NSG on snet-aca"]
-    D --> E{"Custom outbound rule for<br/>AzureActiveDirectory:443?"}
-    E -->|H0: No| F["Azure default rules only<br/>OIDC discovery succeeds<br/>secret set succeeds<br/>revision unchanged"]
-    E -->|H1: deny-aad-443-h4c priority 200| G["Outbound Tcp/443 to AzureActiveDirectory denied<br/>OIDC discovery fails before Key Vault read<br/>secret set fails<br/>revision unchanged, ingress HTTP 200"]
-    E -->|H2: allow-aad-443-h4c priority 100 + deny 200 retained| H["Higher-priority Allow overrides Deny<br/>OIDC discovery succeeds again<br/>secret set succeeds<br/>revision unchanged"]
+    ATTEMPT["Run the lab secret-set attempt"] --> CUSTOM{"Matching custom NSG rule active for AzureActiveDirectory on TCP 443?"}
+    CUSTOM -->|No: H0| BASE["Default-rule baseline; this attempt succeeds"]
+    CUSTOM -->|Yes| ACTION{"Highest-priority matching action?"}
+    ACTION -->|Deny: H1| BLOCKED["This attempt fails; rule configuration is observed"]
+    ACTION -->|Allow above Deny: H2| RESTORED["This attempt succeeds; precedence change is observed"]
+    BLOCKED --> CEILING["Managed-resolver use of this path remains inferred"]
+    RESTORED --> CEILING
 ```
+
+The `architecture` diagram distinguishes the NSG rule configuration from its effective precedence: a lower-numbered allow overrides the injected deny and restores the Entra request path.
 
 !!! warning "The subnet NSG configuration is not the same thing as a proven control-plane path contract"
     The `az network nsg rule list` output is the rule set attached to the delegated ACA workload subnet. [Observed] That is valid evidence for the **configured network policy**. [Inferred] The ACA-managed control-plane secret resolver likely used a subnet-governed egress path affected by that policy because H0 succeeded before the Deny existed, H1 failed after the Deny was added, and H2 succeeded after the higher-priority Allow was added. However, Azure does **not** document that every ACA control-plane secret-resolution call must share an identical subnet-governed path, so the guide never states that equivalence as proven.

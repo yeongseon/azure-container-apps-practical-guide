@@ -87,19 +87,18 @@ Falsification requires the fix to restore `Healthy` **without changing any other
 <!-- diagram-id: appgw-nsg-mismatch-experiment-architecture -->
 ```mermaid
 flowchart TD
-    Client["Operator workstation<br/>(public internet)"] -->|HTTP :80| AppGW["Application Gateway Standard_v2<br/>snet-appgw 10.0.1.0/24"]
-    AppGW -->|"backend pool = app FQDN<br/>HTTPS :443, pickHostNameFromBackendAddress"| PDZ["Private DNS Zone<br/>= env.defaultDomain<br/>* and @ A records -> staticIp"]
-    PDZ -->|resolves to staticIp| ILB["Internal ILB frontend<br/>= env.properties.staticIp"]
-    ILB -->|forwards to :31443 on backend NIC| NSG{"NSG on snet-cae<br/>rule 100: Allow, Dst = ???, ports 443+31443<br/>rule 200: Allow, Src = AzureLoadBalancer, ports 30000-32767<br/>rule 4096: Deny all"}
-    NSG -->|"Dst = staticIp/32 (BROKEN)"| Drop["Packet dropped:<br/>edge-proxy NIC IP != staticIp<br/>-> AppGW backend Unhealthy"]
-    NSG -->|"Dst = snet-cae CIDR (FIXED)"| Edge["Edge-proxy NIC in snet-cae<br/>-> Container App replica<br/>-> AppGW backend Healthy"]
+    CLIENT[Client request] --> APPGW[Application Gateway]
+    APPGW -.->|DNS query for internal app FQDN| DNS[Linked Private DNS]
+    DNS -.->|Answer: internal environment entry address| APPGW
+    APPGW -->|Backend probe and request to resolved address| ENTRY[Internal environment entry address]
+    ENTRY --> RULE{Rule 100 destination covers the workload-profile subnet?}
+    RULE -->|No: static entry address only| DROP[Backend probe and request path denied in this lab state]
+    RULE -->|Yes: subnet prefix| ROUTE[Backend probe and request path can reach managed ingress]
+    DROP --> RESULT1[Capture unhealthy backend and client failure]
+    ROUTE --> RESULT2[Capture healthy backend and responding client]
 ```
 
-| State | Rule 100 Destination | AppGW backend health | Client HTTP result |
-|---|---|---|---|
-| Baseline (empty NSG, defaults only) | n/a — no custom rule 100 exists | `Healthy` | 200 |
-| Broken (`trigger.sh`) | `<staticIp>/32` | `Unhealthy` | 502 or 000 (client timeout) |
-| Fixed (`fix.sh`) | `10.0.2.0/23` (CAE subnet CIDR) | `Healthy` | 200 |
+The `appgw-nsg-mismatch-experiment-architecture` diagram distinguishes successful DNS resolution from blocked transport: an NSG rule that covers only the entry IP still denies Application Gateway probes to the backend subnet.
 
 ## 3) Runbook
 
@@ -346,6 +345,7 @@ bash labs/appgw-to-internal-aca-nsg-mismatch/cleanup.sh
 ## Sources
 
 - [Securing a Virtual Network in Azure Container Apps (workload profiles) (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration?tabs=workload-profiles)
+- [Securing a Virtual Network in Azure Container Apps (canonical) (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration)
 - [Protect Azure Container Apps with Application Gateway and Web Application Firewall (WAF) (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/waf-app-gateway)
 - [Provide an internal environment for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom-internal)
 - [Networking in Azure Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)

@@ -34,7 +34,7 @@ validation:
 ---
 # Revision Failover and Rollback Lab
 
-Practice safe rollback by intentionally creating an unhealthy revision and routing traffic back to a healthy one.
+Practice recovery from an app-wide ingress target-port mismatch by observing the failure and correcting the shared setting in place.
 
 ## Lab Metadata
 
@@ -44,42 +44,41 @@ Practice safe rollback by intentionally creating an unhealthy revision and routi
 | Estimated Duration | 20-30 minutes |
 | Tier | Consumption |
 | Failure Mode | Latest revision unhealthy after ingress target port is changed to the wrong value |
-| Skills Practiced | Revision management, rollback, traffic shifting, system log analysis |
+| Skills Practiced | Revision health inspection, ingress correction, system log analysis |
 
 ## 1) Background
 
-This lab starts with a healthy revision, then introduces a wrong ingress target port. The platform marks the affected revision unhealthy because the startup probe cannot connect, and you have two valid recovery paths:
-
-1. **Traffic-shift rollback** (multi-revision mode) — keep a previous healthy revision active and route traffic away from the failing one.
-2. **In-place correction** — when the failure is purely an ingress misconfiguration on a single shared field (such as `targetPort`), fix the field directly without redeploying. The platform re-probes and the same revision recovers in ~30s.
-
-Traffic shifting requires at least one known-good revision; in-place correction does not require any prior revision, only that the underlying container is healthy.
+This lab starts with a healthy revision, then introduces a wrong ingress target port. Because `targetPort` is an app-wide ingress setting shared by the revisions, shifting traffic cannot isolate this injected fault. Recovery requires correcting the shared setting to the port on which the container is listening; the platform then re-probes the revision.
 
 ### Architecture
+
+Show the single valid recovery path after the lab introduces an app-wide ingress target-port mismatch.
 
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    A[Revision N healthy] --> B[Deploy revision N+1 with wrong target port]
-    B --> C[Revision N+1 becomes unhealthy]
-    C --> D[Requests fail or return 5xx]
-    D --> E[Route traffic back to revision N]
-    E --> F[Service stabilized]
+    accTitle: Correct an app-wide ingress target-port mismatch
+    accDescr: A healthy Container App becomes unavailable after its shared ingress target port is changed to a port where the container is not listening. Logs and revision state confirm the probe failure. Because the setting applies across revisions, recovery changes the target port back in place and verifies the app becomes healthy again.
+    HEALTHY[Known-good revision and responding app] --> BREAK[Set the lab target port to a non-listening port]
+    BREAK --> OBSERVE[Capture non-Healthy state, probe evidence, and client failure]
+    OBSERVE --> SHARED[Target port is shared across the app, not revision-specific]
+    SHARED --> CORRECT[Restore the listening target port in place]
+    VERIFY[Verify probes and client requests recover]
+    CORRECT --> VERIFY
 ```
+
+The `architecture` diagram shows why this shared-ingress experiment must be repaired in place: every revision sees the same wrong target port, so traffic reassignment is not a recovery mechanism for this fault.
 
 ## 2) Hypothesis
 
-**IF** the ingress `targetPort` is changed from `8000` (matching the container's listening port) to `9999`, **THEN** the affected revision will fail the platform startup probe and be marked non-`Healthy`, **AND** either of the following rollbacks will restore service:
-
-- **(a) Traffic-shift path** — in multi-revision mode, shift `100 %` traffic back to a previous healthy revision.
-- **(b) In-place path** — set `targetPort` back to `8000`; the same revision recovers without redeploy because the container itself never crashed.
+**IF** the app-wide ingress `targetPort` is changed from `8000` (matching the container's listening port) to `9999`, **THEN** revisions reached through that shared ingress setting will fail the platform probe, **AND** setting `targetPort` back to `8000` will restore service without rebuilding the image.
 
 | Variable | Control State | Experimental State |
 |---|---|---|
 | Active revisions mode | Multiple revisions enabled | Multiple revisions enabled |
 | Latest revision target port | `8000` | `9999` |
 | Latest revision health | `Healthy` | Non-`Healthy` |
-| Traffic routing outcome | Stable on healthy revision | Requires traffic reassignment to healthy revision |
+| Ingress recovery | Target port matches the listener | Restore the shared target port in place |
 
 ## 3) Runbook
 
@@ -161,34 +160,131 @@ ca-myapp--0000001  True      100              Healthy
 ./labs/revision-failover/trigger.sh
 ```
 
-The trigger script performs these actions:
+The following abridged excerpt preserves the trigger script's credential lookup, build, deployment, controlled break, and bounded health polling. It omits evidence-file redirection and intermediate state captures; the script polls every 10 seconds for up to 420 seconds rather than relying on a fixed sleep. The 2026-06-23 reproduction required 261 seconds for the revision to transition away from `Healthy`.
 
 ```bash
-az acr build --registry "$ACR_NAME" --image "${APP_NAME}:v1" ./workload
+ACR_USERNAME=$(az acr credential show \
+    --subscription "$AZ_SUBSCRIPTION" \
+    --name "$ACR_NAME" \
+    --query "username" \
+    --output tsv)
 
-az containerapp update \
+ACR_PASSWORD=$(az acr credential show \
+    --subscription "$AZ_SUBSCRIPTION" \
+    --name "$ACR_NAME" \
+    --query "passwords[0].value" \
+    --output tsv)
+
+az acr build \
+    --subscription "$AZ_SUBSCRIPTION" \
+    --registry "$ACR_NAME" \
+    --image "labrevision:v1" \
+    ./workload
+
+az containerapp registry set \
+    --subscription "$AZ_SUBSCRIPTION" \
     --name "$APP_NAME" \
     --resource-group "$RG" \
-    --image "${ACR_LOGIN_SERVER}/${APP_NAME}:v1" \
-    --target-port 8000 \
-    --registry-server "$ACR_LOGIN_SERVER" \
-    --registry-username "$ACR_USERNAME" \
-    --registry-password "$ACR_PASSWORD"
+    --server "$ACR_LOGIN_SERVER" \
+    --username "$ACR_USERNAME" \
+    --password "$ACR_PASSWORD" \
+    --output none
 
-sleep 40
+az containerapp update \
+    --subscription "$AZ_SUBSCRIPTION" \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --image "${ACR_LOGIN_SERVER}/labrevision:v1" \
+    --output json
 
-az containerapp update --name "$APP_NAME" --resource-group "$RG" --target-port 9999
-sleep 40
+az containerapp ingress update \
+    --subscription "$AZ_SUBSCRIPTION" \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --target-port 9999 \
+    --output json
 
-az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
-az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system --tail 20
+BREAK_TIMEOUT=420
+BREAK_INTERVAL=10
+elapsed=0
+while [ "$elapsed" -lt "$BREAK_TIMEOUT" ]; do
+    revision_health=$(az containerapp revision show \
+        --subscription "$AZ_SUBSCRIPTION" \
+        --name "$APP_NAME" \
+        --resource-group "$RG" \
+        --revision "$BASELINE_REVISION_NAME" \
+        --query "properties.healthState" \
+        --output tsv)
+    [ "$revision_health" != "Healthy" ] && break
+    sleep "$BREAK_INTERVAL"
+    elapsed=$((elapsed + BREAK_INTERVAL))
+done
+
+az containerapp revision list \
+    --subscription "$AZ_SUBSCRIPTION" \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --output table
+
+az containerapp logs show \
+    --subscription "$AZ_SUBSCRIPTION" \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --type system \
+    --tail 20
 ```
 
 | Command | Why it is used |
 |---|---|
-| `az acr build --registry ...` | Builds and pushes the container image to Azure Container Registry. |
+| `az acr credential show` | Reads the ACR admin credentials required by this controlled lab. |
+| `--subscription` | Runs the credential lookup against the lab subscription. |
+| `--name` | Selects the registry that stores the lab image. |
+| `--query` | Extracts either the registry username or first password value. |
+| `--output` | Returns each selected credential as unquoted text for shell assignment. |
+| `az acr build` | Builds and pushes the Flask and Gunicorn workload to Azure Container Registry. |
+| `--subscription` | Sends the build request to the subscription that owns the registry. |
+| `--registry` | Targets the lab registry as the build destination. |
+| `--image` | Tags the resulting image as `labrevision:v1`. |
+| `az containerapp registry set` | Configures the registry endpoint and credentials separately because the combined update form is rejected by Azure CLI 2.71.0 and later. |
+| `--subscription` | Applies the registry configuration in the lab subscription. |
+| `--name` | Selects the Container App whose registry credentials are configured. |
+| `--resource-group` | Scopes the registry attachment to the app's resource group. |
+| `--server` | Identifies the ACR login server that hosts the image. |
+| `--username` | Supplies the registry username captured for this lab. |
+| `--password` | Supplies the matching registry password through the shell variable. |
+| `--output` | Suppresses the registry configuration response after success. |
+| `az containerapp update` | Deploys the valid ACR image after registry access is configured. |
+| `--subscription` | Updates the app in the subscription used for this experiment. |
+| `--name` | Selects the Container App that receives the lab image. |
+| `--resource-group` | Locates the app resource group for the baseline image update. |
+| `--image` | Selects the image built for this revision experiment. |
+| `--output` | Requests the baseline update response as JSON. |
+| `az containerapp ingress update` | Changes the app-wide ingress target port without using unsupported `az containerapp update --target-port` syntax. |
+| `--subscription` | Applies the controlled ingress break in the lab subscription. |
+| `--name` | Selects the Container App whose shared ingress target port is changed. |
+| `--resource-group` | Locates the app resource group for the ingress mutation. |
+| `--target-port` | Injects the mismatch by changing the Bicep-provisioned target port from `8000` to `9999`. |
+| `--output` | Requests the ingress update response as JSON. |
+| `az containerapp revision show` | Polls the tracked baseline revision until its health changes or the 420-second budget expires. |
+| `--subscription` | Reads revision health from the experiment subscription. |
+| `--name` | Identifies the Container App that owns the tracked revision. |
+| `--resource-group` | Scopes the health poll to the deployed lab resources. |
+| `--revision` | Selects the baseline revision whose in-place transition is under test. |
+| `--query` | Extracts the revision health state used by the polling condition. |
+| `--output` | Returns the health state as plain text for the shell comparison. |
+| `az containerapp revision list` | Captures the revision inventory after the controlled break. |
+| `--subscription` | Lists revisions from the lab subscription. |
+| `--name` | Selects the Container App whose revisions are inspected. |
+| `--resource-group` | Scopes the inventory query to the app's resource group. |
+| `--output` | Formats the post-break revision inventory as a table. |
+| `az containerapp logs show` | Reads recent system logs for probe or connection failures. |
+| `--subscription` | Reads logs from the subscription used for the reproduction. |
+| `--name` | Selects the Container App that produced the system events. |
+| `--resource-group` | Scopes log retrieval to the lab resource group. |
+| `--type` | Requests platform system logs rather than application console logs. |
+| `--tail` | Limits the excerpt to the 20 most recent system log entries. |
 
-Expected output: a new revision appears with unhealthy status and system logs show probe or connection failures related to the wrong target port.
+Expected output: the tracked revision becomes non-healthy without changing its revision name, and system logs show probe or connection failures related to the wrong target port.
 
 ### Investigate the failure signal
 
@@ -205,55 +301,36 @@ az containerapp logs show \
 
 Expected evidence: probe failure or connection failure associated with the port change.
 
-### Roll traffic back to a healthy revision
-
-```bash
-export HEALTHY_REVISION="$(az containerapp revision list \
-    --name "$APP_NAME" \
-    --resource-group "$RG" \
-    --query "sort_by([?properties.healthState=='Healthy'].{name:name,created:properties.createdTime}, &created)[-1].name" \
-    --output tsv)"
-
-az containerapp ingress traffic set \
-    --name "$APP_NAME" \
-    --resource-group "$RG" \
-    --revision-weight "${HEALTHY_REVISION}=100"
-```
-
-| Command | Why it is used |
-|---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
-
-Expected output: traffic update succeeds and the healthy revision handles requests.
-
 ### Restore the correct target port and verify stabilization
 
 ```bash
 ./labs/revision-failover/verify.sh
 ```
 
-The verify script confirms the latest revision is unhealthy, finds a healthy revision for rollback, then runs:
+The verify script confirms the tracked revision is unhealthy, corrects the shared target port, and then checks that the same revision recovers:
 
 ```bash
-az containerapp ingress traffic set --name "$APP_NAME" --resource-group "$RG" --revision-weight "${HEALTHY_REVISION}=100"
-az containerapp update --name "$APP_NAME" --resource-group "$RG" --target-port 8000
+az containerapp ingress update --name "$APP_NAME" --resource-group "$RG" --target-port 8000
 sleep 40
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "sort_by([].{name:name,created:properties.createdTime,health:properties.healthState}, &created)[-1].health" --output tsv
 ```
 
 | Command | Purpose |
 |---|---|
-| `az containerapp ingress traffic set --name "$APP_NAME" --resource-group "$RG" --revision-weight "${HEALTHY_REVISION}=100"` | Changes revision traffic weights immediately, which is how you roll back to a healthy revision or promote a tested one during mitigation. |
-| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --target-port 8000` | Changes the live container app configuration, which is the corrective action this step is validating or applying. |
-| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "sort_by([].{name:name,created:properties.createdTime,health:properties.healthState}, &created)[-1].health" --output tsv` | Lists revisions and filters them to the health, traffic, or timing fields needed for this hypothesis, so you can see whether rollout state matches the failure pattern. |
+| `az containerapp ingress update` | Restores the app-wide ingress target port without using unsupported `az containerapp update --target-port` syntax. |
+| `--name` | Selects the Container App whose shared ingress target port is restored. |
+| `--resource-group` | Scopes the port restoration to the app deployed by this lab. |
+| `--target-port` | Restores the target port to the workload's listening port, `8000`. |
+| `az containerapp revision list` | Lists revisions so the post-fix health state can be selected. |
+| `--name` | Selects the Container App whose recovered revision is checked. |
+| `--resource-group` | Scopes the recovery query to the lab's deployed app. |
+| `--query` | Selects the latest revision's health value after the ingress correction. |
+| `--output` | Returns the selected health state as plain text. |
 
-Expected output pattern:
+Expected output: the tracked revision reports `Healthy` after the shared target port is corrected.
 
 ```text
-RevisionUpdate        → New revision updated
-RevisionDeactivating  → Prior bad revision deactivated
-RevisionReady         → Stable revision ready
-ContainerAppReady     → Running state reached
+Healthy
 ```
 
 ## 4) Experiment Log
@@ -262,19 +339,19 @@ ContainerAppReady     → Running state reached
 |---|---|---|---|---|
 | 1 | Deploy baseline | Single healthy revision | | |
 | 2 | Capture outputs | Variables populated | | |
-| 3 | Run `trigger.sh` | New unhealthy revision appears | | |
+| 3 | Run `trigger.sh` | The tracked revision becomes non-healthy in place | | |
 | 4 | Review system logs | Port or probe failure evidence appears | | |
-| 5 | Shift traffic to healthy revision | Healthy revision serves traffic | | |
-| 6 | Run `verify.sh` | Corrected revision becomes healthy | | |
+| 5 | Restore `targetPort` to `8000` | The same revision returns to `Healthy` | | |
+| 6 | Run `verify.sh` | In-place correction remains healthy | | |
 
 ## Expected Evidence
 
 | Evidence Source | Expected State |
 |---|---|
-| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Healthy baseline revision exists before trigger; latest revision becomes non-healthy after `targetPort` changes to `9999` |
+| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | The baseline revision is healthy before the trigger and the same revision becomes non-healthy after `targetPort` changes to `9999` |
 | `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | Probe failure or connection failure related to wrong target port |
-| `az containerapp ingress traffic set --name "$APP_NAME" --resource-group "$RG" --revision-weight "${HEALTHY_REVISION}=100"` | Traffic can be restored to a healthy revision without rebuilding first |
-| `./labs/revision-failover/verify.sh` | Rollback path succeeds and latest post-fix revision health improves |
+| `az containerapp ingress update --name "$APP_NAME" --resource-group "$RG" --target-port 8000` | Correcting the shared ingress setting allows the tracked revision to recover without rebuilding |
+| `./labs/revision-failover/verify.sh` | In-place correction succeeds and the post-fix revision health improves |
 
 ### Observed Evidence (Live Azure Test — 2026-05-01)
 
@@ -457,4 +534,5 @@ az group delete --name "$RG" --yes --no-wait
 ## Sources
 
 - [Manage revisions in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/revisions-manage)
+- [Traffic splitting in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting)
 - [Ingress in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview)
