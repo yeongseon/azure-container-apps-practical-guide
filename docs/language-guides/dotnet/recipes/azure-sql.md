@@ -7,6 +7,7 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-overview
         - https://learn.microsoft.com/en-us/sql/connect/ado-net/sql/azure-active-directory-authentication
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 ---
 # Azure SQL Integration (Managed Identity)
 
@@ -17,15 +18,35 @@ Use this recipe to connect Azure Container Apps to Azure SQL Database with Micro
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[.NET Container App]
-    APP --> SQL[Azure SQL Database]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> SQL
+    accTitle: Passwordless Azure SQL request from an ASP.NET Core container app
+    accDescr: A client request reaches the app through managed ingress. SqlClient obtains a database access token through the app's managed identity, then opens an encrypted SQL connection. Azure SQL separately authorizes the contained database user and roles.
+    CLIENT[Client]
+    INGRESS[Managed ingress]
+    APP[ASP.NET Core app<br/>Microsoft.Data.SqlClient]
+    ENDPOINT[Container Apps identity endpoint]
+    ENTRA[Microsoft Entra ID]
+    SQL[Azure SQL Database]
+    AUTHZ[Database authorization result]
+    RESULT[Query result]
+    DENIED[Authorization failure]
+
+    CLIENT ==>|"HTTPS request"| INGRESS
+    INGRESS ==>|"Routed request"| APP
+    APP ==>|"Request database token"| ENDPOINT
+    ENDPOINT ==>|"Token request"| ENTRA
+    ENTRA ==>|"Access token response"| ENDPOINT
+    ENDPOINT ==>|"Return access token"| APP
+    APP ==>|"Encrypted SQL connection + token"| SQL
+    SQL -->|"Evaluate database permissions"| AUTHZ
+    AUTHZ -->|"Allowed"| RESULT
+    AUTHZ -.->|"Denied"| DENIED
+    RESULT ==>|"Query response"| APP
+    DENIED -.->|"Authorization error"| APP
+    APP ==>|"Application response"| INGRESS
+    INGRESS ==>|"HTTPS response"| CLIENT
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+*Figure: Token acquisition, SQL transport, and database authorization are separate steps. Network reachability through a firewall rule, VNet path, or Private Link must already exist.*
 
 ## Prerequisites
 
@@ -43,9 +64,12 @@ az containerapp identity assign \
   --system-assigned
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity assign` | For Azure SQL connectivity, enables the Container App identity that authenticates to the target Azure service. |
+| `--name` | Targets Container App `$APP_NAME` for system-assigned identity enablement. |
+| `--resource-group` | For Azure SQL connectivity, limits the operations in this block to resource group `$RG`. |
+| `--system-assigned` | For Azure SQL connectivity, enables the system-assigned identity on the selected Container App. |
 
 ## Step 2: Grant SQL access to the app identity
 
@@ -66,9 +90,12 @@ az containerapp update \
   --set-env-vars SQL_SERVER="$SQL_SERVER.database.windows.net" SQL_DATABASE="$SQL_DATABASE"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Creates a revision of the app with its Azure SQL server and database settings. |
+| `--name` | Updates the SQL client configuration on `$APP_NAME`. |
+| `--resource-group` | For Azure SQL connectivity, limits the operations in this block to resource group `$RG`. |
+| `--set-env-vars` | Sets `SQL_SERVER` to the logical-server FQDN and `SQL_DATABASE` to the target database. |
 
 ## Step 4: .NET code (managed identity)
 
@@ -126,9 +153,14 @@ az containerapp update \
   --set-env-vars SQL_SERVER="$SQL_SERVER.database.windows.net" SQL_DATABASE="$SQL_DATABASE" SQL_USER="$SQL_USER" SQL_PASSWORD=secretref:sql-password
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp secret set ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+| `az containerapp secret set` | For Azure SQL connectivity, creates the Container Apps secret consumed by the application through `secretref:`. |
+| `--name` | Stores the fallback credential and configures its reference on `$APP_NAME`. |
+| `--resource-group` | For Azure SQL connectivity, limits the operations in this block to resource group `$RG`. |
+| `--secrets` | For Azure SQL connectivity, stores the literal `sql-password="<sql-password>"` value as a Container Apps secret. |
+| `az containerapp update` | Creates a revision that uses SQL authentication instead of the passwordless path. |
+| `--set-env-vars` | Supplies the SQL endpoint, database, user, and `secretref:sql-password` password reference. |
 
 ## Verification
 
@@ -146,3 +178,4 @@ az containerapp update \
 
 - [Azure SQL and Microsoft Entra authentication overview](https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-overview)
 - [Microsoft Entra authentication with SqlClient](https://learn.microsoft.com/en-us/sql/connect/ado-net/sql/azure-active-directory-authentication)
+- [Managed identities in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)

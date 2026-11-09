@@ -16,12 +16,29 @@ Use Key Vault references and Azure SDK integration to keep ASP.NET Core secrets 
 <!-- diagram-id: use-key-vault-references-and-azure -->
 ```mermaid
 flowchart TD
-    APP[ASP.NET Core App] -.-> MI[Managed Identity]
-    MI -.-> KV[Azure Key Vault]
-    KV -.-> SEC[Container Apps Secret Reference]
-    SEC -.-> APP
-    style APP fill:#107c10,color:#fff
+    accTitle: Key Vault reference and direct SDK access are separate secret paths
+    accDescr: For a Container Apps Key Vault reference, the platform uses the selected managed identity to resolve a vault secret into a Container Apps secret, which the revision consumes through secretRef. For direct SDK access, ASP.NET Core obtains a token and calls Key Vault at runtime.
+    IDENTITY[Managed identity]
+    ENTRA[Microsoft Entra ID]
+    KV[Azure Key Vault]
+    PLATFORM[Container Apps secret resolver]
+    SECRET[Container Apps secret<br/>Key Vault reference]
+    REVISION[ASP.NET Core revision<br/>environment secretRef]
+    SDK[ASP.NET Core<br/>Key Vault SDK client]
+
+    IDENTITY -.->|"Selected identity"| PLATFORM
+    PLATFORM ==>|"Resolve Key Vault secret"| KV
+    KV ==>|"Secret value"| PLATFORM
+    PLATFORM -->|"Populate reference"| SECRET
+    SECRET -.->|"Inject through secretRef"| REVISION
+    SDK ==>|"Request access token"| ENTRA
+    ENTRA ==>|"Return access token"| SDK
+    SDK ==>|"Runtime secret request + token"| KV
+    KV ==>|"Runtime secret response"| SDK
+    IDENTITY -.->|"Identity used by SDK credential"| SDK
 ```
+
+*Figure: A Container Apps Key Vault reference is platform-resolved configuration; direct SDK access is an application runtime call. Both require an identity with Key Vault secret permissions, but they have different consumers and rotation behavior.*
 
 ## Prerequisites
 
@@ -60,9 +77,25 @@ az containerapp update \
   --set-env-vars "DB_PASSWORD=secretref:db-password"
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp identity assign ...` | Assigns or inspects managed identity configuration for the Container App. |
+| `az containerapp identity assign` | For Key Vault secret access, enables the Container App identity that authenticates to the target Azure service. |
+| `--name` | Selects `$APP_NAME` for identity and secret configuration and `$KEYVAULT_NAME` for the nested vault lookup. |
+| `--resource-group` | For Key Vault secret access, limits the operations in this block to resource group `$RG`. |
+| `--system-assigned` | For Key Vault secret access, enables the system-assigned identity on the selected Container App. |
+| `az containerapp show` | Reads the app's system-assigned principal ID for the Key Vault role assignment. |
+| `--output` | Returns the principal ID and nested vault resource ID as unquoted `tsv`. |
+| `--query` | Selects `identity.principalId` from the app and `id` from the Key Vault lookup. |
+| `az role assignment create` | Grants the app identity permission to resolve the referenced Key Vault secret. |
+| `--assignee-object-id` | For Key Vault secret access, assigns the role to managed-identity principal `$PRINCIPAL_ID` without a Graph lookup. |
+| `--assignee-principal-type` | For Key Vault secret access, declares the assignee as `ServicePrincipal` for the managed-identity role assignment. |
+| `--role` | For Key Vault secret access, grants role `Key Vault Secrets User` to the selected identity. |
+| `az keyvault show` | For Key Vault secret access, reads the Key Vault resource ID used as the Secrets User role-assignment scope. |
+| `--scope` | Limits `Key Vault Secrets User` to the Key Vault resource ID returned by the nested `az keyvault show` command. |
+| `az containerapp secret set` | For Key Vault secret access, creates the Container Apps secret consumed by the application through `secretref:`. |
+| `--secrets` | For Key Vault secret access, stores `db-password=keyvaultref:https://$KEYVAULT_NAME.vault.azure.net/secrets/db-password,identityref:system` as the Container Apps secret value or Key Vault reference. |
+| `az containerapp update` | Creates a revision that exposes the Container Apps secret through an environment variable. |
+| `--set-env-vars` | Maps `DB_PASSWORD` to `secretref:db-password` without placing the secret value in the revision template. |
 
 ## ASP.NET Core configuration with Key Vault provider
 

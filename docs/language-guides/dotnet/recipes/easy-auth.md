@@ -6,7 +6,7 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/authentication
-        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
+        - https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra
 ---
 # Recipe: Easy Auth in .NET Apps on Azure Container Apps
 
@@ -15,12 +15,37 @@ Use Easy Auth to handle identity at the edge, then map claims inside ASP.NET Cor
 <!-- diagram-id: use-easy-auth-to-handle-identity -->
 ```mermaid
 flowchart TD
-    C[Client] --> AUTH[Easy Auth]
-    AUTH --> IDP[Identity Provider]
-    AUTH --> APP[ASP.NET Core App]
-    APP -.-> HDR[x-ms-client-principal]
-    style APP fill:#107c10,color:#fff
+    accTitle: Easy Auth server-directed sign-in for an ASP.NET Core app
+    accDescr: A browser reaches an external ingress-enabled app. The per-replica authentication module redirects the browser to the configured identity provider, handles the callback and session, then forwards the authenticated request with identity headers to ASP.NET Core.
+    B[Browser]
+    INGRESS[External ingress]
+    AUTH[Authentication module<br/>per replica]
+    IDP[Microsoft Entra ID]
+    APP[ASP.NET Core app]
+    REDIRECT[Sign-in redirect]
+    SESSION[Container Apps session cookie]
+
+    B ==>|"HTTPS GET /protected"| INGRESS
+    INGRESS ==>|"Route request"| AUTH
+    AUTH ==>|"Return redirect"| REDIRECT
+    REDIRECT ==>|"Browser follows redirect"| B
+    B ==>|"Sign in and consent"| IDP
+    IDP ==>|"Redirect with provider response"| B
+    B ==>|"HTTPS GET /.auth/login/&lt;provider&gt;/callback"| INGRESS
+    INGRESS ==>|"Route callback"| AUTH
+    AUTH ==>|"Validate provider response"| IDP
+    IDP ==>|"Identity and claims"| AUTH
+    AUTH ==>|"Set cookie"| SESSION
+    SESSION ==>|"Session cookie"| B
+    B ==>|"HTTPS GET /protected + cookie"| INGRESS
+    INGRESS ==>|"Route authenticated request"| AUTH
+    AUTH ==>|"Request + X-MS-* identity headers"| APP
+    APP ==>|"Application response"| AUTH
+    AUTH ==>|"Return response"| INGRESS
+    INGRESS ==>|"HTTPS response"| B
 ```
+
+*Figure: Easy Auth authenticates the caller before the request reaches ASP.NET Core and supplies identity headers. Application code still enforces role, tenant, and resource authorization.*
 
 ## Prerequisites
 
@@ -35,13 +60,22 @@ az containerapp auth update \
   --name "$APP_NAME" \
   --resource-group "$RG" \
   --enabled true \
-  --platform runtimeVersion "~1" \
-  --global-validation unauthenticatedClientAction RedirectToLoginPage
+  --runtime-version "~1" \
+  --unauthenticated-client-action RedirectToLoginPage \
+  --redirect-provider azureactivedirectory \
+  --require-https true
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp auth update ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp auth update` | For built-in authentication, configures the Container App authentication policy for Microsoft Entra sign-in. |
+| `--enabled` | For built-in authentication, sets Container Apps authentication enabled state to `true`. |
+| `--name` | Applies the built-in authentication policy to Container App `$APP_NAME`. |
+| `--redirect-provider` | For built-in authentication, uses `azureactivedirectory` as the sign-in redirect provider. |
+| `--require-https` | For built-in authentication, sets HTTPS enforcement for authentication redirects to `true`. |
+| `--resource-group` | For built-in authentication, limits the operations in this block to resource group `$RG`. |
+| `--runtime-version` | For built-in authentication, uses authentication runtime version `~1`. |
+| `--unauthenticated-client-action` | For built-in authentication, handles unauthenticated requests with `RedirectToLoginPage`. |
 
 ## ASP.NET Core middleware for claims mapping
 
@@ -99,4 +133,4 @@ app.Run();
 ## Sources
 
 - [Authentication in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/authentication)
-- [Container Apps identity providers](https://learn.microsoft.com/en-us/azure/container-apps/authentication)
+- [Configure Microsoft Entra ID authentication](https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra)

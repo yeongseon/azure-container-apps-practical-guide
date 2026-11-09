@@ -38,14 +38,33 @@ These guides are designed to help you build applications that are "platform-nati
 <!-- diagram-id: tutorial-progression-model -->
 ```mermaid
 flowchart TD
-    A[01 Local Development] --> B[02 First Deploy]
-    B --> C[03 Configuration and Secrets]
-    C --> D[04 Logging and Monitoring]
-    D --> E[05 Infrastructure as Code]
-    E --> F[06 CI/CD]
-    F --> G[07 Revisions and Traffic]
-    G --> H[Recipes and Runtime Tuning]
+    accTitle: Shared language-guide progression
+    accDescr: Each runtime follows the same seven tutorial stages, then branches to its runtime reference and integration recipes. Select Python, Node.js, Java, or .NET before starting the shared sequence.
+    CHOOSE[Choose runtime]
+    PYTHON[Python<br/>Flask + Gunicorn]
+    NODE[Node.js<br/>Express]
+    JAVA[Java<br/>Spring Boot]
+    DOTNET[.NET<br/>ASP.NET Core]
+    LOCAL[01 Local development]
+    DEPLOY[02 First deployment]
+    CONFIG[03 Configuration and secrets]
+    OBSERVE[04 Logging and monitoring]
+    IAC[05 Infrastructure as Code]
+    CICD[06 CI/CD]
+    RELEASE[07 Revisions and traffic]
+    RUNTIME[Runtime reference]
+    RECIPES[Integration recipes]
+
+    CHOOSE --> PYTHON --> LOCAL
+    CHOOSE --> NODE --> LOCAL
+    CHOOSE --> JAVA --> LOCAL
+    CHOOSE --> DOTNET --> LOCAL
+    LOCAL --> DEPLOY --> CONFIG --> OBSERVE --> IAC --> CICD --> RELEASE
+    RELEASE --> RUNTIME
+    RELEASE --> RECIPES
 ```
+
+*Figure: All four language guides use the same numbered learning sequence. Runtime references and recipes retain language-specific implementation details after the common path.*
 
 ## What Each Language Guide Includes
 
