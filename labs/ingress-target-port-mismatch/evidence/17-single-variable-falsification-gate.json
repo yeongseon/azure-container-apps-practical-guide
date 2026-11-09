@@ -10,6 +10,7 @@
       "Listening port of the container is NOT directly captured in the cohort \u2014 it is inferred from the smoking-gun KQL Log_s string `does not match the listening port 80`; a custom image or a runtime port change inside the container would invalidate this inference but is outside the lab's test surface."
     ]
   },
+  "evaluated_at_utc": "2026-11-09T13:05:31Z",
   "gate_classification": "H3 gate: bounds the single-variable claim to the ingress.targetPort integer and explicitly documents what the cohort does not directly prove.",
   "hypothesis": "H3_single_variable_falsification",
   "ingress_target_port_mismatch_h3_single_variable_falsification_all_subgates_pass": true,
@@ -152,6 +153,5 @@
     "target_port_post_fix_expected": 80,
     "target_port_trigger_expected": 8081,
     "transport_expected": "Auto"
-  },
-  "utc_captured": "2026-06-26T05:41:52Z"
+  }
 }

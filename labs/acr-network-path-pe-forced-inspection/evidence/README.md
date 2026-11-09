@@ -23,7 +23,7 @@ The claim ceiling is deliberately narrow: this pack proves only what a single li
 1. **Baseline-presence proof.** `01-app-spec-pre-fix.json` through `07-containerapp-spec-pre-fix.yaml` capture the PE-only baseline and the firewall log window proving Azure Firewall did see ACR traffic before the bypass.
 2. **H1 silence window.** `02-revision-list-pre-fix.json`, `03-route-table-pre-fix.json`, and `08-h1-silence-window.json` capture the broken window after the two customer `/32` PE routes are removed, where pulls still succeed but the firewall sees zero new ACR rows.
 3. **H2 recovery window.** `09-route-table-post-fix.json` through `12-h2-recovery-window.json` capture the restored `/32` routes, healthy `v-recover` revision, and the return of ACR rows in the firewall log.
-4. **Phase B overlay.** `verify.sh` writes Gate 14 through Gate 17 JSONs over the raw cohort without touching Azure.
+4. **Phase B overlay.** `verify.sh` writes Gate 14 through Gate 17 JSONs over the raw cohort without touching Azure. The gates were originally emitted on 2026-06-29 and later re-evaluated offline from unchanged raw files. Every replay writes its invocation time as top-level `evaluated_at_utc`; this is not a capture date and does not establish a current Azure replay or validation date.
 
 ## Gate overview
 
@@ -36,7 +36,8 @@ The claim ceiling is deliberately narrow: this pack proves only what a single li
 
 - The pack captures one live Azure reproduction in `koreacentral`; it is not a statistical sample.
 - `06-firewall-log-baseline.json`, `08-h1-silence-window.json`, and `12-h2-recovery-window.json` preserve explicit firewall-query windows because the silence-gate claim depends on time-bounded absence versus presence.
-- Gate 14 uses file-system UTC anchors (`birthtime`, falling back to `mtime`) so reruns are byte-stable and explicit about the time source for each file.
+- Gate 14 derives authoritative anchors from raw payload fields where available. In particular, `07-containerapp-spec-pre-fix.yaml` uses its declared `systemData.lastModifiedAt`; guarded historical anchors remain available only to the raw-byte-checked replay runner, and file-system birthtime/mtime is the final fallback for raw files without a content timestamp. Every anchor records `anchor_kind` so direct payload, guarded historical, and file-system fallback provenance remain explicit.
+- The hermetic anchor redesign changes Gate 14's non-stamp temporal quantity from the historical 627-second window to 708.733826 seconds. The wider window comes from replacing `07-containerapp-spec-pre-fix.yaml`'s historical `birthtime` anchor (`2026-06-29T00:25:31.381567+00:00`, `anchor_kind=guarded_historical` under guarded replay) with raw `systemData.lastModifiedAt` (`2026-06-29T00:23:52.266174+00:00`, `anchor_kind=direct_payload`). All other content-derived anchors are also labeled `anchor_kind=direct_payload`; raw evidence bytes are unchanged.
 - The pack does not prove exact Azure Firewall ingestion latency, exact pull durations, OCI layer digests, route-propagation subsecond timing, pod continuity, or the specific internal ACA component identity behind the observed workload-subnet source IP. Those ceilings are carried explicitly in Gate 17 `cohort_binding_note.explicit_drops`.
 
 ## File index
@@ -65,7 +66,7 @@ The claim ceiling is deliberately narrow: this pack proves only what a single li
 | Command | Why it is used |
 |---|---|
 | `cd labs/acr-network-path-pe-forced-inspection/` | Enters the lab directory so the verifier resolves `evidence/` relative paths correctly. |
-| `bash verify.sh` | Re-emits the four Phase B gate JSON files from the committed raw cohort without touching Azure. |
+| `bash verify.sh` | Re-emits the four Phase B gate JSON files hermetically from current raw evidence without touching Azure or reading existing gates as anchor sources. |
 
 ```bash
 cd labs/acr-network-path-pe-forced-inspection/

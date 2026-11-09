@@ -18,7 +18,7 @@ This reference summarizes practical runtime defaults for Python workloads on Azu
 ```mermaid
 flowchart TD
     accTitle: Python runtime execution model in Container Apps
-    accDescr: A revision starts the container image and Gunicorn listener. Platform health probes determine readiness, managed ingress routes requests to a ready replica, and console output is collected for logging.
+    accDescr: A revision starts the container image and Gunicorn listener. Platform probes send a request to the listener, the listener returns a probe response, and the platform evaluates readiness before managed ingress routes requests to ready replicas. Console output follows a separate logging path.
     IMAGE[Python container image]
     START[Gunicorn process starts]
     LISTEN[HTTP listener<br/>0.0.0.0:8000]
@@ -32,6 +32,7 @@ flowchart TD
 
     IMAGE --> START --> LISTEN
     PROBES ==>|"Probe request"| LISTEN
+    LISTEN ==>|"Probe response"| PROBES
     PROBES -->|"Evaluate result"| READY
     READY -.->|"Ready replicas are eligible"| INGRESS
     READY -->|"Not ready"| NOT_READY
@@ -40,7 +41,7 @@ flowchart TD
     CONSOLE ==>|"Log transport"| LOGS
 ```
 
-*Figure: Runtime startup, health evaluation, request routing, and console-log collection are separate paths. The port and application process are repository defaults; configure ingress `targetPort` and probes to match them.*
+*Figure: Runtime startup, the probe request and listener response, readiness evaluation, request routing, and console-log collection are separate paths. The port and application process are repository defaults; configure ingress `targetPort` and probes to match them.*
 
 !!! tip "Treat runtime settings as deployment contracts"
     Keep port binding, process model, and logging behavior stable between revisions. Changing all three at once makes incident triage much harder.

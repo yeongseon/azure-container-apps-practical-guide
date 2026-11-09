@@ -1,6 +1,7 @@
 {
   "claim": "The 25-file ingress-target-port-mismatch evidence cohort is internally consistent: the canonical files are present, the baseline\u2192trigger\u2192fix\u2192post-fix anchors are monotonic and bounded, no unexpected non-junk extras exist, and evidence/README.md cross-references all four Phase B gate JSON files.",
   "claim_level": "Observed",
+  "evaluated_at_utc": "2026-11-09T13:05:31Z",
   "gate_classification": "Cohort integrity gate: structural pre-condition for the three hypothesis gates. Strong and fallback evidence paths are both recorded for sub-gates (a) and (b), but any failing sub-gate falsifies the full Phase B run.",
   "hypothesis": "H_cohort_integrity",
   "ingress_target_port_mismatch_h_cohort_integrity_all_subgates_pass": true,
@@ -226,6 +227,5 @@
     ],
     "temporal_span_fallback_seconds_max": 5400,
     "temporal_span_strong_seconds_max": 1800
-  },
-  "utc_captured": "2026-06-26T05:41:52Z"
+  }
 }

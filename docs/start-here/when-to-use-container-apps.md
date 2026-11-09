@@ -130,7 +130,7 @@ The positions summarize relative service models from the cited guidance; they ar
 ```mermaid
 flowchart TD
     accTitle: Choose an Azure application or container compute service
-    accDescr: After the function-model and Kubernetes-control checks, separate finite-duration jobs from continuously running applications. Prefer Container Apps Jobs for native manual, scheduled, or event-driven job execution, Container Instances for isolated run-once work launched externally, Container Apps for managed continuous container applications that need revisions or event scaling, App Service for managed web applications, Functions for a function-first model, or AKS for direct Kubernetes control.
+    accDescr: After the function-model and Kubernetes-control checks, separate finite-duration jobs from continuously running applications. A distinct worker route leads from the managed web decision to Container Apps without sharing the revisions or event-scaling route. Prefer Container Apps Jobs for native jobs, Container Instances for externally launched run-once work, App Service for managed web applications, Functions for a function-first model, or AKS for direct Kubernetes control.
 
     START[Define workload and ownership]
     FUNCTION{Function-first<br/>event model?}
@@ -145,6 +145,7 @@ flowchart TD
     APP_SERVICE[Azure App Service]
     CONTAINER_APPS_JOBS[Azure Container Apps Jobs]
     ACI[Azure Container Instances]
+    WORKER[Continuous worker<br/>without managed web]
 
     START -->|Choose a model| FUNCTION
     FUNCTION -->|Yes| FUNCTIONS
@@ -158,10 +159,11 @@ flowchart TD
     MANAGED_APP -->|Yes| CONTAINER_APPS
     MANAGED_APP -->|No| WEB
     WEB -->|Yes| APP_SERVICE
-    WEB -->|No, worker| CONTAINER_APPS
+    WEB -->|No| WORKER
+    WORKER -->|Use managed containers| CONTAINER_APPS
 ```
 
-Each decision has both outcomes. After the function-model and Kubernetes-control checks, the tree classifies finite-duration work before evaluating continuous-application features, so scheduled, event-driven, and manual jobs reach the Jobs decision instead of the continuous-application path. Treat the result as a starting point for evaluation, then validate networking, scaling, runtime, governance, and cost requirements in the linked service documentation.
+Each decision has both outcomes. After the function-model and Kubernetes-control checks, the tree classifies finite-duration work before evaluating continuous-application features, so scheduled, event-driven, and manual jobs reach the Jobs decision instead of the continuous-application path. A separate worker node keeps the final Container Apps route legible. Treat the result as a starting point for evaluation, then validate networking, scaling, runtime, governance, and cost requirements in the linked service documentation.
 
 !!! tip "Start from operational ownership"
     The most reliable decision point is not feature count; it is who will own ongoing operations and how much control they can realistically support.
