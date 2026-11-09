@@ -343,6 +343,17 @@ def parse_iso(text: str):
     return value.astimezone(timezone.utc)
 
 def resolve_anchor_timestamp(name: str):
+    if name == "07-containerapp-spec-pre-fix.yaml":
+        value = spec_pre.get("systemData", {}).get("lastModifiedAt")
+        if isinstance(value, str) and value:
+            dt = parse_iso(value)
+            return {
+                "timestamp": dt,
+                "timestamp_utc": dt.isoformat(),
+                "time_source": "systemData.lastModifiedAt",
+                "raw_epoch": value,
+                "anchor_kind": "direct_payload",
+            }
     if name == "06-firewall-log-baseline.json":
         dt = parse_iso(baseline_payload.get("window_end_utc"))
         return {
@@ -350,6 +361,7 @@ def resolve_anchor_timestamp(name: str):
             "timestamp_utc": dt.isoformat(),
             "time_source": "payload.window_end_utc",
             "raw_epoch": baseline_payload.get("window_end_utc"),
+            "anchor_kind": "direct_payload",
         }
     if name == "08-h1-silence-window.json":
         dt = parse_iso(h1_payload.get("h1_trigger_ts_utc"))
@@ -358,6 +370,7 @@ def resolve_anchor_timestamp(name: str):
             "timestamp_utc": dt.isoformat(),
             "time_source": "payload.h1_trigger_ts_utc",
             "raw_epoch": h1_payload.get("h1_trigger_ts_utc"),
+            "anchor_kind": "direct_payload",
         }
     if name == "02-revision-list-pre-fix.json" and pre_bypass_revision is not None:
         dt = parse_iso(pre_bypass_revision.get("properties", {}).get("createdTime"))
@@ -366,6 +379,7 @@ def resolve_anchor_timestamp(name: str):
             "timestamp_utc": dt.isoformat(),
             "time_source": "revision.createdTime",
             "raw_epoch": pre_bypass_revision.get("properties", {}).get("createdTime"),
+            "anchor_kind": "direct_payload",
         }
     if name == "09-route-table-post-fix.json":
         dt = parse_iso(h2_payload.get("h2_recovery_ts_utc"))
@@ -374,6 +388,7 @@ def resolve_anchor_timestamp(name: str):
             "timestamp_utc": dt.isoformat(),
             "time_source": "payload.h2_recovery_ts_utc",
             "raw_epoch": h2_payload.get("h2_recovery_ts_utc"),
+            "anchor_kind": "direct_payload",
         }
     if name == "10-revision-list-post-fix.json" and post_recover_revision is not None:
         dt = parse_iso(post_recover_revision.get("properties", {}).get("createdTime"))
@@ -382,6 +397,7 @@ def resolve_anchor_timestamp(name: str):
             "timestamp_utc": dt.isoformat(),
             "time_source": "revision.createdTime",
             "raw_epoch": post_recover_revision.get("properties", {}).get("createdTime"),
+            "anchor_kind": "direct_payload",
         }
     if name == "12-h2-recovery-window.json":
         dt = parse_iso(h2_payload.get("h2_recovery_ts_utc"))
@@ -390,6 +406,7 @@ def resolve_anchor_timestamp(name: str):
             "timestamp_utc": dt.isoformat(),
             "time_source": "payload.h2_recovery_ts_utc",
             "raw_epoch": h2_payload.get("h2_recovery_ts_utc"),
+            "anchor_kind": "direct_payload",
         }
     if EXISTING_GATE14 is not None:
         observed = EXISTING_GATE14.get("sub_gates", [{}, {}])[1].get("observed_values", {})
@@ -402,6 +419,7 @@ def resolve_anchor_timestamp(name: str):
                 "timestamp_utc": prior["timestamp_utc"],
                 "time_source": prior.get("time_source", "mtime"),
                 "raw_epoch": prior.get("raw_epoch"),
+                "anchor_kind": "guarded_historical",
             }
     stat = (EVIDENCE_DIR / name).stat()
     birthtime = getattr(stat, "st_birthtime", None)
@@ -412,6 +430,7 @@ def resolve_anchor_timestamp(name: str):
             "timestamp_utc": dt.isoformat(),
             "time_source": "birthtime",
             "raw_epoch": birthtime,
+            "anchor_kind": "filesystem_fallback",
         }
     dt = datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc)
     return {
@@ -419,6 +438,7 @@ def resolve_anchor_timestamp(name: str):
         "timestamp_utc": dt.isoformat(),
         "time_source": "mtime",
         "raw_epoch": stat.st_mtime,
+        "anchor_kind": "filesystem_fallback",
     }
 
 def parse_revision_id(revision_id: str):
@@ -1020,8 +1040,8 @@ gate14 = {
                 "utc_window_end": utc_window_end.isoformat(),
                 "utc_window_span_seconds": utc_window_span_seconds,
                 "monotonic_ordering_holds": monotonic_ordering_holds,
-                "pre_anchor_timestamps": {name: {"timestamp_utc": info["timestamp_utc"], "time_source": info["time_source"], "raw_epoch": info["raw_epoch"]} for name, info in pre_anchor_infos.items()},
-                "post_anchor_timestamps": {name: {"timestamp_utc": info["timestamp_utc"], "time_source": info["time_source"], "raw_epoch": info["raw_epoch"]} for name, info in post_anchor_infos.items()},
+        "pre_anchor_timestamps": {name: {"timestamp_utc": info["timestamp_utc"], "time_source": info["time_source"], "raw_epoch": info["raw_epoch"], "anchor_kind": info["anchor_kind"]} for name, info in pre_anchor_infos.items()},
+        "post_anchor_timestamps": {name: {"timestamp_utc": info["timestamp_utc"], "time_source": info["time_source"], "raw_epoch": info["raw_epoch"], "anchor_kind": info["anchor_kind"]} for name, info in post_anchor_infos.items()},
                 "sorted_anchor_sequence": sorted_anchor_sequence,
                 "strict_pairwise_order_checks": monotonic_pairs,
                 "strong": {"holds": strong_temporal, "max_span_seconds": 1800},
