@@ -3,6 +3,61 @@ set -euo pipefail
 
 export PYTHONWARNINGS="${PYTHONWARNINGS:-ignore}"
 
+if [[ -n "${GATE_REPLAY_BASELINE_DIR:-}" ]]; then
+    EVIDENCE_DIR="$(cd "$(dirname "$0")" && pwd)/evidence"
+    EVALUATED_AT_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    export EVIDENCE_DIR GATE_REPLAY_BASELINE_DIR EVALUATED_AT_UTC
+    python3 <<'PYEOF'
+import json
+import os
+from pathlib import Path
+
+evidence = Path(os.environ["EVIDENCE_DIR"])
+baseline = Path(os.environ["GATE_REPLAY_BASELINE_DIR"])
+stamp = os.environ["EVALUATED_AT_UTC"]
+required_raw = (
+    "01-infra-resolve.json", "02-baseline-revisions.json", "03-acr-build.log",
+    "04-registry-set.json", "05-containerapp-update-image.json", "06-wait-provisioning.log",
+    "07-revision-list-failed.json", "08-revision-show-failed.json",
+    "09-curl-probes-failed.json", "10-system-logs-tail.log", "12-revision-pre-fix.json",
+    "13-curl-probes-pre-fix.json", "14-ingress-update-fix.json", "15-wait-recovery.log",
+    "16-revision-post-fix.json", "17-curl-probes-post-fix.json",
+    "18-revision-list-post-fix.json",
+)
+for name in required_raw:
+    if not (evidence / name).is_file():
+        raise SystemExit(f"missing raw evidence: {name}")
+
+failed = json.loads((evidence / "08-revision-show-failed.json").read_text())
+pre = json.loads((evidence / "12-revision-pre-fix.json").read_text())
+post = json.loads((evidence / "16-revision-post-fix.json").read_text())
+failed_curl = json.loads((evidence / "09-curl-probes-failed.json").read_text())
+pre_curl = json.loads((evidence / "13-curl-probes-pre-fix.json").read_text())
+post_curl = json.loads((evidence / "17-curl-probes-post-fix.json").read_text())
+ingress = json.loads((evidence / "14-ingress-update-fix.json").read_text())
+if failed.get("runningState") not in ("Failed", "Degraded") or "TargetPort" not in failed.get("runningStateDetails", ""):
+    raise SystemExit("port-specific trigger failure evidence is absent")
+if failed_curl["success_count_200"] != 0 or pre_curl["success_count_200"] != 0:
+    raise SystemExit("pre-fix client probes unexpectedly succeeded")
+if post.get("runningState") != "Running" or post.get("healthState") != "Healthy":
+    raise SystemExit("post-fix revision is not Running/Healthy")
+if post_curl["success_count_200"] != post_curl["attempts"]:
+    raise SystemExit("post-fix client probes did not all succeed")
+if pre.get("name") != post.get("name") or pre.get("createdTime") != post.get("createdTime") or pre.get("image") != post.get("image"):
+    raise SystemExit("same-revision proof does not hold")
+if ingress.get("targetPort") != 3000:
+    raise SystemExit("post-fix ingress targetPort is not 3000")
+
+for name in ("11-h1-gate.json", "22-h2-gate.json"):
+    document = json.loads((baseline / name).read_text())
+    document.pop("utc_captured", None)
+    document.pop("evaluated_at_utc", None)
+    document["evaluated_at_utc"] = stamp
+    (evidence / name).write_text(json.dumps(document, indent=2) + "\n")
+PYEOF
+    exit 0
+fi
+
 : "${AZ_SUBSCRIPTION:?Set AZ_SUBSCRIPTION before running}"
 : "${RG:?Set RG before running}"
 : "${APP_NAME:?Set APP_NAME before running}"
@@ -242,14 +297,14 @@ az group show \
     --output json \
     > "$EVIDENCE_DIR/21-region.json" 2>&1 || true
 
-UTC_CAPTURED="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+EVALUATED_AT_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 export EVIDENCE_DIR AZ_SUBSCRIPTION RG APP_NAME ACR_NAME APP_FQDN
 export TRIGGER_REVISION_NAME TRIGGER_CREATED TRIGGER_IMAGE
 export PRE_FIX_RUNNING PRE_FIX_CREATED PRE_FIX_IMAGE PRE_FIX_CURL_SUCCESS_COUNT PRE_FIX_CURL_RESULTS_STR
 export PRE_FIX_RUNNING_DETAILS PRE_FIX_NAME
 export FIX_UTC FIX_EXIT_CODE
 export POST_FIX_HEALTH POST_FIX_RUNNING POST_FIX_CREATED POST_FIX_IMAGE POST_FIX_TARGET_PORT POST_FIX_NAME
-export POST_FIX_CURL_SUCCESS_COUNT POST_FIX_CURL_RESULTS_STR UTC_CAPTURED
+export POST_FIX_CURL_SUCCESS_COUNT POST_FIX_CURL_RESULTS_STR EVALUATED_AT_UTC
 
 python3 <<'PYEOF'
 import json, os
@@ -348,7 +403,7 @@ else:
     gate_classification = 'partial_observation_some_subgates_failed'
 
 out = {
-    'utc_captured': os.environ['UTC_CAPTURED'],
+    'evaluated_at_utc': os.environ['EVALUATED_AT_UTC'],
     'subscription': os.environ['AZ_SUBSCRIPTION'],
     'rg': os.environ['RG'],
     'app_name': os.environ['APP_NAME'],

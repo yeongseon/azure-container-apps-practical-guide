@@ -1,5 +1,4 @@
 {
-  "utc_captured": "2026-06-23T22:23:35Z",
   "subscription": "00000000-0000-0000-0000-000000000000",
   "rg": "rg-aca-lab-port",
   "app_name": "ca-labport-zopng3",
@@ -45,5 +44,6 @@
     "e_target_port_still_mismatched": true
   },
   "h1_all_subgates_pass": true,
-  "gate_classification": "port_mismatch_probe_failure_reproduced"
+  "gate_classification": "port_mismatch_probe_failure_reproduced",
+  "evaluated_at_utc": "2026-11-09T13:09:21Z"
 }

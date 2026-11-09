@@ -62,6 +62,8 @@ bash labs/probe-and-port-mismatch/cleanup.sh   # async resource group delete
 
 The committed evidence pack was captured on **2026-06-23** against Container App `ca-labport-zopng3` (Korea Central), assembled in two phases: the original ACR build + image-update fault injection (14:05–14:06 UTC) that minted the failed revision `--0000001`, and a strengthened snapshot capture (22:23–22:40 UTC) after the provisioning poll was widened to 30 attempts × 10 s. The H1 gate confirms the failed/degraded revision state plus probe-failure evidence; the H2 gate confirms the same revision name and `createdTime` recover after the ingress `targetPort` fix. See [`evidence/README.md`](evidence/README.md) for the file index, the non-gating `06-wait-provisioning.log` note, and CLI versions.
 
+The gates were originally emitted during that capture and later re-evaluated offline from unchanged raw evidence. A replay writes its invocation time as `evaluated_at_utc`; it does not create a new capture or validation date.
+
 ## Cost and cleanup
 
 Expected runtime ~30 minutes; estimated cost <$0.50 USD (Consumption plan, single container, Basic ACR SKU, single ~5 KB Python image). Run `cleanup.sh` immediately after capturing evidence.
