@@ -46,16 +46,25 @@ Use this playbook when new revisions fail to start or scale-out events fail inte
 <!-- diagram-id: docker-hub-rate-limit-decision-flow -->
 ```mermaid
 flowchart TD
-    A[Image pull fails during revision start] --> B[Read system log error]
-    B --> C{Error contains toomanyrequests?}
-    C -->|No| D[Use Image Pull Failure playbook instead]
-    C -->|Yes| E[Check image registry and auth configuration]
-    E --> F{Authenticated Docker Hub or mirrored registry configured?}
-    F -->|No| G[Anonymous pull rate limit is likely]
-    F -->|Yes| H[Check credentials, retries, and image source]
-    G --> I[Add registry credentials or mirror image into ACR]
-    H --> J[Retest with controlled pull source]
+    accTitle: Classify a Docker Hub image-pull rate failure
+    accDescr: Require registry response evidence before attributing a pull failure to rate limiting, then separate anonymous access from configured credentials and verify the image through a controlled source.
+
+    START[Image pull fails] --> ERROR{System log reports<br/>a rate-limit response?}
+    ERROR -->|No| OTHER[Use the general image-pull<br/>decision path]
+    ERROR -->|Yes| SOURCE{Image source is Docker Hub?}
+    SOURCE -->|No| REGISTRY[Investigate the actual registry]
+    SOURCE -->|Yes| AUTH{Docker Hub credentials<br/>configured and valid?}
+    AUTH -->|No| ANON[Anonymous rate limiting<br/>is supported by evidence]
+    AUTH -->|Yes| CREDS[Validate credentials, image path,<br/>and registry response]
+    ANON --> MIRROR[Authenticate or mirror<br/>the image into ACR]
+    CREDS --> RETEST[Retry after correcting<br/>the verified cause]
+    MIRROR --> RETEST
+    RETEST --> PULL{New revision pulls image?}
+    PULL -->|Yes| DONE[Pull path verified]
+    PULL -->|No| OTHER
 ```
+
+*Figure: A `toomanyrequests` registry response supports the rate-limit hypothesis; image source and authentication still need independent verification.*
 
 1. Confirm the configured image source and capture the system log message.
 
@@ -72,10 +81,15 @@ flowchart TD
         --type system
     ```
 
-| Command | Purpose |
-|---|---|
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].image" --output tsv` | Reads the Container App resource and extracts the exact image reference the revision is trying to pull as plain text for reuse in later commands, which is the specific surface this troubleshooting step needs to confirm. |
-| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | Pulls Container Apps system logs, which is where provisioning, probe, scaler, and image-pull failures appear before application code starts. |
+    | Command or parameter | Purpose |
+    |---|---|
+    | `az containerapp show` | Read the image URI to verify whether it references Docker Hub (index.docker.io) or another registry. |
+    | `az containerapp logs show` | Capture the exact system-level pull error including response codes and rate-limit indicators. |
+    | `--name` | Target the app under investigation. |
+    | `--output` | Format image as tsv for parsing. |
+    | `--query` | Extract the container image configuration value. |
+    | `--resource-group` | Scope to the resource group containing the app. |
+    | `--type` | Request system logs for registry-level pull errors and platform events. |
 
 2. Review registry configuration for the app.
 
@@ -87,9 +101,13 @@ flowchart TD
         --output json
     ```
 
-    | Command | Purpose |
+    | Command or parameter | Purpose |
     |---|---|
-    | `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.registries" --output json` | Reads the app's registry configuration so you can tell whether the Docker Hub image is being pulled anonymously or through an alternate registry/auth configuration before blaming rate limiting. |
+    | `az containerapp show` | List all configured registry credentials to check whether Docker Hub authentication is present. |
+    | `--name` | Target the app being debugged. |
+    | `--output` | Format as json to preserve the full registry configuration structure. |
+    | `--query` | Extract the registries array to see all configured pull credentials. |
+    | `--resource-group` | Keep the query in the resource group containing the affected app. |
 
 3. Search for repeated rate-limit errors during deployment or scale-out windows.
 
@@ -105,10 +123,10 @@ flowchart TD
 
 | Command or Query | Why it is used |
 |---|---|
-| `az containerapp show --query image` | Verifies that the app is actually pulling from Docker Hub rather than another registry. |
-| `az containerapp logs show --type system` | Captures the exact image-pull failure signal. |
-| `az containerapp show --query registries` | Determines whether authenticated pull configuration exists. |
-| KQL for rate-limit text | Shows whether the issue is transient repetition of the same pull-limit error. |
+| `az containerapp show --query image` | Confirm the app is pulling from Docker Hub and not a private registry that may have different limits. |
+| `az containerapp logs show --type system` | Capture the exact HTTP response from Docker Hub indicating rate-limit exhaustion. |
+| `az containerapp show --query registries` | Check whether authentication credentials have been configured for Docker Hub, which would bypass anonymous limits. |
+| KQL for rate-limit text | Distinguish one-time pull failures from sustained rate-limit blocking across multiple revisions or scale attempts. |
 
 ## Resolution
 
@@ -126,9 +144,14 @@ flowchart TD
         --password "<docker-hub-access-token>"
     ```
 
-    | Command | Why it is used |
+    | Command or parameter | Purpose |
     |---|---|
-    | `az containerapp registry set ...` | Runs the Azure CLI operation required by the documented step. |
+    | `az containerapp registry set` | Configure Docker Hub credentials for authenticated pulls that bypass anonymous rate limits. |
+    | `--name` | Apply credentials to the specified container app. |
+    | `--password` | Provide a Docker Hub personal access token (preferred over a password). |
+    | `--resource-group` | Update the app in the target resource group. |
+    | `--server` | Use the Docker Hub registry FQDN (index.docker.io). |
+    | `--username` | Specify the Docker Hub username associated with the access token. |
 
 ## Prevention
 

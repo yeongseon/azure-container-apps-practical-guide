@@ -37,16 +37,25 @@ Use this playbook when built-in auth to Microsoft Entra ID fails, sign-in loops,
 <!-- diagram-id: easyauth-entra-id-failure-flow -->
 ```mermaid
 flowchart TD
-    A[Sign-in fails] --> B[Check EasyAuth configuration]
-    B --> C[Identify callback host name]
-    C --> D[Compare redirect URI in Entra ID]
-    D --> E{Exact match}
-    E -->|No| F[Fix redirect or reply URL]
-    E -->|Yes| G[Check tenant, client ID, issuer]
-    G --> H{Values aligned}
-    H -->|No| I[Correct EasyAuth provider settings]
-    H -->|Yes| J[Test login again]
+    accTitle: Diagnose Microsoft Entra sign-in through built-in authentication
+    accDescr: Follow the browser request through Container Apps authentication to Microsoft Entra ID, verify the callback URI and provider identifiers, then confirm the authenticated request reaches the app.
+
+    CLIENT[Browser] ==>|Request protected URL| AUTH[Container Apps<br/>authentication sidecar]
+    AUTH --> CONFIG{Microsoft Entra provider<br/>configured correctly?}
+    CONFIG -->|No| PROVIDER[Correct tenant, client ID,<br/>secret, and issuer]
+    CONFIG -->|Yes| REDIRECT[Redirect browser to<br/>Microsoft Entra ID]
+    REDIRECT ==>|Authorization request| ENTRA[Microsoft Entra ID]
+    ENTRA ==>|Callback response| CALLBACK["/.auth/login/aad/callback"]
+    CALLBACK --> URI{Callback URI exactly matches<br/>the app registration?}
+    URI -->|No| REPLY[Correct registered redirect URI]
+    URI -->|Yes| SESSION[Establish authenticated session]
+    SESSION ==>|Authenticated request| APP[Application endpoint]
+    PROVIDER --> RETEST[Retest in a fresh session]
+    REPLY --> RETEST
+    RETEST --> CLIENT
 ```
+
+*Figure: The authorization request and Entra callback are separate exchanges; an exact redirect-URI match is required before Container Apps can establish a session.*
 
 ## Possible Causes
 
@@ -75,10 +84,14 @@ az containerapp show \
     --output tsv
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp auth show --name "$APP_NAME" --resource-group "$RG" --output json` | Shows the active authentication provider settings that Container Apps is using. |
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.fqdn" --output tsv` | Retrieves the current application hostname so you can derive the exact callback URL. |
+| `az containerapp auth show` | Reads the built-in authentication configuration (provider, client ID, tenant) to compare against the Entra registration. |
+| `az containerapp show` | Reads the app FQDN to identify the exact hostname users hit during sign-in flows. |
+| `--name` | Targets the app whose auth configuration is being inspected. |
+| `--output` | Formats as JSON (for parsing) or TSV (for quick value extraction). |
+| `--query` | Extracts the ingress FQDN property from the full app config. |
+| `--resource-group` | Ensures queries target the correct resource group. |
 
 Expected callback pattern:
 
@@ -103,9 +116,15 @@ az containerapp auth microsoft update \
     --yes
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp auth microsoft update --name "$APP_NAME" --resource-group "$RG" --client-id "<APP_ID>" --client-secret "<SECRET>" --tenant-id "<TENANT_ID>" --yes` | Updates the Container Apps Microsoft provider settings so they match the intended Entra app registration. |
+| `az containerapp auth microsoft update` | Updates the Microsoft Entra provider settings (client ID, secret, tenant) to match the registered app. |
+| `--client-id` | Sets the Azure AD app ID (also called application ID). |
+| `--client-secret` | Sets the client secret provisioned in the Entra app registration. |
+| `--name` | Targets the app whose auth provider is being reconfigured. |
+| `--resource-group` | Ensures the update targets the correct resource group. |
+| `--tenant-id` | Sets the Azure AD tenant ID (also called directory ID). |
+| `--yes` | Skips the confirmation prompt. |
 
 ## Prevention
 

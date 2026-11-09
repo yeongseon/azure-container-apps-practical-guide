@@ -36,18 +36,27 @@ Use this playbook when an event-driven job creates too many executions, drains a
 <!-- diagram-id: event-job-storm-flow -->
 ```mermaid
 flowchart TD
-    A[Execution count surges] --> B[Review trigger type and scale metadata]
-    B --> C[Inspect execution history]
-    C --> D{Backlog legitimately large}
-    D -->|Yes| E[Tune max executions and downstream capacity]
-    D -->|No| F[Check duplicate or poison messages]
-    F --> G{Messages are reappearing}
-    G -->|Yes| H[Fix consumer completion or dead-letter policy]
-    G -->|No| I[Reduce trigger aggressiveness]
-    E --> J[Re-run with bounded concurrency]
-    H --> J
-    I --> J
+    accTitle: Diagnose an event-driven job execution storm
+    accDescr: Compare scaler configuration, authenticated event-source backlog, and execution history before deciding whether to cap executions or repair duplicate and poison-message handling.
+
+    START[Execution count surges] --> RULE[Inspect event trigger,<br/>metadata, and authentication]
+    RULE --> SOURCE{Scaler reads the intended<br/>event source?}
+    SOURCE -->|No| CONFIG[Correct source metadata<br/>or scaler authentication]
+    SOURCE -->|Yes| BACKLOG{Backlog justifies<br/>the execution count?}
+    BACKLOG -->|Yes| CAP[Set safe maximum executions<br/>for downstream capacity]
+    BACKLOG -->|No| REAPPEAR{Messages reappear or<br/>repeat business keys?}
+    REAPPEAR -->|Yes| DELIVERY[Fix completion, retry,<br/>and dead-letter handling]
+    REAPPEAR -->|No| THRESHOLD[Reduce trigger sensitivity<br/>and polling fan-out]
+    CONFIG --> TEST[Replay a controlled backlog]
+    CAP --> TEST
+    DELIVERY --> TEST
+    THRESHOLD --> TEST
+    TEST --> BOUNDED{Execution fan-out bounded?}
+    BOUNDED -->|Yes| DONE[Record safe capacity envelope]
+    BOUNDED -->|No| ESCALATE[Collect scaler and queue evidence]
 ```
+
+*Figure: Event-driven jobs create executions from scaler results; source authentication and duplicate delivery must be verified before tuning concurrency.*
 
 ## Possible Causes
 
@@ -77,15 +86,19 @@ az containerapp job execution list \
 
 az containerapp job list \
     --resource-group "$RG" \
-    --environment "$ACA_ENV_NAME" \
+    --query "[?properties.environmentId != null && ends_with(properties.environmentId, '/$ACA_ENV_NAME')].{name:name, triggerType:properties.configuration.triggerType}" \
     --output table
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp job show --name "$JOB_NAME" --resource-group "$RG" --output json` | Confirms the job trigger model and lets you inspect queue-related metadata in the applied definition. |
-| `az containerapp job execution list --name "$JOB_NAME" --resource-group "$RG" --output table` | Shows how many executions were launched and whether they cluster in short time windows. |
-| `az containerapp job list --resource-group "$RG" --environment "$ACA_ENV_NAME" --output table` | Verifies you are looking at the correct job in the intended Container Apps environment. |
+| `az containerapp job show` | Reads the job definition to identify trigger type and event-source metadata. |
+| `az containerapp job execution list` | Lists job execution history to correlate execution count with queue backlog timing. |
+| `az containerapp job list` | Enumerates all jobs in the environment and filters by event-driven trigger type. |
+| `--name` | Targets the specific job whose execution storm is being investigated. |
+| `--output` | Formats as JSON (full config) or table (quick review). |
+| `--query` | Filters the job list to show only trigger type and name for fast scanning. |
+| `--resource-group` | Ensures queries target the correct resource group. |
 
 KQL to correlate burst timing:
 
@@ -113,9 +126,12 @@ az containerapp job show \
     --output yaml
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp job show --name "$JOB_NAME" --resource-group "$RG" --output yaml` | Provides the current job definition so you can reapply a safer event trigger and concurrency envelope through YAML or IaC. |
+| `az containerapp job show` | Reads the post-change job definition to verify trigger settings and scaling limits are applied. |
+| `--name` | Targets the event-driven job whose configuration was tuned. |
+| `--output` | Emits YAML to preserve nested trigger and scale configuration structure. |
+| `--resource-group` | Ensures the query targets the correct resource group. |
 
 ## Prevention
 

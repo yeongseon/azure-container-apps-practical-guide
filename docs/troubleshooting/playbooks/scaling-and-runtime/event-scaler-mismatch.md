@@ -37,15 +37,28 @@ A scaler mismatch can look like low traffic, platform delay, or an insufficient 
 <!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
 flowchart TD
-    A[Backlog increases, no scale-out] --> B{Trigger metadata matches source?}
-    B -->|No| C[Correct queue or event metadata]
-    B -->|Yes| D{Scaler auth works?}
-    D -->|No| E[Fix identity or secret credentials]
-    D -->|Yes| F[Tune polling and threshold settings]
-    C --> G[Retest with synthetic backlog]
-    E --> G
-    F --> G
+    accTitle: Diagnose a custom event scaler mismatch
+    accDescr: Validate event-source metadata and scaler authentication before tuning thresholds, then use a controlled backlog to verify that replicas respond within configured limits.
+
+    START[Backlog grows without scale-out] --> SOURCE{Rule type and metadata match<br/>the actual event source?}
+    SOURCE -->|No| METADATA[Correct queue, topic,<br/>subscription, or consumer metadata]
+    SOURCE -->|Yes| AUTH{Scaler can authenticate<br/>to the event source?}
+    AUTH -->|No| CREDENTIALS[Correct secret mapping<br/>or managed identity]
+    AUTH -->|Yes| METRIC{Scaler can read a<br/>nonzero event metric?}
+    METRIC -->|No| CONNECTIVITY[Check network path,<br/>permissions, and source state]
+    METRIC -->|Yes| LIMITS{Threshold and replica limits<br/>match the backlog?}
+    LIMITS -->|No| TUNE[Tune threshold, polling,<br/>minimum, and maximum]
+    LIMITS -->|Yes| TEST[Create a controlled backlog]
+    METADATA --> TEST
+    CREDENTIALS --> TEST
+    CONNECTIVITY --> TEST
+    TUNE --> TEST
+    TEST --> SCALE{Replicas increase?}
+    SCALE -->|Yes| DONE[Rule path verified]
+    SCALE -->|No| EVIDENCE[Collect scaler system logs]
 ```
+
+*Figure: Metadata, scaler authentication, metric access, and scale limits are separate prerequisites for custom scaling.*
 
 ## 2. Common Misreadings
 
@@ -84,15 +97,14 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.scale.rules" --output json` | Reads the configured event-scaler rules so you can verify whether rule metadata and thresholds match the backlog pattern under investigation. |
-| `az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists the current replicas so you can correlate the rule configuration with how quickly the app actually scaled during the burst. |
-
-| Command | Purpose |
-|---|---|
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.scale.rules" --output json` | Reads the Container App resource and extracts the scale rules array in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
-| `az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists live replicas so you can confirm how many instances exist and whether the platform is creating, restarting, or recycling them. |
+| `az containerapp show` | Reads the scale rule definition to verify trigger type (KEDA scaler name), metadata fields, and authentication references. |
+| `az containerapp replica list` | Lists current replicas and their states to confirm whether they are responding to scale events or staying idle despite backlog. |
+| `--name` | Targets the app by name to retrieve its specific scale rule and replica state. |
+| `--output` | Formats `show` as `json` (detailed rule structure) and `replica list` as `table` (human-readable replica counts). |
+| `--query` | Extracts `scale.rules` from the app definition to isolate trigger configuration from unrelated fields. |
+| `--resource-group` | Keeps scale-rule and replica evidence within the deployment being diagnosed. |
 
 ## 5. Evidence to Collect
 
@@ -143,9 +155,15 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the scale rule metadata (queue name, subscription, topic, consumer group) to compare against the actual event source configuration. |
+| `az containerapp logs show` | Displays system logs showing KEDA initialization or metadata parsing errors (e.g., "queue not found", "invalid subscription name"). |
+| `--name` | Names the app whose scaler rules and replica state are being compared. |
+| `--output` | Formats as `json` so rule metadata can be extracted and validated line-by-line. |
+| `--query` | Extracts `scale.rules` to show only the trigger definition without extra fields. |
+| `--resource-group` | Scopes metadata and system-log checks to the app resource group. |
+| `--type` | Requests `system` logs specifically (where KEDA logs appear). |
 
 ```kusto
 let AppName = "ca-myapp";
@@ -181,15 +199,16 @@ az containerapp secret list --name "$APP_NAME" --resource-group "$RG"
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | Pulls Container Apps system logs, which is where provisioning, probe, scaler, and image-pull failures appear before application code starts. |
-| `az containerapp secret list --name "$APP_NAME" --resource-group "$RG"` | Lists the secret names currently defined on the app so you can verify that every `secretRef` used by the revision points to a real secret. |
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json` | Reads the app's identity object so you can confirm whether a system-assigned or user-assigned managed identity is attached and inspect its `principalId`/`clientId`, which the event scaler relies on to authenticate to the event source. |
-
-| Command | Why it is used |
-|---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Retrieves system logs to find scaler auth failures (e.g., "Unauthorized", "Secret not found", "Identity not available"). |
+| `az containerapp secret list` | Lists all defined secrets to confirm that the secret referenced in scale-rule auth actually exists and is not a typo. |
+| `az containerapp show` | Reads the identity configuration (managed identity or service principal) to verify it is assigned to the app and has permission to the event source. |
+| `--name` | Selects the app with the suspected metadata mismatch. |
+| `--output` | Formats as `json` to display the full identity object. |
+| `--query` | Extracts the `identity` field to show assigned identity details. |
+| `--resource-group` | Looks up secrets and identity in the group that owns the scaler configuration. |
+| `--type` | Requests `system` logs (where auth errors appear). |
 
 **Disproof logic:**
 
@@ -215,10 +234,14 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.scale.rules" --output json` | Reads the configured event-scaler rules so you can verify whether metadata and thresholds match the backlog pattern under investigation. |
-| `az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists current replicas so you can correlate the rule configuration with how quickly the app actually scaled during the burst. |
+| `az containerapp show` | Reads the scale rule to extract polling interval and threshold settings (e.g., `pollingInterval`, `desiredReplicas`). |
+| `az containerapp replica list` | Lists replicas with their creation times to measure the lag between backlog arrival and scale-out response. |
+| `--name` | Points secret, identity, and system-log checks at the scaler-auth failure. |
+| `--output` | Formats as `json` for rule details and `table` for replica timeline. |
+| `--query` | Extracts `scale.rules` to focus on timing configuration. |
+| `--resource-group` | Reads polling rules and replica state from the affected workload group. |
 
 **Disproof logic:**
 

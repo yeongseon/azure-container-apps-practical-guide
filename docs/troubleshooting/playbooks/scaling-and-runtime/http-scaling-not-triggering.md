@@ -29,28 +29,37 @@ Request load increases significantly but replica count remains flat or scales to
 
 ### Why this scenario is confusing
 
-HTTP scaling involves multiple components: KEDA metrics server, stabilization windows, threshold calculations, and min/max boundaries. A misconfiguration in any of these can make it look like "scaling is broken" when it's actually working as configured—just not as intended.
+HTTP scaling depends on managed ingress request concurrency, the configured threshold, and minimum and maximum replica boundaries. A mismatch in any of these can make scaling look broken when it is operating as configured.
 
 ### Troubleshooting decision flow
 
 <!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
-graph TD
-    A[Symptom: Latency high, replicas flat] --> B{maxReplicas reached?}
-    B -->|Yes| H1[H1: Max replicas too low]
-    B -->|No| C{HTTP scale rule exists?}
-    C -->|No| H2[H2: No HTTP scale rule configured]
-    C -->|Yes| D{Traffic hitting ingress?}
-    D -->|No| H3[H3: Test traffic bypassing app]
-    D -->|Yes| E{Threshold realistic for load?}
-    E -->|No| H4[H4: Threshold too high]
-    E -->|Yes| H5[H5: Stabilization window or polling delay]
+flowchart TD
+    accTitle: Diagnose HTTP scale-out that does not occur
+    accDescr: Confirm requests pass through managed HTTP ingress, then compare concurrent request pressure with the configured target and replica bounds before investigating delayed scaler behavior.
+
+    CLIENT[Load generator] ==>|HTTP requests| INGRESS[Managed HTTP ingress]
+    INGRESS ==>|Routed requests| REPLICAS[Revision replicas]
+    REPLICAS ==>|Responses| INGRESS
+    INGRESS ==>|Responses| CLIENT
+    INGRESS --> CHECK{Requests reach the<br/>target app ingress?}
+    CHECK -->|No| TARGET[Correct load-test URL,<br/>DNS, or ingress configuration]
+    CHECK -->|Yes| MAX{Replica count at<br/>configured maximum?}
+    MAX -->|Yes| LIMIT[Raise maximum only after<br/>capacity validation]
+    MAX -->|No| PRESSURE{Concurrent request pressure<br/>exceeds target?}
+    PRESSURE -->|No| EXPECTED[No scale-out expected<br/>Adjust test or target]
+    PRESSURE -->|Yes| EVENTS{Scaler and replica events<br/>appear after evaluation?}
+    EVENTS -->|Yes| OBSERVE[Correlate latency with<br/>new replica readiness]
+    EVENTS -->|No| EVIDENCE[Inspect scale rule<br/>and system logs]
 ```
+
+*Figure: Only requests through the app's managed HTTP ingress contribute to the HTTP scaling path; requests and responses remain separate from scaler control.*
 
 ## 2. Common Misreadings
 
 - "KEDA is broken" — Most incidents are min/max boundaries, threshold mismatches, or test configuration issues.
-- "Any traffic should instantly scale out" — HTTP scaling has polling intervals (15-30s) and stabilization windows.
+- "Any traffic should instantly scale out" — Microsoft Learn states that HTTP request concurrency is calculated every 15 seconds.
 - "Replicas didn't increase, so something is wrong" — If load is below threshold, no scaling is expected behavior.
 - "I set concurrentRequests=10, so 100 requests should give me 10 replicas" — It's concurrent requests per replica, not total requests.
 - "Scale worked in staging but not production" — Different traffic patterns, DNS, or ingress configurations.
@@ -63,7 +72,7 @@ graph TD
 | **H2: No HTTP scale rule configured** | No scale rules in template, only min/max | HTTP rule exists in configuration |
 | **H3: Test traffic bypassing app** | No request logs during load test | App logs show request surge |
 | **H4: Threshold too high** | Concurrent requests < threshold × replica count | Traffic exceeds threshold significantly |
-| **H5: Stabilization window delay** | Scale-out happens but delayed by 30-60 seconds | Immediate scaling when expected |
+| **H5: Evaluation or replica-readiness delay** | Concurrency exceeds the target, then scaler or replica events appear after the 15-second evaluation cadence | No scale or replica events appear despite sustained pressure |
 
 ## 4. What to Check First
 
@@ -113,17 +122,16 @@ az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output 
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.scale" --output json` | Reads the Container App resource and extracts the full scale configuration in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
-| `az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists live replicas so you can confirm how many instances exist and whether the platform is creating, restarting, or recycling them. |
-| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | Pulls Container Apps system logs, which is where provisioning, probe, scaler, and image-pull failures appear before application code starts. |
-
-| Command | Purpose |
-|---|---|
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.scale" --output json` | Reads the Container App resource and extracts the full scale configuration in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
-| `az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists live replicas so you can confirm how many instances exist and whether the platform is creating, restarting, or recycling them. |
-| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | Pulls Container Apps system logs, which is where provisioning, probe, scaler, and image-pull failures appear before application code starts. |
+| `az containerapp show` | Retrieves scale configuration (min/max/rules) for "$APP_NAME" to verify if a scaling rule is active. |
+| `az containerapp replica list` | Enumerates replicas for `"$APP_NAME"` so the observed HTTP load can be compared with the app's actual active replica count. |
+| `az containerapp logs show` | Collects Container Apps system events that reveal revision activation, replica creation, and scaler activity while HTTP pressure is applied. |
+| `--name` | Selects `"$APP_NAME"` for `az containerapp show`, `az containerapp replica list`, `az containerapp logs show`, tying the `Platform Signals` evidence to the intended named resource rather than a similarly named one. |
+| `--output` | Formats results from `az containerapp show`, `az containerapp replica list` as `json`, `table`, making the `Platform Signals` values directly usable by the shell or readable in the comparison. |
+| `--query` | Filters response to `"properties.template.scale"` so only min/max/rule definitions are examined. |
+| `--resource-group` | Restricts `az containerapp show`, `az containerapp replica list`, `az containerapp logs show` to resource group `"$RG"`, keeping the `Platform Signals` evidence within the resource group that contains the affected workload. |
+| `--type` | Selects `system` logs (revision activation, replica events, KEDA scaler activity) instead of console output. |
 
 ## 5. Evidence to Collect
 
@@ -172,12 +180,14 @@ MAX=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "pr
 echo "Current: $CURRENT, Max: $MAX"
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.scale.{min:minReplicas,max:maxReplicas}" --output json` | Reads the configured minimum and maximum replica bounds together so you can see whether scale-out is capped by configuration before blaming KEDA behavior. |
-| `CURRENT=$(az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --query "length(@)" --output tsv)` | Captures the live replica count as a number so it can be compared directly with the configured maximum. |
-| `MAX=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.scale.maxReplicas" --output tsv)` | Captures the current `maxReplicas` value from the app resource so the comparison uses the live setting, not an assumed one. |
-| `echo "Current: $CURRENT, Max: $MAX"` | Prints the measured replica count beside the configured maximum so you can confirm immediately whether the app is pinned at its cap. |
+| `az containerapp show` | Queries the configured min and max replica boundaries to detect if scaling is bottlenecked by maxReplicas. |
+| `az containerapp replica list` | Lists currently running replicas and counts them to compare against the configured maximum. |
+| `--name` | Specifies the app to inspect; prevents accidentally querying a different app with a similar name. |
+| `--output` | Formats results as `json` (for parsing) or `tsv` (for shell variable assignment and arithmetic). |
+| `--query` | Extracts only min/max boundaries and active replica count; discards resource group, location, and other unrelated fields. |
+| `--resource-group` | Restricts `az containerapp show`, `az containerapp replica list` to resource group `"$RG"`, keeping the `H1: Max replicas too low` evidence within the resource group that contains the affected workload. |
 
 ```kusto
 // Check replica count over time
@@ -210,9 +220,12 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
   --max-replicas 20
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp update --name ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Modifies the app's max replica boundary—the bottleneck that was capping scale-out during the test. |
+| `--max-replicas` | Sets the new limit to `20` replicas, allowing scale-out to proceed beyond the previous cap. |
+| `--name` | Targets the specific app to avoid applying changes to a different resource. |
+| `--resource-group` | Scopes the update to the resource group containing the app. |
 
 ### H2: No HTTP scale rule configured
 
@@ -247,9 +260,13 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
 # ]
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.scale.rules" --output json` | Reads the raw scale-rules array so you can prove whether an HTTP rule exists at all before investigating thresholds or request routing. |
+| `az containerapp show` | Retrieves the scale rules array to confirm an HTTP rule exists. |
+| `--name` | Identifies which app's rules to inspect. |
+| `--output` | Renders rules in JSON structure so you can verify the HTTP rule object is present. |
+| `--query` | Isolates the rules array; omits app name, status, and other unrelated properties. |
+| `--resource-group` | Limits the query to the resource group holding the app. |
 
 ```kusto
 // Check for KEDA scaler activity
@@ -291,14 +308,16 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
   --scale-rule-http-concurrency 10
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --scale-rule-name "http-rule" --scale-rule-type "http" --scale-rule-http-concurrency 10` | Updates autoscale rules, which is the corrective action this step is validating or applying. |
-| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --min-replicas 1 --max-replicas 10 --scale-rule-name "http-rule" --scale-rule-type "http" --scale-rule-http-concurrency 10` | Adjusts replica bounds and updates autoscale rules, which is the corrective action this step is validating or applying. |
-
-| Command | Why it is used |
-|---|---|
-| `az containerapp update --name ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Adds an HTTP scaling rule (plus min/max boundaries) to enable KEDA to monitor and respond to request load. |
+| `--max-replicas` | Caps scale-out at `10` replicas to prevent runaway scaling costs. |
+| `--min-replicas` | Ensures at least `1` replica runs even during idle periods. |
+| `--name` | Targets the app being fixed. |
+| `--resource-group` | Specifies the resource group containing the app. |
+| `--scale-rule-http-concurrency` | Defines `10` concurrent requests per replica as the scale-out threshold. |
+| `--scale-rule-name` | Names the rule `"http-rule"` for identification in logs and dashboards. |
+| `--scale-rule-type` | Selects the `"http"` scaler type to enable request-concurrency-based scaling. |
 
 ### H3: Test traffic bypassing app
 
@@ -328,12 +347,13 @@ curl -s -o /dev/null -w "%{http_code}" "https://${APP_FQDN}/health"
 nslookup "$APP_FQDN"
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `APP_FQDN=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.fqdn" --output tsv)` | Captures the live ingress hostname so the connectivity test and DNS lookup hit the same endpoint the load generator should be targeting. |
-| `echo "Correct FQDN: $APP_FQDN"` | Prints the resolved hostname so you can compare the test target with the expected app endpoint before rerunning load. |
-| `curl -s -o /dev/null -w "%{http_code}" "https://${APP_FQDN}/health"` | Sends a lightweight health request to prove the chosen FQDN is reachable before you conclude that missing scale-out is caused by KEDA. |
-| `nslookup "$APP_FQDN"` | Resolves the FQDN from the client path so you can detect DNS drift or a wrong endpoint target during the load test. |
+| `az containerapp show` | Retrieves the app's public FQDN to verify the load test is targeting the correct hostname. |
+| `--name` | Identifies which app's FQDN to retrieve. |
+| `--output` | Outputs as `tsv` so the hostname can be fed directly into shell variables for the curl test. |
+| `--query` | Extracts only the FQDN; excludes internal IP, resource ID, and configuration metadata. |
+| `--resource-group` | Limits lookup to the resource group holding the app. |
 
 ```kusto
 // Check if requests are hitting the app
@@ -355,7 +375,7 @@ ContainerAppConsoleLogs_CL
 **How to Read This**
 
 - This 1-minute bucket lines up with the observed console log `GET /api/exceptions/test-error HTTP/1.1 500 173`, proving traffic reached the container.
-- When request buckets rise during the load test but replicas stay flat, focus on thresholds, min/max settings, or stabilization timing.
+- When request buckets rise during the load test but replicas stay flat, focus on thresholds, replica boundaries, and the documented 15-second evaluation cadence.
 - If no rows appear at all, the test may be targeting the wrong FQDN, path, revision, or network entry point.
 
 **Fix:**
@@ -389,9 +409,13 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
 # Example: 75 concurrent / 10 threshold = 8 replicas needed
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Retrieves the HTTP scaler's concurrentRequests threshold to calculate expected replica count. |
+| `--name` | Specifies which app's threshold to examine. |
+| `--output` | Outputs as `tsv` for easy parsing in arithmetic calculations. |
+| `--query` | Filters to the HTTP rule's concurrentRequests value; drops other scale rules (CPU, memory, custom). |
+| `--resource-group` | Restricts query to the correct resource group. |
 
 **Fix:**
 
@@ -403,15 +427,20 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
   --scale-rule-http-concurrency 5  # Lower = more aggressive scaling
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp update --name ...` | Updates the existing Container App configuration without recreating the app. |
+| `az containerapp update` | Lowers the concurrency threshold so KEDA scales out sooner when requests arrive. |
+| `--name` | Identifies the app to modify. |
+| `--resource-group` | Scopes the concurrency-threshold change to the workload under test. |
+| `--scale-rule-http-concurrency` | Reduces the threshold from `10` (or higher) to `5` concurrent requests per replica for faster scale-out. |
+| `--scale-rule-name` | Identifies which rule to update (`"http-rule"`). |
+| `--scale-rule-type` | Confirms the rule type is `"http"` (request-concurrency based). |
 
 ### H5: Stabilization window delay
 
 **Signals that support:**
 
-- Scale-out happens but takes 30-60+ seconds
+- Scale-out begins after one or more 15-second evaluations, and additional time is spent creating a ready replica
 - KEDA metrics visible but replica changes lag
 - Bursty traffic triggers scaling late
 
@@ -442,15 +471,12 @@ ContainerAppSystemLogs_CL
 **Interpretation**
 
 - This row shows a replica assignment event for revision `ca-cakqltest-54kxmtjeuidri--nu8o2ji` at `2026-04-12T05:57:38.558Z`.
-- If your load-test timestamps are earlier than this row, the gap represents expected polling and stabilization delay rather than a total scaling failure.
+- If load-test timestamps precede this row, correlate the gap with the documented 15-second concurrency evaluation and measured replica startup time rather than assuming a total scaling failure.
 - If this query never shows replica events during sustained load, investigate threshold configuration or whether the traffic spike was too short-lived.
 
 **Explanation:**
 
-KEDA has built-in stabilization to prevent thrashing:
-- **Polling interval**: Metrics checked every 15-30 seconds
-- **Scale-up stabilization**: Wait for metrics to stay above threshold
-- **Scale-down stabilization**: Longer wait (5+ minutes) before reducing replicas
+For the managed HTTP scaler, Microsoft Learn documents that request concurrency is calculated every 15 seconds. Replica creation and readiness can add measured delay after a scale decision; this page does not assign a universal stabilization duration to that startup work.
 
 This is expected behavior, not a bug.
 
@@ -472,9 +498,12 @@ This is expected behavior, not a bug.
      --min-replicas 5  # Force minimum higher
    ```
 
-   | Command | Why it is used |
+   | Command or parameter | Purpose |
    |---|---|
-   | `az containerapp update --name ...` | Updates the existing Container App configuration without recreating the app. |
+   | `az containerapp update` | Forces more replicas to run immediately by raising the minimum. |
+   | `--min-replicas` | Raises minimum from `1` (or current) to `5` to provide capacity without waiting for KEDA to scale. |
+   | `--name` | Targets the affected app. |
+   | `--resource-group` | Applies the warm-replica mitigation within the app deployment group. |
 
 2. **Lower threshold for faster response:**
    ```bash
@@ -484,13 +513,14 @@ This is expected behavior, not a bug.
      --scale-rule-http-concurrency 5
    ```
 
-   | Command | Purpose |
+   | Command or parameter | Purpose |
    |---|---|
-   | `az containerapp update --name "$APP_NAME" --resource-group "$RG" --scale-rule-name "http-rule" --scale-rule-type "http" --scale-rule-http-concurrency 5` | Updates autoscale rules, which is the corrective action this step is validating or applying. |
-
-   | Command | Why it is used |
-   |---|---|
-   | `az containerapp update --name ...` | Updates the existing Container App configuration without recreating the app. |
+   | `az containerapp update` | Adjusts the HTTP scaler concurrency threshold for faster scaling response. |
+   | `--name` | Identifies the app being tuned. |
+   | `--resource-group` | Updates the temporary low-threshold rule in the group containing the test app. |
+   | `--scale-rule-http-concurrency` | Lowers threshold to `5` concurrent requests per replica. |
+   | `--scale-rule-name` | References the `"http-rule"` rule to update. |
+   | `--scale-rule-type` | Specifies `"http"` scaler type. |
 
 3. **Increase max if capped:**
    ```bash
@@ -498,9 +528,12 @@ This is expected behavior, not a bug.
      --max-replicas 30
    ```
 
-   | Command | Why it is used |
+   | Command or parameter | Purpose |
    |---|---|
-   | `az containerapp update --name ...` | Updates the existing Container App configuration without recreating the app. |
+   | `az containerapp update` | Raises the maximum replica limit so scale-out is no longer capped. |
+   | `--max-replicas` | Increases limit to `30` to allow aggressive scaling when load spikes. |
+   | `--name` | Targets the app. |
+   | `--resource-group` | Raises the replica ceiling for the app in its owning resource group. |
 
 4. **Add HTTP rule if missing:**
    ```bash
@@ -510,9 +543,14 @@ This is expected behavior, not a bug.
      --scale-rule-http-concurrency 10
    ```
 
-   | Command | Purpose |
+   | Command or parameter | Purpose |
    |---|---|
-   | `az containerapp update --name "$APP_NAME" --resource-group "$RG" --scale-rule-name "http-rule" --scale-rule-type "http" --scale-rule-http-concurrency 10` | Adds the missing HTTP scale rule with a concrete concurrency threshold so the app can finally scale on incoming request pressure instead of staying at its floor. |
+   | `az containerapp update` | Adds the missing HTTP rule to activate KEDA-based scaling. |
+   | `--name` | Identifies the app needing the rule. |
+   | `--resource-group` | Restores the production threshold on the same deployment after testing. |
+   | `--scale-rule-http-concurrency` | Sets the starting threshold to `10` concurrent requests per replica. |
+   | `--scale-rule-name` | Names the new rule `"http-rule"`. |
+   | `--scale-rule-type` | Specifies HTTP (request-concurrency) scaler type. |
 
 ## 9. Prevention
 

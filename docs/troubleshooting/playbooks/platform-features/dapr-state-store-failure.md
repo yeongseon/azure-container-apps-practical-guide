@@ -36,18 +36,28 @@ Use this playbook when state reads or writes through Dapr fail even though the a
 <!-- diagram-id: dapr-state-store-failure-flow -->
 ```mermaid
 flowchart TD
-    A[State read or write fails] --> B[Check app Dapr configuration]
-    B --> C[Inspect environment component]
-    C --> D{Component name and type correct}
-    D -->|No| E[Fix component definition]
-    D -->|Yes| F[Review scopes]
-    F --> G{Calling app is in scopes}
-    G -->|No| H[Add correct app scope]
-    G -->|Yes| I[Review metadata and secret reference]
-    I --> J{Backend reachable}
-    J -->|No| K[Fix identity, secret, or network]
-    J -->|Yes| L[Retest Dapr state path]
+    accTitle: Diagnose a Dapr state store failure
+    accDescr: Verify Dapr enablement, the environment-level state component, app-ID scopes, component metadata and credentials, then test backend connectivity before retrying state operations.
+
+    START[State read or write fails] --> ENABLED{Dapr enabled with<br/>expected app ID?}
+    ENABLED -->|No| APP[Correct Dapr app settings]
+    ENABLED -->|Yes| EXISTS{State component exists<br/>in the environment?}
+    EXISTS -->|No| RESTORE[Create or restore component]
+    EXISTS -->|Yes| SCOPED{Calling app ID<br/>is in scope?}
+    SCOPED -->|No| SCOPE[Correct component scopes]
+    SCOPED -->|Yes| CONFIG{Component type, metadata,<br/>and credentials valid?}
+    CONFIG -->|No| DEFINITION[Correct component definition]
+    CONFIG -->|Yes| BACKEND{State service reachable<br/>and authorized?}
+    BACKEND -->|No| ACCESS[Fix DNS, network, secret,<br/>or identity access]
+    BACKEND -->|Yes| TEST[Retest a known state<br/>write and read]
+    APP --> TEST
+    RESTORE --> TEST
+    SCOPE --> TEST
+    DEFINITION --> TEST
+    ACCESS --> TEST
 ```
+
+*Figure: Environment-level component existence, Dapr app-ID scope, and backend access are separate gates in the state path.*
 
 ## Possible Causes
 
@@ -83,11 +93,16 @@ az containerapp env dapr-component show \
     --output yaml
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.dapr" --output json` | Verifies that the container app is configured to use Dapr and exposes the app ID context. |
-| `az containerapp env dapr-component list --name "$ACA_ENV_NAME" --resource-group "$RG" --output table` | Shows which components exist in the environment and whether the expected state store is present. |
-| `az containerapp env dapr-component show --name "$ACA_ENV_NAME" --resource-group "$RG" --dapr-component-name "statestore" --output yaml` | Lets you inspect component type, metadata, secret references, and scopes. |
+| `az containerapp show` | Retrieve the app's Dapr configuration to confirm the app-ID and Dapr enablement status |
+| `az containerapp env dapr-component list` | List all Dapr components in the environment to confirm the state component exists and its name |
+| `az containerapp env dapr-component show` | Retrieve the state component definition to inspect its backend type, connection metadata, and scope list |
+| `--dapr-component-name` | Target the state component by name to fetch its full configuration and scope constraints |
+| `--name` | Specify the app name and environment name to isolate configuration from other apps or environments |
+| `--output` | Use JSON for the app config (structured diff-friendly), table for component lists (quick scan), and YAML for component definition (human-readable) |
+| `--query` | Extract only properties.configuration.dapr to focus on the app's Dapr enablement and app-ID |
+| `--resource-group` | Restrict queries to the resource group containing the affected app and environment |
 
 KQL for Dapr-oriented log review:
 
@@ -116,9 +131,13 @@ az containerapp env dapr-component set \
     --yaml "./statestore.yaml"
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp env dapr-component set --name "$ACA_ENV_NAME" --resource-group "$RG" --dapr-component-name "statestore" --yaml "./statestore.yaml"` | Reapplies the corrected Dapr component definition in a controlled, source-backed way. |
+| `az containerapp env dapr-component set` | Apply the corrected state component definition to the environment to update backend metadata, scope list, and credentials |
+| `--dapr-component-name` | Specify the state component name (must match the name referenced in app code) to update the correct component |
+| `--name` | Target the environment where the component is deployed |
+| `--resource-group` | Restrict the update to the resource group containing the affected environment |
+| `--yaml` | Pass the corrected component YAML file containing fixed backend configuration, scopes, and secret references |
 
 ## Prevention
 

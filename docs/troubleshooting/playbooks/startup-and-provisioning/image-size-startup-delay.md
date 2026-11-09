@@ -46,16 +46,27 @@ Use this playbook when new revisions eventually succeed but take far too long to
 <!-- diagram-id: image-size-startup-delay-decision-flow -->
 ```mermaid
 flowchart TD
-    A[Slow revision start or cold start] --> B[Check whether old warm replicas avoid the issue]
-    B --> C{Only new replicas are slow?}
-    C -->|No| D[Investigate app startup code and dependencies]
-    C -->|Yes| E[Inspect image source and deployment pattern]
-    E --> F{Large image or repeated pull behavior?}
-    F -->|Yes| G[Image size likely contributes materially]
-    F -->|No| H[Focus on probe timing and app initialization]
-    G --> I[Trim image and retest]
-    H --> J[Tune probes or startup path]
+    accTitle: Separate image-pull delay from application initialization
+    accDescr: Compare warm and fresh replicas, correlate pull and start events, then optimize the image or startup path based on measured evidence.
+
+    START[New revision or cold start is slow] --> WARM{Warm replicas avoid<br/>the delay?}
+    WARM -->|No| APPLICATION[Measure application initialization<br/>and dependency latency]
+    WARM -->|Yes| EVENTS[Correlate image-pull,<br/>container-start, and readiness events]
+    EVENTS --> PULL{Pull and extraction dominate<br/>the measured delay?}
+    PULL -->|Yes| IMAGE[Use smaller runtime image,<br/>stable layers, and controlled registry]
+    PULL -->|No| PROBES{Container starts but<br/>readiness remains delayed?}
+    PROBES -->|Yes| STARTUP[Optimize initialization<br/>and tune startup probes]
+    PROBES -->|No| NETWORK[Investigate registry network<br/>and authentication latency]
+    IMAGE --> RETEST[Create a revision and repeat measurement]
+    STARTUP --> RETEST
+    NETWORK --> RETEST
+    APPLICATION --> RETEST
+    RETEST --> IMPROVED{Ready time improves?}
+    IMPROVED -->|Yes| DONE[Record measured improvement]
+    IMPROVED -->|No| EVENTS
 ```
+
+*Figure: Image size is a supported hypothesis only when pull and extraction consume the measured startup window; otherwise investigate initialization, probes, or registry access.*
 
 1. Capture the configured image and revision timeline.
 
@@ -72,9 +83,14 @@ flowchart TD
         --output table
     ```
 
-    | Command | Why it is used |
+    | Command or parameter | Purpose |
     |---|---|
-    | `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+    | `az containerapp show` | Extract the image URI to identify the registry and image name being used. |
+    | `az containerapp revision list` | Show revision provisioning and ready times to compare how long fresh vs. warm revisions take to reach healthy state. |
+    | `--name` | Target the app being analyzed. |
+    | `--output` | Format image as tsv for parsing, revisions as table for side-by-side time comparison. |
+    | `--query` | Extract the container image configuration value. |
+    | `--resource-group` | Keep diagnostics scoped to the resource group containing the app. |
 
 2. Review system logs for slow provisioning or repeated startup attempts.
 
@@ -85,9 +101,12 @@ flowchart TD
         --type system
     ```
 
-    | Command | Why it is used |
+    | Command or parameter | Purpose |
     |---|---|
-    | `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+    | `az containerapp logs show` | Capture platform-level events showing when the image pull begins, when extraction completes, and when container startup is attempted. |
+    | `--name` | Target the affected app. |
+    | `--resource-group` | Keep logs in the resource group containing the app. |
+    | `--type` | Request system logs to see provisioning and container start events (not application console output). |
 
 3. Correlate revision creation and startup signals.
 
@@ -112,12 +131,13 @@ flowchart TD
         --output json
     ```
 
-| Command or Query | Why it is used |
-|---|---|
-| `az containerapp show --query image` | Confirms the exact image reference used by the slow revision. |
-| `az containerapp revision list` | Shows whether startup delay is revision-specific or persistent. |
-| `az containerapp logs show --type system` | Captures provisioning and startup events around the delay window. |
-| KQL timeline query | Correlates the gap between revision provisioning and replica readiness. |
+    | Command or parameter | Purpose |
+    |---|---|
+    | `az containerapp show` | Retrieve the scaling configuration including minimum replicas and scale-to-zero rules. |
+    | `--name` | Target the app being diagnosed. |
+    | `--output` | Format as json to preserve scale rule structure and thresholds. |
+    | `--query` | Extract the scale configuration to understand when replicas are allowed to scale to zero. |
+    | `--resource-group` | Keep the query in the resource group containing the app. |
 
 ## Resolution
 

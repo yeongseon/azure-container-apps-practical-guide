@@ -12,6 +12,8 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes
         - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
         - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-built-in-roles-overview
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-abac-repository-permissions
 content_validation:
   status: verified
   last_reviewed: 2026-09-11
@@ -28,6 +30,9 @@ content_validation:
       verified: true
     - claim: Azure Container Apps can authenticate Azure Container Registry image pulls with managed identity instead of registry admin credentials.
       source: https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+      verified: true
+    - claim: Azure Container Registry uses AcrPull for RBAC-only registries, while RBAC Registry plus ABAC Repository Permissions mode uses Container Registry Repository Reader for repository pulls.
+      source: https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-built-in-roles-overview
       verified: true
 ---
 # Image Pull Failure
@@ -46,24 +51,42 @@ Image pull failures look similar to app crashes at first glance—both result in
 
 <!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
-graph TD
-    A[Symptom: Revision never starts] --> B{System log shows error?}
-    B -->|unauthorized/denied| E{AcrPull and identity look correct?}
-    E -->|No| H1[H1: Registry authentication failure]
-    E -->|Yes| H5[H5: Auth-looking error, but egress blocks Entra token acquisition]
-    B -->|manifest unknown| H2[H2: Image tag doesn't exist]
-    B -->|timeout/connection refused| H3[H3: Network path blocked]
-    B -->|No clear error| C{Image reference format correct?}
-    C -->|No| H4[H4: Malformed image reference]
-    C -->|Yes| D[Check DNS and private endpoint]
+flowchart TD
+    accTitle: Classify a Container Apps image-pull failure
+    accDescr: Use the system-log error class to distinguish missing images, malformed references, registry authorization, Entra token access, DNS, and network transport before creating a corrected revision.
+
+    START[Revision never starts] --> ERROR{System-log error class?}
+    ERROR -->|Manifest missing| TAG[Verify repository, tag,<br/>and digest in the registry]
+    ERROR -->|Invalid reference| REFERENCE[Correct registry, repository,<br/>tag, and image syntax]
+    ERROR -->|Timeout or DNS| PATH[Verify DNS, route, firewall,<br/>and registry endpoint access]
+    ERROR -->|Unauthorized or denied| MODE{ACR role-assignment mode?}
+    ERROR -->|Unclear| DETAILS[Collect revision details<br/>and system logs]
+    MODE -->|RBAC-only| ACRPULL{Pull identity has AcrPull<br/>on the registry?}
+    MODE -->|RBAC plus ABAC| READER{Pull identity has Container Registry<br/>Repository Reader for the repository?}
+    ACRPULL -->|No| ASSIGN_RBAC[Assign AcrPull to<br/>the configured identity]
+    ACRPULL -->|Yes| TOKEN[Verify Entra token egress<br/>and registry access]
+    READER -->|No| ASSIGN_ABAC[Assign repository reader<br/>with required condition]
+    READER -->|Yes| TOKEN
+    TAG --> VERIFY[Deploy corrected revision]
+    REFERENCE --> VERIFY
+    PATH --> VERIFY
+    DETAILS --> VERIFY
+    ASSIGN_RBAC --> VERIFY
+    ASSIGN_ABAC --> VERIFY
+    TOKEN --> VERIFY
+    VERIFY --> READY{Revision pulls image<br/>and becomes ready?}
+    READY -->|Yes| DONE[Pull path verified]
+    READY -->|No| ERROR
 ```
+
+*Figure: `AcrPull` applies to RBAC-only registries; registries using RBAC plus ABAC repository permissions require the repository-reader role path.*
 
 ## 2. Common Misreadings
 
 - "The app code is crashing" — If image pull fails, your app code never executes. No point debugging application logic.
 - "ACR is down" — Most incidents are identity scope issues, wrong tag, or registry URL mismatch, not ACR outages.
 - "I just pushed the image, it should be there" — Push succeeded to wrong repository, wrong registry, or tag was overwritten.
-- "Managed identity is configured" — Identity exists but lacks `AcrPull` role on the specific registry.
+- "Managed identity is configured" — Identity exists but lacks the pull role honored by the registry mode: `AcrPull` for RBAC-only or `Container Registry Repository Reader` for ABAC-enabled mode.
 - "It worked yesterday" — Image tag was overwritten with broken image, or RBAC was modified.
 
 ## 3. Competing Hypotheses
@@ -113,11 +136,16 @@ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" \
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].image" --output tsv` | Reads the Container App resource and extracts the exact image reference the revision is trying to pull as plain text for reuse in later commands, which is the specific surface this troubleshooting step needs to confirm. |
-| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "[].{name:name,health:properties.healthState,created:properties.createdTime}" --output table` | Lists revisions and filters them to the health, traffic, or timing fields needed for this hypothesis, so you can see whether rollout state matches the failure pattern. |
-| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | Pulls Container Apps system logs, which is where provisioning, probe, scaler, and image-pull failures appear before application code starts. |
+| `az containerapp show` | Displays the configured image URI to verify what the app is trying to pull. |
+| `az containerapp revision list` | Shows all revisions with their health states and timelines to identify which revision failed. |
+| `az containerapp logs show` | Captures system logs where pull errors and auth messages appear. |
+| `--name` | Specifies the app to inspect. |
+| `--output` | Formats image as `tsv` for parsing, revisions as `table` for easy visual scanning. |
+| `--query` | Extracts the image URI and revision health to check provisioning status. |
+| `--resource-group` | Limits the lookup to the resource group containing the app. |
+| `--type` | Requests `system` logs (pull failures, auth errors, not application output). |
 
 ## 5. Evidence to Collect
 
@@ -129,7 +157,8 @@ az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type syste
 | Revision health | `az containerapp revision list` | Confirm stuck/failed state |
 | System logs | KQL for pull errors | Find specific error message |
 | Identity config | `az containerapp show ... --query identity` | Check managed identity |
-| ACR role assignment | `az role assignment list --scope <acr-id>` | Verify AcrPull role |
+| ACR role-assignment mode | `az acr show ... --query roleAssignmentMode` | Choose the RBAC-only or ABAC-enabled role path |
+| ACR role assignment | `az role assignment list --scope <acr-id>` | Verify the mode-appropriate pull role and any repository condition |
 | ACR tag existence | `az acr repository show-tags` | Confirm tag exists |
 
 ### Useful Context
@@ -143,10 +172,12 @@ az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type syste
 
 ### H1: Registry authentication failure
 
+Before testing a role assignment, inspect the registry's `roleAssignmentMode`. Use the `AcrPull` path only for an RBAC-only registry. For `rbac-abac` mode, use `Container Registry Repository Reader` and the repository condition required by the registry's ABAC policy.
+
 **Signals that support:**
 
 - System logs show `unauthorized`, `denied`, `403`
-- Managed identity exists but no `AcrPull` role assignment
+- Managed identity exists but lacks the pull role honored by the registry's role-assignment mode
 - ACR admin credentials disabled but app expects them
 - Different registry used than expected
 
@@ -167,14 +198,27 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
 PRINCIPAL_ID=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" \
   --query "identity.principalId" --output tsv)
 
-# Check AcrPull role assignment
-ACR_ID=$(az acr show --name "$ACR_NAME" --resource-group "$RG" --query "id" --output tsv)
+# Identify whether the registry uses RBAC-only or ABAC-enabled permissions
+ROLE_ASSIGNMENT_MODE=$(az acr show --name "$ACR_NAME" --resource-group "$RG" \
+  --query "roleAssignmentMode" --output tsv)
+
+# Check mode-appropriate role assignments and ABAC conditions
+ACR_ID=$(az acr show --name "$ACR_NAME" --resource-group "$RG" \
+  --query "id" --output tsv)
 az role assignment list --scope "$ACR_ID" --assignee "$PRINCIPAL_ID" --output table
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the managed identity assigned to the app for role assignment lookup. |
+| `az acr show` | Retrieves both the registry's role-assignment mode and its resource ID before checking permissions. |
+| `az role assignment list` | Lists assignments for the identity so you can verify `AcrPull` in RBAC-only mode or `Container Registry Repository Reader` and its condition in ABAC-enabled mode. |
+| `--assignee` | Filters the role assignment list to show only assignments for the container app's principal ID. |
+| `--name` | Names the app and registry to retrieve their identity and resource ID. |
+| `--output` | Formats identity as `json` to preserve structure, registry ID as `tsv` for shell assignment, role list as `table` for readability. |
+| `--query` | Extracts the app principal ID, registry `roleAssignmentMode`, or registry resource ID for the mode-aware role check. |
+| `--resource-group` | Limits the lookup to the resource group containing both the app and registry. |
+| `--scope` | Targets the ACR resource when listing role assignments, so only assignments on that registry are shown. |
 
 ```kusto
 // Find auth errors
@@ -189,11 +233,19 @@ ContainerAppSystemLogs_CL
 
 **Fix:**
 
+If `ROLE_ASSIGNMENT_MODE` is `rbac`, use the RBAC-only command below. If it is `rbac-abac`, use the ABAC-enabled command. The ABAC command grants registry-wide repository read access; to restrict the identity to the image's repository, add a repository-name condition by following [Scope role assignment to a specific repository](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-abac-repository-permissions#scope-role-assignment-to-a-specific-repository). Do not use `AcrPull` in `rbac-abac` mode because that role is not honored there.
+
 ```bash
-# Assign AcrPull role
+# RBAC-only registry: assign AcrPull
 az role assignment create \
   --assignee "$PRINCIPAL_ID" \
   --role "AcrPull" \
+  --scope "$ACR_ID"
+
+# ABAC-enabled registry: assign repository read permission
+az role assignment create \
+  --assignee "$PRINCIPAL_ID" \
+  --role "Container Registry Repository Reader" \
   --scope "$ACR_ID"
 
 # Or configure registry credentials
@@ -204,9 +256,17 @@ az containerapp registry set \
   --identity system
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az role assignment create ...` | Grants the required Azure RBAC role at the documented scope. |
+| `az role assignment create` | Grants the mode-appropriate pull role to the app's identity on the specific ACR registry. |
+| `az containerapp registry set` | Configures the app to authenticate to a registry using its system-assigned managed identity. |
+| `--assignee` | Identifies the managed identity principal ID that receives the pull role. |
+| `--identity` | Specifies `system` to use the app's system-assigned managed identity for pulling. |
+| `--name` | Names the app to configure for image pull. |
+| `--resource-group` | Limits the operation to the resource group containing the app. |
+| `--role` | Uses `AcrPull` only for RBAC-only mode or `Container Registry Repository Reader` for ABAC-enabled mode. |
+| `--scope` | Targets the ACR resource (not a subscription or resource group) to limit the role scope. |
+| `--server` | Sets the ACR FQDN (e.g., `myacr.azurecr.io`) so the app knows which registry to authenticate to. |
 
 ### H2: Image tag doesn't exist
 
@@ -235,9 +295,17 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
   --query "properties.template.containers[0].image" --output tsv
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az acr repository show-tags ...` | Inspects or manages repositories and tags inside Azure Container Registry. |
+| `az acr repository show-tags` | Lists all tags in a repository to confirm the expected tag exists. |
+| `az acr manifest show` | Displays manifest metadata to verify the tag resolves to a digest. |
+| `az containerapp show` | Reads the app's configured image URI to check for typos or mismatches. |
+| `--name` | Names the app or specifies the image reference for lookup. |
+| `--output` | Formats tags as `table` for human scanning, image as `tsv` for shell parsing. |
+| `--query` | Extracts only the image URI, avoiding unrelated app configuration. |
+| `--registry` | Names the ACR to look up the manifest in. |
+| `--repository` | Names the repository within ACR to list available tags. |
+| `--resource-group` | Limits the app lookup to the resource group. |
 
 ```kusto
 // Find manifest errors
@@ -260,9 +328,14 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
   --image "$ACR_NAME.azurecr.io/myapp:existing-tag"
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az acr build --registry ...` | Builds and pushes the container image to Azure Container Registry. |
+| `az acr build` | Builds the image from a local Dockerfile and pushes it to ACR with the specified tag. |
+| `az containerapp update` | Reconfigures the app to pull a known-good tag from ACR. |
+| `--image` | Specifies the ACR image URI (registry/repository:tag) to pull. |
+| `--name` | Names the app to update. |
+| `--registry` | Names the ACR to build the image in. |
+| `--resource-group` | Limits the operation to the resource group. |
 
 ### H3: Network path blocked
 
@@ -293,9 +366,15 @@ az network private-endpoint list --resource-group "$RG" \
   --query "[?contains(name, 'acr')]" --output table
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az acr show --name ...` | Reads registry configuration such as login server, identity, or admin status. |
+| `az acr show` | Displays the registry's public-network-access setting. |
+| `az containerapp env show` | Displays the environment's VNet integration configuration. |
+| `az network private-endpoint list` | Shows private endpoints in the resource group to identify ACR connectivity paths. |
+| `--name` | Names the ACR and environment to inspect. |
+| `--output` | Formats as `tsv` or `json` or `table` depending on the command's output preference. |
+| `--query` | Extracts public-access, VNet configuration, and filters endpoints by name. |
+| `--resource-group` | Limits the lookup to the resource group. |
 
 **Fix:**
 
@@ -303,18 +382,19 @@ az network private-endpoint list --resource-group "$RG" \
 # For private ACR, ensure private DNS zone is linked
 az network private-dns zone list --resource-group "$RG" --output table
 
-# Or allow Container Apps environment subnet in ACR firewall
-az acr network-rule add --name "$ACR_NAME" --subnet "<subnet-id>"
+# Or allow the documented outbound public IP or CIDR in the ACR firewall
+az acr network-rule add --name "$ACR_NAME" --resource-group "$RG" \
+  --ip-address "<environment-outbound-ip-or-cidr>"
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az network private-dns zone list --resource-group "$RG" --output table` | Lists the private DNS zones in scope so you can verify that the expected zone exists before blaming forwarding or client DNS caches. |
-| `az acr network-rule add --name "$ACR_NAME" --subnet "<subnet-id>"` | Adds the environment subnet to the registry allow-list so image pulls from that network path are no longer blocked by the ACR firewall. |
-
-| Command | Why it is used |
-|---|---|
-| `az network private-dns zone ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
+| `az network private-dns zone list` | Shows private DNS zones linked to the ACR private endpoint. |
+| `az acr network-rule add` | Adds the environment's outbound IP to the ACR firewall allow list. |
+| `--ip-address` | Specifies the environment's public outbound IP or CIDR to whitelist. |
+| `--name` | Names the ACR to modify. |
+| `--output` | Formats as `table` for readability. |
+| `--resource-group` | Limits the operation to the resource group. |
 
 ### H4: Malformed image reference
 
@@ -345,10 +425,13 @@ echo "Configured image: $IMAGE"
 # ❌ myacr.azurecr.io/myapp (missing tag)
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `IMAGE=$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].image" --output tsv)` | Captures the exact image reference from the live app so you can validate its registry/repository/tag format instead of guessing what the failed revision tried to pull. |
-| `echo "Configured image: $IMAGE"` | Prints the captured image string so the operator can compare it directly with the valid and invalid reference patterns listed below. |
+| `az containerapp show` | Displays the configured image reference. |
+| `--name` | Names the app to inspect. |
+| `--output` | Formats as `tsv` so the image reference is easy to extract and validate. |
+| `--query` | Extracts only the image URI. |
+| `--resource-group` | Limits the lookup to the resource group. |
 
 ### H5: Auth-looking `unauthorized` that can indicate restricted egress blocking managed identity token acquisition
 
@@ -405,16 +488,21 @@ fi
 # Your ACR endpoint or AzureContainerRegistry when not using an ACR private endpoint
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp show ... --query "properties.configuration.registries"` | Confirm the container app is configured to use managed identity for registry authentication |
-| `az containerapp show ... --query "identity.principalId"` | Retrieve the managed identity principal ID for role verification |
-| `az acr show ... --query "id"` | Get the ACR resource ID to scope role assignment checks |
-| `az role assignment list --scope ... --assignee ...` | Verify that the identity holds the `AcrPull` role on the target registry |
-| `az containerapp env show ... --query "properties.vnetConfiguration.infrastructureSubnetId"` | Get the infrastructure subnet to inspect attached NSG and route table |
-| `az network vnet subnet show ... --query "{routeTableId:...,nsgId:...}"` | Check whether the subnet has an NSG or route table attached |
-| `az resource show --ids "$NSG_ID"` | Inspect the NSG definition for outbound deny rules that block identity dependencies |
-| `az resource show --ids "$ROUTE_TABLE_ID"` | Inspect the route table for UDRs that redirect egress through a firewall |
+| `az containerapp show` | Returns the registry server, selected pull identity, and principal ID needed to distinguish a wrong identity binding from blocked token acquisition. |
+| `az acr show` | Retrieves the registry resource ID used to verify that the pull identity's role assignment is scoped to the ACR that rejected the request. |
+| `az role assignment list` | Lists the roles held by the container app principal at the ACR scope, showing whether the expected pull permission is present before investigating egress. |
+| `az containerapp env show` | Finds the infrastructure subnet whose route table and NSG control the environment's outbound path to identity and registry endpoints. |
+| `az network vnet subnet show` | Resolves the route-table and NSG IDs attached to that subnet so forced tunneling and egress filtering can be inspected separately. |
+| `az resource show` | Reads the referenced route table or NSG resource when its provider-specific command is not yet known, preserving the complete rule configuration for review. |
+| `--assignee` | Filters the RBAC results to `"$PRINCIPAL_ID"`, the managed identity used by the app for the registry pull. |
+| `--ids` | Reads the infrastructure subnet, then its attached NSG and route table by resource ID so their actual outbound controls can be reviewed. |
+| `--name` | Selects the container app, ACR, and Container Apps environment whose identity, registry scope, and infrastructure subnet are being correlated. |
+| `--output` | Emits structured configuration as JSON, shell-assigned IDs as TSV, and role assignments as a table so each result is usable in the next check. |
+| `--query` | Extracts the registry identity, principal ID, ACR ID, infrastructure subnet ID, and attached NSG and route-table IDs needed to compare RBAC with outbound controls. |
+| `--resource-group` | Reads the app, registry, and environment from `"$RG"` so the identity and network evidence comes from the affected workload deployment. |
+| `--scope` | Restricts the role-assignment evidence to `"$ACR_ID"`, distinguishing permissions on the failing registry from broader or unrelated assignments. |
 
 ```kusto
 // Correlate unauthorized image pull failures with restricted egress investigation
@@ -538,66 +626,39 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
   --revision-suffix "egress-fix-$(date +%s)"
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az network firewall policy rule-collection-group collection add-filter-collection --policy-name "$FIREWALL_POLICY_NAME" --resource-group "$RG" --rule-collection-group-name "$RULE_COLLECTION_GROUP_NAME" --name "aca-egress-dependencies" --action Allow --collection-priority 100 --rule-type ApplicationRule` | Creates a dedicated firewall application-rule collection for the dependency allow-list, keeping the Container Apps egress fix grouped and reviewable. |
-| `az network firewall policy rule-collection-group collection rule add --policy-name "$FIREWALL_POLICY_NAME" --resource-group "$RG" --rule-collection-group-name "$RULE_COLLECTION_GROUP_NAME" --collection-name "aca-egress-dependencies" --name "allow-managed-identity-and-registry-fqdns" --rule-type ApplicationRule --source-addresses "*" --protocols "Http=80" "Https=443" --target-fqdns "login.microsoftonline.com" "*.login.microsoftonline.com" "*.login.microsoft.com" "login.microsoft.com" "*.identity.azure.net" "mcr.microsoft.com" "*.data.mcr.microsoft.com" "$ACR_NAME.azurecr.io" "*.blob.core.windows.net"` | Adds the concrete firewall application rule that permits the required FQDNs for identity discovery, registry access, or other blocked dependencies. |
-| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-azure-active-directory-443" --priority 200 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes AzureActiveDirectory --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
-| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-microsoft-container-registry-443" --priority 210 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes MicrosoftContainerRegistry --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
-| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-azure-front-door-first-party-443" --priority 220 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes AzureFrontDoor.FirstParty --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
-| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-azure-container-registry-443" --priority 225 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes AzureContainerRegistry --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
-| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-storage-region-443" --priority 230 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes "Storage.<Region>" --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
-| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --revision-suffix "egress-fix-$(date +%s)"` | Forces a fresh revision name so the platform retries after the fix, which is the corrective action this step is validating or applying. |
-
-| Command | Purpose |
-|---|---|
-| `az network firewall policy rule-collection-group collection add-filter-collection --policy-name "$FIREWALL_POLICY_NAME" --resource-group "$RG" --rule-collection-group-name "$RULE_COLLECTION_GROUP_NAME" --name "aca-egress-dependencies" --action Allow --collection-priority 100 --rule-type ApplicationRule` | Creates a dedicated firewall application-rule collection for the dependency allow-list, keeping the Container Apps egress fix grouped and reviewable. |
-| `az network firewall policy rule-collection-group collection rule add --policy-name "$FIREWALL_POLICY_NAME" --resource-group "$RG" --rule-collection-group-name "$RULE_COLLECTION_GROUP_NAME" --collection-name "aca-egress-dependencies" --name "allow-managed-identity-and-registry-fqdns" --rule-type ApplicationRule --source-addresses "*" --protocols "Http=80" "Https=443" --target-fqdns "login.microsoftonline.com" "*.login.microsoftonline.com" "*.login.microsoft.com" "login.microsoft.com" "*.identity.azure.net" "mcr.microsoft.com" "*.data.mcr.microsoft.com" "$ACR_NAME.azurecr.io" "*.blob.core.windows.net"` | Adds the concrete firewall application rule that permits the required FQDNs for identity discovery, registry access, or other blocked dependencies. |
-| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-azure-active-directory-443" --priority 200 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes AzureActiveDirectory --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
-| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-microsoft-container-registry-443" --priority 210 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes MicrosoftContainerRegistry --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
-| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-azure-front-door-first-party-443" --priority 220 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes AzureFrontDoor.FirstParty --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
-| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-azure-container-registry-443" --priority 225 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes AzureContainerRegistry --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
-| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-storage-region-443" --priority 230 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes "Storage.<Region>" --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
-| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --revision-suffix "egress-fix-$(date +%s)"` | Forces a fresh revision name so the platform retries after the fix, which is the corrective action this step is validating or applying. |
-
-| Command | Purpose |
-|---|---|
-| `az network firewall policy rule-collection-group collection add-filter-collection --policy-name "$FIREWALL_POLICY_NAME" --resource-group "$RG" --rule-collection-group-name "$RULE_COLLECTION_GROUP_NAME" --name "aca-egress-dependencies" --action Allow --collection-priority 100 --rule-type ApplicationRule` | Creates a dedicated firewall application-rule collection for the dependency allow-list, keeping the Container Apps egress fix grouped and reviewable. |
-| `az network firewall policy rule-collection-group collection rule add --policy-name "$FIREWALL_POLICY_NAME" --resource-group "$RG" --rule-collection-group-name "$RULE_COLLECTION_GROUP_NAME" --collection-name "aca-egress-dependencies" --name "allow-managed-identity-and-registry-fqdns" --rule-type ApplicationRule --source-addresses "*" --protocols "Http=80" "Https=443" --target-fqdns "login.microsoftonline.com" "*.login.microsoftonline.com" "*.login.microsoft.com" "login.microsoft.com" "*.identity.azure.net" "mcr.microsoft.com" "*.data.mcr.microsoft.com" "$ACR_NAME.azurecr.io" "*.blob.core.windows.net"` | Adds the concrete firewall application rule that permits the required FQDNs for identity discovery, registry access, or other blocked dependencies. |
-| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-azure-active-directory-443" --priority 200 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes AzureActiveDirectory --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
-| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-microsoft-container-registry-443" --priority 210 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes MicrosoftContainerRegistry --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
-| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-azure-front-door-first-party-443" --priority 220 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes AzureFrontDoor.FirstParty --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
-| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-azure-container-registry-443" --priority 225 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes AzureContainerRegistry --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
-| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-storage-region-443" --priority 230 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes "Storage.<Region>" --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
-| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --revision-suffix "egress-fix-$(date +%s)"` | Forces a fresh revision name so the platform retries after the fix, which is the corrective action this step is validating or applying. |
-
-| Command | Purpose |
-|---|---|
-| `az network firewall policy rule-collection-group collection add-filter-collection --policy-name "$FIREWALL_POLICY_NAME" --resource-group "$RG" --rule-collection-group-name "$RULE_COLLECTION_GROUP_NAME" --name "aca-egress-dependencies" --action Allow --collection-priority 100 --rule-type ApplicationRule` | Creates a dedicated firewall application-rule collection for the dependency allow-list, keeping the Container Apps egress fix grouped and reviewable. |
-| `az network firewall policy rule-collection-group collection rule add --policy-name "$FIREWALL_POLICY_NAME" --resource-group "$RG" --rule-collection-group-name "$RULE_COLLECTION_GROUP_NAME" --collection-name "aca-egress-dependencies" --name "allow-managed-identity-and-registry-fqdns" --rule-type ApplicationRule --source-addresses "*" --protocols "Http=80" "Https=443" --target-fqdns "login.microsoftonline.com" "*.login.microsoftonline.com" "*.login.microsoft.com" "login.microsoft.com" "*.identity.azure.net" "mcr.microsoft.com" "*.data.mcr.microsoft.com" "$ACR_NAME.azurecr.io" "*.blob.core.windows.net"` | Adds the concrete firewall application rule that permits the required FQDNs for identity discovery, registry access, or other blocked dependencies. |
-| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-azure-active-directory-443" --priority 200 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes AzureActiveDirectory --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
-| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-microsoft-container-registry-443" --priority 210 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes MicrosoftContainerRegistry --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
-| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-azure-front-door-first-party-443" --priority 220 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes AzureFrontDoor.FirstParty --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
-| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-azure-container-registry-443" --priority 225 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes AzureContainerRegistry --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
-| `az network nsg rule create --resource-group "$RG" --nsg-name "$NSG_NAME" --name "allow-storage-region-443" --priority 230 --direction Outbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes "Storage.<Region>" --destination-port-ranges 443` | Adds an explicit NSG allow rule for the blocked dependency path so managed identity, registry, or application traffic can leave the subnet again. |
-| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --revision-suffix "egress-fix-$(date +%s)"` | Forces a fresh revision name so the platform retries after the fix, which is the corrective action this step is validating or applying. |
-
-| Command | Purpose |
-|---|---|
-| `az network firewall policy rule-collection-group collection add-filter-collection ...` | Create a new application rule collection in the firewall policy for Container Apps egress dependencies |
-| `az network firewall policy rule-collection-group collection rule add ... --target-fqdns ...` | Allow outbound HTTPS to Entra ID, MCR, ACR, and storage FQDNs required for managed identity image pulls |
-| `az network nsg rule create ... AzureActiveDirectory` | Allow the NSG to pass outbound traffic to Microsoft Entra ID for managed identity token acquisition |
-| `az network nsg rule create ... MicrosoftContainerRegistry` | Allow outbound to Microsoft Container Registry for platform system container dependencies |
-| `az network nsg rule create ... AzureFrontDoor.FirstParty` | Allow outbound to Azure Front Door, a dependency of Microsoft Container Registry |
-| `az network nsg rule create ... AzureContainerRegistry` | Allow outbound to Azure Container Registry when not using a private endpoint |
-| `az network nsg rule create ... Storage.<Region>` | Allow outbound to regional Azure Storage for ACR image layer downloads |
-| `az containerapp update ... --revision-suffix ...` | Trigger a new revision to retry image pull after restoring outbound access |
+| `az network firewall policy rule-collection-group collection add-filter-collection` | Adds the `aca-egress-dependencies` filter collection to the existing rule-collection group, assigning its action and evaluation priority before application rules are added. |
+| `az network firewall policy rule-collection-group collection rule add` | Adds application rules into the created collection, specifying allowed FQDNs (Microsoft Entra ID, container registries, storage) and ports. |
+| `az network nsg rule create` | Creates outbound NSG rules to allow traffic to Azure service tags on port 443 for managed identity token acquisition and registry access. Creates five separate rules for each required service tag. |
+| `az containerapp update` | Triggers a new revision to test whether outbound egress is now restored and the identity can acquire tokens. |
+| `--access` | Specifies `Allow` on NSG rules to permit traffic. |
+| `--action` | Specifies `Allow` on firewall policy rules to permit matched traffic. |
+| `--collection-name` | Names the rule collection `"aca-egress-dependencies"` so all egress rules are grouped together. |
+| `--collection-priority` | Sets priority `100` to control rule evaluation order within the rule collection group. |
+| `--destination-address-prefixes` | Allows Azure service tags (`AzureActiveDirectory`, `MicrosoftContainerRegistry`, etc.) so NSG rules apply to dynamic Azure IP ranges. |
+| `--destination-port-ranges` | Allows port 443 (HTTPS) for all outbound token and registry traffic. |
+| `--direction` | Specifies `Outbound` to control traffic leaving the environment. |
+| `--name` | Collection names (`aca-egress-dependencies`), rule names (one per service tag), and app name for updates. |
+| `--nsg-name` | Specifies the NSG attached to the infrastructure subnet. |
+| `--policy-name` | References the firewall policy that contains the rule collection group. |
+| `--priority` | Sets NSG rule priorities (200–230) to ensure they evaluate in order without conflicts. |
+| `--protocol` | Specifies TCP for NSG rules since HTTPS uses TCP. |
+| `--protocols` | Specifies HTTP (port 80) and HTTPS (port 443) protocols for firewall application rules. |
+| `--resource-group` | Selects the resource group containing all networking resources. |
+| `--revision-suffix` | Timestamps the new revision to track when egress fix was applied. |
+| `--rule-collection-group-name` | References the rule collection group (e.g., `"$RULE_COLLECTION_GROUP_NAME"`) where the new collection is added. |
+| `--rule-type` | Specifies `ApplicationRule` for FQDN-based filtering (not network-level IP filtering). |
+| `--source-address-prefixes` | Allows all sources (`*`) within the subnet to initiate outbound connections. |
+| `--source-addresses` | Allows all sources (`*`) on firewall rules so all environment traffic is subject to the egress allow-list. |
+| `--source-port-ranges` | Allows all ephemeral source ports (`*`) for outbound connections. |
+| `--target-fqdns` | Specifies the FQDNs for Microsoft Entra token endpoint, container registries, and storage accounts that must be reachable. |
 
 ## 7. Likely Root Cause Patterns
 
 | Pattern | Frequency | First Signal | Typical Resolution |
 |---|---|---|---|
-| Missing AcrPull role | Very common | `unauthorized` in logs | Add role assignment |
+| Missing mode-appropriate ACR pull role | Very common | `unauthorized` in logs | Assign `AcrPull` for RBAC-only mode or repository reader for ABAC-enabled mode |
 | Wrong image tag | Common | `manifest unknown` | Fix tag or push image |
 | System identity not enabled | Common | `unauthorized` | Enable system identity |
 | Private ACR without VNet | Occasional | Timeout | Configure VNet or private endpoint |
@@ -606,14 +667,30 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
 
 ## 8. Immediate Mitigations
 
-1. **If auth failure:** Assign AcrPull role
+1. **If auth failure:** Query the role-assignment mode, then assign the role that mode honors. Use `AcrPull` only for RBAC-only mode. For `rbac-abac`, assign `Container Registry Repository Reader`; add the [repository-name condition](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-abac-repository-permissions#scope-role-assignment-to-a-specific-repository) when access must be limited to the image repository.
    ```bash
+   ROLE_ASSIGNMENT_MODE=$(az acr show --name "$ACR_NAME" --resource-group "$RG" \
+     --query "roleAssignmentMode" --output tsv)
+
+   # RBAC-only registry
    az role assignment create --assignee "$PRINCIPAL_ID" --role "AcrPull" --scope "$ACR_ID"
+
+   # ABAC-enabled registry
+   az role assignment create --assignee "$PRINCIPAL_ID" \
+     --role "Container Registry Repository Reader" --scope "$ACR_ID"
    ```
 
-   | Command | Purpose |
+   | Command or parameter | Purpose |
    |---|---|
-   | `az role assignment create --assignee "$PRINCIPAL_ID" --role "AcrPull" --scope "$ACR_ID"` | Grants the workload identity the registry pull permission at the exact ACR scope so image downloads can succeed without changing the auth model. |
+   | `az acr show` | Reads the registry's role-assignment mode before choosing a pull role. |
+   | `az role assignment create` | Creates the mode-appropriate pull-role assignment for the workload identity at the ACR scope. |
+   | `--assignee` | Specifies the principal (workload identity) that receives the ACR pull permission. Correctly identifies the managed identity attached to the container app. |
+   | `--name` | Identifies the registry whose role-assignment mode is queried. |
+   | `--output` | Emits the mode as plain `tsv` for shell branching or operator inspection. |
+   | `--query` | Selects `roleAssignmentMode` so the result distinguishes `rbac` from `rbac-abac`. |
+   | `--resource-group` | Selects the resource group containing the registry. |
+   | `--role` | Selects `AcrPull` for RBAC-only mode or `Container Registry Repository Reader` for ABAC-enabled mode. |
+   | `--scope` | Limits the role assignment to the specific ACR resource, following the principle of least privilege. |
 
 2. **If tag missing:** Use known good tag
    ```bash
@@ -621,18 +698,23 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
      --image "$ACR_NAME.azurecr.io/myapp:known-good-tag"
    ```
 
-   | Command | Purpose |
+   | Command or parameter | Purpose |
    |---|---|
-   | `az containerapp update --name "$APP_NAME" --resource-group "$RG" --image "$ACR_NAME.azurecr.io/myapp:known-good-tag"` | Repoints the app to a tag that is known to exist so the next revision can prove the incident was caused by a missing or mistyped image reference. |
+   | `az containerapp update` | Updates the container app's image reference to trigger deployment of a corrected revision with the new tag. |
+   | `--image` | Specifies a known-good or correct image URI, bypassing the broken or missing tag by referencing a proven working version. |
+   | `--name` | Identifies the container app to update. |
+   | `--resource-group` | Specifies the resource group containing the container app. |
 
 3. **If private ACR issues:** Temporarily enable public access (for debugging only)
    ```bash
    az acr update --name "$ACR_NAME" --public-network-enabled true
    ```
 
-   | Command | Purpose |
+   | Command or parameter | Purpose |
    |---|---|
-   | `az acr update --name "$ACR_NAME" --public-network-enabled true` | Temporarily relaxes ACR network restrictions so you can isolate whether private-endpoint or firewall routing is the real blocker before making permanent network changes. |
+   | `az acr update` | Temporarily enables public network access to the registry to diagnose whether network restrictions (not identity or image issues) are blocking the pull. |
+   | `--name` | Identifies the container registry to modify. |
+   | `--public-network-enabled` | Configures the registry to accept public ingress, narrowing down whether the issue is network isolation or identity/image problems. |
 
 4. **If `unauthorized` persists after RBAC checks:** Temporarily allow required managed identity egress dependencies
    ```bash
@@ -642,9 +724,20 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
      --destination-address-prefixes AzureActiveDirectory --destination-port-ranges 443
    ```
 
-    | Command | Purpose |
-    |---|---|
-    | `az network nsg rule create ... AzureActiveDirectory` | Temporarily allow outbound access to Microsoft Entra ID so managed identity can acquire a token for ACR authentication |
+   | Command or parameter | Purpose |
+   |---|---|
+   | `az network nsg rule create` | Creates an NSG outbound rule permitting the managed identity to reach the Azure Entra token service (`AzureActiveDirectory` on port 443), unblocking `unauthorized` failures in egress-restricted environments. |
+   | `--access` | Permits traffic matching this rule (necessary for egress). |
+   | `--destination-address-prefixes` | Targets the Azure Entra service tag, which resolves to the Entra token endpoints the managed identity must reach to obtain pull credentials. |
+   | `--destination-port-ranges` | Permits HTTPS traffic (443), the protocol for Entra token requests. |
+   | `--direction` | Specifies outbound (container app → Entra), matching the managed identity's token acquisition flow. |
+   | `--name` | Names the rule for auditability and management. |
+   | `--nsg-name` | Specifies the NSG to modify. |
+   | `--priority` | Assigns an evaluation order within the NSG rules. Lower values are evaluated first; 200 avoids conflicts with default deny rules. |
+   | `--protocol` | Specifies TCP, the protocol used by Entra token endpoints. |
+   | `--resource-group` | Specifies the resource group containing the NSG. |
+   | `--source-address-prefixes` | Permits traffic from any container app replica in the environment (VNET). In production, narrow this to the Container Apps VNET or subnet. |
+   | `--source-port-ranges` | Permits outbound from any source port (container apps use ephemeral ports). |
 
 5. **Force new revision after fix:**
    ```bash
@@ -652,9 +745,12 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
       --revision-suffix "fix-$(date +%s)"
    ```
 
-   | Command | Purpose |
+   | Command or parameter | Purpose |
    |---|---|
-   | `az containerapp update --name "$APP_NAME" --resource-group "$RG" --revision-suffix "fix-$(date +%s)"` | Forces a fresh revision creation so the platform retries the image pull after you have corrected RBAC, tag, or egress dependencies. |
+   | `az containerapp update` | Deploys a new revision with a fresh timestamp, triggering the platform to reattempt the image pull and verify that the fix resolves the issue. |
+   | `--name` | Identifies the container app to update. |
+   | `--resource-group` | Specifies the resource group containing the container app. |
+   | `--revision-suffix` | Adds a unique timestamp suffix to the revision name, ensuring a new provisioning attempt and preventing cached-revision behavior. |
 
 ## 9. Prevention
 
@@ -687,3 +783,5 @@ az containerapp update --name "$APP_NAME" --resource-group "$RG" \
 - [Container Apps outbound traffic control with Azure Firewall](https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes)
 - [Troubleshoot Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
 - [Azure Container Registry authentication](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication)
+- [Azure Container Registry built-in roles and role-assignment modes](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-built-in-roles-overview)
+- [Azure ABAC repository permissions in Azure Container Registry](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-abac-repository-permissions)

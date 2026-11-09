@@ -36,18 +36,28 @@ Use this playbook when publish or subscribe paths fail, messages disappear, or o
 <!-- diagram-id: dapr-pubsub-failure-flow -->
 ```mermaid
 flowchart TD
-    A[Publish or subscribe path fails] --> B[Verify app Dapr settings]
-    B --> C[Inspect pubsub component]
-    C --> D{Component exists in environment}
-    D -->|No| E[Create or restore component]
-    D -->|Yes| F[Check scopes]
-    F --> G{Publisher and subscriber are allowed}
-    G -->|No| H[Correct scopes list]
-    G -->|Yes| I[Check metadata and secret references]
-    I --> J{Broker reachable}
-    J -->|No| K[Fix network, identity, or secret issue]
-    J -->|Yes| L[Retest message flow]
+    accTitle: Diagnose a Dapr pub/sub failure
+    accDescr: Verify Dapr enablement, the environment-level pub/sub component, app-ID scopes, component metadata and credentials, then test broker transport and end-to-end publish and delivery.
+
+    START[Publish or delivery fails] --> ENABLED{Dapr enabled with<br/>expected app IDs?}
+    ENABLED -->|No| APP[Correct Dapr app settings]
+    ENABLED -->|Yes| EXISTS{Pub/sub component exists<br/>in the environment?}
+    EXISTS -->|No| RESTORE[Create or restore component]
+    EXISTS -->|Yes| SCOPED{Publisher and subscriber<br/>app IDs in scope?}
+    SCOPED -->|No| SCOPE[Correct component scopes]
+    SCOPED -->|Yes| CONFIG{Metadata, secret references,<br/>and identity valid?}
+    CONFIG -->|No| CREDENTIALS[Correct component configuration]
+    CONFIG -->|Yes| BROKER{Broker reachable and<br/>authorized?}
+    BROKER -->|No| PATH[Fix DNS, network, TLS,<br/>or broker authorization]
+    BROKER -->|Yes| TEST[Publish a known event<br/>and verify subscriber delivery]
+    APP --> TEST
+    RESTORE --> TEST
+    SCOPE --> TEST
+    CREDENTIALS --> TEST
+    PATH --> TEST
 ```
+
+*Figure: Component scope uses Dapr application IDs, while broker transport and authorization are separate checks after the component loads.*
 
 ## Possible Causes
 
@@ -83,11 +93,16 @@ az containerapp env dapr-component show \
     --output yaml
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.dapr" --output json` | Confirms that the app is using Dapr and exposes the app ID context for pub/sub routing checks. |
-| `az containerapp env dapr-component list --name "$ACA_ENV_NAME" --resource-group "$RG" --output table` | Verifies that the intended pub/sub component exists in the environment. |
-| `az containerapp env dapr-component show --name "$ACA_ENV_NAME" --resource-group "$RG" --dapr-component-name "pubsub" --output yaml` | Shows the component type, metadata, secret references, and scopes that control message flow. |
+| `az containerapp show` | Retrieve the app's Dapr configuration to confirm the app-ID and Dapr enablement status |
+| `az containerapp env dapr-component list` | List all Dapr components in the environment to confirm the pub/sub component exists and its name |
+| `az containerapp env dapr-component show` | Retrieve the pub/sub component definition to inspect its type, broker metadata, and scope list |
+| `--dapr-component-name` | Target the pub/sub component by name to fetch its full configuration and scope constraints |
+| `--name` | Specify the app name and environment name to isolate configuration from other apps or environments |
+| `--output` | Use JSON for the app config (structured diff-friendly), table for component lists (quick scan), and YAML for component definition (human-readable) |
+| `--query` | Extract only properties.configuration.dapr to focus on the app's Dapr enablement and app-ID |
+| `--resource-group` | Restrict queries to the resource group containing the affected app and environment |
 
 KQL for symptom capture:
 
@@ -116,9 +131,13 @@ az containerapp env dapr-component set \
     --yaml "./pubsub.yaml"
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp env dapr-component set --name "$ACA_ENV_NAME" --resource-group "$RG" --dapr-component-name "pubsub" --yaml "./pubsub.yaml"` | Reapplies the corrected pub/sub component definition after fixing name, metadata, scopes, or credentials. |
+| `az containerapp env dapr-component set` | Apply the corrected pub/sub component definition to the environment to refresh broker credentials, scope list, and metadata |
+| `--dapr-component-name` | Specify the pub/sub component name (must match the name used in app code) to update the correct component |
+| `--name` | Target the environment where the component is deployed |
+| `--resource-group` | Restrict the update to the resource group containing the affected environment |
+| `--yaml` | Pass the corrected component YAML file containing fixed scopes, broker metadata, and secret references |
 
 ## Prevention
 

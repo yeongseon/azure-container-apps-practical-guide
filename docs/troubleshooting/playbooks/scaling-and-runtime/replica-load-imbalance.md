@@ -47,86 +47,120 @@ Use this playbook when one replica becomes hot while others stay underused, or w
 <!-- diagram-id: replica-load-imbalance-decision-flow -->
 ```mermaid
 flowchart TD
-    A[Uneven replica utilization] --> B[Check ingress, session affinity, and connection type]
-    B --> C{Sticky sessions or long-lived connections?}
-    C -->|Yes| D[Expected concentration on some replicas]
-    C -->|No| E[Check scale rules and concurrency]
-    E --> F{New replicas arriving late?}
-    F -->|Yes| G[Tune KEDA threshold or min replicas]
-    F -->|No| H[Inspect app-level state and cache locality]
-    D --> I[Disable affinity for stateless paths or isolate sticky workloads]
-    H --> J[Refactor state handling or spread work more evenly]
+    accTitle: Diagnose uneven load across replicas
+    accDescr: Separate revision traffic weights from replica-level routing, then test session affinity, long-lived connections, scaler timing, and application state locality.
+
+    START[Replica utilization is uneven] --> REVISION{Multiple active revisions<br/>with weighted traffic?}
+    REVISION -->|Yes| WEIGHTS[Verify revision weights<br/>before comparing replicas]
+    REVISION -->|No| AFFINITY{Session affinity enabled?}
+    WEIGHTS --> AFFINITY
+    AFFINITY -->|Yes| STICKY[Measure client concentration<br/>and affinity requirement]
+    AFFINITY -->|No| CONNECTIONS{Long-lived WebSocket,<br/>gRPC, or streaming sessions?}
+    CONNECTIONS -->|Yes| PINNING[Separate or rebalance<br/>long-lived workloads]
+    CONNECTIONS -->|No| SCALE{New replicas become ready<br/>before hot replicas saturate?}
+    SCALE -->|No| TUNE[Tune concurrency, thresholds,<br/>or minimum replicas]
+    SCALE -->|Yes| STATE[Inspect application state,<br/>cache, and work partitioning]
+    STICKY --> DECIDE{Affinity required?}
+    DECIDE -->|No| DISABLE[Disable sticky sessions]
+    DECIDE -->|Yes| ISOLATE[Isolate and capacity-plan<br/>stateful traffic]
 ```
 
-1. Confirm ingress behavior and whether sticky sessions are enabled.
+*Figure: Revision traffic splitting and replica load balancing are different layers; session affinity and long-lived connections can intentionally concentrate requests.*
 
-    ```bash
-    az containerapp show \
-        --name "$APP_NAME" \
-        --resource-group "$RG" \
-        --query "properties.configuration.ingress" \
-        --output json
-    ```
+### 1. Confirm ingress behavior and whether sticky sessions are enabled
 
-    | Command | Why it is used |
-    |---|---|
-    | `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+```bash
+az containerapp show \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --query "properties.configuration.ingress" \
+    --output json
+```
 
-2. Check scale rules and replica limits.
+| Command or parameter | Purpose |
+| --- | --- |
+| `az containerapp show` | Retrieves the full ingress configuration for the named app, exposing sticky-session state, custom domain bindings, and client affinity settings that determine whether requests route consistently to the same replica. |
+| `--name` | Specifies the app name; ensures the ingress configuration is read from the intended workload resource, not a similarly named app in another group. |
+| `--output` | Preserves the ingress subtree as JSON so the affinity setting and related routing fields remain structured. |
+| `--query` | Projects `properties.configuration.ingress`, excluding template and identity data from the sticky-session check. |
+| `--resource-group` | Scopes the lookup to a specific resource group, preventing reads from a same-named app in a different subscription or group. |
 
-    ```bash
-    az containerapp show \
-        --name "$APP_NAME" \
-        --resource-group "$RG" \
-        --query "properties.template.scale" \
-        --output json
-    ```
+Record whether `stickySessions.affinity` is set and what `affinity` value is in use. This setting is the primary control for whether requests from the same client route to the same replica or spread across replicas.
 
-    | Command | Why it is used |
-    |---|---|
-    | `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+### 2. Check scale rules and replica limits
 
-3. Compare request timing and replica events.
+```bash
+az containerapp show \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --query "properties.template.scale" \
+    --output json
+```
 
-    ```bash
-    az monitor metrics list \
-        --resource "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.App/containerApps/$APP_NAME" \
-        --metric Requests \
-        --aggregation Total \
-        --timespan PT1H
-    ```
+| Command or parameter | Purpose |
+| --- | --- |
+| `az containerapp show` | Reads the complete container app definition to access the scale configuration and examine minReplicas, maxReplicas, and the active scale rules governing replica provisioning. |
+| `--name` | Names the specific app; ensures scale configuration is from the correct workload, not from a duplicate name in a different resource group. |
+| `--output` | Emits the selected scale object as JSON, retaining replica limits and each rule's nested metadata for analysis. |
+| `--query` | Isolates `properties.template.scale` so `minReplicas`, `maxReplicas`, and active rules can be reviewed without unrelated app configuration. |
+| `--resource-group` | Restricts the query to the target resource group, preventing contamination from a same-named app in another group or subscription. |
 
-    | Command | Purpose |
-    |---|---|
-| `az monitor metrics list --resource "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.App/containerApps/$APP_NAME" --metric Requests --aggregation Total --timespan PT1H` | Pulls one hour of total request volume for the app resource so you can compare load shape with replica distribution and decide whether imbalance is happening under meaningful traffic. |
+Record `minReplicas`, `maxReplicas`, and the list of active scale rules (`rules[].name`, `rules[].type`, `rules[].metadata.type`, and `rules[].scaleRuleAuth` settings). A low `minReplicas` combined with high latency to scale new replicas may cause the first replica to saturate before relief arrives.
 
-    ```kusto
-    let AppName = "ca-myapp";
-    ContainerAppSystemLogs_CL
-    | where ContainerAppName_s == AppName
-    | where TimeGenerated > ago(2h)
-    | where Reason_s has_any ("ReplicaStarted", "ReplicaReady")
-       or Log_s has_any ("affinity", "session", "connection")
-    | project TimeGenerated, RevisionName_s, ReplicaName_s, Reason_s, Log_s
-    | order by TimeGenerated desc
-    ```
+### 3. Compare request timing and replica events
 
-4. If multiple revisions are active, make sure the problem is not mistaken for a traffic-splitting issue.
+```bash
+az monitor metrics list \
+    --resource "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.App/containerApps/$APP_NAME" \
+    --metric Requests \
+    --aggregation Total \
+    --filter "podName eq '*'" \
+    --offset PT1H
+```
 
-    ```bash
-    az containerapp show \
-        --name "$APP_NAME" \
-        --resource-group "$RG" \
-        --query "properties.configuration.ingress.traffic" \
-        --output json
-    ```
+| Command or parameter | Purpose |
+| --- | --- |
+| `az monitor metrics list` | Retrieves the container app's `Requests` time series from Azure Monitor for the selected one-hour window. |
+| `--aggregation` | Applies `Total` to each request interval, producing traffic volume that can be compared with replica lifecycle events. |
+| `--filter` | Splits `Requests` into one series per `podName`, the documented replica dimension, so each replica's request volume can be compared after scale-out. |
+| `--metric` | Selects the `Requests` series as the workload signal for the suspected concentration period. |
+| `--resource` | Targets the specific Container Apps resource using its full resource ID; prevents queries from accidentally reading metrics from a same-named app in a different subscription or resource group. |
+| `--offset` | Uses a `PT1H` lookback from the current time, keeping the comparison focused on the recent imbalance event. |
 
-| Command or Query | Why it is used |
-|---|---|
-| `az containerapp show --query properties.configuration.ingress` | Reveals session affinity and ingress behavior that can bias request distribution. |
-| `az containerapp show --query properties.template.scale` | Shows whether scaling thresholds delay new replica creation. |
-| `az monitor metrics list --metric Requests ...` | Establishes the load window that must be correlated with replica behavior. |
-| KQL against system logs | Maps request concentration symptoms to replica lifecycle events. |
+Use the system-log query below to establish when replicas started and became ready, then compare those timestamps with the corresponding `podName` series in the `Requests` metric. The metric supplies per-replica request volume; the logs supply replica lifecycle and affinity evidence.
+
+```kusto
+let AppName = "ca-myapp";
+ContainerAppSystemLogs_CL
+| where ContainerAppName_s == AppName
+| where TimeGenerated > ago(2h)
+| where Reason_s has_any ("ReplicaStarted", "ReplicaReady")
+   or Log_s has_any ("affinity", "session", "connection")
+| project TimeGenerated, RevisionName_s, ReplicaName_s, Reason_s, Log_s
+| order by TimeGenerated desc
+```
+
+Parse `ReplicaStarted` and `ReplicaReady` events to identify when new replicas came online. Cross-reference these timestamps with the request-count metric timeseries to determine whether request load remained pinned to the original replica or if the new replica received traffic. If the hot replica retained its high throughput despite new replicas appearing, session affinity or connection pinning is likely in effect.
+
+### 4. If multiple revisions are active, verify that the problem is not a traffic-splitting issue
+
+```bash
+az containerapp show \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --query "properties.configuration.ingress.traffic" \
+    --output json
+```
+
+| Command or parameter | Purpose |
+| --- | --- |
+| `az containerapp show` | Fetches the container app configuration to expose traffic-splitting rules between active revisions, allowing diagnosis of whether the load imbalance is at the revision level or within a single revision's replicas. |
+| `--name` | Identifies the app by name; ensures the traffic configuration is read from the correct resource, not a duplicate in a different group. |
+| `--output` | Keeps the revision weights and labels in JSON so the configured split can be compared without losing field structure. |
+| `--query` | Extracts `properties.configuration.ingress.traffic`, separating revision-level allocation from replica-level balancing evidence. |
+| `--resource-group` | Scopes the query to the target resource group, preventing reads from a same-named app in another subscription or group. |
+
+If multiple revisions are active and weights are not 0/100 split, calculate whether the observed load distribution matches the configured weights. A revision receiving 50% of the traffic should see approximately half the request count of a 100%-weight revision, assuming identical workload profiles. If the distribution does not match, the imbalance is likely at the replica level (affinity, pinning) rather than a traffic-splitting misconfiguration.
 
 ## Resolution
 

@@ -39,15 +39,31 @@ Container Apps Jobs can fail before the workload does useful work, fail near the
 <!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
 flowchart TD
-    A[Job does not complete successfully] --> B{Execution created?}
-    B -->|No| C[Fix trigger schedule or event configuration]
-    B -->|Yes| D{Timed out before workload end?}
-    D -->|Yes| E[Increase timeout and tune retry policy]
-    D -->|No| F[Fix runtime errors, secrets, or identity access]
-    C --> G[Re-run job and verify success]
-    E --> G
-    F --> G
+    accTitle: Diagnose a failed Container Apps job execution
+    accDescr: First determine whether an execution was created, then separate timeout and retry exhaustion from container, secret, identity, and dependency failures before starting a controlled verification execution.
+
+    START[Job does not complete] --> CREATED{Execution created?}
+    CREATED -->|No| TRIGGER{Trigger type?}
+    TRIGGER -->|Schedule| SCHEDULE[Validate five-field UTC cron]
+    TRIGGER -->|Event| EVENT[Validate scaler metadata<br/>and authentication]
+    TRIGGER -->|Manual| STARTPERM[Validate start action<br/>and caller permission]
+    CREATED -->|Yes| RESULT{Execution outcome?}
+    RESULT -->|Timed out| TIMEOUT[Compare runtime with<br/>replica timeout]
+    RESULT -->|Failed| RETRIES{Retry limit exhausted?}
+    RETRIES -->|Yes| ROOT[Fix repeatable workload<br/>or dependency failure]
+    RETRIES -->|No| RUNTIME[Inspect image, command,<br/>secrets, identity, and logs]
+    SCHEDULE --> VERIFY[Start a controlled execution]
+    EVENT --> VERIFY
+    STARTPERM --> VERIFY
+    TIMEOUT --> VERIFY
+    ROOT --> VERIFY
+    RUNTIME --> VERIFY
+    VERIFY --> SUCCESS{Execution succeeds?}
+    SUCCESS -->|Yes| DONE[Record corrected configuration]
+    SUCCESS -->|No| EVIDENCE[Collect execution details<br/>and escalate]
 ```
+
+*Figure: Trigger creation and execution completion are separate fault domains; retries repeat failed replicas and do not repair the underlying cause.*
 
 ## 2. Common Misreadings
 
@@ -86,10 +102,13 @@ az containerapp job execution list --name "$APP_NAME" --resource-group "$RG" --o
 az containerapp job show --name "$APP_NAME" --resource-group "$RG" --output json
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp job execution list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists recent job executions so you can see whether failures are isolated to one execution, repeating across retries, or never starting at all. |
-| `az containerapp job show --name "$APP_NAME" --resource-group "$RG" --output json` | Reads the job definition so trigger type, timeout, parallelism, and template configuration can be compared with the failing execution pattern. |
+| `az containerapp job execution list` | List recent job executions to determine if executions are being created and their outcome status |
+| `az containerapp job show` | Retrieve job definition to inspect trigger type, timeout, and retry policy |
+| `--name` | Target the specific job by name to avoid querying unrelated jobs in the same resource group |
+| `--output` | Use table to scan execution history quickly or JSON to inspect detailed execution metadata |
+| `--resource-group` | Limit execution-history and job-definition reads to the group containing the failed job. |
 
 ## 5. Evidence to Collect
 
@@ -148,9 +167,13 @@ az containerapp job execution list --name "$APP_NAME" --resource-group "$RG" --o
 az containerapp job show --name "$APP_NAME" --resource-group "$RG" --output json
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp job execution ...` | Creates, updates, starts, or inspects a Container Apps job. |
+| `az containerapp job execution list` | List all executions to confirm whether the trigger is firing at the expected time |
+| `az containerapp job show` | Retrieve trigger configuration (schedule, event metadata) to compare against expected run window |
+| `--name` | Query the specific job to isolate trigger configuration for this job only |
+| `--output` | Use table to visually scan execution timestamps and table or JSON for trigger config details |
+| `--resource-group` | Inspect trigger settings and executions in the group where the job is deployed. |
 
 **Disproof logic:** If executions are being created at the expected times and the same workload still fails after startup, the trigger configuration is not the primary fault domain.
 
@@ -175,14 +198,14 @@ az containerapp job execution show --name "$APP_NAME" --resource-group "$RG" --j
 az containerapp job show --name "$APP_NAME" --resource-group "$RG" --output json
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp job execution show --name "$APP_NAME" --resource-group "$RG" --job-execution-name "<execution-name>" --output json` | Reads one failed execution in detail so you can inspect its status, start/finish timing, and container outcomes instead of relying on the summary list. |
-| `az containerapp job show --name "$APP_NAME" --resource-group "$RG" --output json` | Reads the current job configuration so you can compare the failed execution against the timeout, retry, env, and trigger settings that produced it. |
-
-| Command | Why it is used |
-|---|---|
-| `az containerapp job execution ...` | Creates, updates, starts, or inspects a Container Apps job. |
+| `az containerapp job execution show` | Retrieve a specific failed execution to inspect its runtime duration and exact termination time |
+| `az containerapp job show` | Get the job timeout configuration to compare against observed execution runtime |
+| `--job-execution-name` | Specify the execution ID (from execution list) to examine its detailed state and duration metrics |
+| `--name` | Target the specific job by name |
+| `--output` | Use JSON to extract precise timeout and duration values for programmatic comparison |
+| `--resource-group` | Read timeout evidence from the resource group owning this job execution. |
 
 ```kusto
 let AppName = "job-myapp";
@@ -217,11 +240,14 @@ az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type conso
 az containerapp job show --name "$APP_NAME" --resource-group "$RG" --output json
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | Pulls platform-side job execution events so you can see whether the failure happens before the container finishes starting. |
-| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console` | Pulls application stdout/stderr from the job container so missing secrets or configuration errors are visible in the workload's own logs. |
-| `az containerapp job show --name "$APP_NAME" --resource-group "$RG" --output json` | Reads the job definition so you can verify that the configured secrets, env values, retries, and trigger metadata still match the failing execution path. |
+| `az containerapp logs show` | Capture both platform-level (system) and workload-level (console) logs to detect secret resolution failures and auth errors |
+| `az containerapp job show` | Inspect the job definition to verify secret references, environment variable assignments, and identity configuration |
+| `--name` | Query the specific job to isolate its secrets and configuration from other jobs |
+| `--output` | Use JSON to extract full job configuration for diff against a known working version |
+| `--resource-group` | Collect job logs and dependency settings from the failed job resource group. |
+| `--type` | Request system logs for platform-side secret-resolution events and console logs for workload-side auth failures |
 
 **Disproof logic:** If secrets, environment values, and identity permissions are correct and the workload still fails only near the timeout boundary, focus on timeout or trigger behavior instead.
 

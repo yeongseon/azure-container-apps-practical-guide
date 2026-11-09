@@ -37,15 +37,29 @@ Startup loops are often misread as platform instability or probe defects. In rea
 <!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
 flowchart TD
-    A[Replica restarts repeatedly] --> B{Console log has traceback?}
-    B -->|Yes| C[Fix app startup exception and rebuild image]
-    B -->|No| D{Port or bind error present?}
-    D -->|Yes| E[Align listener address and targetPort]
-    D -->|No| F[Inspect startup dependencies and probe timing]
-    C --> G[Deploy new revision and validate]
-    E --> G
-    F --> G
+    accTitle: Diagnose a container that cannot become ready
+    accDescr: Use platform and console logs to separate process exit, command failure, port mismatch, dependency delay, and probe timing before deploying a corrected revision.
+
+    START[Replica never becomes ready<br/>or restarts] --> PROCESS{Process stays running?}
+    PROCESS -->|No| LOGS{Console logs show<br/>application exception?}
+    LOGS -->|Yes| APP[Fix application startup error]
+    LOGS -->|No| COMMAND[Verify image command,<br/>arguments, and environment]
+    PROCESS -->|Yes| PORT{App listens on expected<br/>address and target port?}
+    PORT -->|No| BIND[Align listener and ingress target port]
+    PORT -->|Yes| PROBE{Startup and readiness<br/>probes allow initialization?}
+    PROBE -->|No| TIMING[Tune endpoints, delays,<br/>timeouts, and thresholds]
+    PROBE -->|Yes| DEPENDENCY[Inspect startup dependencies<br/>and external access]
+    APP --> VERIFY[Deploy a corrected revision]
+    COMMAND --> VERIFY
+    BIND --> VERIFY
+    TIMING --> VERIFY
+    DEPENDENCY --> VERIFY
+    VERIFY --> READY{Revision becomes ready?}
+    READY -->|Yes| DONE[Startup path verified]
+    READY -->|No| EVIDENCE[Collect system and console evidence]
 ```
+
+*Figure: Process lifetime, listener binding, and probe success are separate startup gates; ingress can route only after a healthy backend exists.*
 
 ## 2. Common Misreadings
 
@@ -85,11 +99,17 @@ az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type conso
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.targetPort" --output tsv
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists live replicas so you can confirm how many instances exist and whether the platform is creating, restarting, or recycling them. |
-| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console --follow` | Pulls application stdout/stderr from the running container so you can correlate platform symptoms with app-level exceptions or request handling. |
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.targetPort" --output tsv` | Reads the Container App resource and extracts the ingress target port as plain text for reuse in later commands, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp replica list` | Observe restart frequency and state transitions to confirm rapid churn. |
+| `az containerapp logs show` | Stream live startup output to detect exception tracebacks, bind errors, or premature exits. |
+| `az containerapp show` | Extract the configured target port for direct comparison against what the running app is listening on. |
+| `--follow` | Stream logs in real time during replica startup. |
+| `--name` | Target the specific app under investigation. |
+| `--output` | Format as table for human review or tsv for shell comparison. |
+| `--query` | Isolate the ingress.targetPort configuration value. |
+| `--resource-group` | Scope to the resource group containing the affected app. |
+| `--type` | Request console logs (app output) rather than platform-level system logs. |
 
 ## 5. Evidence to Collect
 
@@ -101,6 +121,7 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 | Live console output | `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console --follow` | Capture startup exception or bind failure |
 | Target port | `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.targetPort" --output tsv` | Compare ingress expectation with app listener |
 | Command override | `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].command" --output json` | Validate start command |
+|---|---|---|
 | Args override | `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].args" --output json` | Validate startup arguments |
 | Probe configuration | `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].probes" --output json` | Check readiness/liveness behavior |
 | Effective app port in container | `az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import os; print(os.environ.get(\"CONTAINER_APP_PORT\", \"8000\"))'"` | Verify container-side port expectation |
@@ -148,9 +169,17 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].args" --output json
 ```
 
-| Command | Why it is used |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp replica list ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp replica list` | Measure how quickly replicas reach zero lifespan to confirm fast exit pattern. |
+| `az containerapp logs show` | Capture traceback, import failure, or config validation errors from stdout/stderr. |
+| `az containerapp show` | Extract command and args to verify the image is being invoked with the correct entry point and parameters. |
+| `--follow` | Stream logs in real time as replicas start and fail. |
+| `--name` | Target the app being debugged. |
+| `--output` | Format as table for readability or json to preserve full command/args structure. |
+| `--query` | Extract the command and args arrays from the container configuration. |
+| `--resource-group` | Keep evidence within the intended resource group. |
+| `--type` | Request console logs to see application-level output. |
 
 ```kusto
 let AppName = "ca-myapp";
@@ -186,15 +215,15 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import os; print(os.environ.get(\"CONTAINER_APP_PORT\", \"8000\"))'"
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.targetPort" --output tsv` | Reads the Container App resource and extracts the ingress target port as plain text for reuse in later commands, which is the specific surface this troubleshooting step needs to confirm. |
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].probes" --output json` | Reads the Container App resource and extracts the configured probe definitions in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
-| `az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import os; print(os.environ.get(\"CONTAINER_APP_PORT\","8000\"))'"` | Runs a command inside a live replica so DNS, HTTP, token, or TLS checks use the same network path and identity context as the failing workload. |
-
-| Command | Why it is used |
-|---|---|
-| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Read the ingress targetPort configuration and probe paths/ports to ensure they reference the same listener. |
+| `az containerapp exec` | Run a command inside the container to check environment variables or confirm what port the app actually binds to. |
+| `--command` | Execute a diagnostic query inside the container to reveal the actual configured port. |
+| `--name` | Target the app under investigation. |
+| `--output` | Format as tsv for quick parsing or json to view probe configuration structure. |
+| `--query` | Extract targetPort and probes to compare against running app bindings. |
+| `--resource-group` | Keep diagnostics scoped to the resource group. |
 
 **Disproof logic:**
 
@@ -220,10 +249,16 @@ az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type conso
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].probes" --output json
 ```
 
-| Command | Purpose |
+| Command or parameter | Purpose |
 |---|---|
-| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console --follow` | Streams startup logs live so you can see whether the container stalls on dependency calls before it exits or fails readiness. |
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].probes" --output json` | Reads the probe configuration so you can compare the app's real boot behavior with the readiness/startup timing currently enforced by the platform. |
+| `az containerapp logs show` | Watch for initialization blocks on database connections, cache warmup, or external API calls during startup. |
+| `az containerapp show` | View probe delay, timeout, and threshold values to assess whether they allow sufficient time for slow dependencies. |
+| `--follow` | Stream logs to observe where execution stalls during initialization. |
+| `--name` | Target the affected app. |
+| `--output` | Format probes as json to see timeout and threshold values. |
+| `--query` | Extract probe configuration with all timing parameters. |
+| `--resource-group` | Keep evidence in the resource group containing the app. |
+| `--type` | Request console logs to correlate dependency calls with startup execution. |
 
 **Disproof logic:**
 
