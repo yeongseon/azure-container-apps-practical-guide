@@ -15,12 +15,36 @@ Use managed identity with Spring Boot so Java applications can access Azure serv
 <!-- diagram-id: use-managed-identity-with-spring-boot -->
 ```mermaid
 flowchart TD
-    C[Client] --> APP[Spring Boot App]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> BLOB[Azure Blob Storage]
-    style APP fill:#107c10,color:#fff
+    accTitle: DefaultAzureCredential access from Spring Boot
+    accDescr: Spring Boot uses DefaultAzureCredential to request a resource-scoped token from the local Container Apps identity endpoint. Microsoft Entra ID issues the token, and Blob Storage independently evaluates the identity's Blob data role before allowing or denying the operation.
+    CLIENT[Client]
+    APP[Spring Boot app<br/>BlobServiceClient]
+    CREDENTIAL[DefaultAzureCredential]
+    ENDPOINT[Container Apps identity endpoint]
+    IDENTITY[System- or user-assigned identity]
+    ENTRA[Microsoft Entra ID]
+    BLOB[Azure Blob Storage]
+    AUTHZ[Blob authorization result]
+    RESULT[Blob list result]
+    DENIED[Authorization failure]
+
+    CLIENT ==>|"Application request"| APP
+    APP ==>|"Acquire resource token"| CREDENTIAL
+    CREDENTIAL ==>|"Local token request"| ENDPOINT
+    IDENTITY -.->|"Selected identity"| ENDPOINT
+    ENDPOINT ==>|"Token request"| ENTRA
+    ENTRA ==>|"Access token response"| ENDPOINT
+    ENDPOINT ==>|"Return token"| CREDENTIAL
+    APP ==>|"Blob request + token"| BLOB
+    BLOB -->|"Evaluate data role"| AUTHZ
+    AUTHZ -->|"Allowed"| RESULT
+    AUTHZ -.->|"Denied"| DENIED
+    RESULT ==>|"Blob list response"| APP
+    DENIED -.->|"Authorization error"| APP
+    APP ==>|"Application response"| CLIENT
 ```
+
+*Figure: Managed identity removes application credentials; it does not grant data access by itself. Blob Storage still requires a matching data-plane role assignment at the intended scope.*
 
 ## Prerequisites
 

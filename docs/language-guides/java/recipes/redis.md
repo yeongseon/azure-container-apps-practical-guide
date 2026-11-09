@@ -7,6 +7,7 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
         - https://learn.microsoft.com/en-us/azure/redis/java-get-started
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 ---
 # Azure Cache for Redis Integration (Microsoft Entra Authentication)
 
@@ -17,15 +18,40 @@ Use this recipe to connect Azure Container Apps to Azure Cache for Redis with Mi
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Java Container App]
-    APP --> REDIS[Azure Cache for Redis]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> REDIS
+    accTitle: Microsoft Entra authenticated Redis request from a Spring Boot app
+    accDescr: A client request reaches the app through managed ingress. DefaultAzureCredential obtains a Redis token through the Container Apps identity endpoint, then the Lettuce client connects over TLS port 6380. The cache evaluates its data access policy, and the app refreshes the token before expiry and re-authenticates the existing connection.
+    CLIENT[Client]
+    INGRESS[Managed ingress]
+    APP[Spring Boot app<br/>Lettuce client]
+    ENDPOINT[Container Apps identity endpoint]
+    ENTRA[Microsoft Entra ID]
+    TOKEN[Redis access token<br/>with expiry]
+    REDIS[Azure Cache for Redis<br/>TLS port 6380]
+    AUTHZ[Redis authorization result]
+    RESULT[Cache operation result]
+    DENIED[Authorization failure]
+    REFRESH[Refresh token and<br/>re-authenticate]
+
+    CLIENT ==>|"HTTPS request"| INGRESS
+    INGRESS ==>|"Routed request"| APP
+    APP ==>|"Request Redis token"| ENDPOINT
+    ENDPOINT ==>|"Token request"| ENTRA
+    ENTRA ==>|"Access token response"| ENDPOINT
+    ENDPOINT ==>|"Return access token"| TOKEN
+    TOKEN ==>|"TLS Redis connection + token"| REDIS
+    REDIS -->|"Evaluate data access policy"| AUTHZ
+    AUTHZ -->|"Allowed"| RESULT
+    AUTHZ -.->|"Denied"| DENIED
+    RESULT ==>|"Cache response"| APP
+    DENIED -.->|"Authorization error"| APP
+    TOKEN -.->|"Before expiry"| REFRESH
+    REFRESH ==>|"Acquire replacement token"| ENDPOINT
+    REFRESH -.->|"AUTH existing connection"| REDIS
+    APP ==>|"Application response"| INGRESS
+    INGRESS ==>|"HTTPS response"| CLIENT
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+*Figure: The Lettuce client keeps token acquisition, TLS transport on port `6380`, cache authorization, and token refresh as separate concerns. Long-lived clients must refresh Microsoft Entra tokens before expiry and send `AUTH` on the existing connection. Reconnect only when the library cannot re-authenticate in place or the connection drops.*
 
 ## Prerequisites
 
@@ -59,6 +85,7 @@ az redis access-policy-assignment create \
   --name "$REDIS_NAME" \
   --resource-group "$RG" \
   --access-policy-name "Data Owner" \
+  --policy-assignment-name "$APP_NAME-data-owner" \
   --object-id "$PRINCIPAL_ID" \
   --object-id-alias "$APP_NAME"
 ```
@@ -66,6 +93,7 @@ az redis access-policy-assignment create \
 | Command | Why it is used |
 |---|---|
 | `az redis access-policy-assignment ...` | Creates or inspects Azure Cache for Redis resources used by the sample app. |
+| `--policy-assignment-name` | Names this app's Redis access-policy assignment `$APP_NAME-data-owner`. |
 
 ## Step 3: Configure non-secret Redis settings
 
@@ -136,7 +164,7 @@ public class RedisRecipe {
 ```
 
 !!! warning
-    The Entra token used for Redis expires. For long-lived connections, implement token refresh and reconnect logic that matches the guidance for your Redis tier and client library.
+    The Entra token used for Redis expires. For long-lived connections, refresh the token before expiry and send `AUTH` on the existing connection. Reconnect only when the client library cannot re-authenticate in place or the connection drops.
 
 ## Step 5: Access key fallback
 
@@ -172,3 +200,4 @@ az containerapp update \
 
 - [Use Microsoft Entra for cache authentication](https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication)
 - [Use Azure Cache for Redis with Java](https://learn.microsoft.com/en-us/azure/redis/java-get-started)
+- [Managed identities in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)

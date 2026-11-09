@@ -6,42 +6,74 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/authentication
-        - https://learn.microsoft.com/en-us/azure/container-apps/authentication
+        - https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra
 ---
 # Recipe: Easy Auth in Java Apps on Azure Container Apps
 
-Enable Easy Auth in Azure Container Apps and parse authenticated principal claims in a Spring Boot filter.
+Configure Easy Auth behavior for an already-configured Microsoft identity provider and parse authenticated principal claims in a Spring Boot filter.
 
 <!-- diagram-id: enable-easy-auth-in-azure-container -->
 ```mermaid
 flowchart TD
-    C[Client] --> AUTH[Easy Auth]
-    AUTH --> IDP[Identity Provider]
-    AUTH --> APP[Spring Boot App]
-    APP -.-> HDR[x-ms-client-principal]
-    style APP fill:#107c10,color:#fff
+    accTitle: Easy Auth server-directed sign-in for a Spring Boot app
+    accDescr: A browser reaches an external ingress-enabled app. The per-replica authentication module redirects the browser to the configured identity provider, handles the callback and session, then forwards the authenticated request with identity headers to Spring Boot.
+    REQUEST[Browser requests<br/>/protected]
+    AUTH_START[Ingress routes to<br/>authentication module]
+    REDIRECT[Module returns<br/>sign-in redirect]
+    SIGNIN[Browser signs in<br/>with Microsoft Entra ID]
+    CALLBACK[Entra redirects browser to<br/>/.auth/login/&lt;provider&gt;/callback]
+    AUTH_CALLBACK[Ingress routes callback<br/>to authentication module]
+    VALIDATE[Module validates provider response<br/>and creates session cookie]
+    RETRY[Browser requests /protected<br/>with session cookie]
+    AUTHENTICATED[Module validates session<br/>and adds X-MS-* headers]
+    APP[Spring Boot app<br/>authorizes caller]
+    RESPONSE[Browser receives<br/>HTTPS response]
+
+    REQUEST ==> AUTH_START
+    AUTH_START ==> REDIRECT
+    REDIRECT ==> SIGNIN
+    SIGNIN ==> CALLBACK
+    CALLBACK ==> AUTH_CALLBACK
+    AUTH_CALLBACK ==> VALIDATE
+    VALIDATE ==> RETRY
+    RETRY ==> AUTHENTICATED
+    AUTHENTICATED ==>|"Authenticated request + identity headers"| APP
+    APP ==>|"Application response"| RESPONSE
 ```
+
+*Figure: With the Microsoft identity provider already configured, Easy Auth authenticates the caller before the request reaches Spring Boot and supplies identity headers. Application code still enforces role, tenant, and resource authorization.*
 
 ## Prerequisites
 
 - Container App (`$APP_NAME`) with ingress enabled
-- Resource group (`$RG`) and identity provider registration
+- Resource group (`$RG`) and an app registration already configured as the Container App's Microsoft identity provider
 - Azure CLI with Container Apps extension
 
-## Enable Easy Auth
+The behavior command below does not configure the Microsoft identity provider. Before running it, configure the provider for `$APP_NAME` with the app registration's client ID, tenant ID, and credential as described in [Microsoft Entra authentication for Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra).
+
+## Configure Easy Auth behavior
 
 ```bash
 az containerapp auth update \
   --name "$APP_NAME" \
   --resource-group "$RG" \
   --enabled true \
-  --platform runtimeVersion "~1" \
-  --global-validation unauthenticatedClientAction RedirectToLoginPage
+  --runtime-version "~1" \
+  --unauthenticated-client-action RedirectToLoginPage \
+  --redirect-provider azureactivedirectory \
+  --require-https true
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az containerapp auth update ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp auth update` | Configures authentication behavior for the already-configured Microsoft provider, including the browser redirect, callback, and session before Spring Boot receives the request. |
+| `--name` | Applies the Easy Auth policy to `$APP_NAME`. |
+| `--resource-group` | Finds the Java Container App in `$RG`. |
+| `--enabled` | Turns the built-in authentication feature on with value `true`. |
+| `--runtime-version` | Selects authentication runtime version `~1`. |
+| `--unauthenticated-client-action` | Redirects an unauthenticated browser to the configured sign-in provider. |
+| `--redirect-provider` | Chooses `azureactivedirectory` for that server-directed sign-in. |
+| `--require-https` | Requires HTTPS for the authentication flow and callback. |
 
 ## Spring Boot filter for principal headers
 
@@ -94,4 +126,4 @@ public class ClientPrincipalFilter extends OncePerRequestFilter {
 ## Sources
 
 - [Authentication in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/authentication)
-- [Container Apps identity providers](https://learn.microsoft.com/en-us/azure/container-apps/authentication)
+- [Microsoft Entra authentication for Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra)

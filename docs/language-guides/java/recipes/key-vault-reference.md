@@ -16,12 +16,32 @@ Use Azure Key Vault with managed identity and Spring Boot to externalize secrets
 <!-- diagram-id: use-azure-key-vault-with-managed -->
 ```mermaid
 flowchart TD
-    APP[Spring Boot App] -.-> MI[Managed Identity]
-    MI -.-> KV[Azure Key Vault]
-    KV -.-> SEC[Container Apps Secret Reference]
-    SEC -.-> APP
-    style APP fill:#107c10,color:#fff
+    accTitle: Key Vault reference and direct Java SDK access are separate secret paths
+    accDescr: For a Container Apps Key Vault reference, the platform uses the selected managed identity to resolve a vault secret into a Container Apps secret, which the revision consumes through secretRef. For direct SDK access, Spring Boot obtains a token and calls Key Vault at runtime.
+    IDENTITY[Managed identity]
+    ENTRA[Microsoft Entra ID]
+    KV[Azure Key Vault]
+    PLATFORM[Container Apps secret resolver]
+    SECRET[Container Apps secret<br/>Key Vault reference]
+    REVISION[Spring Boot revision<br/>environment secretRef]
+    SDK[Spring Boot app<br/>SecretClient]
+    ENDPOINT[Container Apps identity endpoint]
+
+    IDENTITY -.->|"Selected identity"| PLATFORM
+    PLATFORM ==>|"Resolve Key Vault secret"| KV
+    KV ==>|"Secret value"| PLATFORM
+    PLATFORM -->|"Populate reference"| SECRET
+    SECRET -.->|"Inject through secretRef"| REVISION
+    SDK ==>|"Request access token"| ENDPOINT
+    ENDPOINT ==>|"Token request"| ENTRA
+    ENTRA ==>|"Access token response"| ENDPOINT
+    ENDPOINT ==>|"Return access token"| SDK
+    SDK ==>|"Runtime secret request + token"| KV
+    KV ==>|"Runtime secret response"| SDK
+    IDENTITY -.->|"Identity selected by DefaultAzureCredential"| ENDPOINT
 ```
+
+*Figure: A Container Apps Key Vault reference is platform-resolved configuration; direct Java SDK access is an application runtime call. Both require an identity with Key Vault secret permissions, but they have different consumers and rotation behavior.*
 
 ## Prerequisites
 

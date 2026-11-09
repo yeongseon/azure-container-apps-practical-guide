@@ -1,4 +1,5 @@
 ---
+description: Task-focused Java recipes for identity, data services, networking, registry access, jobs, security, and Dapr on Azure Container Apps.
 content_sources:
   diagrams:
     - id: accelerate-your-development-process-with-these
@@ -7,6 +8,7 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/developer/java/spring-framework/spring-cloud-azure
         - https://learn.microsoft.com/en-us/azure/developer/java/sdk/overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 ---
 # Java Recipes Overview
 
@@ -15,13 +17,28 @@ Accelerate your development process with these common integration patterns and p
 <!-- diagram-id: accelerate-your-development-process-with-these -->
 ```mermaid
 flowchart TD
-    APP["Spring Boot App"] --> DB["Database (Cosmos DB / SQL)"]
-    APP --> CACHE["Redis Cache"]
-    APP --> MSG["Service Bus"]
-    APP -.-> MI[Managed Identity]
-    MI -.-> KV[Azure Key Vault]
-    APP --> DAPR[Dapr Sidecar]
+    accTitle: Java recipe selection by prerequisite
+    accDescr: Start from a deployed Spring Boot app, then choose a recipe family. Managed identity is a shared prerequisite for private ACR pulls, Key Vault, and passwordless data SDK recipes. Arrows show prerequisites, not runtime network traffic.
+    BASE[Baseline Spring Boot app deployed<br/>tutorials 01-07]
+    ID[Managed identity +<br/>target authorization]
+    DEPLOY[Deployment<br/>ACR + revisions]
+    DATA[Data SDKs<br/>SQL + Cosmos + Redis]
+    STORAGE[Storage<br/>Blob SDK + mounts]
+    EDGE[Ingress<br/>domains + Easy Auth + mTLS]
+    WORK[Workload patterns<br/>Jobs + Dapr]
+
+    BASE --> ID
+    BASE --> DEPLOY
+    BASE --> DATA
+    BASE --> STORAGE
+    BASE --> EDGE
+    BASE --> WORK
+    ID -.->|"Required by passwordless paths"| DEPLOY
+    ID -.->|"Required by passwordless paths"| DATA
+    ID -.->|"Required by passwordless paths"| STORAGE
 ```
+
+*Figure: The map groups recipes by operator goal. Its arrows represent learning and configuration prerequisites rather than live service calls.*
 
 ## Integration Patterns
 
@@ -76,3 +93,4 @@ Azure Container Apps provides a flexible platform for building distributed syste
 
 - [Spring Cloud Azure Documentation (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/developer/java/spring-framework/spring-cloud-azure)
 - [Azure SDK for Java (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/developer/java/sdk/overview)
+- [Managed identities in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)

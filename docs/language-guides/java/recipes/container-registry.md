@@ -6,7 +6,8 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
-        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-get-started-docker-cli
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-get-started-azure-cli
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-abac-repository-permissions
 ---
 # Recipe: Container Registry in Java Apps on Azure Container Apps
 
@@ -15,11 +16,35 @@ Pull private Spring Boot images from Azure Container Registry using managed iden
 <!-- diagram-id: pull-private-spring-boot-images-from -->
 ```mermaid
 flowchart TD
-    ACR[Azure Container Registry] --> APP[Java Container App]
-    APP -.-> UAMI[User-Assigned Managed Identity]
-    UAMI -.-> ENTRA[Microsoft Entra ID]
-    style APP fill:#107c10,color:#fff
+    accTitle: Private ACR image pull with a user-assigned managed identity
+    accDescr: During revision provisioning, Container Apps selects the configured user-assigned identity, obtains a registry token through Microsoft Entra ID, and asks ACR to authorize the pull with the role appropriate to the registry permission mode before downloading image layers.
+    APP[Container app configuration]
+    REVISION[New Spring Boot revision]
+    PROVISIONER[Container Apps provisioning actor]
+    IDENTITY[User-assigned managed identity]
+    ENTRA[Microsoft Entra ID]
+    ACR[Azure Container Registry]
+    MODE[Registry permission mode]
+    RBAC[AcrPull<br/>RBAC-only registry]
+    ABAC[Container Registry Repository Reader<br/>ABAC-enabled registry]
+    CONTAINER[Provisioned Spring Boot container]
+
+    APP -->|"Create revision configuration"| REVISION
+    REVISION -.->|"Provision declared image"| PROVISIONER
+    IDENTITY -.->|"Configured registry identity"| APP
+    PROVISIONER ==>|"Request registry token as identity"| ENTRA
+    ENTRA ==>|"Return access token"| PROVISIONER
+    PROVISIONER ==>|"Authenticated pull request"| ACR
+    ACR -->|"Evaluate"| MODE
+    MODE -->|"RBAC Registry Permissions"| RBAC
+    MODE -->|"ABAC Repository Permissions"| ABAC
+    RBAC -.->|"Authorize pull"| ACR
+    ABAC -.->|"Authorize repository pull"| ACR
+    ACR ==>|"Download image layers"| PROVISIONER
+    PROVISIONER ==>|"Create container for revision"| CONTAINER
 ```
+
+*Figure: Identity selection, token acquisition, registry authorization, and image transport are distinct. `AcrPull` applies only to RBAC-only registries; ABAC-enabled registries require `Container Registry Repository Reader`, optionally with a repository condition.*
 
 ## Prerequisites
 
@@ -44,17 +69,42 @@ az identity create \
 export UAMI_ID=$(az identity show --name "id-$APP_NAME" --resource-group "$RG" --query id --output tsv)
 export UAMI_PRINCIPAL_ID=$(az identity show --name "id-$APP_NAME" --resource-group "$RG" --query principalId --output tsv)
 export ACR_ID=$(az acr show --name "$ACR_NAME" --resource-group "$RG" --query id --output tsv)
+export ACR_ROLE_ASSIGNMENT_MODE=$(az acr show --name "$ACR_NAME" --resource-group "$RG" --query roleAssignmentMode --output tsv)
 
-az role assignment create \
-  --assignee-object-id "$UAMI_PRINCIPAL_ID" \
-  --assignee-principal-type ServicePrincipal \
-  --role "AcrPull" \
-  --scope "$ACR_ID"
+if [[ "$ACR_ROLE_ASSIGNMENT_MODE" == "AbacRepositoryPermissions" ]]; then
+  az role assignment create \
+    --assignee-object-id "$UAMI_PRINCIPAL_ID" \
+    --assignee-principal-type ServicePrincipal \
+    --role "Container Registry Repository Reader" \
+    --scope "$ACR_ID"
+else
+  az role assignment create \
+    --assignee-object-id "$UAMI_PRINCIPAL_ID" \
+    --assignee-principal-type ServicePrincipal \
+    --role "AcrPull" \
+    --scope "$ACR_ID"
+fi
 ```
 
-| Command | Why it is used |
+| Command / Parameter | Purpose |
 |---|---|
-| `az acr create ...` | Creates Azure Container Registry for container image storage. |
+| `az acr create` | Creates the private registry that stores the Spring Boot image. |
+| `az identity create` | Creates `id-$APP_NAME`, the user-assigned identity used for image pulls. |
+| `az identity show` | Reads that identity's resource ID and principal ID for Container Apps and the role grant. |
+| `az acr show` | Reads the registry resource ID and `roleAssignmentMode` used to choose the supported pull role. |
+| `az role assignment create` | Grants the identity the pull role selected by the registry's RBAC or ABAC permission mode. |
+| `--name` | Names `$ACR_NAME` or `id-$APP_NAME`, depending on the command that owns the flag. |
+| `--resource-group` | Creates and locates the registry and identity in `$RG`. |
+| `--location` | Places both newly created resources in `$LOCATION`. |
+| `--sku` | Creates the registry at the `Standard` service tier. |
+| `--query` | Extracts the identity `id`, identity `principalId`, registry `id`, or registry `roleAssignmentMode`. |
+| `--output` | Emits each queried value as unquoted `tsv` for shell assignment. |
+| `--assignee-object-id` | Assigns the selected pull role to `$UAMI_PRINCIPAL_ID`. |
+| `--assignee-principal-type` | Declares the managed identity assignee as a `ServicePrincipal`. |
+| `--role` | Uses `Container Registry Repository Reader` for ABAC mode or `AcrPull` for RBAC mode. |
+| `--scope` | Restricts the pull permission to registry resource `$ACR_ID`. |
+
+ABAC-enabled registries do not honor `AcrPull`. Add a repository condition when `Container Registry Repository Reader` should cover only selected repositories.
 
 ## Multi-stage Dockerfile for Spring Boot
 
@@ -116,4 +166,5 @@ az containerapp create \
 ## Sources
 
 - [Managed identity image pull for Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
-- [Push and pull images with Azure Container Registry](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-get-started-docker-cli)
+- [Create and use Azure Container Registry with Azure CLI](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-get-started-azure-cli)
+- [Azure Container Registry roles and permission modes](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-abac-repository-permissions)

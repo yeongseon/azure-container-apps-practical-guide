@@ -6,7 +6,7 @@ content_sources:
       source: mslearn-adapted
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
-        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates
 ---
 # Custom Domains and Certificates
 
@@ -17,13 +17,32 @@ Azure Container Apps supports custom hostnames and TLS certificates so you can s
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    U[Client] --> DNS[Public DNS zone]
-    DNS --> INGRESS[Container Apps ingress]
-    DNS --> TXT[TXT record: asuid.<host>]
-    TXT --> ACA[Container Apps domain validation]
-    ACA --> CERT[TLS certificate binding]
-    CERT --> APP[Spring Boot App]
+    accTitle: Custom hostname validation and HTTPS request flow
+    accDescr: DNS ownership and routing records permit Container Apps to validate and bind the hostname and managed certificate. After binding succeeds, a client resolves the hostname and sends an HTTPS request to managed ingress, which terminates TLS and routes the request to Spring Boot.
+    DNS[Public DNS zone]
+    TXT[TXT asuid record<br/>ownership verification]
+    ROUTE[CNAME or apex A record<br/>traffic routing]
+    VALIDATE[Container Apps<br/>hostname validation]
+    BIND[Custom hostname +<br/>managed certificate binding]
+    CLIENT[Client]
+    INGRESS[Managed ingress<br/>TLS termination]
+    APP[Spring Boot app]
+
+    DNS --> TXT
+    DNS --> ROUTE
+    TXT -.->|"Proves domain ownership"| VALIDATE
+    ROUTE -.->|"Resolves hostname to ingress"| VALIDATE
+    VALIDATE -->|"Validation succeeds"| BIND
+    BIND -.->|"Configures hostname and certificate"| INGRESS
+    CLIENT ==>|"DNS query"| DNS
+    DNS ==>|"Address or canonical name"| CLIENT
+    CLIENT ==>|"HTTPS request with SNI"| INGRESS
+    INGRESS ==>|"Routed request after TLS termination"| APP
+    APP ==>|"Application response"| INGRESS
+    INGRESS ==>|"HTTPS response"| CLIENT
 ```
+
+*Figure: DNS validation and certificate binding are control-plane prerequisites. Only after the hostname is bound does the runtime HTTPS request flow through managed ingress to the app.*
 
 ## Prerequisites
 
@@ -155,4 +174,4 @@ curl --verbose https://www.contoso.com/
 ## Sources
 
 - [Custom domains and managed certificates in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates)
-- [Configure custom DNS suffix for Azure Container Apps environment](https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns)
+- [Custom domain names and certificates](https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates)

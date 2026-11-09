@@ -16,12 +16,27 @@ Use a Spring Boot filter to decode the forwarded client certificate, apply a CN 
 <!-- diagram-id: spring-xfcc-validation-flow -->
 ```mermaid
 flowchart TD
-    Client[Client certificate] --> Ingress[ACA ingress]
-    Ingress --> Header[X-Forwarded-Client-Cert]
-    Header --> Filter[Spring OncePerRequestFilter]
-    Filter --> Policy[CN or thumbprint policy]
-    Filter --> Calls[Dapr SDK or WebClient]
+    accTitle: Spring Boot client-certificate presentation and leaf allowlist authorization
+    accDescr: In require mode, managed ingress rejects a request without a client certificate. When a certificate is presented, ingress forwards the request with X-Forwarded-Client-Cert. This Spring Boot filter parses only the leaf certificate and authorizes a matching common name or SHA-256 thumbprint; it does not validate the forwarded chain or certificate trust.
+    CLIENT[Client]
+    INGRESS[Managed ingress<br/>clientCertificateMode = require]
+    PRESENT[Client certificate presentation result]
+    EDGE_REJECT[Ingress rejects request]
+    APP[OncePerRequestFilter<br/>parse X-Forwarded-Client-Cert]
+    AUTHORIZE[Leaf CN or thumbprint<br/>allowlist authorization]
+    ALLOW[Handle request]
+    DENY[Return HTTP 403]
+
+    CLIENT ==>|"HTTPS + client certificate"| INGRESS
+    INGRESS --> PRESENT
+    PRESENT -->|"No"| EDGE_REJECT
+    PRESENT ==>|"Yes: request + X-Forwarded-Client-Cert"| APP
+    APP --> AUTHORIZE
+    AUTHORIZE -->|"Allowlist match"| ALLOW
+    AUTHORIZE -->|"No match"| DENY
 ```
+
+*Figure: Certificate presentation at ingress and leaf CN or SHA-256 thumbprint allowlist authorization in the application are separate gates. This filter parses only the forwarded leaf certificate; it does not validate the issuer or chain, validity period, extended key usage, revocation status, or a CA trust store. `X-Forwarded-Client-Cert` is request metadata, and its presence alone does not establish a trusted caller.*
 
 ## Prerequisites
 
@@ -53,7 +68,7 @@ flowchart TD
 ## What You'll Build
 
 - A Spring filter that parses the leaf certificate from `X-Forwarded-Client-Cert`.
-- Allowlist validation by subject CN or SHA-256 thumbprint.
+- Leaf authorization by subject CN or SHA-256 thumbprint allowlist. This example does not validate the forwarded certificate chain.
 - Outbound calls using Dapr Java SDK and direct `WebClient`.
 
 ## Steps
