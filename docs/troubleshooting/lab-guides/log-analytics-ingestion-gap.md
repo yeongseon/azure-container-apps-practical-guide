@@ -195,16 +195,15 @@ No infrastructure cleanup is required. The lab only restarts an existing revisio
 <!-- diagram-id: log-analytics-ingestion-gap-page-flow -->
 ```mermaid
 flowchart TD
-    A["Log Analytics Ingestion Gap Lab"]
-    B["Lab Metadata"]
-    C["1. Question"]
-    D["2. Setup"]
-    E["3. Hypothesis"]
-    A --> B
-    B --> C
-    C --> D
-    D --> E
+    EMIT["Emit a timestamped application log"] --> STREAM["Confirm the live log stream receives it"]
+    STREAM --> QUERY["Query Log Analytics with the same time marker"]
+    QUERY --> WAIT["Repeat the query across the lab observation window"]
+    WAIT --> COMPARE["Compare emission and TimeGenerated timestamps"]
+    COMPARE --> CLASSIFY["Classify this run as delayed ingestion or missing data"]
+    CLASSIFY --> FALSIFY["Repeat with a new marker to test the classification"]
 ```
+
+The timing measured by this flow belongs to the documented lab run. It is not a universal ingestion-delay bound or service-level guarantee.
 
 ## See Also
 

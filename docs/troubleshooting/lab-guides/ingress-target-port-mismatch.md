@@ -23,7 +23,7 @@ Diagnose and fix ingress failures caused by target port misconfiguration where t
 ## Lab Metadata
 
 | Attribute | Value |
-|---|---|
+|---| --- |
 | Difficulty | Beginner |
 | Estimated Duration | 15-20 minutes |
 | Tier | Consumption |
@@ -46,19 +46,22 @@ This is one of the most common "works locally, fails in Azure" scenarios because
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    A[External Request] --> B[Ingress Controller]
-    B --> C{Target Port 8081?}
-    C -->|App listens on 80| D[Connection Refused]
-    C -->|Correct port| E[Request Reaches App]
-    D --> F[503 Service Unavailable]
+    REQUEST["Client request"] ==> INGRESS["Managed ingress"]
+    INGRESS --> CHECK{"Does targetPort match the app listening port?"}
+    CHECK -->|Yes| APP["Container process accepts the request"]
+    APP ==> RESPONSE["Application response returns through ingress"]
+    CHECK -->|No| FAILURE["Connection to the configured target port fails"]
+    FAILURE -. "Observed symptom in this lab" .-> ERROR["External request returns 503"]
 ```
+
+Thick arrows show the request and response path. The dotted edge labels the run-specific symptom rather than asserting that every target-port mismatch returns the same client result.
 
 ## 2) Hypothesis
 
 **IF** the ingress target port is changed from 80 to 8081, **THEN** external requests will fail with 503 errors because no process is listening on port 8081 inside the container.
 
 | Variable | Control State | Experimental State |
-|---|---|---|
+|---| --- |---|
 | Target Port | 80 (matches app) | 8081 (mismatch) |
 | Replica state | Running | Running (replicas stay up; the process keeps listening on 80) |
 | Revision health (default probes) | Healthy | Unhealthy / Failed (this lab defines no custom probes; with ingress enabled, Azure Container Apps' default TCP probes use the ingress `targetPort`, so probes against `8081` fail) |
@@ -81,9 +84,16 @@ az deployment group create \
     --parameters baseName="labingress"
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az group create ...` | Creates the isolated resource group used by the example. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az group create` | Creates resource group `"$RG"` in `"$LOCATION"` for the `ingress-target-port-mismatch` experiment. |
+| `az deployment group create` | Deploys `"./labs/ingress-target-port-mismatch/infra/main.bicep"` as `"lab-ingress"` into `"$RG"`. |
+| `--name` (`az group create`) | Sets `"$RG"` as the scope for the port-aligned baseline and the revision changed to the incorrect target port. |
+| `--name` (`az deployment group create`) | Identifies the baseline as `"lab-ingress"`, which **Capture Resource Names** queries for the app and environment names. |
+| `--location` (`az group create`) | In `az group create`, places the new resource group in the lab's selected Azure region as `"$LOCATION"` for **Deploy Baseline Infrastructure** in the `ingress-target-port-mismatch` lab. |
+| `--resource-group` (`az deployment group create`) | Deploys the port-aligned baseline into the isolated group `"$RG"`. |
+| `--template-file` (`az deployment group create`) | In `az deployment group create`, loads the infrastructure template used to create this lab as `"./labs/ingress-target-port-mismatch/infra/main.bicep"` for **Deploy Baseline Infrastructure** in the `ingress-target-port-mismatch` lab. |
+| `--parameters` (`az deployment group create`) | In `az deployment group create`, passes the lab-specific values consumed by the deployment template as `baseName="labingress"` for **Deploy Baseline Infrastructure** in the `ingress-target-port-mismatch` lab. |
 
 ### Capture Resource Names
 
@@ -107,11 +117,16 @@ export APP_FQDN="$(az containerapp show \
     --output tsv)"
 ```
 
-| Command | Purpose |
-|---|---|
-| `export APP_NAME="$(az deployment group show ... --query "properties.outputs.containerAppName.value" --output tsv)"` | Captures the Container App name emitted by the lab deployment so subsequent ingress and revision checks hit the correct app resource. |
-| `export ACA_ENV_NAME="$(az deployment group show ... --query "properties.outputs.containerAppsEnvironmentName.value" --output tsv)"` | Captures the environment name used by the lab so any later environment-scoped networking checks reference the right Container Apps environment. |
-| `export APP_FQDN="$(az containerapp show ... --query "properties.configuration.ingress.fqdn" --output tsv)"` | Reads the current ingress FQDN from the deployed app so the reachability checks exercise the same hostname that clients actually use during the port-mismatch failure. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az deployment group show` | Returns `"properties.outputs.containerAppName.value"` from deployment `"lab-ingress"` for **Capture Resource Names**. |
+| `az containerapp show` | Reads the ingress FQDN needed to send baseline and post-trigger requests to the deployed app. |
+| `--resource-group` (`az deployment group show`, `az containerapp show`) | Finds both the `"lab-ingress"` deployment outputs and the generated app whose FQDN is read in `"$RG"`. |
+| `--name` (`az deployment group show`) | Opens `"lab-ingress"` to resolve the app and environment used by the port test. |
+| `--name` (`az containerapp show`) | Chooses `"$APP_NAME"` as the source of the request endpoint stored in `APP_FQDN`. |
+| `--query` (`az deployment group show`) | Populates `APP_NAME` from `"properties.outputs.containerAppName.value"` and `ACA_ENV_NAME` from `"properties.outputs.containerAppsEnvironmentName.value"`. |
+| `--query` (`az containerapp show`) | For `az containerapp show`, extracts the named property used as evidence in this step as `"properties.configuration.ingress.fqdn"` for **Capture Resource Names** in the `ingress-target-port-mismatch` lab. |
+| `--output` (`az deployment group show`, `az containerapp show`) | Emits both deployment outputs and the app FQDN as unquoted `tsv` values for direct shell assignment. |
 
 ### Verify Baseline (Before Trigger)
 
@@ -124,9 +139,13 @@ az containerapp show \
     --output table
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp show` | Retrieves the complete ingress object to record the healthy target port before introducing the mismatch. |
+| `--name` | Points the baseline inspection at `"$APP_NAME"`, whose ingress will be deliberately moved off the listener port. |
+| `--resource-group` | Resolves the healthy app in `"$RG"` for baseline ingress inspection. |
+| `--query` | Selects `"properties.configuration.ingress"` so transport, exposure, and target-port baseline values stay together. |
+| `--output` | Presents the healthy ingress fields as a `table` for comparison with the later mismatched port. |
 
 Expected output:
 
@@ -151,15 +170,18 @@ cd labs/ingress-target-port-mismatch
 The trigger script changes the target port to 8081:
 
 ```bash
-az containerapp update \
+az containerapp ingress update \
     --name "$APP_NAME" \
     --resource-group "$RG" \
     --target-port 8081
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp ingress update` | Sets app `"$APP_NAME"` ingress target port to `8081` for the controlled `ingress-target-port-mismatch` state. |
+| `--name` | Mutates ingress on `"$APP_NAME"`, leaving the container listener unchanged while the routing port is made invalid. |
+| `--resource-group` | Applies the deliberate port mismatch to the app hosted in `"$RG"`. |
+| `--target-port` | In `az containerapp ingress update`, sets ingress to the controlled container port tested by this scenario as `8081` for **Trigger the Failure** in the `ingress-target-port-mismatch` lab. |
 
 ### Observe the Failure
 
@@ -172,9 +194,13 @@ az containerapp show \
     --output tsv
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp show` | Reads the persisted ingress target port to prove the failed requests follow the intentional `8081` change. |
+| `--name` | Targets Container App `"$APP_NAME"` to collect the `ingress-target-port-mismatch` failure evidence in **Observe the Failure**. |
+| `--resource-group` | Reads the failed app's persisted ingress setting from `"$RG"`. |
+| `--query` | Narrows the response to `"properties.configuration.ingress.targetPort"`, the single setting under test. |
+| `--output` | Emits the numeric port as `tsv` so it can be compared directly with the workload's listening port. |
 
 Expected: `8081`
 
@@ -198,9 +224,13 @@ az containerapp replica list \
     --output table
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp replica list ...` | Runs the Azure CLI operation required by the documented step. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp replica list` | Returns replicas for app `"$APP_NAME"` so **Observe the Failure** can measure the `ingress-target-port-mismatch` runtime state. |
+| `--name` | Targets Container App `"$APP_NAME"` to collect the `ingress-target-port-mismatch` failure evidence in **Observe the Failure**. |
+| `--resource-group` | Lists runtime replicas for the experiment app inside `"$RG"`. |
+| `--query` | Projects `"[].{name:name,runningState:properties.runningState}"` to show that replicas remain running despite ingress failures. |
+| `--output` | Displays replica identity and running state as a `table`, separating routing failure from process failure. |
 
 Expected: Replicas show `Running` state—the container is healthy, just unreachable via ingress.
 
@@ -230,7 +260,7 @@ The offline verifier confirms:
 ## 4) Experiment Log
 
 | Step | Action | Expected | Actual | Pass/Fail |
-|---|---|---|---|---|
+|---| --- |---|---|---|
 | 1 | Deploy baseline | Deployment succeeds | | |
 | 2 | Verify baseline endpoint | HTTP 200 | | |
 | 3 | Run trigger.sh | Target port changes to 8081 | | |
@@ -244,7 +274,7 @@ The offline verifier confirms:
 ### Before Fix
 
 | Evidence Source | Expected State |
-|---|---|
+|---| --- |
 | `az containerapp show ... --query "properties.configuration.ingress.targetPort"` | `8081` |
 | `curl https://${APP_FQDN}` | Timeout or 503 |
 | Container replicas | Running (healthy) |
@@ -252,7 +282,7 @@ The offline verifier confirms:
 ### After Fix
 
 | Evidence Source | Expected State |
-|---|---|
+|---| --- |
 | `az containerapp show ... --query "properties.configuration.ingress.targetPort"` | `80` |
 | `curl https://${APP_FQDN}` | HTTP 200 |
 | `./fix-and-capture.sh` | H2 PASS |
@@ -283,7 +313,7 @@ The Gate 17 falsification framing is intentionally bounded. It is accurate to sa
 ### Observed Evidence (Live Azure Test — 2026-05-01)
 
 | Command | Purpose |
-|---|---|
+|---| --- |
 | `curl -s -o /dev/null -w "HTTP %{http_code}" https://<container-app-fqdn>/` | Probe the edge URL and print only the HTTP status code; used to compare baseline (200) vs triggered (503) vs post-fix (200) behavior. |
 | `az containerapp ingress update --name <app> --resource-group <rg> --target-port 9999` | Trigger the failure by pointing ingress at a port the container is not listening on; this is an application-scope update and does not create a new revision. |
 | `az containerapp ingress update --name <app> --resource-group <rg> --target-port 80` | Restore the correct target port; the edge recovers to HTTP 200 within seconds without a new revision being created. |
@@ -370,7 +400,7 @@ RunningStatus: Running   (PR-A: Failed)
 **What was held constant vs. what changed (PR-A → PR-B):**
 
 | Variable | PR-A (failure state) | PR-B (after fix) | Controlled? |
-|---|---|---|---|
+|---| --- |---|---|
 | Revision name | `ca-labingress-pmdar7--26idn3d` | `ca-labingress-pmdar7--26idn3d` | held constant |
 | Container image | `azuredocs/containerapps-helloworld:latest` | same | held constant |
 | Revision template (env, command, args, scale rules) | unchanged | unchanged | held constant |
@@ -548,7 +578,7 @@ There are no additional running status details at this time.
 ### Production case pattern — falsification summary
 
 | Independent variable changed | Dependent variables that flipped on the same revision | Variables held constant |
-|---|---|---|
+|---| --- |---|
 | Ingress `targetPort`: `8001` → `80` | Overview `Issues` tab (present → gone), revision health (Degraded → Healthy/Running), revision status details (verbatim mismatch message → "no additional running status details"), edge response (503 → 200), KQL `Reason_s contains "TargetPort"` rows (present → "No results found" in the post-fix window) | Revision name, container image, container listening port (`:80`), ingress transport |
 
 [Inferred] Holding the revision name, container image, listening port, and ingress transport constant and flipping only the ingress `targetPort`, the eight Portal surfaces above all transition together. The transition rules out the alternative theories the case originally enumerated:
@@ -580,7 +610,7 @@ This subsection captures the hypothesis a third time using the scripted falsific
 ### Scripted reproduction — falsification summary
 
 | Independent variable changed | Dependent variables that flipped on the same revision | Variables held constant |
-|---|---|---|
+|---| --- |---|
 | Ingress `targetPort`: `80` → `8081` → `80` | Edge HTTP response (200 → 503 → 200, n=10 per state), `ContainerAppSystemLogs_CL` gate classification (`silent_valid_baseline` → `populated_table` → `silent_valid_baseline`), `portmismatch_rows` (0 → 25 → 0 in the corresponding UTC windows) | Revision name (`ca-ingressport-2inkav--n6v50k0`), container image (`containerapps-helloworld:latest`), container listening port (`:80`), ingress transport (`Auto`), Log Analytics workspace, same KQL shape/predicates (the only intended query delta between H1 and H2 is the strict `datetime(...)` cutoff) |
 
 [Inferred] Holding the revision name, container image, listening port, ingress transport, and KQL query body constant and flipping only the integer `targetPort` value, the edge HTTP response and the `ContainerAppSystemLogs_CL` PortMismatch row count flipped together in the documented direction. The strict post-fix UTC cutoff (`datetime(2026-06-22T12:25:06Z)` rather than `ago(5m)`) is what permits the H2 gate to be machine-readable — a relative window beginning at query time would include the pre-fix tail and falsely falsify the fix.
@@ -591,9 +621,12 @@ This subsection captures the hypothesis a third time using the scripted falsific
 az group delete --name "$RG" --yes --no-wait
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az group delete ...` | Removes the lab resource group and its contained resources. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az group delete` | Requests deletion of `"$RG"` after the `ingress-target-port-mismatch` evidence has been collected. |
+| `--name` | Names `"$RG"` as the disposable boundary for the target-port experiment and its captured monitoring resources. |
+| `--yes` | Confirms deletion of the `ingress-target-port-mismatch` resource group without pausing **Clean Up** for an interactive prompt. |
+| `--no-wait` | Returns control after Azure accepts the `ingress-target-port-mismatch` cleanup request rather than blocking until deletion finishes. |
 
 ## Related Playbook
 

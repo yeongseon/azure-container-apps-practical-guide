@@ -48,7 +48,7 @@ Use one stateful streaming test app to reproduce both protocol and reconnect pro
 ## Lab Metadata
 
 | Field | Value |
-|---|---|
+|---| --- |
 | Difficulty | Intermediate |
 | Duration | 25-35 min |
 | Tier | Inline guide only |
@@ -139,7 +139,7 @@ az containerapp ingress update ... --transport Http2
 ```
 
 | Command | Why it is used |
-|---|---|
+|---| --- |
 | `az containerapp ingress show ...` | Reads ingress configuration such as exposure, target port, transport, and affinity. |
 
 - `[Observed]` Default `transport: Http` confirmed via `az containerapp ingress show`.
@@ -174,9 +174,12 @@ az group delete \
   --no-wait
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az group delete ...` | Removes the streaming test app and environment resources after validation. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az group delete` | Removes the protocol-test app and ingress environment after WebSocket and gRPC observations are captured. |
+| `--name` | Selects `"$RG"`, the lab-only resource group that contains the protocol test app and ingress environment. |
+| `--yes` | Accepts destruction of the protocol experiment without presenting a confirmation question. |
+| `--no-wait` | Leaves Azure to complete ingress-environment deletion after the request has been submitted. |
 
 ## Related Playbook
 
@@ -187,16 +190,14 @@ az group delete \
 <!-- diagram-id: websocket-grpc-ingress-page-flow -->
 ```mermaid
 flowchart TD
-    A["WebSocket and gRPC Ingress Lab"]
-    B["Lab Metadata"]
-    C["1. Question"]
-    D["2. Setup"]
-    E["3. Hypothesis"]
-    A --> B
-    B --> C
-    C --> D
-    D --> E
+    BASELINE["Record the working HTTP ingress configuration"] --> TEST["Send the protocol-specific WebSocket or gRPC request"]
+    TEST --> OBSERVE["Capture handshake or RPC evidence"]
+    OBSERVE --> FIX["Restore the documented ingress transport setting"]
+    FIX --> VERIFY["Repeat the same protocol request"]
+    VERIFY --> FALSIFY["Reapply only the tested mismatch and retest"]
 ```
+
+WebSocket and gRPC are supported through HTTP ingress, but the result here is specific to the protocol and configuration exercised by this lab.
 
 ## See Also
 

@@ -48,7 +48,7 @@ validation:
 ## Lab Metadata
 
 | Field | Value |
-|---|---|
+|---| --- |
 | Difficulty | Intermediate |
 | Duration | 30-40 min |
 | Tier | Inline guide only |
@@ -172,10 +172,13 @@ az containerapp update \
     --output table
 ```
 
-
-| Command | Why it is used |
-|---|---|
-| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --yaml app.yaml --output table` | Restores the post-lab revision after temporary-storage testing is complete. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp update` | Applies the operator-supplied `app.yaml` to `"$APP_NAME"`, restoring the known-good Container App definition selected before the disk-filling experiment. |
+| `--name` | Selects `"$APP_NAME"` so cleanup removes the temporary-volume pressure from the tested workload. |
+| `--resource-group` | Applies the storage cleanup to the app instance hosted in `"$RG"`. |
+| `--yaml` | Supplies `app.yaml`, which the operator must prepare from the known-good Container App definition saved before the experiment; this lab does not include that manifest. |
+| `--output` | Renders the **Clean Up** result as `table`, a human-readable table for the operator's side-by-side check. |
 
 ## Related Playbook
 
@@ -186,16 +189,14 @@ az containerapp update \
 <!-- diagram-id: emptydir-disk-full-page-flow -->
 ```mermaid
 flowchart TD
-    A["EmptyDir Disk Full Lab"]
-    B["Lab Metadata"]
-    C["1. Question"]
-    D["2. Setup"]
-    E["3. Hypothesis"]
-    A --> B
-    B --> C
-    C --> D
-    D --> E
+    BASELINE["Record the healthy baseline"] --> TRIGGER["Fill the ephemeral EmptyDir volume"]
+    TRIGGER --> OBSERVE["Collect write errors and storage evidence"]
+    OBSERVE --> FIX["Remove stale files and bound temporary writes"]
+    FIX --> VERIFY["Repeat the write test"]
+    VERIFY --> FALSIFY["Reapply only the trigger to test the hypothesis"]
 ```
+
+This flow is the lab procedure, not a claim that every storage write failure is caused by a full EmptyDir volume. The evidence and falsification steps determine whether that explanation fits this run.
 
 ## See Also
 

@@ -39,7 +39,7 @@ Reproduce probe failures when the container process listens on one port while in
 ## Lab Metadata
 
 | Attribute | Value |
-|---|---|
+|---| --- |
 | Difficulty | Beginner |
 | Estimated Duration | 20-25 minutes |
 | Tier | Consumption |
@@ -57,20 +57,22 @@ Port mismatch often looks like an application crash because repeated probe failu
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    A[Container process binds :3000] --> B[Ingress targets :8000]
-    B --> C[Startup and readiness probes hit :8000]
-    C --> D[Probe failures accumulate]
-    D --> E[Revision unhealthy or unstable]
-    E --> F[Align target port with app bind port]
-    F --> G[New revision becomes healthy]
+    PROCESS["Container process listens on port 3000"] --> CONFIG["Ingress targetPort is set to 8000"]
+    CONFIG --> PROBES["Default TCP startup and readiness probes use targetPort"]
+    PROBES --> FAILURE["Probe connections to port 8000 fail in this lab"]
+    FAILURE --> EVIDENCE["Collect probe events and revision state"]
+    EVIDENCE --> FIX["Align targetPort with port 3000"]
+    FIX --> VERIFY["Verify the resulting revision and repeat the request"]
 ```
+
+The flow applies to this lab's default probes. Custom probes can target explicitly configured ports and must be inspected separately.
 
 ## 2) Hypothesis
 
 **IF** the application binds to port `3000` while the Container App ingress `targetPort` remains `8000`, **THEN** system logs will show `ProbeFailed` events and the latest revision will remain non-healthy until `targetPort` is corrected to `3000`.
 
 | Variable | Control State | Experimental State |
-|---|---|---|
+|---| --- |---|
 | Application bind port | `3000` | `3000` |
 | Container App target port | `3000` | `8000` |
 | Probe behavior | HTTP 200 on expected port | Probe failures on wrong port |
@@ -96,9 +98,20 @@ az deployment group create \
     --parameters baseName="labport"
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az extension add` | Ensures the ingress, registry, revision, and log commands required by the probe experiment are available. |
+| `az login` | Authenticates the shell before **Deploy baseline infrastructure** provisions resources for the `probe-and-port-mismatch` scenario. |
+| `az group create` | Creates `"$RG"` as the boundary for the probe workload and its diagnostic resources. |
+| `az deployment group create` | Builds the healthy, port-aligned baseline recorded as `"lab-port"`. |
+| `--name` (`az extension add`) | Chooses the `containerapp` extension that supplies the ingress target-port operation. |
+| `--name` (`az group create`) | Defines `"$RG"` as the boundary for the healthy listener/probe pairing and the intentionally mismatched revision. |
+| `--name` (`az deployment group create`) | Saves the baseline under `"lab-port"` so output queries can resolve the Container App and registry used by the trigger steps. |
+| `--upgrade` (`az extension add`) | Refreshes the extension so `az containerapp ingress update` has the documented target-port surface. |
+| `--location` (`az group create`) | Places the controlled probe reproduction in `"$LOCATION"`. |
+| `--resource-group` (`az deployment group create`) | Deploys the port-aligned baseline into the isolated group `"$RG"`. |
+| `--template-file` (`az deployment group create`) | Loads `"./labs/probe-and-port-mismatch/infra/main.bicep"`, which defines matching listener and ingress ports. |
+| `--parameters` (`az deployment group create`) | Sets `baseName="labport"`, matching the names consumed by subsequent lookups. |
 
 Expected output pattern: deployment shows `Succeeded`.
 
@@ -124,11 +137,13 @@ export ACA_ENV_NAME="$(az deployment group show \
     --output tsv)"
 ```
 
-| Command | Purpose |
-|---|---|
-| `export APP_NAME="$(az deployment group show ... --query "properties.outputs.containerAppName.value" --output tsv)"` | Captures the app name produced by the deployment so the trigger and verification steps target the correct Container App. |
-| `export ACR_NAME="$(az deployment group show ... --query "properties.outputs.containerRegistryName.value" --output tsv)"` | Captures the registry name used to build and push the mismatched workload image before the target-port change. |
-| `export ACA_ENV_NAME="$(az deployment group show ... --query "properties.outputs.environmentName.value" --output tsv)"` | Captures the environment name for any later environment-scoped troubleshooting or cleanup steps. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az deployment group show` | Reads the generated app, registry, and environment names before the trigger runs. |
+| `--resource-group` | Locates the `"lab-port"` deployment within `"$RG"`. |
+| `--name` | Selects `"lab-port"`, the record exposing all three resource-name outputs. |
+| `--query` | Extracts `"properties.outputs.containerAppName.value"`, `"properties.outputs.containerRegistryName.value"`, and `"properties.outputs.environmentName.value"` into the app, registry, and environment shell variables. |
+| `--output` | Emits each deployment output as `tsv` without JSON quoting so the shell variables receive exact names. |
 
 Expected output: no output.
 
@@ -151,23 +166,48 @@ The trigger script builds the workload image and updates the Container App with 
 ```bash
 az acr build --registry "$ACR_NAME" --image "${APP_NAME}:v1" ./workload
 
+az containerapp registry set \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --server "$ACR_LOGIN_SERVER" \
+    --username "$ACR_USERNAME" \
+    --password "$ACR_PASSWORD"
+
 az containerapp update \
     --name "$APP_NAME" \
     --resource-group "$RG" \
-    --image "${ACR_LOGIN_SERVER}/${APP_NAME}:v1" \
-    --target-port 8000 \
-    --registry-server "$ACR_LOGIN_SERVER" \
-    --registry-username "$ACR_USERNAME" \
-    --registry-password "$ACR_PASSWORD"
+    --image "${ACR_LOGIN_SERVER}/${APP_NAME}:v1"
+
+az containerapp ingress update \
+    --name "$APP_NAME" \
+    --resource-group "$RG" \
+    --target-port 8000
 
 sleep 40
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system --tail 20
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az acr build --registry ...` | Builds and pushes the container image to Azure Container Registry. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az acr build` | Builds and pushes image `"${APP_NAME}:v1"` in registry `"$ACR_NAME"` for **Trigger the mismatch**. |
+| `az containerapp registry set` | Stores pull credentials for `"$ACR_LOGIN_SERVER"` on app `"$APP_NAME"` before its private image is deployed. |
+| `az containerapp update` | Creates the trigger revision for `"$APP_NAME"` with image `"${ACR_LOGIN_SERVER}/${APP_NAME}:v1"`, whose gunicorn process listens on port `3000`. |
+| `az containerapp ingress update` | Introduces the failure by routing ingress to `8000` while the workload listens on `3000`. |
+| `az containerapp revision list` | Displays all revisions for `"$APP_NAME"` as a table after the image and ingress changes settle. |
+| `az containerapp logs show` | Collects immediate system events after the `8000` mismatch is applied to `"$APP_NAME"`. |
+| `--registry` (`az acr build`) | In `az acr build`, selects the Azure Container Registry that builds the workload image as `"$ACR_NAME"` for **Trigger the mismatch** in the `probe-and-port-mismatch` lab. |
+| `--image` (`az acr build`) | For `az acr build`, sets the workload image or image tag used by this experiment state as `"${APP_NAME}:v1"` for **Trigger the mismatch** in the `probe-and-port-mismatch` lab. |
+| `--image` (`az containerapp update`) | For `az containerapp update`, sets the workload image or image tag used by this experiment state as `"${ACR_LOGIN_SERVER}/${APP_NAME}:v1"` for **Trigger the mismatch** in the `probe-and-port-mismatch` lab. |
+| `--name` (`az containerapp registry set`, `az containerapp update`, `az containerapp ingress update`, `az containerapp revision list`, `az containerapp logs show`) | Targets `"$APP_NAME"` while adding registry credentials, deploying the image, applying the bad port, listing the resulting revisions, and collecting system logs. |
+| `--resource-group` (`az containerapp registry set`, `az containerapp update`, `az containerapp ingress update`, `az containerapp revision list`, `az containerapp logs show`) | Resolves that same test app in `"$RG"` for each mutation and both post-trigger observations. |
+| `--server` (`az containerapp registry set`) | In `az containerapp registry set`, identifies the private registry login server used by the Container App as `"$ACR_LOGIN_SERVER"` for **Trigger the mismatch** in the `probe-and-port-mismatch` lab. |
+| `--username` (`az containerapp registry set`) | In `az containerapp registry set`, supplies the registry user recorded for this lab's image pull as `"$ACR_USERNAME"` for **Trigger the mismatch** in the `probe-and-port-mismatch` lab. |
+| `--password` (`az containerapp registry set`) | In `az containerapp registry set`, supplies the matching registry credential without embedding it in the image reference as `"$ACR_PASSWORD"` for **Trigger the mismatch** in the `probe-and-port-mismatch` lab. |
+| `--target-port` (`az containerapp ingress update`) | Writes the incorrect `8000` target that makes the healthy process unreachable through ingress. |
+| `--output` (`az containerapp revision list`) | Renders the **Trigger the mismatch** result as `table`, a human-readable table for the operator's side-by-side check. |
+| `--type` (`az containerapp logs show`) | Chooses `system` events where ingress and probe failures are reported after the trigger. |
+| `--tail` (`az containerapp logs show`) | In `az containerapp logs show`, limits the log sample to the most recent records needed for triage as `20` for **Trigger the mismatch** in the `probe-and-port-mismatch` lab. |
 
 Expected output: the latest revision is not healthy or repeatedly restarting.
 
@@ -180,9 +220,12 @@ az containerapp logs show \
     --type system
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp logs show` | Retrieves the longer system-log sample used to correlate probe failures with the bad ingress port. |
+| `--name` | Filters system logs to `"$APP_NAME"`, linking probe failures to the revision modified by the trigger. |
+| `--resource-group` | Searches `"$RG"` for the system-log stream emitted by the mismatched app. |
+| `--type` | Requests `system` rather than console logs because the platform emits probe diagnostics there. |
 
 Expected diagnostic output pattern:
 
@@ -206,26 +249,33 @@ az containerapp show \
     --output tsv
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp show` | Reads the live target port to distinguish ingress misrouting from a failed container or image pull. |
+| `--name` | Inspects `"$APP_NAME"`, whose ingress is expected to retain the deliberately mismatched `8000` value. |
+| `--resource-group` | Resolves the affected app inside `"$RG"` for direct target-port inspection. |
+| `--query` | Selects `"properties.configuration.ingress.targetPort"`, the ingress-side value compared with the app's `3000` listener. |
+| `--output` | Returns the scalar target port as `tsv`, avoiding decoration around the expected `8000` evidence. |
 
 Expected output: `8000`, which does not match the application bind port `3000`.
 
 ### Apply the fix by aligning ports
 
 ```bash
-az containerapp update \
+az containerapp ingress update \
     --name "$APP_NAME" \
     --resource-group "$RG" \
     --target-port 3000
 ```
 
-| Command | Purpose |
-|---|---|
-| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --target-port 3000` | Changes the live container app configuration, which is the corrective action this step is validating or applying. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp ingress update` | Repairs routing by aligning ingress with the workload's `3000` listener. |
+| `--name` | Corrects ingress for `"$APP_NAME"`, the same app whose probe remains healthy on port `3000`. |
+| `--resource-group` | Applies the port correction to the Container App instance in `"$RG"`. |
+| `--target-port` | Changes the target to `3000`, the port actually exposed by the test image. |
 
-Expected output: the update succeeds and creates a new revision.
+Expected output: the ingress update succeeds and the existing revision can recover without a new revision or a changed creation time.
 
 ### Verify recovery
 
@@ -236,34 +286,39 @@ Expected output: the update succeeds and creates a new revision.
 The verify script confirms the mismatch reproduces the failure, then runs:
 
 ```bash
-az containerapp update --name "$APP_NAME" --resource-group "$RG" --target-port 3000
+az containerapp ingress update --name "$APP_NAME" --resource-group "$RG" --target-port 3000
 sleep 40
 az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "sort_by([].{created:properties.createdTime,health:properties.healthState}, &created)[-1].health" --output tsv
 ```
 
-| Command | Purpose |
-|---|---|
-| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --target-port 3000` | Restores the ingress target port to the workload's real listening port so the next revision can pass startup and readiness checks. |
-| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "sort_by([].{created:properties.createdTime,health:properties.healthState}, &created)[-1].health" --output tsv` | Extracts the newest revision's health state so the verifier can prove the port-alignment fix actually produced a healthy revision rather than only updating configuration. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp ingress update` | Reasserts the `3000` alignment before the health-state verification query. |
+| `az containerapp revision list` | Evaluates `"sort_by([].{created:properties.createdTime,health:properties.healthState}, &created)[-1].health"` to report the newest revision's recovery state. |
+| `--name` (`az containerapp ingress update`, `az containerapp revision list`) | Uses `"$APP_NAME"` for both the corrective ingress update and the latest-revision health query. |
+| `--resource-group` (`az containerapp ingress update`, `az containerapp revision list`) | Keeps the port correction and subsequent revision-health lookup tied to the app in `"$RG"`. |
+| `--target-port` (`az containerapp ingress update`) | Uses `3000` during verification so the latest revision can return to `Healthy`. |
+| `--query` (`az containerapp revision list`) | Selects `"sort_by([].{created:properties.createdTime,health:properties.healthState}, &created)[-1].health"`, isolating the latest revision's health value after the port correction. |
+| `--output` (`az containerapp revision list`) | Renders the **Verify recovery** result as `tsv`, plain scalar text suitable for assignment to the shell variable or comparison in this step. |
 
 Expected output: latest revision becomes `Healthy` and requests succeed consistently.
 
 ## 4) Experiment Log
 
 | Step | Action | Expected | Actual | Pass/Fail |
-|---|---|---|---|---|
+|---| --- |---|---|---|
 | 1 | Deploy baseline | Deployment succeeds | | |
 | 2 | Capture outputs | Variables populated | | |
 | 3 | Run `trigger.sh` | Revision becomes non-healthy | | |
 | 4 | Review system logs | `ProbeFailed` evidence appears | | |
 | 5 | Check `targetPort` | Value is `8000` while app binds to `3000` | | |
-| 6 | Update `targetPort` to `3000` | New revision created | | |
+| 6 | Update `targetPort` to `3000` | Same revision recovers without a new revision | | |
 | 7 | Run `verify.sh` | Latest revision becomes healthy | | |
 
 ## Expected Evidence
 
 | Evidence Source | Expected State |
-|---|---|
+|---| --- |
 | Workload container command | Process binds to `0.0.0.0:3000` |
 | `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.targetPort" --output tsv` | `8000` before fix, `3000` after fix |
 | `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type system` | `ProbeFailed` and startup/readiness probe errors |
@@ -295,12 +350,12 @@ Environment: `koreacentral`, Consumption plan, `mcr.microsoft.com/azuredocs/cont
 
 **Environment:** `rg-aca-lab-probe` / `cae-labprobe-shes3s`, `koreacentral`, Consumption plan.
 **App:** `ca-labprobe-shes3s`. The Bicep template (`labs/probe-and-port-mismatch/infra/main.bicep`) deploys a baseline that is **already mismatched on first deploy**: the placeholder image `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` (which listens on port `80`) is combined with ingress `targetPort: 8000`. This baseline revision in the captures is `ca-labprobe-shes3s--coxh910`.
-**Trigger applied for these captures:** ACR build of the workload in `labs/probe-and-port-mismatch/workload/` (Flask + Gunicorn, `CMD ["gunicorn", "--bind", "0.0.0.0:3000", ...]`) → `az containerapp registry set` → `az containerapp update --image .../ca-labprobe-shes3s:v1` → `az containerapp ingress update --target-port 8000`. The shipped `labs/probe-and-port-mismatch/trigger.sh` does this in a single `az containerapp update --image ... --target-port 8000 --registry-server ...` call; the capture-day sequence was split into the three commands above as a workaround for unrecognized-argument errors on the locally installed `containerapp` CLI extension. The image swap is a revision-template change and created a new revision `ca-labprobe-shes3s--0000001`, which took 100% of traffic.
+**Trigger applied for these captures:** ACR build of the workload in `labs/probe-and-port-mismatch/workload/` (Flask + Gunicorn, `CMD ["gunicorn", "--bind", "0.0.0.0:3000", ...]`) → `az containerapp registry set` → `az containerapp update --image .../ca-labprobe-shes3s:v1` → `az containerapp ingress update --target-port 8000`. The shipped `labs/probe-and-port-mismatch/trigger.sh` uses that same three-command sequence: registry credentials are configured with `registry set`, the image is applied with `update --image`, and the mismatch is applied with `ingress update --target-port 8000`. The image swap is a revision-template change and created a new revision `ca-labprobe-shes3s--0000001`, which took 100% of traffic.
 
 **Held constant vs. changed (baseline `--coxh910` → trigger `--0000001`):**
 
 | Variable | Baseline `--coxh910` | Trigger `--0000001` | Controlled? |
-|---|---|---|---|
+|---| --- |---|---|
 | Container image | `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` (listens on port 80) | `acrlabprobeshes3s.azurecr.io/ca-labprobe-shes3s:v1` (gunicorn, listens on port 3000) | **changed (independent variable)** |
 | Ingress `targetPort` (application-scope) | `8000` | `8000` | held constant |
 | Ingress transport / external | `auto` / enabled | `auto` / enabled | held constant |
@@ -378,10 +433,17 @@ TargetPort: 8000
 az containerapp ingress update --resource-group $RG --name $APP_NAME --target-port 3000
 ```
 
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp ingress update` | Applies the verified `3000` target immediately before the after-fix capture. |
+| `--resource-group` | Targets the captured after-fix app in `$RG` before refreshing Portal evidence. |
+| `--name` | Reapplies the verified port alignment to `$APP_NAME` before capturing the after-fix Portal evidence. |
+| `--target-port` | Records `3000` as the corrected ingress value represented in the Portal evidence. |
+
 **Held constant vs. changed (PR-A failure-state `--0000001` → PR-B after-fix `--0000001`):**
 
 | Variable | PR-A (failure) | PR-B (after fix) | Controlled? |
-|---|---|---|---|
+|---| --- |---|---|
 | Revision name | `ca-labprobe-shes3s--0000001` | `ca-labprobe-shes3s--0000001` | **held constant (same revision)** |
 | Container image | `acrlabprobeshes3s.azurecr.io/ca-labprobe-shes3s:v1` | `acrlabprobeshes3s.azurecr.io/ca-labprobe-shes3s:v1` | held constant |
 | Application listening port | 3000 (gunicorn `--bind 0.0.0.0:3000`) | 3000 (gunicorn `--bind 0.0.0.0:3000`) | held constant |
@@ -438,7 +500,7 @@ A second end-to-end live Azure run executed on **2026-06-23** with `az` CLI vers
 **H1 reproduction** — `evidence/11-h1-gate.json`:
 
 | Sub-gate | Value | Source |
-|---|---|---|
+|---| --- |---|
 | `a_acr_build_succeeded` | true | `evidence/03-acr-build.log` exit code 0 |
 | `b_trigger_revision_minted` | true | `evidence/05-containerapp-update-image.json` returned `latestRevisionName=ca-labport-zopng3--0000001` |
 | `c_probe_failure_evidence_present` | true | `evidence/08-revision-show-failed.json` reports `runningState=Degraded`, `healthState=Unhealthy`, and `runningStateDetails="Deployment Progress Deadline Exceeded. 0/1 replicas ready. The TargetPort 8000 does not match the listening port 3000."` |
@@ -450,7 +512,7 @@ Gate classification: `port_mismatch_probe_failure_reproduced`.
 **H2 same-revision recovery** — `evidence/22-h2-gate.json`:
 
 | Sub-gate | Value | Source |
-|---|---|---|
+|---| --- |---|
 | `a_failure_state_persisted_into_verify` | true | Pre-fix `runningState=Degraded` + `runningStateDetails` contains port mismatch evidence + 0/5 curl + `createdTime` matches H1 capture |
 | `b_ingress_update_succeeded` | true | `evidence/22-h2-gate.json` `fix_window.cli_exit_code=0`; `evidence/14-ingress-update-fix.json` returns the updated ingress object showing `targetPort=3000` |
 | `c_revision_became_healthy` | true | `evidence/16-revision-post-fix.json` `runningState=Running`, `healthState=Healthy` |
@@ -478,9 +540,12 @@ The H1 sub-gate `e_target_port_still_mismatched` checks that the trigger-state i
 az group delete --name "$RG" --yes --no-wait
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az group delete ...` | Removes the lab resource group and its contained resources. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az group delete` | Requests deletion of `"$RG"` after the `probe-and-port-mismatch` evidence has been collected. |
+| `--name` | Identifies `"$RG"` as the group containing the mismatched app and private registry that the teardown removes. |
+| `--yes` | Confirms deletion of the `probe-and-port-mismatch` resource group without pausing **Clean Up** for an interactive prompt. |
+| `--no-wait` | Returns control after Azure accepts the `probe-and-port-mismatch` cleanup request rather than blocking until deletion finishes. |
 
 ## Related Playbook
 

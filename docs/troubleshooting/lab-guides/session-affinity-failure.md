@@ -48,7 +48,7 @@ Reproduce state loss across replicas with a session-sensitive test app, then ena
 ## Lab Metadata
 
 | Field | Value |
-|---|---|
+|---| --- |
 | Difficulty | Intermediate |
 | Duration | 20-30 min |
 | Tier | Inline guide only |
@@ -170,9 +170,12 @@ az group delete \
   --no-wait
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az group delete ...` | Removes the session-affinity test resources after validation. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az group delete` | Tears down the sticky-session reproduction once routing evidence has been retained. |
+| `--name` | Restricts deletion to `"$RG"`, the dedicated group used for the sticky-session routing reproduction. |
+| `--yes` | Approves destruction of the session-affinity lab group without waiting for keyboard confirmation. |
+| `--no-wait` | Continues immediately after Azure queues removal of the affinity test resources. |
 
 ## Related Playbook
 
@@ -183,16 +186,14 @@ az group delete \
 <!-- diagram-id: session-affinity-failure-page-flow -->
 ```mermaid
 flowchart TD
-    A["Session Affinity Failure Lab"]
-    B["Lab Metadata"]
-    C["1. Question"]
-    D["2. Setup"]
-    E["3. Hypothesis"]
-    A --> B
-    B --> C
-    C --> D
-    D --> E
+    BASELINE["Send repeated HTTP requests with the affinity cookie"] --> TRIGGER["Apply the lab's affinity misconfiguration"]
+    TRIGGER --> OBSERVE["Record cookie and replica responses"]
+    OBSERVE --> FIX["Restore supported sticky-session settings"]
+    FIX --> VERIFY["Repeat the same cookie-preserving requests"]
+    VERIFY --> FALSIFY["Reapply only the misconfiguration"]
 ```
+
+This procedure tests the configured HTTP single-revision scenario; it does not claim that every session-state failure is caused by sticky-session settings.
 
 ## See Also
 

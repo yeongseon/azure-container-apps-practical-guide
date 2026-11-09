@@ -40,7 +40,7 @@ Practice traffic splitting between revisions and learn to diagnose scenarios whe
 ## Lab Metadata
 
 | Attribute | Value |
-|---|---|
+|---| --- |
 | Difficulty | Intermediate |
 | Estimated Duration | 20-30 minutes |
 | Tier | Consumption |
@@ -69,20 +69,22 @@ This lab simulates this scenario by:
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    A[User Request] --> B[Ingress Controller<br/>targetPort=80]
-    B --> C{Traffic Split}
-    C -->|50%| D[Good Revision<br/>image listens on :80 ✓]
-    C -->|50%| E[Bad Revision<br/>image listens on :8080 ✗]
-    D --> F[HTTP 200]
-    E --> G[Probe fails → timeout / 5xx]
+    REQUEST["Client request"] ==> INGRESS["Managed ingress<br/>targetPort 80"]
+    INGRESS --> SPLIT{"Which weighted revision receives this request?"}
+    SPLIT -->|50% configured weight| GOOD["Healthy revision<br/>process listens on port 80"]
+    SPLIT -->|50% configured weight| BAD["Experimental revision<br/>process listens on port 8080"]
+    GOOD ==> SUCCESS["Application response returns through ingress"]
+    BAD -. "Port mismatch in this run" .-> FAILURE["Request times out or returns an error"]
 ```
+
+The weights configure routing probability across many requests; they do not guarantee an exact 50/50 result in a small sample. The failure label records this experiment's mismatched image behavior.
 
 ## 2) Hypothesis
 
 **IF** traffic is split 50/50 between a healthy revision and a revision whose container image listens on a port that does not match the ingress `targetPort`, **THEN** approximately 50% of requests will fail (timeout or 5xx) because ingress cannot reach the listening process on the bad revision's replicas.
 
 | Variable | Control State | Experimental State |
-|---|---|---|
+|---| --- |---|
 | Revision Count | 1 (healthy) | 2 (healthy + bad) |
 | Traffic Split | 100% to healthy | 50% healthy, 50% bad |
 | Bad Revision Listening Port | n/a | `:8080` (mismatched against ingress `targetPort=80`) |
@@ -105,9 +107,16 @@ az deployment group create \
     --parameters baseName="labtraffic"
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az group create ...` | Creates the isolated resource group used by the example. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az group create` | Establishes the isolated boundary for revisions, traffic weights, and canary evidence. |
+| `az deployment group create` | Provisions the single healthy revision used as the pre-canary baseline. |
+| `--name` (`az group create`) | Reserves `"$RG"` for the healthy and faulty revisions whose weighted request outcomes form the canary evidence. |
+| `--name` (`az deployment group create`) | Registers the healthy baseline as `"lab-traffic"`, enabling the following output query to recover `APP_NAME`. |
+| `--location` (`az group create`) | Hosts the revision experiment in the selected `"$LOCATION"`. |
+| `--resource-group` (`az deployment group create`) | Creates the baseline deployment inside the isolated canary group `"$RG"`. |
+| `--template-file` (`az deployment group create`) | Loads `"./labs/traffic-routing-canary/infra/main.bicep"`, which enables multiple revisions and ingress. |
+| `--parameters` (`az deployment group create`) | Sets `baseName="labtraffic"` so revision and app names remain recognizable during rollback. |
 
 ### Capture Resource Names
 
@@ -125,10 +134,16 @@ export APP_FQDN="$(az containerapp show \
     --output tsv)"
 ```
 
-| Command | Purpose |
-|---|---|
-| `export APP_NAME="$(az deployment group show ... --query "properties.outputs.containerAppName.value" --output tsv)"` | Captures the deployed app name so every revision-list and traffic-split command in the canary lab points at the correct Container App. |
-| `export APP_FQDN="$(az containerapp show ... --query "properties.configuration.ingress.fqdn" --output tsv)"` | Reads the live ingress hostname so the request loop tests the same public endpoint that end users hit during the 50/50 canary split. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az deployment group show` | Resolves the generated app and environment identifiers from the `"lab-traffic"` record. |
+| `az containerapp show` | Reads the ingress hostname used by the request loop that measures healthy and failed traffic. |
+| `--resource-group` (`az deployment group show`, `az containerapp show`) | Finds the `"lab-traffic"` output record and the generated app whose endpoint is queried inside `"$RG"`. |
+| `--name` (`az deployment group show`) | Opens `"lab-traffic"`, the record that publishes the app and environment names. |
+| `--name` (`az containerapp show`) | Selects `"$APP_NAME"` as the source of the canary endpoint stored in `APP_FQDN`. |
+| `--query` (`az deployment group show`) | For `az deployment group show`, extracts the named property used as evidence in this step as `"properties.outputs.containerAppName.value"` for **Capture Resource Names** in the `traffic-routing-canary` lab. |
+| `--query` (`az containerapp show`) | For `az containerapp show`, extracts the named property used as evidence in this step as `"properties.configuration.ingress.fqdn"` for **Capture Resource Names** in the `traffic-routing-canary` lab. |
+| `--output` (`az deployment group show`, `az containerapp show`) | Emits the app name and ingress FQDN as unquoted `tsv` values for their respective shell variables. |
 
 ### Verify Baseline (Before Trigger)
 
@@ -140,9 +155,12 @@ az containerapp revision list \
     --output table
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp revision list` | Lists the active baseline revision, traffic weight, and health for `"$APP_NAME"` before the canary is introduced. |
+| `--name` | Lists revisions for `"$APP_NAME"` to prove one healthy revision owns all baseline traffic. |
+| `--resource-group` | Lists only revisions belonging to the app deployed in `"$RG"` for the baseline. |
+| `--output` | Shows revision health and the initial `100` traffic weight as a `table` before the canary is introduced. |
 
 Expected output:
 
@@ -205,12 +223,18 @@ az containerapp ingress traffic set \
     --revision-weight "${GOOD_REVISION}=50" "${BAD_REVISION}=50"
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp revision list ... created[-1]` | Captures the name of the most recently created (currently healthy) revision before introducing the bad one. |
-| `az containerapp update --image ... --revision-suffix badv2` | Creates a new revision whose container image listens on `:8080`, but ingress `targetPort` is still `80`. Probe failure isolates the bad behavior to this revision only. |
-| `sleep 60` | Allows the new revision to finish creation, replica scheduling, and the first round of probe attempts before traffic is split. |
-| `az containerapp ingress traffic set --revision-weight` | Splits ingress traffic 50/50 between the recorded good revision and the newly created bad revision. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp revision list` | Evaluates `'sort_by([].{name:name,created:properties.createdTime}, &created)[-1].name'` before and after the image update to capture the healthy and bad revision names. |
+| `az containerapp update` | Creates revision suffix `"badv2"` for `"$APP_NAME"` with the ASP.NET sample image that listens on port `8080`. |
+| `az containerapp ingress traffic set` | Divides ingress evenly between `"${GOOD_REVISION}=50"` and `"${BAD_REVISION}=50"` to expose failures from the incompatible image. |
+| `--name` (`az containerapp revision list`, `az containerapp update`, `az containerapp ingress traffic set`) | Keeps both revision lookups, the incompatible-image rollout, and the 50/50 traffic split focused on `"$APP_NAME"`. |
+| `--resource-group` (`az containerapp revision list`, `az containerapp update`, `az containerapp ingress traffic set`) | Performs revision discovery, image mutation, and traffic assignment against the canary app in `"$RG"`. |
+| `--query` (`az containerapp revision list`) | Selects `'sort_by([].{name:name,created:properties.createdTime}, &created)[-1].name'`, making the newest revision addressable for each side of the update. |
+| `--output` (`az containerapp revision list`) | Produces each selected revision name as `tsv` for `GOOD_REVISION` and `BAD_REVISION` assignments. |
+| `--image` (`az containerapp update`) | In `az containerapp update`, sets the workload image or image tag used by this experiment state as `"mcr.microsoft.com/dotnet/samples:aspnetapp"` for **Trigger the Failure** in the `traffic-routing-canary` lab. |
+| `--revision-suffix` (`az containerapp update`) | In `az containerapp update`, assigns the deterministic revision suffix used to track this rollout as `"badv2"` for **Trigger the Failure** in the `traffic-routing-canary` lab. |
+| `--revision-weight` (`az containerapp ingress traffic set`) | Applies both `"${GOOD_REVISION}=50"` and `"${BAD_REVISION}=50"`; omitting either value would not reproduce the intended balanced canary. |
 
 ### Observe the Failure
 
@@ -223,9 +247,13 @@ az containerapp revision list \
     --output table
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp revision list` | Returns revisions for app `"$APP_NAME"` using `"[].{name:name,active:properties.active,traffic:properties.trafficWeight,health:properties.healthState}"` during **Observe the Failure**. |
+| `--name` | Lists revisions for `"$APP_NAME"` so health can be compared with each revision's traffic share. |
+| `--resource-group` | Resolves the two canary revisions in `"$RG"` for health and weight inspection. |
+| `--query` | In `az containerapp revision list`, extracts the named property used as evidence in this step as `"[].{name:name,active:properties.active,traffic:properties.trafficWeight,health:properties.healthState}"` for **Observe the Failure** in the `traffic-routing-canary` lab. |
+| `--output` | Aligns revision health and traffic weight in a `table`, exposing the unhealthy revision's `50` share. |
 
 Expected output:
 
@@ -252,7 +280,7 @@ done
 Expected: Approximately 50% return `200`, 50% return `000` (curl timeout code, because the bad revision's replica never responds within `--max-time`).
 
 | Command | Why it is used |
-|---|---|
+|---| --- |
 | `curl --silent --output /dev/null --max-time 10 --write-out "%{http_code}" ...` | Sends one HTTP request and prints only the response status code. `--max-time 10` is mandatory: the bad revision does not emit a graceful 502, so without a timeout the loop appears to hang. With `--max-time 10`, hangs are converted into the measurable curl status `000`, which is what makes the ~50% failure rate visible. |
 | `for i in $(seq 1 30); do ... done` | Issues 30 requests so the 50/50 traffic split produces a statistically meaningful ratio (~15 success / ~15 timeout) rather than a 5-sample artifact. |
 
@@ -263,9 +291,11 @@ az containerapp ingress traffic show \
     --resource-group "$RG"
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp ingress traffic show` | Returns the live revision weights for app `"$APP_NAME"` so **Observe the Failure** can verify routing state. |
+| `--name` | Reads the active traffic map for `"$APP_NAME"` after the balanced split. |
+| `--resource-group` | Reads the active traffic map from the Container App instance in `"$RG"`. |
 
 ### Fix the Issue (Rollback)
 
@@ -286,9 +316,15 @@ az containerapp ingress traffic set \
     --revision-weight "${GOOD_REVISION}=100"
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp revision list` | Uses `"sort_by([].{name:name,created:properties.createdTime}, &created)[0].name"` to recover the first, healthy revision for rollback. |
+| `az containerapp ingress traffic set` | Assigns revision weights `"${GOOD_REVISION}=100"` on app `"$APP_NAME"` during **Fix the Issue (Rollback)**. |
+| `--name` (`az containerapp revision list`, `az containerapp ingress traffic set`) | Uses `"$APP_NAME"` to discover the healthy revision and then assign that same app's traffic back to it. |
+| `--resource-group` (`az containerapp revision list`, `az containerapp ingress traffic set`) | Locates the original healthy revision and applies its full traffic weight within `"$RG"`. |
+| `--query` (`az containerapp revision list`) | Selects `"sort_by([].{name:name,created:properties.createdTime}, &created)[0].name"`, identifying the oldest revision that should receive all traffic. |
+| `--output` (`az containerapp revision list`) | Emits the oldest revision name as `tsv` for assignment to `GOOD_REVISION`. |
+| `--revision-weight` (`az containerapp ingress traffic set`) | In `az containerapp ingress traffic set`, sets the traffic percentage assigned to the named revision as `"${GOOD_REVISION}=100"` for **Fix the Issue (Rollback)** in the `traffic-routing-canary` lab. |
 
 Optionally, deactivate the bad revision:
 
@@ -305,10 +341,15 @@ az containerapp revision deactivate \
     --revision "$BAD_REVISION"
 ```
 
-| Command | Purpose |
-|---|---|
-| `BAD_REVISION=$(az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "sort_by([].{name:name,created:properties.createdTime}, &created)[-1].name" --output tsv)` | Captures `BAD_REVISION` from the live Azure lookup so later commands reuse the exact current value instead of guessing it. Lists revisions and filters them to the health, traffic, or timing fields needed for this hypothesis, so you can see whether rollout state matches the failure pattern. |
-| `az containerapp revision deactivate --name "$APP_NAME" --resource-group "$RG" --revision "$BAD_REVISION"` | Deactivates the broken canary revision after rollback so it can no longer re-enter traffic or confuse later revision-health checks. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp revision list` | Uses `"sort_by([].{name:name,created:properties.createdTime}, &created)[-1].name"` to identify the newest bad revision after rollback. |
+| `az containerapp revision deactivate` | Deactivates revision `"$BAD_REVISION"` after traffic has been removed in **Fix the Issue (Rollback)**. |
+| `--name` (`az containerapp revision list`, `az containerapp revision deactivate`) | Uses `"$APP_NAME"` to identify the newest failed canary and deactivate it after rollback. |
+| `--resource-group` (`az containerapp revision list`, `az containerapp revision deactivate`) | Finds the newest revision and scopes its deactivation to the canary app in `"$RG"`. |
+| `--query` (`az containerapp revision list`) | Selects `"sort_by([].{name:name,created:properties.createdTime}, &created)[-1].name"`, yielding the latest revision for optional deactivation. |
+| `--output` (`az containerapp revision list`) | Emits the newest revision name as `tsv` for assignment to `BAD_REVISION`. |
+| `--revision` (`az containerapp revision deactivate`) | Selects the failed canary revision stored in `"$BAD_REVISION"` for deactivation after traffic has been rolled back to the good revision. |
 
 ### Verify the Fix
 
@@ -325,17 +366,18 @@ for i in {1..10}; do
 done
 ```
 
-| Command | Purpose |
-|---|---|
-| `az containerapp ingress traffic show --name "$APP_NAME" --resource-group "$RG"` | Reads the live traffic weights after rollback so you can prove the bad revision is no longer receiving requests before retesting the endpoint. |
-| `for i in {1..10}; do STATUS=$(curl --silent --output /dev/null --write-out "%{http_code}" "https://${APP_FQDN}"); echo "Request $i: HTTP $STATUS"; done` | Replays end-user requests against the app FQDN after the rollback so you can verify the intermittent canary failure pattern has fully cleared. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp ingress traffic show` | Returns the live revision weights for app `"$APP_NAME"` so **Verify the Fix** can verify routing state. |
+| `--name` | Reads traffic for `"$APP_NAME"` after rollback to confirm the bad revision no longer receives requests. |
+| `--resource-group` | Retrieves the post-rollback traffic state from the app in `"$RG"`. |
 
 Expected: All requests return HTTP 200.
 
 ## 4) Experiment Log
 
 | Step | Action | Expected | Actual | Pass/Fail |
-|---|---|---|---|---|
+|---| --- |---|---|---|
 | 1 | Deploy baseline | Single healthy revision | | |
 | 2 | Test baseline | 100% success rate | | |
 | 3 | Run image-swap workaround (`az containerapp update --image ... --revision-suffix badv2` + `az containerapp ingress traffic set --revision-weight`) | Two revisions Active at 50/50; bad revision marked Failed in Portal with TargetPort/listening-port mismatch error | | |
@@ -348,7 +390,7 @@ Expected: All requests return HTTP 200.
 ### During Failure
 
 | Evidence Source | Expected State |
-|---|---|
+|---| --- |
 | `az containerapp revision list` | 2 revisions, both Active at 50/50; bad revision shows degraded/unhealthy `healthState` |
 | Container App → Overview ("Revisions with Issues" tab) | Bad revision listed with error *"The TargetPort 80 does not match the listening port 8080. 1/1 Container crashing: app"* |
 | `az containerapp ingress traffic show` | 50/50 split |
@@ -357,7 +399,7 @@ Expected: All requests return HTTP 200.
 ### After Rollback
 
 | Evidence Source | Expected State |
-|---|---|
+|---| --- |
 | `az containerapp ingress traffic show` | 100% to good revision |
 | Request loop | 100% HTTP 200 |
 | Bad revision | Deactivated (optional) |
@@ -427,7 +469,7 @@ A second end-to-end live Azure run executed on **2026-06-24** with `az` CLI vers
 **H1 reproduction** — `evidence/12-h1-gate.json`:
 
 | Sub-gate | Value | Source |
-|---|---|---|
+|---| --- |---|
 | `a_bad_revision_minted_with_port_mismatched_image` | true | `evidence/05-containerapp-update-image.json` `latestRevisionName=ca-labtraffic-ve2wnr--badv2` (`--image mcr.microsoft.com/dotnet/samples:aspnetapp`, documented listening port `:8080`); `evidence/12-h1-gate.json` `trigger_window.ingress_target_port="80"` and `bad_image_listening_port_documented=8080` confirm the port mismatch is in place |
 | `b_ingress_traffic_split_50_50` | true | `evidence/09-traffic-set-50-50.json` returns `[{ca-labtraffic-ve2wnr--w3daylh, weight:50}, {ca-labtraffic-ve2wnr--badv2, weight:50}]`; `evidence/12-h1-gate.json` `traffic_split.weights_sorted=[50, 50]` |
 | `c_bad_revision_probe_failure_evidence` | true | **Strong path:** `evidence/08-revision-show-bad.json` `runningStateDetails="The TargetPort 80 does not match the listening port 8080."` (port-specific platform text). **Fallback path (also satisfied):** `evidence/12-h1-gate.json` `system_log_capture.probe_failed_lines_in_tail=18` (non-zero ProbeFailed count from `evidence/11-system-logs-tail.log`) |
@@ -439,7 +481,7 @@ Gate classification: `canary_failure_reproduced_50_50_traffic_split`.
 **H2 same-revision rollback** — `evidence/22-h2-gate.json`:
 
 | Sub-gate | Value | Source |
-|---|---|---|
+|---| --- |---|
 | `a_pre_fix_failure_re_confirmed` | true | **Strong path:** `evidence/13-revision-pre-fix-bad.json` `runningStateDetails="Deployment Progress Deadline Exceeded. 0/1 replicas ready. The TargetPort 80 does not match the listening port 8080."` (port-specific platform text persists into the verify window). **Fallback path (also satisfied):** `evidence/12-h1-gate.json` `system_log_capture.probe_failed_lines_in_tail=18` (re-used cross-script) |
 | `b_traffic_set_rollback_succeeded` | true | `evidence/22-h2-gate.json` `fix_window.cli_exit_code=0`; `evidence/15-traffic-set-rollback.json` returns `[{ca-labtraffic-ve2wnr--w3daylh, weight:100}]`. Platform behavior: `az containerapp ingress traffic set --revision-weight rev=100` returns only the entries it explicitly assigned; unmentioned revisions are implicitly weight=0 and do not appear in the response, so the gate accepts BAD as absent OR weight=0 (`verify.sh` `b_traffic_set_rollback_succeeded` logic) |
 | `c_traffic_100_pct_good` | true | `evidence/15-traffic-set-rollback.json` shows exactly one entry at weight=100 belonging to the GOOD revision; no other non-zero entry exists |
@@ -471,9 +513,12 @@ The H1 sub-gate `a_bad_revision_minted_with_port_mismatched_image` and the H2 sa
 az group delete --name "$RG" --yes --no-wait
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az group delete ...` | Removes the lab resource group and its contained resources. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az group delete` | Discards both canary revisions and their environment after rollback verification is complete. |
+| `--name` | Chooses `"$RG"` so the rollback-tested revisions and their Container Apps environment are discarded as one lab boundary. |
+| `--yes` | Confirms that the complete canary resource group may be removed non-interactively. |
+| `--no-wait` | Returns after Azure schedules the revision and environment cleanup rather than polling deletion. |
 
 ## Related Playbook
 

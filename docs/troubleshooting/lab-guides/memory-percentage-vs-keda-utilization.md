@@ -42,7 +42,7 @@ metric-source mismatch between Azure Monitor and KEDA.
 ## Lab Metadata
 
 | Attribute | Value |
-|---|---|
+|---| --- |
 | Difficulty | Intermediate |
 | Estimated Duration | 30-40 minutes (15 min wait for metrics) |
 | Tier | Consumption |
@@ -72,17 +72,17 @@ rounds up to `3` once the per-replica value strictly exceeds `50`.
 <!-- diagram-id: experiment-architecture -->
 ```mermaid
 flowchart TD
-    A[Container Apps environment cae-mempct] --> B[Scenario A ca-mempct-a-below]
-    A --> C[Scenario B ca-mempct-b-above]
-    A --> D[Scenario C ca-mempct-cache]
-    B --> B1[MODE rss TARGET_MB 400]
-    C --> C1[MODE rss TARGET_MB 560]
-    D --> D1[MODE cache TARGET_MB 700]
-    B1 --> S[Same scale rule memory Utilization 50 minReplicas 2 maxReplicas 20]
-    C1 --> S
-    D1 --> S
-    S --> R[Observe Replicas MemoryPercentage cgroup memory.stat]
+    ENV["Container Apps environment"] --> BELOW["Scenario A<br/>working set below the target"]
+    ENV --> ABOVE["Scenario B<br/>working set above the target"]
+    ENV --> CACHE["Scenario C<br/>page-cache-heavy workload"]
+    BELOW --> RULE["Same memory utilization scale rule"]
+    ABOVE --> RULE
+    CACHE --> RULE
+    RULE --> EVIDENCE["Compare replicas, MemoryPercentage, and cgroup samples"]
+    EVIDENCE --> VERDICT["Evaluate the pre-registered hypotheses for this run"]
 ```
+
+Microsoft Learn documents memory as a scaling input but does not define every internal metric detail used by this experiment. The working-set and page-cache interpretation therefore remains bounded by the collected evidence.
 
 ## 2) Hypothesis
 
@@ -103,7 +103,7 @@ last is dominated by page cache), **THEN**:
   stall near `minReplicas` despite the Portal showing 72%.
 
 | Variable | A (Just-below) | B (Just-above) | C (Cache inflation) |
-|---|---|---|---|
+|---| --- |---|---|
 | Workload mode | `rss` | `rss` | `cache` |
 | TARGET_MB (env) | 400 | 560 | 700 |
 | Expected per-replica working set | ~40% | ~56% | ~72% (cache-heavy) |
@@ -138,11 +138,20 @@ export ENV_NAME="$(az deployment group show --resource-group "$RG" --name main \
     --query properties.outputs.environmentName.value --output tsv)"
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az group create` | Creates the resource group that scopes all lab resources. |
-| `az deployment group create` | Deploys the Bicep template that provisions Log Analytics, ACR, and the Container Apps managed environment with a Consumption workload profile. |
-| `az deployment group show` | Reads the Bicep outputs to capture the generated ACR and environment names. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az group create` | Creates the isolation boundary for comparing platform memory percentage with scaler utilization. |
+| `az deployment group create` | Provisions the dual-metric workload and its diagnostic dependencies. |
+| `az deployment group show` | Resolves registry and environment names needed by the metric comparison scripts. |
+| `--name` (`az group create`) | Uses `"$RG"` as the scope for the three workloads whose platform and KEDA memory calculations are compared. |
+| `--name` (`az deployment group create`) | Registers the stack as `main`, allowing the next commands to retrieve its registry and environment outputs. |
+| `--name` (`az deployment group show`) | Reads deployment `main` to recover the outputs consumed by **Deploy infrastructure**. |
+| `--location` (`az group create`) | Hosts the metric-comparison resources in `"$LOCATION"`. |
+| `--resource-group` (`az deployment group create`, `az deployment group show`) | Places the dual-metric deployment in `"$RG"` and scopes both output lookups to that deployment's resource group. |
+| `--template-file` (`az deployment group create`) | Loads `labs/memory-percentage-vs-keda-utilization/infra/main.bicep`, which defines the controlled memory request. |
+| `--parameters` (`az deployment group create`) | Applies `baseName="$BASE_NAME"` so the collection scripts locate the right metric resources. |
+| `--query` (`az deployment group show`) | Extracts `properties.outputs.containerRegistryName.value` and `properties.outputs.environmentName.value` into `ACR_NAME` and `ENV_NAME`. |
+| `--output` (`az deployment group show`) | Emits registry and environment output values as `tsv` for the build and sampling commands. |
 
 Expected output pattern: `provisioningState` reports `Succeeded`.
 
@@ -153,7 +162,7 @@ bash labs/memory-percentage-vs-keda-utilization/trigger.sh
 ```
 
 | Command | Why it is used |
-|---|---|
+|---| --- |
 | `trigger.sh` | Single orchestrator. Phase 1-2 resolves ACR/environment and records the image manifest; Phase 3-5 creates `ca-mempct-a-below`, `ca-mempct-b-above`, and `ca-mempct-cache` from the same image `mempct:v1` with workload mode and target size passed as env vars (`MODE`/`TARGET_MB`); Phase 6 waits 1200 s for HPA stabilization; Phase 7-18 captures per-scenario revisions, `Replicas (Maximum)` metric, `MemoryPercentage (Average)` metric, and cgroup v1 `memory.{usage_in_bytes,limit_in_bytes,stat}` from a live replica (three separate `az containerapp exec` calls with a 20 s sleep between them to avoid HTTP 429 throttling); Phase 19-21 captures CLI versions, containerapp extension metadata, and region/subscription/tenant context. All 21 trigger snapshots are written under `labs/memory-percentage-vs-keda-utilization/evidence/01-*` through `21-*`. |
 
 ### Observe (wait at least 10 minutes)
@@ -237,7 +246,7 @@ Scenario C (ca-mempct-cache):
 ### HPA ceiling math applied to observed values
 
 | Scenario | Per-replica metric (M) | `ceil(2 * M / 50)` | Observed replicas | Match |
-|---|---|---|---|---|
+|---| --- |---|---|---|
 | A | 40 | `ceil(1.60) = 2` | 2 | ✓ |
 | B (first iteration) | 56 | `ceil(2.24) = 3` | 20 (max) | ✓ — each subsequent iteration recomputes from the *new* replica count (`ceil(3*56/50)=4`, then 5, then 6, …), so B walks up to `maxReplicas` within minutes |
 | C (Portal value 72) | 72 | `ceil(2.88) = 3` | 3 | ✓ for the first scale-out, but the HPA would predict `ceil(3*72/50)=5` next; C stalls at 3 because what KEDA actually reads is *not* 72% |
@@ -248,7 +257,7 @@ Scenario C (ca-mempct-cache):
 The hypothesis is confirmed when **all** of the following hold:
 
 | Check | Confirmation rule | Falsification |
-|---|---|---|
+|---| --- |---|
 | Scenario A stays at 2 replicas | `Replicas (Max) == 2` for >= 10 consecutive minutes AND `MemoryPercentage` is 35-50% | Replicas rise above 2 with utilization < 50% |
 | Scenario B scales out continuously to `maxReplicas` | `Replicas (Max)` rises monotonically and reaches `maxReplicas=20` within ~30 minutes while every per-replica `MemoryPercentage` series stays at 50-60% | Replicas stop short of `maxReplicas` while per-replica utilization is still clearly above 50% |
 | Scenario C scales much less than the Portal value predicts | `Replicas (Max) <= 3` AND `MemoryPercentage >= 70%` AND `memory.stat` reports `cache > rss * 5`. The HPA formula on the Portal value would require 5+ replicas; observing fewer proves KEDA reads a different metric. | Replicas climb toward `ceil(N * 0.72 / 0.5)` (then KEDA *is* reading the Portal value, and the metric-source hypothesis is wrong), or `rss >> cache` (then C is not testing what we think) |
@@ -330,7 +339,7 @@ Strong path; no Fallback fallback was required.
 **H1 per-scenario sub-gates** — emitted by `verify.sh` Phase 22–24, recorded in `22-h1-scenario-a-gate.json`, `23-h1-scenario-b-gate.json`, `24-h1-scenario-c-gate.json`.
 
 | Sub-gate | Scenario A (`ca-mempct-a-below`) | Scenario B (`ca-mempct-b-above`) | Scenario C (`ca-mempct-cache`) |
-|---|---|---|---|
+|---| --- |---|---|
 | `a_scale_rule_match` | Strong PASS (`Utilization=50`, min=2, max=20, single memory rule) | Strong PASS (identical rule shape) | Strong PASS (identical rule shape) |
 | `b_replica_behavior` | Strong PASS (`replicas_max=2`, held at floor across 26/30 PT1M samples) | Strong PASS (`replicas_max=20`, walked to maxReplicas across the metric window) | Strong PASS (`replicas_max=2`, held at floor despite over-target Portal value) |
 | `c_memorypercentage_band` | Strong PASS (`mempct=40.0`, in band `[35,45]`) | Strong PASS (`mempct=56.0`, in band `[50,60]`) | Strong PASS (`mempct=72.0`, in band `[65,80]`) |
@@ -341,7 +350,7 @@ Strong path; no Fallback fallback was required.
 **H2 cross-scenario differential sub-gates** — emitted by `verify.sh` Phase 25, recorded in `25-h2-differential-gate.json`. This gate compares the three H1 gate outputs to prove the differential pattern (Oracle Option α: no fake-fix; cross-scenario differential is the proof).
 
 | Sub-gate | Strong-path predicate | Observed |
-|---|---|---|
+|---| --- |---|
 | `a_scenario_a_held_at_floor` | `A.replicas_max == 2` | `2.0` |
 | `b_scenario_b_walked_to_max` | `B.replicas_max == 20` | `20.0` |
 | `c_scenario_c_stalled_despite_overtarget` | `C.replicas_max == 2 AND C.mempct_max > 50` | `replicas_max=2.0, mempct_max=72.0` |

@@ -49,7 +49,7 @@ baseline to test whether the errors correlate with container lifecycle events.
 ## Lab Metadata
 
 | Attribute | Value |
-|---|---|
+|---| --- |
 | Difficulty | Beginner-Intermediate |
 | Estimated Duration | 20-30 minutes (10 min wait for log ingestion) |
 | Tier | Consumption |
@@ -117,20 +117,20 @@ workloads with different startup/crash behaviors, **THEN**:
 <!-- diagram-id: experiment-architecture -->
 ```mermaid
 flowchart TD
-    A["Container Apps environment"] --> B["Scenario A: ca-nometrics-slow"]
-    A --> C["Scenario B: ca-nometrics-crash"]
-    A --> D["Scenario C: ca-nometrics-healthy"]
-    B --> B1["MODE=slow-start<br/>DELAY_SECONDS=120"]
-    C --> C1["MODE=crash-loop<br/>DELAY_SECONDS=30"]
-    D --> D1["MODE=healthy"]
-    B1 --> S["Same scale rule:<br/>memory Utilization=50<br/>min 1-2 / max 10"]
-    C1 --> S
-    D1 --> S
-    S --> R["Observe:<br/>ContainerAppSystemLogs_CL<br/>RestartCount<br/>Replica status"]
+    ENV["Container Apps environment"] --> SLOW["Scenario A<br/>delayed startup workload"]
+    ENV --> CRASH["Scenario B<br/>restarting workload"]
+    ENV --> HEALTHY["Scenario C<br/>healthy control"]
+    SLOW --> RULE["Same memory scale rule"]
+    CRASH --> RULE
+    HEALTHY --> RULE
+    RULE --> EVIDENCE["Compare system-log messages, restart count, and replica state"]
+    EVIDENCE --> CLASSIFY["Classify only the patterns observed in this run"]
 ```
 
+Microsoft Learn documents the scaler configuration, not the internal cause of each no-metrics message. Any association with startup, restart, or metrics-server warm-up remains run-specific and is not promoted to universal platform behavior.
+
 | Scenario | App name | Mode | Expected "no metrics" logs | Expected RestartCount |
-|---|---|---|---|---|
+|---| --- |---|---|---|
 | **A. Slow startup** | `ca-nometrics-slow` | `slow-start` (120s delay) | Transient, first ~90s only | 0 |
 | **B. CrashLoopBackOff** | `ca-nometrics-crash` | `crash-loop` (exit every 30s) | Recurring, correlates with restarts | Rising |
 | **C. Healthy baseline** | `ca-nometrics-healthy` | `healthy` | Transient, first ~60s only (deployment gap) | 0 |
@@ -157,11 +157,20 @@ export ENV_NAME="$(az deployment group show --resource-group "$RG" --name main \
     --query properties.outputs.environmentName.value --output tsv)"
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az group create` | Creates the resource group that scopes all lab resources. |
-| `az deployment group create` | Deploys the Bicep template that provisions Log Analytics, ACR, and the Container Apps environment. |
-| `az deployment group show` | Reads the Bicep outputs to capture the generated ACR and environment names. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az group create` | Establishes the resource boundary for the KEDA scaler, registry, and evidence workspace. |
+| `az deployment group create` | Provisions the no-metrics reproduction from the KEDA lab template. |
+| `az deployment group show` | Resolves the registry and environment names required by the workload build and scaler checks. |
+| `--name` (`az group create`) | Assigns `"$RG"` to the three KEDA scenarios and the workspace where their scaler diagnostics are compared. |
+| `--name` (`az deployment group create`) | Persists the deployment as `main`, the name used immediately afterward to obtain `ACR_NAME` and `ENV_NAME`. |
+| `--name` (`az deployment group show`) | Reads deployment `main` to recover the outputs consumed by **Deploy infrastructure**. |
+| `--location` (`az group create`) | Places the KEDA reproduction in the operator-selected `"$LOCATION"`. |
+| `--resource-group` (`az deployment group create`, `az deployment group show`) | Deploys the lab into `"$RG"`, then reads both generated resource names from the deployment in that same group. |
+| `--template-file` (`az deployment group create`) | Loads `labs/keda-no-metrics-returned/infra/main.bicep`, including the event scaler under investigation. |
+| `--parameters` (`az deployment group create`) | Supplies `baseName="$BASE_NAME"` so the verifier can predict the generated KEDA resource names. |
+| `--query` (`az deployment group show`) | Extracts `properties.outputs.containerRegistryName.value` and `properties.outputs.environmentName.value` into `ACR_NAME` and `ENV_NAME`. |
+| `--output` (`az deployment group show`) | Emits registry and environment names as `tsv` for `ACR_NAME` and `ENV_NAME`. |
 
 ### Create three scenarios
 
@@ -172,7 +181,7 @@ bash labs/keda-no-metrics-returned/trigger-scenario-c.sh
 ```
 
 | Command | Why it is used |
-|---|---|
+|---| --- |
 | `trigger-scenario-a.sh` | Builds the image, creates `ca-nometrics-slow` with `MODE=slow-start` and `DELAY_SECONDS=120`. The container sleeps 2 minutes before starting the HTTP server, so the readiness probe fails during this window. |
 | `trigger-scenario-b.sh` | Creates `ca-nometrics-crash` with `MODE=crash-loop` and `DELAY_SECONDS=30`. The container exits every 30 seconds, triggering CrashLoopBackOff. |
 | `trigger-scenario-c.sh` | Creates `ca-nometrics-healthy` with `MODE=healthy`. The container starts immediately and stays stable. |
@@ -200,7 +209,7 @@ reports, and `verify.sh` evaluates only the timestamps pinned in its header.
 The hypothesis is confirmed when **all** of the following hold:
 
 | Check | Confirmation rule | Falsification |
-|---|---|---|
+|---| --- |---|
 | Scenario A: transient errors | "no metrics returned" entries appear within the first ~90s after deployment, then stop | Errors persist beyond 5 minutes after container becomes Ready |
 | Scenario B: recurring errors | "no metrics returned" entries repeat and correlate with `RestartCount` increases | No metric errors despite container crashes |
 | Scenario C: brief deployment gap | "no metrics returned" entries appear for ~30-60s after deployment, then stop permanently | Errors persist beyond 2 minutes for a healthy container |
@@ -285,7 +294,7 @@ Gate 10(b) reads only the declared `TimeGenerated` column from selected metric-e
 `verify.sh` is a pure file processor against the 18 historical-capture artifacts (6 files × 3 scenarios under `evidence/ca-nometrics-*/`) and emits four falsifiable gate JSONs under `evidence/`. Most sub-gates retain a Strong path matching the exact lab specification and a lower-evidence Fallback tier tolerating minor drift. Gate 10(b) requires probe failures and temporal overlap on its only path. All twelve sub-gates (4 gates × 3 sub-gates each), first emitted on 2026-06-24 from the 2026-06-20 captures and later re-evaluated offline, pass. Gate 13(c) counts only `Healthy`/`Unhealthy` as reported §2 health states for all three scenarios; anything else is unreported evidence and fails both tiers, including absent, null, empty, `None`, `Unknown`, `Degraded` or any other string. The exact Healthy/Healthy/Unhealthy pattern is the Strong tier; the lower-evidence Fallback tier requires crash `Unhealthy` and at least one `Healthy` state among healthy/slow. `c_evidence_level` identifies the passing tier.
 
 | Gate | File | Hypothesis | Sub-gates | Result |
-|---|---|---|---|---|
+|---| --- |---|---|---|
 | 10 | `10-h1-slow-not-ready-gate.json` | H1 (Scenario A slow-start): "no metrics returned" during startup is correlated with NotReady and resolves | 3 — (a) signal observed: §5 has ≥ 10 "no metrics returned" lines OR §6 bin total ≥ 10; (b) NotReady correlation: §9 `Probe of StartUp failed` events present AND §5 ↔ §9 timestamp windows overlap (single path: a correlation claim requires the overlap itself); (c) eventually Ready: sidecar `healthState: Healthy` OR sidecar `trafficWeight: 100` | PASS — 20 §5 lines, 30 §9 probe failures, §5 window 00:35:49–00:38:05 overlaps §9 probe window 00:37:22–00:37:51, sidecar Healthy + traffic 100 |
 | 11 | `11-h1-crash-not-ready-gate.json` | H1 (Scenario B crash-loop): "no metrics returned" persists across multiple bins with unready state | 3 — (a) signal spans ≥ 2 bins: §6 row count ≥ 2 OR §5 first→last duration > 300 s; (b) unready state: §2 inline JSON has `healthState: Unhealthy` AND `runningState: Failed` OR sidecar `healthState: Unhealthy` OR §2 `provisioningState: Failed`; absent or other sidecar states are unreported evidence; (c) persistent pattern: §6 bins beyond the first OR §5 duration > 600 s | PASS — 3 §6 bins (25/1/1 at 00:35/00:40/00:45), §5 duration 603 s, §2 reports `Unhealthy + Failed + Failed`, sidecar Unhealthy |
 | 12 | `12-h2-healthy-post-ready-gate.json` | H2 (Scenario C healthy baseline): "no metrics returned" is brief on the healthy revision and does not persist (the gate does not test why) | 3 — (a) Healthy/Running: §2 `Healthy + Running` OR sidecar `Healthy + traffic 100`; (b) single bin: §6 has 1 row OR 1-2 parsed rows; (c) silent after warm-up: §5 duration ≤ 300 s OR 1-20 parsed signal lines; zero parsed input fails closed | PASS — §2 Healthy/Running, sidecar Healthy + traffic 100, §6 has 1 bin (16), §5 duration 106 s, 16 §5 lines, §9 has 0 probe failures |
@@ -397,7 +406,7 @@ When re-running the lab, capture the following screenshots and save to
 `docs/assets/troubleshooting/keda-no-metrics-returned/`:
 
 | Screenshot | File name | Source |
-|---|---|---|
+|---| --- |---|
 | Scenario A: system logs | `scenario-a-slow-system-logs.png` | Log stream → Historical + System |
 | Scenario A: metrics | `scenario-a-slow-metrics.png` | Metrics → Memory Percentage + Replica Count |
 | Scenario B: system logs | `scenario-b-crash-system-logs.png` | Log stream → Historical + System |
@@ -413,7 +422,7 @@ bash labs/keda-no-metrics-returned/cleanup.sh
 ```
 
 | Command | Why it is used |
-|---|---|
+|---| --- |
 | `cleanup.sh` | Deletes the resource group and all child resources (async). |
 
 ## Related Playbook
@@ -428,6 +437,7 @@ bash labs/keda-no-metrics-returned/cleanup.sh
 
 ## Sources
 
+- [Troubleshoot container start failures](https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-container-start-failures)
 - [Set scaling rules - Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
 - [KEDA memory scaler](https://keda.sh/docs/latest/scalers/memory/)
 - [HPA with container metrics fails when pod is not ready - kubernetes#127169](https://github.com/kubernetes/kubernetes/issues/127169)

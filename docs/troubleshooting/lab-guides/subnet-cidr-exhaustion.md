@@ -48,7 +48,7 @@ Reproduce a subnet sizing failure with an undersized delegated subnet, then corr
 ## Lab Metadata
 
 | Field | Value |
-|---|---|
+|---| --- |
 | Difficulty | Intermediate |
 | Duration | 20-30 min |
 | Tier | Inline guide only |
@@ -170,9 +170,12 @@ az group delete \
   --no-wait
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az group delete ...` | Removes all lab resources after evidence collection. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az group delete` | Releases the constrained subnet and Container Apps environment after address-capacity evidence is saved. |
+| `--name` | Targets `"$RG"`, releasing the lab's constrained subnet and managed environment under their shared resource-group boundary. |
+| `--yes` | Permits deletion of the exhausted-subnet topology without another prompt. |
+| `--no-wait` | Avoids waiting for the managed environment and network resources to finish deleting. |
 
 ## Related Playbook
 
@@ -183,16 +186,14 @@ az group delete \
 <!-- diagram-id: subnet-cidr-exhaustion-page-flow -->
 ```mermaid
 flowchart TD
-    A["Subnet CIDR Exhaustion Lab"]
-    B["Lab Metadata"]
-    C["1. Question"]
-    D["2. Setup"]
-    E["3. Hypothesis"]
-    A --> B
-    B --> C
-    C --> D
-    D --> E
+    INVENTORY["Record environment type and delegated subnet"] --> DEMAND["Apply the lab's replica or profile demand"]
+    DEMAND --> OBSERVE["Collect subnet capacity and provisioning evidence"]
+    OBSERVE --> FIX["Use a subnet sized for the documented environment model"]
+    FIX --> VERIFY["Repeat the same demand"]
+    VERIFY --> FALSIFY["Restore only the constrained capacity and retest"]
 ```
+
+Subnet requirements differ between workload-profile and legacy consumption-only environments. This flow therefore requires the environment type to be recorded before interpreting the run.
 
 ## See Also
 

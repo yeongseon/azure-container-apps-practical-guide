@@ -40,36 +40,40 @@ Troubleshoot Application Insights connectivity issues by simulating a misconfigu
 ## Lab Metadata
 
 | Attribute | Value |
-|---|---|
+|---| --- |
 | Difficulty | Intermediate |
 | Estimated Duration | 25-35 minutes |
 | Tier | Consumption |
-| Failure Mode | Application Insights connection string is misconfigured, so traces stop appearing |
+| Failure Mode | `APPLICATIONINSIGHTS_CONNECTION_STRING` changes from a secret reference to an invalid literal; telemetry loss is conditional on an instrumented image |
 | Skills Practiced | Telemetry configuration review, secret reference validation, Log Analytics and Application Insights verification |
 
 ## 1) Background
 
-This lab starts with working observability: the Container Apps environment sends logs to Log Analytics, the app has `APPLICATIONINSIGHTS_CONNECTION_STRING` configured through a secret reference, and Application Insights receives telemetry. The trigger replaces that working configuration with an invalid literal connection string, causing telemetry export to fail.
+This lab starts with Container Apps environment logs sent to Log Analytics and `APPLICATIONINSIGHTS_CONNECTION_STRING` configured through a secret reference. The trigger replaces that reference with an invalid literal connection string. The baseline image has no Application Insights SDK, so this run directly proves only the environment-variable source/value flip; export failure is testable only after substituting an instrumented image.
 
-The main troubleshooting pattern is to compare the app's environment variable configuration with the expected secret reference, then validate telemetry absence in Application Insights and Log Analytics.
+The main troubleshooting pattern is to compare the app's environment-variable configuration with the expected secret reference. With an SDK-instrumented image, the same procedure can additionally compare Application Insights telemetry before and after the configuration change.
 
 ### Architecture
 
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    A[Container App] --> B[APPLICATIONINSIGHTS_CONNECTION_STRING]
-    B -->|Valid secretRef| C[Application Insights]
-    A --> D[Container Apps Environment]
-    D --> E[Log Analytics Workspace]
-    D --> F[daprAIConnectionString]
-    B -->|Invalid literal value| G[Telemetry dropped]
+    APP["Baseline helloworld application"] --> CONFIG["APPLICATIONINSIGHTS_CONNECTION_STRING"]
+    CONFIG -->|Baseline| SECRET["Source: Reference a secret"]
+    CONFIG -->|Trigger| LITERAL["Source: Manual entry with invalid literal"]
+    SECRET --> COMPARE["Compare environment-variable source and value"]
+    LITERAL --> COMPARE
+    APP --> STDOUT["Application stdout and stderr"]
+    STDOUT --> ENV["Container Apps environment logging destination"]
+    ENV --> LAW["Log Analytics workspace"]
 ```
+
+The diagram models the configuration-source change directly observed with the baseline image. Application Insights telemetry loss remains `[Not Proven]` unless the run uses an SDK-instrumented workload and captures corresponding telemetry evidence; the environment-log path is separate.
 
 ### Telemetry Flow in Container Apps
 
 | Component | Role |
-|---|---|
+|---| --- |
 | Application Insights | Receives traces, metrics, and exceptions |
 | Connection String | Identifies the Application Insights resource |
 | Secret Reference | Secure way to inject the connection string |
@@ -83,7 +87,7 @@ flowchart TD
     The baseline `azuredocs/containerapps-helloworld:latest` image shipped by `infra/main.bicep` does not include an Application Insights SDK. Trace counts will be zero in **both** the baseline and the misconfigured state, so a zero count in App Insights / Log Analytics does not by itself confirm causation. The env var source/value flip *is* directly falsifiable from the Container App template. To upgrade the telemetry-blocking claim from `[Not Proven]` to `[Measured]`, swap the lab image for one of the reference apps under `apps/` (for example `apps/python/`) instrumented with the OpenTelemetry Distro for Azure Monitor.
 
 | Variable | Control State | Experimental State | Falsifiability |
-|---|---|---|---|
+|---| --- |---|---|
 | App env var configuration | `secretRef: appinsights-connection-string` (Source = "Reference a secret") | Invalid literal connection string (Source = "Manual entry") | `[Observable]` from the Containers → Environment variables blade |
 | Application Insights telemetry from an SDK-instrumented app | New traces appear | No new traces | `[Not Proven]` with helloworld baseline; requires SDK-instrumented image |
 | Log Analytics trace query | Returns recent trace count | Returns zero | `[Not Proven]` with helloworld baseline; requires SDK-instrumented image |
@@ -114,9 +118,20 @@ az deployment group create \
     --parameters baseName="labobs"
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az extension add ...` | Installs or updates the Container Apps Azure CLI extension. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az extension add` | Enables the Container Apps configuration and log commands used by the telemetry diagnosis. |
+| `az login` | Establishes credentials for provisioning both workload and monitoring resources. |
+| `az group create` | Establishes `"$RG"` as the boundary for the app, workspace, and Application Insights component. |
+| `az deployment group create` | Provisions the telemetry baseline under deployment `"lab-obs"`. |
+| `--name` (`az extension add`) | Chooses the `containerapp` extension that exposes environment and application log operations. |
+| `--name` (`az group create`) | Uses `"$RG"` to group the traced application with its Log Analytics and Application Insights evidence stores. |
+| `--name` (`az deployment group create`) | Records the telemetry stack as `"lab-obs"`, which output queries use to discover the app and monitoring resource names. |
+| `--upgrade` (`az extension add`) | Updates the extension before environment-variable and log-stream commands are executed. |
+| `--location` (`az group create`) | Places the app and monitoring stack in the selected `"$LOCATION"`. |
+| `--resource-group` (`az deployment group create`) | Scopes az deployment group create to resource group `"$RG"`, which contains the observability-tracing resources used in **Deploy baseline infrastructure**. |
+| `--template-file` (`az deployment group create`) | Loads `"./labs/observability-tracing/infra/main.bicep"`, which wires the workload to its telemetry resources. |
+| `--parameters` (`az deployment group create`) | Supplies `baseName="labobs"` so later lookups match the generated observability resource names. |
 
 Expected output:
 
@@ -151,12 +166,13 @@ export LOG_ANALYTICS_WORKSPACE_NAME="$(az deployment group show \
     --output tsv)"
 ```
 
-| Command | Purpose |
-|---|---|
-| `export APP_NAME="$(az deployment group show ... --query "properties.outputs.containerAppName.value" --output tsv)"` | Captures the deployed app name so the telemetry misconfiguration and recovery steps apply to the exact Container App created by the lab. |
-| `export ACA_ENV_NAME="$(az deployment group show ... --query "properties.outputs.containerAppsEnvironmentName.value" --output tsv)"` | Captures the environment name for later checks against environment-level observability settings such as the Dapr AI connection string. |
-| `export APPINSIGHTS_NAME="$(az deployment group show ... --query "properties.outputs.appInsightsName.value" --output tsv)"` | Captures the Application Insights component name that should receive traces, which is required before querying or restoring its connection string. |
-| `export LOG_ANALYTICS_WORKSPACE_NAME="$(az deployment group show ... --query "properties.outputs.logAnalyticsWorkspaceName.value" --output tsv)"` | Captures the Log Analytics workspace name so later KQL checks query the exact workspace wired into the lab deployment. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az deployment group show` | Resolves app, environment, Application Insights, and workspace names from `"lab-obs"`. |
+| `--resource-group` | Finds the deployment record inside the experiment boundary `"$RG"`. |
+| `--name` | Opens `"lab-obs"`, the deployment that publishes all four resource-name outputs. |
+| `--query` | Extracts `"properties.outputs.containerAppName.value"`, `"properties.outputs.containerAppsEnvironmentName.value"`, `"properties.outputs.appInsightsName.value"`, and `"properties.outputs.logAnalyticsWorkspaceName.value"` into their corresponding shell variables. |
+| `--output` | Emits each selected name as unquoted `tsv` text for its corresponding shell variable. |
 
 Expected output:
 
@@ -173,9 +189,13 @@ az containerapp show \
     --output table
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp show` | Reads the Application Insights environment entry before corruption so the secret-reference baseline is recorded. |
+| `--name` | Selects `"$APP_NAME"` as the telemetry producer whose connection-string source is being compared. |
+| `--resource-group` | Resolves the telemetry-producing app within `"$RG"` for baseline inspection. |
+| `--query` | Filters to `"properties.template.containers[0].env[?name=='APPLICATIONINSIGHTS_CONNECTION_STRING']"`, excluding unrelated environment variables. |
+| `--output` | Displays the baseline variable's name and secret reference as a `table` for the post-trigger comparison. |
 
 Expected output:
 
@@ -196,9 +216,12 @@ az containerapp update \
     --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://invalid/"
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp update ...` | Updates the existing Container App configuration without recreating the app. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp update` | Replaces `APPLICATIONINSIGHTS_CONNECTION_STRING` on `"$APP_NAME"` with the invalid literal used to expose the source/value change. |
+| `--resource-group` | Applies the connection-string mutation only inside `"$RG"`. |
+| `--name` | Updates `"$APP_NAME"`, replacing its valid telemetry reference while leaving the Application Insights component unchanged. |
+| `--set-env-vars` | Installs the complete invalid literal `"APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://invalid/"` for configuration-source comparison; interrupting export would require a separate run with an instrumented image. |
 
 Expected output:
 
@@ -221,13 +244,24 @@ APPINSIGHTS_ID="$(az monitor app-insights component show \
     --output tsv)"
 
 az monitor app-insights query \
-    --app "$APPINSIGHTS_ID" \
+    --apps "$APPINSIGHTS_ID" \
     --analytics-query "requests | where timestamp > ago(5m) | count"
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp show ...` | Reads the Container App configuration so the documented setting can be verified. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp show` | Re-reads the telemetry environment entry to prove the app now carries the invalid literal rather than a secret reference. |
+| `az monitor app-insights component show` | Returns `"appId"` from Application Insights component `"$APPINSIGHTS_NAME"`. |
+| `az monitor app-insights query` | Runs the request-count query against Application Insights app `"$APPINSIGHTS_ID"` for the current observation window. |
+| `--name` (`az containerapp show`) | Retrieves configuration from `"$APP_NAME"`, whose connection-string source was changed from a secret reference to the invalid literal. |
+| `--resource-group` (`az containerapp show`, `az monitor app-insights component show`) | Finds the mutated Container App and its Application Insights component in `"$RG"` so their configuration and application ID can be compared in this observation. |
+| `--query` (`az containerapp show`) | Filters to `"properties.template.containers[0].env[?name=='APPLICATIONINSIGHTS_CONNECTION_STRING']"`, whose literal value proves the mutation. |
+| `--query` (`az monitor app-insights component show`) | Selects `"appId"`, the identifier required by the telemetry query command. |
+| `--output` (`az containerapp show`) | Preserves the mutated environment entry as `json` for evidence capture. |
+| `--output` (`az monitor app-insights component show`) | Emits only the component application ID as `tsv` for assignment to `APPINSIGHTS_ID`. |
+| `--app` (`az monitor app-insights component show`) | For `az monitor app-insights component show`, targets the Application Insights component captured from the deployment as `"$APPINSIGHTS_NAME"` for **Observe the broken state** in the `observability-tracing` lab. |
+| `--apps` (`az monitor app-insights query`) | Targets the deployed Application Insights application ID `"$APPINSIGHTS_ID"` while checking for recent request telemetry. |
+| `--analytics-query` (`az monitor app-insights query`) | Runs `"requests | where timestamp > ago(5m) | count"` against `"$APPINSIGHTS_ID"`; absence is meaningful only for an SDK-instrumented workload with a measured baseline. |
 
 Expected output:
 
@@ -253,9 +287,23 @@ az monitor log-analytics query \
     --analytics-query "union isfuzzy=true AppTraces, traces | where TimeGenerated > ago(15m) | summarize count()"
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp env show` | Returns `"properties.daprAIConnectionString"` from environment `"$ACA_ENV_NAME"` for **Diagnose with additional evidence and restore the valid configuration**. |
+| `az containerapp logs show` | Reads the `console` log stream for app `"$APP_NAME"` during **Diagnose with additional evidence and restore the valid configuration**. |
+| `az monitor log-analytics workspace show` | Returns `customerId` from workspace `"$LOG_ANALYTICS_WORKSPACE_NAME"` for the following KQL call. |
+| `az monitor log-analytics query` | Counts `AppTraces` and `traces` records from the last 15 minutes in workspace `"$WORKSPACE_ID"`. |
+| `--name` (`az containerapp env show`) | Targets Container Apps environment `"$ACA_ENV_NAME"` for the environment evidence gathered in **Diagnose with additional evidence and restore the valid configuration**. |
+| `--name` (`az containerapp logs show`) | Pulls console records from `"$APP_NAME"` to check whether the workload reports telemetry-export errors. |
+| `--resource-group` (`az containerapp env show`, `az containerapp logs show`, `az monitor log-analytics workspace show`) | Locates the Container Apps environment, the workload's console stream, and the Log Analytics workspace in `"$RG"` for the three diagnostic evidence sources. |
+| `--query` (`az containerapp env show`) | Selects `"properties.daprAIConnectionString"` to verify the environment-level integration remains configured. |
+| `--query` (`az monitor log-analytics workspace show`) | Selects `customerId`, which the following workspace query accepts. |
+| `--type` (`az containerapp logs show`) | In `az containerapp logs show`, selects the application or system log stream required for this diagnosis as `console` for **Diagnose with additional evidence and restore the valid configuration** in the `observability-tracing` lab. |
+| `--tail` (`az containerapp logs show`) | In `az containerapp logs show`, limits the log sample to the most recent records needed for triage as `50` for **Diagnose with additional evidence and restore the valid configuration** in the `observability-tracing` lab. |
+| `--workspace-name` (`az monitor log-analytics workspace show`) | In `az monitor log-analytics workspace show`, selects the lab workspace whose customer ID is required as `"$LOG_ANALYTICS_WORKSPACE_NAME"` for **Diagnose with additional evidence and restore the valid configuration** in the `observability-tracing` lab. |
+| `--output` (`az monitor log-analytics workspace show`) | Returns only the workspace customer ID as `tsv`, making it valid input for the following Log Analytics query. |
+| `--workspace` (`az monitor log-analytics query`) | In `az monitor log-analytics query`, targets the Log Analytics workspace captured from the lab deployment as `"$WORKSPACE_ID"` for **Diagnose with additional evidence and restore the valid configuration** in the `observability-tracing` lab. |
+| `--analytics-query` (`az monitor log-analytics query`) | Supplies `"union isfuzzy=true AppTraces, traces | where TimeGenerated > ago(15m) | summarize count()"`; a zero count is inconclusive with the baseline image. |
 
 Restore the valid connection string using the original secret reference:
 
@@ -272,9 +320,16 @@ az containerapp update \
     --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=secretref:appinsights-connection-string"
 ```
 
-| Command | Purpose |
-|---|---|
-| `az containerapp update --name "$APP_NAME" --resource-group "$RG" --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=secretref:appinsights-connection-string"` | Updates runtime environment mappings, which is the corrective action this step is validating or applying. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az monitor app-insights component show` | Returns `"connectionString"` from Application Insights component `"$APPINSIGHTS_NAME"`. |
+| `az containerapp update` | Restores `APPLICATIONINSIGHTS_CONNECTION_STRING=secretref:appinsights-connection-string` on `"$APP_NAME"`. |
+| `--app` (`az monitor app-insights component show`) | In `az monitor app-insights component show`, targets the Application Insights component captured from the deployment as `"$APPINSIGHTS_NAME"` for **Diagnose with additional evidence and restore the valid configuration** in the `observability-tracing` lab. |
+| `--resource-group` (`az monitor app-insights component show`, `az containerapp update`) | Retrieves the valid Application Insights connection string from `"$RG"` and applies the restored secret reference to the app in that same group. |
+| `--query` (`az monitor app-insights component show`) | Selects `"connectionString"`, the valid component value captured before restoring the app reference. |
+| `--output` (`az monitor app-insights component show`) | Produces the connection string as unquoted `tsv` text for the restoration workflow. |
+| `--name` (`az containerapp update`) | Restores the secret reference on `"$APP_NAME"`, reversing only the environment-variable mutation used by the experiment. |
+| `--set-env-vars` (`az containerapp update`) | In `az containerapp update`, writes the environment-variable mapping tested by this observability scenario as `"APPLICATIONINSIGHTS_CONNECTION_STRING=secretref:appinsights-connection-string"` for **Diagnose with additional evidence and restore the valid configuration** in the `observability-tracing` lab. |
 
 Expected output:
 
@@ -297,7 +352,7 @@ Expected output (with the baseline `azuredocs/containerapps-helloworld:latest` i
 ## 4) Experiment Log
 
 | Step | Action | Expected | Actual | Pass/Fail |
-|---|---|---|---|---|
+|---| --- |---|---|---|
 | 1 | Deploy baseline infrastructure | Observability resources deploy successfully | | |
 | 2 | Verify baseline env var | `APPLICATIONINSIGHTS_CONNECTION_STRING` uses secret reference | | |
 | 3 | Run `trigger.sh` | Invalid literal connection string applied | | |
@@ -314,7 +369,7 @@ Expected output (with the baseline `azuredocs/containerapps-helloworld:latest` i
 ### Before trigger
 
 | Evidence Source | Expected State |
-|---|---|
+|---| --- |
 | Container env vars | `APPLICATIONINSIGHTS_CONNECTION_STRING` uses `secretRef` |
 | Environment config | `daprAIConnectionString` is set |
 | Application Insights or Log Analytics (SDK-instrumented image only) | Recent traces are present |
@@ -322,7 +377,7 @@ Expected output (with the baseline `azuredocs/containerapps-helloworld:latest` i
 ### During incident
 
 | Evidence Source | Expected State |
-|---|---|
+|---| --- |
 | Container env vars | Invalid literal connection string |
 | Application Insights query (SDK-instrumented image only) | No new traces or only stale results |
 | Console logs | Possible telemetry export errors |
@@ -331,7 +386,7 @@ Expected output (with the baseline `azuredocs/containerapps-helloworld:latest` i
 ### After fix
 
 | Evidence Source | Expected State |
-|---|---|
+|---| --- |
 | Container env vars | `APPLICATIONINSIGHTS_CONNECTION_STRING` restored to `secretRef` |
 | Log Analytics query (SDK-instrumented image only) | Recent traces return |
 | `./labs/observability-tracing/verify.sh` | Connection-string check PASS; trace-record check PASS **only when the application image is SDK-instrumented** (with the baseline `azuredocs/containerapps-helloworld:latest` image this row reports zero traces — see `[Not Proven]` caveat in the Hypothesis) |
@@ -341,7 +396,7 @@ Expected output (with the baseline `azuredocs/containerapps-helloworld:latest` i
 Reproduced end-to-end in `koreacentral` against resource group `rg-aca-lab-observability` using Azure CLI `2.71.0`. The Container App revisions advanced as follows:
 
 | Revision | State | Source of `APPLICATIONINSIGHTS_CONNECTION_STRING` |
-|---|---|---|
+|---| --- |---|
 | `ca-labobs-622oal--0m6ek7p` | Baseline (active) | `secretRef: appinsights-connection-string` |
 | `ca-labobs-622oal--0000001` | After `trigger.sh` (active) | Literal value `InstrumentationKey=...;IngestionEndpoint=https://invalid/` |
 | `ca-labobs-622oal--0000002` | After restore (active) | `secretRef: appinsights-connection-string` |
@@ -369,7 +424,7 @@ az containerapp update --name ca-labobs-622oal --resource-group rg-aca-lab-obser
 ```
 
 | Command | Why it is used |
-|---|---|
+|---| --- |
 | `az containerapp show ... --query "properties.template.containers[0].env[?name=='APPLICATIONINSIGHTS_CONNECTION_STRING']"` | Reads the current Container App template and returns just the `APPLICATIONINSIGHTS_CONNECTION_STRING` env var entry, so the reviewer can confirm whether the value is sourced from a `secretRef` (control state) or a literal `value` (experimental state). |
 | `az containerapp update ... --set-env-vars "APPLICATIONINSIGHTS_CONNECTION_STRING=secretref:appinsights-connection-string"` | Restores the env var to its baseline secret-backed configuration. `--set-env-vars` performs an in-place update of the Container App template and triggers a new revision. |
 
@@ -438,7 +493,7 @@ A second end-to-end live Azure run executed on **2026-06-24** with `az` CLI vers
 **H1 reproduction** — `evidence/12-h1-gate.json`:
 
 | Sub-gate | Value | Source |
-|---|---|---|
+|---| --- |---|
 | `a_baseline_env_was_secretref` | true | `evidence/04-baseline-env-var.json` `secretRef="appinsights-connection-string"` (no literal `value` key); `evidence/12-h1-gate.json` `env_var_state.baseline_secretRef="appinsights-connection-string"` and `baseline_value=null` |
 | `b_trigger_succeeded_and_revision_advanced` | true | `evidence/06-trigger-update.json` `properties.latestRevisionName="ca-labobs-ewwmkr--0000003"` (new revision minted by `az containerapp update --set-env-vars`); `evidence/12-h1-gate.json` `trigger_window.baseline_revision_name="ca-labobs-ewwmkr--0000002"` vs `post_trigger_revision_name="ca-labobs-ewwmkr--0000003"` (distinct names), `trigger_cli_exit_code=0`, `wait_provisioned=true` |
 | `c_env_var_now_literal_with_expected_value` | true | **Strong path:** `evidence/08-post-trigger-env-var.json` `value="InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://invalid/"` exactly matches `evidence/12-h1-gate.json` `trigger_window.expected_literal_value`. **Fallback path (also satisfied):** `evidence/12-h1-gate.json` `env_var_state.post_trigger_value` is non-empty AND `post_trigger_secretRef=null` |
@@ -450,7 +505,7 @@ Gate classification: `telemetry_misconfiguration_env_var_source_flipped_to_liter
 **H2 restoration** — `evidence/24-h2-gate.json`:
 
 | Sub-gate | Value | Source |
-|---|---|---|
+|---| --- |---|
 | `a_pre_fix_env_var_still_literal` | true | `evidence/13-pre-fix-env-var.json` `value="InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://invalid/"` confirms the trigger persisted across the gap between scripts; `evidence/24-h2-gate.json` `env_var_state.pre_fix_matches_expected_literal=true` |
 | `b_fix_command_succeeded_and_revision_advanced` | true | `evidence/15-fix-update.json` `properties.latestRevisionName="ca-labobs-ewwmkr--0000004"` (third distinct revision name in this run); `evidence/24-h2-gate.json` `fix_window.fix_cli_exit_code=0`, `wait_provisioned=true` |
 | `c_env_var_back_to_secretref` | true | **Strong path:** `evidence/17-post-fix-env-var.json` `secretRef="appinsights-connection-string"` exactly matches `evidence/24-h2-gate.json` `fix_window.expected_secret_name`. **Fallback path (also satisfied):** `evidence/24-h2-gate.json` `env_var_state.post_fix_secretRef` is non-empty AND `post_fix_value=null` |
@@ -484,9 +539,12 @@ The H1 sub-gate `c_env_var_now_literal_with_expected_value` hard-codes the expec
 az group delete --name "$RG" --yes --no-wait
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az group delete ...` | Removes the lab resource group and its contained resources. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az group delete` | Removes the app and both telemetry stores after the broken and restored traces are preserved. |
+| `--name` | Selects `"$RG"`, which contains the app, Application Insights component, and Log Analytics workspace being retired together. |
+| `--yes` | Grants non-interactive approval to delete the observability experiment resources. |
+| `--no-wait` | Stops polling once Azure accepts the monitoring-stack deletion request. |
 
 ## Related Playbook
 

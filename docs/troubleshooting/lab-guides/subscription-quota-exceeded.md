@@ -48,7 +48,7 @@ validation:
 ## Lab Metadata
 
 | Field | Value |
-|---|---|
+|---| --- |
 | Difficulty | Intermediate |
 | Duration | 25-35 min |
 | Tier | Inline guide only |
@@ -100,7 +100,7 @@ Record before-and-after CLI output, ContainerAppSystemLogs or ConsoleLogs eviden
 ## 8. Measurement
 
 | Evidence | What confirms the hypothesis |
-|---|---|
+|---| --- |
 | CLI output | [Observed] One of the known quota failure strings appears. |
 | `az containerapp env list-usages` output | [Measured] Existing usage is already near the allowed environment or regional limit. |
 | `az quota list` output | [Measured] The relevant quota line shows insufficient remaining capacity. |
@@ -121,7 +121,7 @@ To falsify: revert only the corrective change and confirm the failure re-appears
 ## 12. Evidence
 
 | Evidence | What confirms the hypothesis |
-|---|---|
+|---| --- |
 | CLI output | [Observed] One of the known quota failure strings appears. |
 | `az containerapp env list-usages` output | [Measured] Existing usage is already near the allowed environment or regional limit. |
 | `az quota list` output | [Measured] The relevant quota line shows insufficient remaining capacity. |
@@ -176,9 +176,13 @@ az containerapp show \
     --output json
 ```
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp show --query "properties.template.scale"` | Confirms the final state after cleanup. |
+| Command/Parameter | Purpose |
+|---| --- |
+| `az containerapp show` | Reads the post-cleanup scale limits to verify the quota-pressure configuration was removed. |
+| `--name` | Inspects `"$APP_NAME"` after cleanup to confirm the quota-driving scale ceiling has been reduced. |
+| `--resource-group` | Finds the quota-test app in `"$RG"` for final scale verification. |
+| `--query` | Selects `"properties.template.scale"`, excluding unrelated app properties from the quota cleanup check. |
+| `--output` | Returns nested scale limits as `json` so the restored ceiling remains explicit. |
 
 ## Related Playbook
 
@@ -189,16 +193,14 @@ az containerapp show \
 <!-- diagram-id: subscription-quota-exceeded-page-flow -->
 ```mermaid
 flowchart TD
-    A["Subscription Quota Exceeded Lab"]
-    B["Lab Metadata"]
-    C["1. Question"]
-    D["2. Setup"]
-    E["3. Hypothesis"]
-    A --> B
-    B --> C
-    C --> D
-    D --> E
+    BASELINE["Record regional quota and current usage"] --> REQUEST["Submit the controlled deployment or scale request"]
+    REQUEST --> OBSERVE["Capture the quota-related control-plane response"]
+    OBSERVE --> FIX["Reduce demand or use approved quota capacity"]
+    FIX --> VERIFY["Repeat the same request"]
+    VERIFY --> FALSIFY["Recreate only the constrained condition and retest"]
 ```
+
+The observed quota name and available capacity are run-specific. Confirm current subscription and regional quota rather than treating this lab's values as platform constants.
 
 ## See Also
 
