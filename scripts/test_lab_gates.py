@@ -15,6 +15,15 @@ from typing import Final
 
 REPO_ROOT: Final = Path(__file__).resolve().parents[1]
 REPLAY_LABS: Final = {
+    "acr-network-path-pe-forced-inspection": (
+        (
+            "14-cohort-integrity-gate.json",
+            "15-h1-trigger-produces-failure-gate.json",
+            "16-h2-fix-restores-recovery-gate.json",
+            "17-bounded-falsification-gate.json",
+        ),
+        (),
+    ),
     "acr-network-path-dns-forwarder-bypass": (
         (
             "14-cohort-integrity-gate.json",
@@ -66,6 +75,15 @@ REPLAY_LABS: Final = {
             "11-h1-b-small-cold-pull-gate.json",
             "12-h1-c-speedup-ratio-gate.json",
             "13-h2-falsification-gate.json",
+        ),
+        (),
+    ),
+    "ingress-target-port-mismatch": (
+        (
+            "14-cohort-integrity-gate.json",
+            "15-h1-trigger-produces-failure-gate.json",
+            "16-h2-fix-restores-recovery-gate.json",
+            "17-single-variable-falsification-gate.json",
         ),
         (),
     ),
@@ -708,7 +726,9 @@ class EvaluationReplayTests(unittest.TestCase):
             "acr-network-path-dns-forwarder-bypass",
             "acr-network-path-firewall-allowlist",
             "acr-network-path-pe-direct",
+            "acr-network-path-pe-forced-inspection",
             "acr-network-path-record-split-brain",
+            "ingress-target-port-mismatch",
         ):
             with self.subTest(lab=name), self.replay_fixture(name) as lab:
                 verify = lab / "verify.sh"
