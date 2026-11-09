@@ -150,6 +150,18 @@ jobs:
             15-h1-trigger-produces-failure-gate.json \
             16-h2-fix-restores-recovery-gate.json \
             17-bounded-falsification-gate.json
+          python3 scripts/check_gate_replay.py revision-failover \
+            11-h1-gate.json \
+            17-h2-gate.json \
+            --verify-arg=--offline
+          python3 scripts/check_gate_replay.py scale-rule-mismatch \
+            10-h1-gate.json \
+            19-h2-gate.json \
+            --verify-arg=--offline
+          python3 scripts/check_gate_replay.py traffic-routing-canary \
+            12-h1-gate.json \
+            22-h2-gate.json \
+            --verify-arg=--offline
 
   bicep:
     name: Bicep Templates
