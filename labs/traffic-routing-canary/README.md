@@ -55,6 +55,8 @@ bash labs/traffic-routing-canary/cleanup.sh   # async resource group delete
 
 The committed evidence pack was captured on **2026-06-24** against Container App `ca-labtraffic-ve2wnr` (RG `rg-aca-lab-traffic2`, Korea Central):
 
+Gates 12 and 22 were originally emitted during that live run and were later re-evaluated offline from the unchanged raw evidence. Each replay writes its invocation time as top-level `evaluated_at_utc`; this is not a capture or current validation date.
+
 - **H1** minted the BAD revision `--badv2` (`mcr.microsoft.com/dotnet/samples:aspnetapp`, listening on `:8080`), applied the 50/50 split, and a 30-request loop returned 17 × HTTP 200 and 13 × timeout — within the `[8, 22]` band. All 5 sub-gates PASS.
 - **H2** confirmed the BAD revision's `runningStateDetails` (`The TargetPort 80 does not match the listening port 8080`), rolled back to `GOOD=100`, and a post-fix probe returned 5/5 HTTP 200 with the GOOD revision (`--w3daylh`) proven untouched. All 6 sub-gates PASS.
 

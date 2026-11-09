@@ -12,6 +12,8 @@ The lab evidence was captured in a single live-Azure window on **2026-06-24**:
 
 Both gates pass, supporting the lab's hypothesis: the controlling variable for canary failure is the port-mismatched BAD revision in the 50/50 traffic split; the documented rollback (`az containerapp ingress traffic set --revision-weight GOOD=100`) restores 100% client success WITHOUT minting a new GOOD revision (triangulated proof via name + createdTime + image, all unchanged).
 
+The gates were originally emitted during the 2026-06-24 live run and were later re-evaluated offline from these unchanged raw files. Every replay writes its invocation time as top-level `evaluated_at_utc`; this field is not an evidence-capture time and establishes no current replay or Azure validation date. Raw revision `createdTime`, traffic, log, command-output, and capture-script timestamps remain unchanged.
+
 ## Image-swap workaround note
 
 The `trigger.sh` BAD revision is minted via an **image swap** (`mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` listens on `:80` → `mcr.microsoft.com/dotnet/samples:aspnetapp` listens on `:8080`) with the ingress `targetPort=80` left untouched. This is intentional: Container Apps' ingress `targetPort` is a Container-App–level setting shared across all revisions, so a per-revision `--target-port` override (which the original lab guide draft attempted) is architecturally impossible. The image swap is the minimal mechanism that injects a per-revision port mismatch while keeping the GOOD revision's template completely untouched, which is required for the H2 same-revision-proof triangulation.
