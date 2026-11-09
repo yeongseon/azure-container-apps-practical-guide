@@ -65,5 +65,5 @@
   },
   "h1_all_subgates_pass": true,
   "gate_classification": "telemetry_misconfiguration_env_var_source_flipped_to_literal",
-  "evaluated_at_utc": "2026-11-09T13:09:21Z"
+  "evaluated_at_utc": "2026-11-09T16:13:19Z"
 }
