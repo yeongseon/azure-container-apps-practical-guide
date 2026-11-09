@@ -27,9 +27,12 @@ This section is optimized for fast operational lookup during build, deploy, and 
 ```mermaid
 flowchart TD
     accTitle: Choose a Container Apps reference by operator question
-    accDescr: Start from the question you need to answer, then choose command syntax, configuration scope, environment variables, metrics, or platform quotas and limits.
+    accDescr: First decide whether you need to execute an operation or plan and diagnose. The execute branch leads to CLI syntax. The planning branch uses binary questions to separate change scope, runtime configuration, metrics, and platform limits, preserving all five reference destinations in a narrow staged flow.
 
-    QUESTION[Start with the operator question<br/>that needs a reference]
+    QUESTION["Stage 1<br/>Choose the operator task"]
+    SCOPE_CHECK["Stage 2<br/>Check configuration scope"]
+    RUNTIME_CHECK["Stage 3<br/>Check runtime values"]
+    METRIC_CHECK["Stage 4<br/>Check metric definitions"]
     CLI[CLI reference<br/>command syntax]
     SCOPE[Configuration scope matrix<br/>change impact]
     ENV[Environment variables<br/>runtime configuration]
@@ -38,11 +41,14 @@ flowchart TD
     EXECUTE[Execute and verify<br/>an operation]
     PLAN[Plan and diagnose<br/>with the correct boundary]
 
-    QUESTION -->|How do I run it?| CLI
-    QUESTION -->|Will it create a revision?| SCOPE
-    QUESTION -->|What reaches the container?| ENV
-    QUESTION -->|What should I measure?| METRICS
-    QUESTION -->|Which quota or limit applies?| LIMITS
+    QUESTION -->|Execute| CLI
+    QUESTION -->|Plan or diagnose| SCOPE_CHECK
+    SCOPE_CHECK -->|Yes| SCOPE
+    SCOPE_CHECK -->|No| RUNTIME_CHECK
+    RUNTIME_CHECK -->|Yes| ENV
+    RUNTIME_CHECK -->|No| METRIC_CHECK
+    METRIC_CHECK -->|Yes| METRICS
+    METRIC_CHECK -->|No, check limits| LIMITS
     CLI --> EXECUTE
     SCOPE --> PLAN
     ENV --> PLAN
