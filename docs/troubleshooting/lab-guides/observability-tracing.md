@@ -504,6 +504,8 @@ Gate classification: `telemetry_misconfiguration_env_var_source_flipped_to_liter
 
 **H2 restoration** — `evidence/24-h2-gate.json`:
 
+The H1/H2 gates were originally emitted during the live run and later re-evaluated offline from unchanged raw evidence. Top-level `evaluated_at_utc` records each replay invocation; capture-script timestamps and raw revision/telemetry event times remain the original evidence, and no current replay date is claimed.
+
 | Sub-gate | Value | Source |
 |---| --- |---|
 | `a_pre_fix_env_var_still_literal` | true | `evidence/13-pre-fix-env-var.json` `value="InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://invalid/"` confirms the trigger persisted across the gap between scripts; `evidence/24-h2-gate.json` `env_var_state.pre_fix_matches_expected_literal=true` |

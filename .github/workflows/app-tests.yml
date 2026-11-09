@@ -145,31 +145,40 @@ jobs:
             15-h1-trigger-produces-failure-gate.json \
             16-h2-fix-restores-recovery-gate.json \
             17-bounded-falsification-gate.json
-           python3 scripts/check_gate_replay.py acr-network-path-record-split-brain \
-             14-cohort-integrity-gate.json \
-             15-h1-trigger-produces-failure-gate.json \
-             16-h2-fix-restores-recovery-gate.json \
-             17-bounded-falsification-gate.json
-           python3 scripts/check_gate_replay.py acr-network-path-pe-forced-inspection \
-             14-cohort-integrity-gate.json \
-             15-h1-trigger-produces-failure-gate.json \
-             16-h2-fix-restores-recovery-gate.json \
-             17-bounded-falsification-gate.json
-           python3 scripts/check_gate_replay.py managed-identity-key-vault-failure \
-             14-cohort-integrity-gate.json \
-             15-h1-trigger-produces-failure-gate.json \
-             16-h2-fix-restores-recovery-gate.json \
-             17-bounded-falsification-gate.json
-           python3 scripts/check_gate_replay.py ingress-target-port-mismatch \
-             14-cohort-integrity-gate.json \
-             15-h1-trigger-produces-failure-gate.json \
-             16-h2-fix-restores-recovery-gate.json \
-             17-single-variable-falsification-gate.json
-           python3 scripts/check_gate_replay.py revision-provisioning-failure \
-             14-cohort-integrity-gate.json \
-             15-h1-trigger-produces-failure-gate.json \
-             16-h2-fix-restores-recovery-gate.json \
-             17-bounded-falsification-gate.json
+          python3 scripts/check_gate_replay.py acr-network-path-record-split-brain \
+            14-cohort-integrity-gate.json \
+            15-h1-trigger-produces-failure-gate.json \
+            16-h2-fix-restores-recovery-gate.json \
+            17-bounded-falsification-gate.json
+          python3 scripts/check_gate_replay.py cd-reconnect-rbac-conflict \
+            07-h1-gate.json \
+            14-h2-gate.json
+          python3 scripts/check_gate_replay.py observability-tracing \
+            12-h1-gate.json \
+            24-h2-gate.json
+          python3 scripts/check_gate_replay.py probe-and-port-mismatch \
+            11-h1-gate.json \
+            22-h2-gate.json
+          python3 scripts/check_gate_replay.py acr-network-path-pe-forced-inspection \
+            14-cohort-integrity-gate.json \
+            15-h1-trigger-produces-failure-gate.json \
+            16-h2-fix-restores-recovery-gate.json \
+            17-bounded-falsification-gate.json
+          python3 scripts/check_gate_replay.py ingress-target-port-mismatch \
+            14-cohort-integrity-gate.json \
+            15-h1-trigger-produces-failure-gate.json \
+            16-h2-fix-restores-recovery-gate.json \
+            17-single-variable-falsification-gate.json
+          python3 scripts/check_gate_replay.py managed-identity-key-vault-failure \
+            14-cohort-integrity-gate.json \
+            15-h1-trigger-produces-failure-gate.json \
+            16-h2-fix-restores-recovery-gate.json \
+            17-bounded-falsification-gate.json
+          python3 scripts/check_gate_replay.py revision-provisioning-failure \
+            14-cohort-integrity-gate.json \
+            15-h1-trigger-produces-failure-gate.json \
+            16-h2-fix-restores-recovery-gate.json \
+            17-bounded-falsification-gate.json
 
   bicep:
     name: Bicep Templates
