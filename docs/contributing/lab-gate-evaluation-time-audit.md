@@ -56,7 +56,9 @@ Starting from the **19 verifiers and 36 committed derived gates** remaining afte
 
 Batch C selects only `acr-network-path-pe-forced-inspection` and `ingress-target-port-mismatch`. The ACR verifier retains originally emitted file-system anchors only through `GATE_REPLAY_BASELINE_DIR`; `scripts/check_gate_replay.py` first proves every current tracked non-gate evidence file is byte-identical to `HEAD`. Values parsed from current raw payloads remain authoritative. The ingress verifier derives all anchors directly from raw payload fields and needs no historical baseline anchors.
 
-The current tree has **16 verifiers and 26 committed derived gates** that still contain `utc_captured` in `verify.sh`. These counts come from recounting the current files after Batch C; they include seven source-only verifiers with no committed gates.
+The current tree has **15 affected verifiers and 20 committed derived gates** remaining after Batch C. These semantic counts include seven source-only verifiers with no committed gates and count only Phase B outputs whose top-level replay stamp still needs conversion.
+
+A literal `grep -l utc_captured labs/*/verify.sh` returns 16 files because it also finds `labs/acr-pull-failure/verify.sh`. That verifier references legitimate Phase A `utc_captured` fields from raw evidence; its current Phase B Gates 30-33 already emit top-level `evaluated_at_utc`, so `acr-pull-failure` is classified as converted rather than remaining work. Its older committed Gates 06 and 14 retain historical top-level `utc_captured`, but they are not outputs of the current offline verifier and are outside this evaluation-time conversion count. The 20-gate total likewise excludes raw JSON files that happen to carry capture-time fields.
 
 ## Fail-Open Gate Replay Audit
 
