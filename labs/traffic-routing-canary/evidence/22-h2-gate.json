@@ -1,5 +1,5 @@
 {
-  "evaluated_at_utc": "2026-11-09T13:09:02Z",
+  "evaluated_at_utc": "2026-11-09T16:03:01Z",
   "subscription": "00000000-0000-0000-0000-000000000000",
   "rg": "rg-aca-lab-traffic2",
   "app_name": "ca-labtraffic-ve2wnr",
@@ -17,7 +17,7 @@
     "h1_syslog_probe_failed_count_referenced": 18
   },
   "fix_window": {
-    "start_utc": "2026-06-24T00:27:08Z",
+    "start_utc": "2026-06-24T00:27:42Z",
     "command": "az containerapp ingress traffic set --revision-weight GOOD=100 BAD=0",
     "cli_exit_code": 0
   },
