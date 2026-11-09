@@ -1,3 +1,13 @@
+---
+content_sources:
+  diagrams:
+    - id: replica-node-spread-experiment
+      type: flowchart
+      source: self-generated
+      justification: Repository-only experiment flow synthesized from the lab scripts and committed evidence-gate contract.
+      based_on:
+        - https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/replica-node-spread
+---
 # Lab: Replica node-spread
 
 This lab provides the runnable infrastructure and scripts for the
@@ -175,23 +185,38 @@ gate-output filename; existence alone cannot pass.
 
 ## Experiment shape
 
+<!-- diagram-id: replica-node-spread-experiment -->
 ```mermaid
 flowchart TD
-    A[deploy.sh] --> B[ACR + diag image + Bicep env + 2 apps]
-    B --> C[health-check.sh — env, profiles, /diag responds 200]
-    C --> D[falsify.sh — H3 gate]
-    D -->|PASS| E[trigger.sh]
-    D -->|FAIL| Z[STOP — proxy invalid, do not publish H1/H2]
-    E --> F[For each profile: scale 1, 3, 10, top]
-    F --> G[At each step: scale.sh + sample.sh]
-    G --> H[Top step repeats 3x]
-    H --> I[evidence/*.jsonl]
-    I --> J[analyze.py]
-    J --> K[evidence/analysis-summary.md]
-    K --> L[Cross-check verdict vs Issue #202 hypotheses]
-    L -.optional re-verify.-> V[bash verify.sh<br/>Phase B 4 gates]
-    V --> W[evidence/10..13-*-gate.json]
+    accTitle: Replica node-spread experiment and evidence gates
+    accDescr: Validate the kernel-context proxy before scaling and sampling both workload profiles, then analyze raw JSONL and replay the offline evidence gates.
+
+    DEPLOY[Deploy environment, diagnostic image,<br/>and two subject apps]
+    HEALTH[Verify environment, profiles,<br/>apps, and diagnostic endpoint]
+    PROXY[Run the H3 proxy-validity gate]
+    VALID[Evaluate the proxy-gate result]
+    STOP[Stop: do not publish<br/>placement hypotheses]
+    SCALE[For each profile,<br/>scale through the declared sequence]
+    SAMPLE[Sample replica and<br/>kernel-context signals]
+    RAW[Preserve raw JSONL cohort]
+    ANALYZE[Analyze raw records<br/>and compare hypotheses]
+    VERIFY[Replay Phase B gates<br/>without Azure calls]
+    GATES[Emit cohort, evidence,<br/>claim, and packaging gates]
+
+    DEPLOY --> HEALTH
+    HEALTH --> PROXY
+    PROXY --> VALID
+    VALID -->|Gate fails| STOP
+    VALID -->|Gate passes| SCALE
+    SCALE --> SAMPLE
+    SAMPLE --> RAW
+    RAW --> ANALYZE
+    RAW --> VERIFY
+    ANALYZE --> GATES
+    VERIFY --> GATES
 ```
+
+The flow preserves raw JSONL as the primary evidence and prevents H1/H2 placement claims when the H3 proxy gate fails.
 
 ## Data shape
 
