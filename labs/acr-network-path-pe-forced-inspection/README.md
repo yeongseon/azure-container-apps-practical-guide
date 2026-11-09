@@ -185,7 +185,7 @@ For offline reruns:
 | Command | Why it is used |
 |---|---|
 | `cd labs/acr-network-path-pe-forced-inspection/` | Enters the lab directory so relative evidence paths resolve correctly. |
-| `bash verify.sh` | Recomputes Gate 14 through Gate 17 hermetically from current raw evidence without touching Azure or reading existing gate files as anchor sources. |
+| `bash verify.sh` | Recomputes Gate 14 through Gate 17 hermetically from current raw evidence without touching Azure or reading existing gate files as anchor sources; the YAML anchor comes from raw `systemData.lastModifiedAt` rather than clone-time file metadata. |
 
 ```bash
 cd labs/acr-network-path-pe-forced-inspection/

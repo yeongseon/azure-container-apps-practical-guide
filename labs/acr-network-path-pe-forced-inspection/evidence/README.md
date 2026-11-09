@@ -36,7 +36,8 @@ The claim ceiling is deliberately narrow: this pack proves only what a single li
 
 - The pack captures one live Azure reproduction in `koreacentral`; it is not a statistical sample.
 - `06-firewall-log-baseline.json`, `08-h1-silence-window.json`, and `12-h2-recovery-window.json` preserve explicit firewall-query windows because the silence-gate claim depends on time-bounded absence versus presence.
-- Gate 14 uses file-system UTC anchors (`birthtime`, falling back to `mtime`) so reruns are byte-stable and explicit about the time source for each file.
+- Gate 14 derives authoritative anchors from raw payload fields where available. In particular, `07-containerapp-spec-pre-fix.yaml` uses its declared `systemData.lastModifiedAt`; guarded historical anchors remain available only to the raw-byte-checked replay runner, and file-system birthtime/mtime is the final fallback for raw files without a content timestamp. Every anchor records `anchor_kind` so direct payload, guarded historical, and file-system fallback provenance remain explicit.
+- The hermetic anchor redesign changes Gate 14's non-stamp temporal quantity from the historical 627-second window to 708.733826 seconds. The wider window comes from replacing `07-containerapp-spec-pre-fix.yaml`'s historical `birthtime` anchor (`2026-06-29T00:25:31.381567+00:00`, `anchor_kind=guarded_historical` under guarded replay) with raw `systemData.lastModifiedAt` (`2026-06-29T00:23:52.266174+00:00`, `anchor_kind=direct_payload`). All other content-derived anchors are also labeled `anchor_kind=direct_payload`; raw evidence bytes are unchanged.
 - The pack does not prove exact Azure Firewall ingestion latency, exact pull durations, OCI layer digests, route-propagation subsecond timing, pod continuity, or the specific internal ACA component identity behind the observed workload-subnet source IP. Those ceilings are carried explicitly in Gate 17 `cohort_binding_note.explicit_drops`.
 
 ## File index
