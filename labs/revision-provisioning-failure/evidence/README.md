@@ -23,6 +23,7 @@ The claim ceiling is deliberately narrow: this pack proves only what this single
 - `04-system-logs.json` and `06-console-logs.json` are JSONL/NDJSON files, not JSON arrays; `verify.sh` parses them one record per line.
 - The pack does not capture image digests, pod UIDs, or direct socket inspection; those gaps are carried explicitly in Gate 17 `cohort_binding_note.explicit_drops`.
 - The full baseline-to-fix cohort spans ~53 minutes, so Gate 14 uses the documented `5400`-second fallback ceiling instead of the `1800`-second strong ceiling.
+- Gate 14 derives its temporal bounds directly from raw revision, system-log, and KQL payload timestamps. It does not depend on file birth time, modification time, or existing gate content, so a direct replay is stable in a fresh copy without `GATE_REPLAY_BASELINE_DIR`.
 
 ## File index
 
