@@ -1,4 +1,5 @@
 ---
+description: Repository map for the Azure Container Apps Practical Guide — section purposes, source directories, goal-based routes, and persona entry points.
 content_sources:
   diagrams:
     - id: navigation-flow
@@ -33,19 +34,21 @@ The Azure Container Apps Guide is a comprehensive hub for all things Container A
 
 ## Hub Sections
 
-The hub is divided into 5 main categories to help you navigate based on your current task:
+The hub is divided into seven main categories to help you navigate based on your current task:
 
 1. **Start Here**: The entry point for everyone. Includes a platform overview, learning paths for different skill levels, and this repository map.
 2. **Platform**: Architectural and conceptual guides. This is where you go to *design* your application, covering scaling, networking, identity, and jobs.
-3. **Language Guides**: Practical, language-specific implementation. Includes step-by-step tutorials, runtime guides, and integration recipes.
-4. **Operations**: Focuses on *running* in production. Covers deployment patterns, monitoring, alerts, and operational tasks like secret rotation.
-5. **Troubleshooting**: A systematic guide to fixing issues. Includes quick triage steps, detailed playbooks, and Lab Guides for practice.
+3. **Best Practices**: Production patterns, standards, and anti-pattern guidance for hardening workloads before and after deployment.
+4. **Language Guides**: Practical, language-specific implementation. Includes step-by-step tutorials, runtime guides, and integration recipes.
+5. **Operations**: Focuses on *running* in production. Covers deployment patterns, monitoring, alerts, and operational tasks like secret rotation.
+6. **Troubleshooting**: A systematic guide to fixing issues. Includes quick triage steps, detailed playbooks, and Lab Guides for practice.
+7. **Reference**: Quick lookup material for CLI commands, environment variables, platform limits, and metrics.
 
 ## Directory Structure
 
 In addition to the documentation, this repository contains practical code samples:
 
-- **`app/python/`**: A reference Flask application that follows production-ready patterns for Container Apps (health checks, structured logging, graceful shutdown).
+- **`apps/python/`**: A reference Flask application that follows production-ready patterns for Container Apps (health checks, structured logging, graceful shutdown).
 - **`jobs/python/`**: A reference job implementation showing how to run event-driven or scheduled tasks.
 - **`labs/`**: Practical troubleshooting labs designed to help you practice diagnosing common Container Apps issues.
 - **`infra/`**: Bicep infrastructure templates for deploying the reference apps and environments.
@@ -64,15 +67,30 @@ Use this simple logic to find your way:
 
 <!-- diagram-id: navigation-flow -->
 ```mermaid
-graph TD
-    Start[Start Here] --> Learn[Learning Paths]
-    Learn --> Design[Platform Section]
-    Design --> Implement[Language Guides]
-    Implement --> Ops[Operations Guide]
-    Ops --> Problem{Issue?}
-    Problem -- Yes --> Fix[Troubleshooting Hub]
-    Problem -- No --> Running[Production Stable]
+flowchart TD
+    accTitle: Navigate the guide from orientation to operations
+    accDescr: Start with orientation, choose a learning path, use platform and language guidance to design and implement, move to operations, then route either to troubleshooting when an issue exists or to continued operations when it does not.
+
+    START[Start Here]
+    LEARN[Learning Paths]
+    DESIGN[Platform and Best Practices]
+    IMPLEMENT[Language Guides]
+    OPERATE[Operations]
+    ISSUE{Do you have<br/>an active issue?}
+    FIX[Troubleshooting]
+    CONTINUE[Continue operating]
+
+    START -->|Orient| LEARN
+    LEARN -->|Choose a goal| DESIGN
+    DESIGN -->|Choose an implementation| IMPLEMENT
+    IMPLEMENT -->|Run the workload| OPERATE
+    OPERATE -->|Assess current state| ISSUE
+    ISSUE -->|Yes| FIX
+    ISSUE -->|No| CONTINUE
+    FIX -->|Apply and verify a resolution| OPERATE
 ```
+
+Both decision outcomes are destinations: active issues route to Troubleshooting, while healthy workloads stay with Operations.
 
 ## Navigation by Goal
 
@@ -98,20 +116,39 @@ Use this table when you need a direct path from a practical goal to the right pa
 
 <!-- diagram-id: visual-repository-topology -->
 ```mermaid
-graph TD
-    R[Repository Root] --> D[docs]
-    R --> A[apps]
-    R --> J[jobs]
-    R --> L[labs]
-    R --> I[infra]
-    D --> SH[start-here]
-    D --> P[platform]
-    D --> BP[best-practices]
-    D --> LG[language-guides]
-    D --> O[operations]
-    D --> T[troubleshooting]
-    D --> REF[reference]
+flowchart TD
+    accTitle: Repository directories and documentation sections
+    accDescr: The repository root contains documentation, reference applications, job samples, troubleshooting labs, and infrastructure. The documentation directory contains seven reader-facing sections.
+
+    ROOT[Repository root]
+    DOCS[docs/<br/>published guide]
+    APPS[apps/<br/>reference applications]
+    JOBS[jobs/<br/>job samples]
+    LABS[labs/<br/>reproducible experiments]
+    INFRA[infra/<br/>infrastructure templates]
+    START[start-here/<br/>orientation]
+    PLATFORM[platform/<br/>service concepts]
+    PRACTICES[best-practices/<br/>production guidance]
+    LANGUAGES[language-guides/<br/>tutorials and recipes]
+    OPERATIONS[operations/<br/>day-two procedures]
+    TROUBLESHOOTING[troubleshooting/<br/>diagnosis and labs]
+    REFERENCE[reference/<br/>quick lookups]
+
+    ROOT --> DOCS
+    ROOT --> APPS
+    ROOT --> JOBS
+    ROOT --> LABS
+    ROOT --> INFRA
+    DOCS --> START
+    DOCS --> PLATFORM
+    DOCS --> PRACTICES
+    DOCS --> LANGUAGES
+    DOCS --> OPERATIONS
+    DOCS --> TROUBLESHOOTING
+    DOCS --> REFERENCE
 ```
+
+This map shows where content and runnable artifacts live; it does not imply a deployment dependency between directories.
 
 ## What Lives Where
 
@@ -123,6 +160,7 @@ graph TD
 | `docs/language-guides/` | Step-by-step implementation tutorials by runtime | Developers |
 | `docs/operations/` | Deployment, monitoring, alerts, recovery workflows | DevOps, SRE |
 | `docs/troubleshooting/` | Fast triage, playbooks, KQL, labs | SRE, Incident responders |
+| `docs/reference/` | CLI, environment variables, platform limits, and metrics | All roles |
 | `apps/` and `jobs/` | Reference code artifacts for app and job patterns | Developers, DevOps |
 | `infra/` | Reusable Bicep modules and deployment scripts | DevOps, Platform engineers |
 

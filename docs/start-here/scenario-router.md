@@ -32,12 +32,22 @@ Use this page when you have a specific situation and want to jump straight to th
 
 <!-- diagram-id: aca-scenario-router-lifecycle -->
 ```mermaid
-flowchart LR
-    A[Plan] --> B[Deploy]
-    B --> C[Operate]
-    C --> D[Troubleshoot]
-    D -.-> A
+flowchart TD
+    accTitle: Route a Container Apps question by lifecycle phase
+    accDescr: Begin with planning, move through deployment and operation, use troubleshooting when evidence shows a problem, and feed lessons from incidents back into the next planning cycle.
+
+    PLAN[Plan<br/>service fit and design]
+    DEPLOY[Deploy<br/>delivery and rollout]
+    OPERATE[Operate<br/>monitor and maintain]
+    TROUBLESHOOT[Troubleshoot<br/>diagnose from evidence]
+
+    PLAN -->|Turn decisions into delivery| DEPLOY
+    DEPLOY -->|Run the workload| OPERATE
+    OPERATE -->|Investigate a symptom| TROUBLESHOOT
+    TROUBLESHOOT -. Feed lessons into design .-> PLAN
 ```
+
+Choose the phase that matches your current question. The dotted feedback path represents lessons that influence later planning, not a required step after every incident.
 
 ## I'm Planning
 
@@ -120,3 +130,8 @@ Some situations straddle two phases — the design choice you make while plannin
 - [When to Use Container Apps](when-to-use-container-apps.md) — service selection vs AKS, App Service, Functions, ACI
 - [Decision Tree](../troubleshooting/decision-tree.md) — symptom-first troubleshooting router
 - [Evidence Map](../troubleshooting/evidence-map.md) — evidence-collection index
+
+## Sources
+
+- [Azure Container Apps documentation](https://learn.microsoft.com/en-us/azure/container-apps/)
+- [Azure Container Apps overview](https://learn.microsoft.com/en-us/azure/container-apps/overview)

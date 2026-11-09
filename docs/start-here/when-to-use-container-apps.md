@@ -1,4 +1,5 @@
 ---
+description: Service-selection guidance for Azure Container Apps compared with AKS, App Service, Container Instances, and Functions by workload and ownership needs.
 content_sources:
   diagrams:
     - id: visual-positioning
@@ -10,6 +11,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/well-architected/service-guides/azure-container-apps
         - https://learn.microsoft.com/en-us/azure/app-service/overview
         - https://learn.microsoft.com/en-us/azure/aks/
+        - https://learn.microsoft.com/en-us/azure/aks/intro-aks-automatic
         - https://learn.microsoft.com/en-us/azure/azure-functions/
     - id: decision-tree-which-service-should-you-choose
       type: flowchart
@@ -20,7 +22,10 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/well-architected/service-guides/azure-container-apps
         - https://learn.microsoft.com/en-us/azure/app-service/overview
         - https://learn.microsoft.com/en-us/azure/aks/
+        - https://learn.microsoft.com/en-us/azure/aks/intro-aks-automatic
         - https://learn.microsoft.com/en-us/azure/azure-functions/
+        - https://learn.microsoft.com/en-us/azure/container-apps/jobs
+        - https://learn.microsoft.com/en-us/azure/container-instances/container-instances-restart-policy
 content_validation:
   status: verified
   last_reviewed: 2026-09-11
@@ -42,17 +47,18 @@ Azure offers multiple ways to run apps. This guide compares Container Apps with 
 Choose based on these priorities:
 
 1. How much platform control do you need?
-2. Do you need event-driven scaling to zero?
-3. Are you optimizing for simplicity, flexibility, or both?
+2. Is the workload a finite-duration job or a continuously running application?
+3. Do continuously running applications need event-driven scaling to zero?
+4. Are you optimizing for simplicity, flexibility, or both?
 
 ## Comparison Overview
 
 | Service | Best For | Operations Burden | Scale Model | Notable Trade-off |
 |---|---|---|---|---|
 | **Container Apps** | Microservices, APIs, workers with container portability | Low-to-medium | KEDA-driven, supports scale-to-zero | Less cluster-level control than AKS |
-| **AKS** | Full Kubernetes control, advanced platform engineering | High | Kubernetes-native autoscaling | More operational responsibility |
+| **AKS** | Full Kubernetes control, advanced platform engineering | Varies: Standard exposes more cluster operations; Automatic manages common node, scaling, security, and upgrade tasks | Kubernetes-native autoscaling | More Kubernetes responsibility than application-focused platforms |
 | **App Service** | Web apps with minimal container complexity | Low | Instance-based autoscale | Less event-native scaling behavior |
-| **ACI** | Short-lived or burst container jobs | Low | Per-container execution model | Limited app platform features |
+| **ACI** | Isolated run-once containers launched by CI or an external orchestrator | Low | Per-container execution model | Limited app platform features |
 | **Functions** | Function-first event processing | Low | Trigger-based, granular execution | Runtime model is function-centric, not app-centric |
 
 ## Visual Positioning
@@ -60,13 +66,15 @@ Choose based on these priorities:
 <!-- diagram-id: visual-positioning -->
 ```mermaid
 quadrantChart
-    title Control vs Simplicity (higher is more)
-    x-axis Simpler Operations --> More Platform Control
-    y-axis App-centric Workloads --> Platform Engineering Depth
-    quadrant-1 Flexible but Operationally Heavier
-    quadrant-2 High-control platforms
-    quadrant-3 Simple managed platforms
-    quadrant-4 App-focused with moderate flexibility
+    accTitle: Relative positioning of Azure application and container compute services
+    accDescr: An orientation chart places App Service, Functions, Container Apps, Container Instances, and AKS by increasing platform control and platform-engineering depth. Exact placement is qualitative rather than a measured score.
+    title Relative control and platform-engineering depth
+    x-axis Managed application experience --> More platform control
+    y-axis Application-focused model --> Platform engineering depth
+    quadrant-1 High control
+    quadrant-2 Managed platform features
+    quadrant-3 Managed application services
+    quadrant-4 Application control
     App_Service: [0.2, 0.3]
     Functions: [0.15, 0.45]
     Container_Apps: [0.55, 0.55]
@@ -74,12 +82,14 @@ quadrantChart
     AKS: [0.9, 0.9]
 ```
 
+The positions summarize relative service models from the cited guidance; they are not benchmark results or fixed capability scores.
+
 ## Service-by-Service Notes
 
 ### Container Apps vs AKS
 
 - Pick **Container Apps** when you want Kubernetes benefits (containers, autoscale, revision rollout) without managing clusters.
-- Pick **AKS** when you need deep Kubernetes primitives (custom operators, advanced scheduling, full network policy control).
+- Pick **AKS** when you need deep Kubernetes primitives (custom operators, advanced scheduling, full network policy control). Evaluate its operating model: AKS Standard leaves more cluster choices and tasks with the platform team, while AKS Automatic manages common node provisioning, scaling, security defaults, and upgrades.
 
 ### Container Apps vs App Service
 
@@ -89,7 +99,8 @@ quadrantChart
 ### Container Apps vs ACI
 
 - Pick **Container Apps** for long-running services that need ingress, revisions, and autoscaling.
-- Pick **ACI** for simple ephemeral containers and task-style execution.
+- Pick **Container Apps Jobs** for managed manual, scheduled, or event-driven finite-duration tasks.
+- Pick **ACI** for isolated run-once containers launched by CI or another external orchestrator, including an external scheduler.
 
 ### Container Apps vs Functions
 
@@ -103,7 +114,8 @@ quadrantChart
 | Startup with API + queue worker, small ops team | Container Apps |
 | Enterprise platform team standardizing Kubernetes internals | AKS |
 | Existing web app modernization with minimal architecture changes | App Service |
-| Batch spike processing from CI or scheduled jobs | ACI |
+| Managed scheduled or event-driven container task | Container Apps Jobs |
+| Isolated run-once container launched from CI or an external scheduler | ACI |
 | High-volume event handlers with function-first code model | Functions |
 
 ## Advanced Topics
@@ -117,16 +129,39 @@ quadrantChart
 <!-- diagram-id: decision-tree-which-service-should-you-choose -->
 ```mermaid
 flowchart TD
-    A[Workload Type] --> B{Function-first event handlers only?}
-    B -->|Yes| F[Azure Functions]
-    B -->|No| C{Need full Kubernetes control?}
-    C -->|Yes| K[Azure Kubernetes Service]
-    C -->|No| D{Need app-level ingress + revisions + scale-to-zero?}
-    D -->|Yes| CA[Azure Container Apps]
-    D -->|No| E{Simple web app with managed hosting preference?}
-    E -->|Yes| AS[Azure App Service]
-    E -->|No| ACI[Azure Container Instances]
+    accTitle: Choose an Azure application or container compute service
+    accDescr: After the function-model and Kubernetes-control checks, separate finite-duration jobs from continuously running applications. Prefer Container Apps Jobs for native manual, scheduled, or event-driven job execution, Container Instances for isolated run-once work launched externally, Container Apps for managed continuous container applications that need revisions or event scaling, App Service for managed web applications, Functions for a function-first model, or AKS for direct Kubernetes control.
+
+    START[Define workload and ownership]
+    FUNCTION{Function-first<br/>event model?}
+    KUBERNETES{Need Kubernetes API<br/>and cluster control?}
+    FINITE_JOB{Finite-duration scheduled,<br/>event, or manual job?}
+    MANAGED_JOB{Need native job triggers<br/>and execution history?}
+    MANAGED_APP{Continuous app needs<br/>revisions or event scaling?}
+    WEB{Managed HTTP<br/>app or API?}
+    FUNCTIONS[Azure Functions]
+    AKS[Azure Kubernetes Service]
+    CONTAINER_APPS[Azure Container Apps]
+    APP_SERVICE[Azure App Service]
+    CONTAINER_APPS_JOBS[Azure Container Apps Jobs]
+    ACI[Azure Container Instances]
+
+    START -->|Choose a model| FUNCTION
+    FUNCTION -->|Yes| FUNCTIONS
+    FUNCTION -->|No| KUBERNETES
+    KUBERNETES -->|Yes| AKS
+    KUBERNETES -->|No| FINITE_JOB
+    FINITE_JOB -->|Yes| MANAGED_JOB
+    FINITE_JOB -->|No, continuous app| MANAGED_APP
+    MANAGED_JOB -->|Yes| CONTAINER_APPS_JOBS
+    MANAGED_JOB -->|No, launched externally| ACI
+    MANAGED_APP -->|Yes| CONTAINER_APPS
+    MANAGED_APP -->|No| WEB
+    WEB -->|Yes| APP_SERVICE
+    WEB -->|No, worker| CONTAINER_APPS
 ```
+
+Each decision has both outcomes. After the function-model and Kubernetes-control checks, the tree classifies finite-duration work before evaluating continuous-application features, so scheduled, event-driven, and manual jobs reach the Jobs decision instead of the continuous-application path. Treat the result as a starting point for evaluation, then validate networking, scaling, runtime, governance, and cost requirements in the linked service documentation.
 
 !!! tip "Start from operational ownership"
     The most reliable decision point is not feature count; it is who will own ongoing operations and how much control they can realistically support.
@@ -142,8 +177,8 @@ flowchart TD
 | Revision-based rollout and traffic splitting | ✅ | ⚠️ (manual patterns via Kubernetes primitives) | ⚠️ (slot model, different semantics) | ❌ | ⚠️ (function deployment model) |
 | Native scale-to-zero for app containers | ✅ | ⚠️ (possible with add-ons and tuning) | ❌ | ❌ | ✅ |
 | Cluster-level Kubernetes API control | ❌ | ✅ | ❌ | ❌ | ❌ |
-| Event-driven scaling for workers | ✅ (KEDA) | ✅ (KEDA + cluster ops) | ⚠️ (depends on app pattern) | ❌ | ✅ |
-| Lowest operational burden | ✅ | ❌ | ✅ | ✅ | ✅ |
+| Event-driven scaling for workers | ✅ (KEDA) | ✅ (KEDA + cluster ops) | ⚠️ (plan-level metric autoscale; no KEDA-style per-worker event scaling or scale-to-zero) | ❌ | ✅ |
+| Lowest operational burden | ✅ | ⚠️ (varies: Automatic manages more common cluster tasks than Standard) | ✅ | ✅ | ✅ |
 
 ## Workload Signal Checklist
 
@@ -155,7 +190,8 @@ Use these signals to confirm Container Apps is a strong fit:
 | You need safe rollout/rollback with minimal platform engineering | Revision model is beneficial | Favor Container Apps |
 | You need custom schedulers, CRDs, or advanced Kubernetes policy | Requires full Kubernetes surface | Favor AKS |
 | You have only lightweight function handlers | App container model may be unnecessary | Favor Functions |
-| You need quick one-off container execution | Long-running app features not required | Favor ACI |
+| You need managed scheduled or event-driven finite-duration tasks | Native job triggers and execution history are useful | Favor Container Apps Jobs |
+| You need quick one-off container execution launched externally | Long-running app features and native scheduling are not required | Favor ACI |
 
 ## Migration Guidance by Source Platform
 
@@ -195,5 +231,10 @@ Use these signals to confirm Container Apps is a strong fit:
 - [Choose an Azure container service (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/architecture/guide/choose-azure-container-service)
 - [Azure Container Apps hosting considerations (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/well-architected/service-guides/azure-container-apps)
 - [App Service overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/app-service/overview)
+- [Autoscale common metrics in Azure Monitor (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/azure-monitor/autoscale/autoscale-common-metrics)
+- [Autoscale with a custom metric (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/azure-monitor/autoscale/autoscale-custom-metric)
 - [Azure Kubernetes Service (AKS) documentation (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/aks/)
+- [Introduction to AKS Automatic (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/aks/intro-aks-automatic)
 - [Azure Functions documentation (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/azure-functions/)
+- [Jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/jobs)
+- [Restart policy for run-once tasks in Azure Container Instances (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-instances/container-instances-restart-policy)

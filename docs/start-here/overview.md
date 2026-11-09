@@ -18,6 +18,7 @@ content_sources:
         - https://learn.microsoft.com/en-us/azure/container-apps/overview
         - https://learn.microsoft.com/en-us/azure/container-apps/
         - https://learn.microsoft.com/en-us/azure/container-apps/environment
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration
         - https://learn.microsoft.com/en-us/azure/container-apps/scale-app
         - https://learn.microsoft.com/en-us/azure/container-apps/revisions
 content_validation:
@@ -59,17 +60,32 @@ This guide is built for:
 
 <!-- diagram-id: guide-structure -->
 ```mermaid
-graph TD
-    A[Start Here] --> B[Platform]
-    A --> BP[Best Practices]
-    A --> C[Language Guides]
-    B --> BP
-    BP --> D[Operations]
-    C --> D
-    D --> E[Troubleshooting]
-    E --> D
-    E --> R[Reference]
+flowchart TD
+    accTitle: Navigate the major sections of the Container Apps practical guide
+    accDescr: Begin with orientation, learn platform behavior, choose implementation and production-practice material, move into operations, and use troubleshooting or reference pages when the task requires them.
+
+    START[Start Here<br/>scope and navigation]
+    PLATFORM[Platform<br/>service behavior]
+    PRACTICES[Best Practices<br/>production decisions]
+    LANGUAGES[Language Guides<br/>runtime tutorials]
+    OPERATIONS[Operations<br/>day-two procedures]
+    TROUBLESHOOTING[Troubleshooting<br/>evidence and playbooks]
+    REFERENCE[Reference<br/>commands, metrics, and limits]
+
+    START -->|Build a shared model| PLATFORM
+    PLATFORM -->|Apply guardrails| PRACTICES
+    PLATFORM -->|Choose a runtime| LANGUAGES
+    PRACTICES -->|Prepare to run| OPERATIONS
+    LANGUAGES -->|Operate the workload| OPERATIONS
+    OPERATIONS -->|Investigate a symptom| TROUBLESHOOTING
+    TROUBLESHOOTING -->|Apply a resolution| OPERATIONS
+    PLATFORM -. Look up details .-> REFERENCE
+    LANGUAGES -. Look up details .-> REFERENCE
+    OPERATIONS -. Look up details .-> REFERENCE
+    TROUBLESHOOTING -. Look up details .-> REFERENCE
 ```
+
+Solid arrows show a recommended reading progression. Dotted arrows show that Reference is an on-demand lookup rather than another required stage.
 
 ## How to Use This Guide
 
@@ -102,21 +118,41 @@ If your team includes multiple roles, align on a shared baseline and then split 
 
 <!-- diagram-id: conceptual-platform-view -->
 ```mermaid
-graph TD
-    Client[Client or Event Source] --> Ingress[Ingress]
-    Ingress --> App[Container App Revision]
-    App --> Replica[Replica]
-    Replica --> Logs[Logs and Metrics]
-    Logs --> Ops[Operations and Alerts]
-    Ops --> Triage[Troubleshooting Playbooks]
+flowchart TD
+    accTitle: Conceptual operating loop for a Container Apps workload
+    accDescr: HTTP requests pass through ingress to running replicas and responses return to the client. Separately, an event source supplies a KEDA scaling signal. The active revision configures replicas rather than routing requests.
+
+    CLIENT[HTTP client]
+    INGRESS[Managed ingress]
+    REVISION[Active revision<br/>configuration snapshot]
+    REPLICAS[Running replicas]
+    EVENT_SOURCE[Event source]
+    KEDA[KEDA scaler]
+    SCALE[Replica scale decision]
+    TELEMETRY[Logs and metrics]
+    OPERATIONS[Operations and alerts]
+    TRIAGE[Troubleshooting playbooks]
+
+    CLIENT ==>|HTTP request| INGRESS
+    INGRESS ==>|Routed request| REPLICAS
+    REPLICAS ==>|HTTP response| INGRESS
+    INGRESS ==>|Response| CLIENT
+    REVISION -. Configures .-> REPLICAS
+    EVENT_SOURCE -. Event metric .-> KEDA
+    KEDA -. Desired scale .-> SCALE
+    SCALE -. Adjusts replica count .-> REPLICAS
+    REPLICAS -->|Emit telemetry| TELEMETRY
+    TELEMETRY -->|Inform decisions| OPERATIONS
+    OPERATIONS -->|Investigate symptoms| TRIAGE
+    TRIAGE -. Improve configuration and design .-> REVISION
 ```
 
 The diagram above highlights the operating loop:
 
-1. You deploy a revision.
-2. Traffic reaches healthy replicas.
-3. Telemetry feeds operations decisions.
-4. Incident feedback improves configuration and design.
+1. Managed ingress routes HTTP requests to running replicas, and the response returns through ingress.
+2. Separately, KEDA evaluates event-source metrics and adjusts the replica count.
+3. An active revision is an immutable configuration snapshot that configures its replicas; it does not route requests.
+4. Telemetry feeds operations decisions, and incident feedback improves configuration and design.
 
 ## First-Week Execution Plan
 
@@ -157,5 +193,6 @@ The diagram above highlights the operating loop:
 - [Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/overview)
 - [Azure Container Apps documentation hub (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/)
 - [Azure Container Apps environments (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/environment)
+- [Configure ingress in an Azure Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration)
 - [Scale applications in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
 - [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
