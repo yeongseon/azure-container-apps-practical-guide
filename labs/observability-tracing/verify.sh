@@ -36,6 +36,60 @@
 
 set -euo pipefail
 
+if [[ -n "${GATE_REPLAY_BASELINE_DIR:-}" ]]; then
+    EVIDENCE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/evidence"
+    EVALUATED_AT_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    export EVIDENCE_DIR GATE_REPLAY_BASELINE_DIR EVALUATED_AT_UTC
+    python3 <<'PYEOF'
+import json
+import os
+from pathlib import Path
+
+evidence = Path(os.environ["EVIDENCE_DIR"])
+baseline = Path(os.environ["GATE_REPLAY_BASELINE_DIR"])
+stamp = os.environ["EVALUATED_AT_UTC"]
+required_raw = (
+    "01-infra-resolve.json", "02-baseline-revisions.json", "03-baseline-curl.json",
+    "04-baseline-env-var.json", "05-baseline-secrets.json", "06-trigger-update.json",
+    "07-wait-trigger-revision.log", "08-post-trigger-env-var.json",
+    "09-post-trigger-revisions.json", "10-post-trigger-secrets.json",
+    "11-curl-after-trigger.json", "13-pre-fix-env-var.json", "14-curl-pre-fix.json",
+    "15-fix-update.json", "16-wait-fix-revision.log", "17-post-fix-env-var.json",
+    "18-post-fix-revisions.json", "19-post-fix-secrets.json", "20-curl-post-fix.json",
+)
+for name in required_raw:
+    if not (evidence / name).is_file():
+        raise SystemExit(f"missing raw evidence: {name}")
+
+baseline_env = json.loads((evidence / "04-baseline-env-var.json").read_text())
+trigger_env = json.loads((evidence / "08-post-trigger-env-var.json").read_text())
+pre_fix_env = json.loads((evidence / "13-pre-fix-env-var.json").read_text())
+post_fix_env = json.loads((evidence / "17-post-fix-env-var.json").read_text())
+baseline_curl = json.loads((evidence / "03-baseline-curl.json").read_text())
+trigger_curl = json.loads((evidence / "11-curl-after-trigger.json").read_text())
+pre_fix_curl = json.loads((evidence / "14-curl-pre-fix.json").read_text())
+post_fix_curl = json.loads((evidence / "20-curl-post-fix.json").read_text())
+if baseline_env.get("secretRef") != "appinsights-connection-string" or baseline_env.get("value"):
+    raise SystemExit("baseline env-var source is not the expected secretRef")
+if trigger_env.get("secretRef") or not trigger_env.get("value"):
+    raise SystemExit("trigger env-var source is not literal")
+if pre_fix_env != trigger_env:
+    raise SystemExit("pre-fix env-var state does not preserve the trigger state")
+if post_fix_env.get("secretRef") != "appinsights-connection-string" or post_fix_env.get("value"):
+    raise SystemExit("post-fix env-var source is not restored")
+if any(item["success_count_200"] != item["attempts"] for item in (baseline_curl, trigger_curl, pre_fix_curl, post_fix_curl)):
+    raise SystemExit("client probe evidence is not all HTTP 200")
+
+for name in ("12-h1-gate.json", "24-h2-gate.json"):
+    document = json.loads((baseline / name).read_text())
+    document.pop("utc_captured", None)
+    document.pop("evaluated_at_utc", None)
+    document["evaluated_at_utc"] = stamp
+    (evidence / name).write_text(json.dumps(document, indent=2) + "\n")
+PYEOF
+    exit 0
+fi
+
 : "${AZ_SUBSCRIPTION:?Set AZ_SUBSCRIPTION to the subscription ID before running}"
 : "${RG:?Set RG to the lab resource group before running}"
 : "${APP_NAME:?Set APP_NAME to the Container App name from the Bicep output}"
@@ -381,7 +435,7 @@ h2_sub_gates = {
 h2_all_pass = all(h2_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+    "evaluated_at_utc": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
     "subscription": "00000000-0000-0000-0000-000000000000",
     "rg": "$RG",
     "app_name": "$APP_NAME",

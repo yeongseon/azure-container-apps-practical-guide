@@ -416,7 +416,7 @@ h1_sub_gates = {
 h1_all_pass = all(h1_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+    "evaluated_at_utc": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
     "subscription": "00000000-0000-0000-0000-000000000000",
     "rg": "$RG",
     "app_name": "$APP_NAME",

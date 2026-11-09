@@ -12,6 +12,8 @@ The lab evidence was captured in a single live-Azure window on **2026-06-24** ag
 
 Both gates pass, supporting the lab's hypothesis: the controlling variable for telemetry export misconfiguration is the env-var Source flip (secretRef → literal) at the Container App template layer; the managed-environment secret store remains untouched throughout. The documented fix (`az containerapp update --set-env-vars APPLICATIONINSIGHTS_CONNECTION_STRING=secretref:appinsights-connection-string`) restores secretRef sourcing AND data-plane integrity in a single revision update, with full revision progression visible through three distinct names with strictly increasing createdTime.
 
+The two committed gate files were originally emitted during this live capture and later re-evaluated offline from unchanged raw evidence. Every replay writes its invocation time as top-level `evaluated_at_utc`; this is not a capture date and does not establish a current Azure replay or validation date. Capture-script `utc_captured` values and raw revision/telemetry event times remain unchanged.
+
 ## Honest disclosure — telemetry-blocking is `[Not Proven]`
 
 The baseline image `mcr.microsoft.com/azuredocs/containerapps-helloworld:latest` does **NOT** ship an Application Insights SDK. Application Insights / Log Analytics will report **zero traces** in ALL THREE states (baseline / post-trigger / post-fix) because there is no SDK instrumented to emit them. The H1 and H2 gates therefore intentionally restrict their falsifiable claims to:
