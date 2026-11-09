@@ -105,7 +105,7 @@ az containerapp replica list \
 |---|---|
 | `az containerapp show` | Reads ingress transport and target-port settings before attributing a failed WebSocket or gRPC upgrade to the application. |
 | `--name` (`az containerapp show`) | Selects the Container App whose ingress protocol settings are being compared with the failing client request. |
-| `--resource-group` (`az containerapp show`) | Finds that app in `$RG`, keeping the ingress diagnosis within the intended deployment boundary. |
+| `--resource-group` (`az containerapp show`) | Scopes ingress inspection to the resource group containing the backend that rejected the WebSocket or gRPC upgrade. |
 | `--query` (`az containerapp show`) | Focuses the response on ingress protocol and transport settings that govern WebSocket or gRPC upgrades. |
 | `--output` (`az containerapp show`) | Preserves nested ingress transport fields as JSON for protocol and target-port inspection. |
 | `az containerapp replica list` | Lists current replicas to distinguish protocol negotiation failures from an app that has no healthy backend. |

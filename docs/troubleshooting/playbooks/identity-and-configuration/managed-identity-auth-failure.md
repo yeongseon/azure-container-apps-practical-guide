@@ -132,7 +132,7 @@ az role assignment list --assignee "$(az containerapp show --name "$APP_NAME" --
 |---|---|
 | `az containerapp show` | Returns the app's system- and user-assigned identity metadata to identify which principal should request the token. |
 | `--name` (`az containerapp show`) | Reads identity metadata from `$APP_NAME`, the workload failing authentication. |
-| `--resource-group` (`az containerapp show`) | Locates the app in `$RG` before resolving its principal. |
+| `--resource-group` (`az containerapp show`) | Scopes identity lookup to the resource group containing the workload whose token request is failing. |
 | `--query` (`az containerapp show`) | Collects the app principal, complete identity block, and template identity reference to expose assignment inconsistencies in one response. |
 | `--output` (`az containerapp show`) | Returns identity objects as JSON and the nested principal ID as raw text for the RBAC lookup. |
 | `az role assignment list` | Lists grants for the app's principal to reveal whether any usable role assignment exists. |
@@ -368,7 +368,7 @@ If this fails before token issuance, inspect container runtime constraints, netw
     |---|---|
     | `az containerapp show` | In **8. Immediate Mitigations**, reads `identity` from the live resource so this hypothesis can be tested. |
     | `--name` | Reads identity configuration from `$APP_NAME`. |
-    | `--resource-group` | Locates the app in `$RG`. |
+    | `--resource-group` | Selects the resource group containing the workload whose configured identity is being verified before the RBAC fix. |
     | `--query` | Returns only the `identity` object needed for this check. |
     | `--output` | Preserves system- and user-assigned identity fields as JSON. |
 

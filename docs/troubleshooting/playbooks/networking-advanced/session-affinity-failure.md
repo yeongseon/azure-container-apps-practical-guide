@@ -145,7 +145,7 @@ az containerapp update \
 |---|---|
 | `az containerapp update` | Applies the YAML that enables sticky sessions on the app's HTTP ingress. |
 | `--name` (`az containerapp update`) | Updates `$APP_NAME`, whose affinity cookie behavior failed the diagnosis. |
-| `--resource-group` (`az containerapp update`) | Finds that app in `$RG` before replacing its ingress configuration. |
+| `--resource-group` (`az containerapp update`) | Directs the sticky-session update to the resource group containing the app that lost client affinity during scale-out. |
 | `--yaml` (`az containerapp update`) | Applies `session-affinity-enabled.yaml`, whose ingress block sets sticky-session affinity. |
 
 

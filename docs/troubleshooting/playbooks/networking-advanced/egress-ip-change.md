@@ -148,7 +148,7 @@ az network vnet subnet update \
 | `az network vnet subnet update` | Changes the selected subnet configuration to apply the remediation established by configuration mutation. |
 | `--name` (`az network vnet subnet update`) | Updates `snet-aca`, the Container Apps environment subnet. |
 | `--vnet-name` (`az network vnet subnet update`) | Locates the delegated subnet in `vnet-myapp` before attaching the new NAT gateway. |
-| `--resource-group` (`az network vnet subnet update`) | Locates `vnet-myapp` in `$RG` for the subnet change. |
+| `--resource-group` (`az network vnet subnet update`) | Directs the NAT association to the resource group containing the VNet used by the environment's outbound path. |
 | `--nat-gateway` (`az network vnet subnet update`) | Associates `nat-aca` so replicas use its stable public IP for outbound connections. |
 
 

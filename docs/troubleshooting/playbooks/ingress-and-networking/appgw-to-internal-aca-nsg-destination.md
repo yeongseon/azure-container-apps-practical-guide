@@ -256,7 +256,7 @@ az network nsg rule show \
 | Command/Parameter | Purpose |
 |---|---|
 | `az network nsg rule show` | Returns the candidate rule's protocol and source prefixes to verify that the gateway subnet is actually allowed. |
-| `--resource-group` (`az network nsg rule show`) | Finds `$ACA_SUBNET_NSG_NAME` in `$RG`. |
+| `--resource-group` (`az network nsg rule show`) | Selects the resource group containing the Container Apps subnet NSG whose inbound edge-proxy ports are under review. |
 | `--nsg-name` (`az network nsg rule show`) | Finds the named inbound rule within `$ACA_SUBNET_NSG_NAME`, not an unrelated gateway-side NSG. |
 | `--name` (`az network nsg rule show`) | Inspects `$APPGW_TO_ACA_RULE_NAME`, the App Gateway-facing rule that must include edge proxy ports. |
 | `--query` (`az network nsg rule show`) | Presents protocol, source, destination, and port ranges for the selected rule to verify coverage of edge proxy ports `31443` and `31080`. |
@@ -506,7 +506,7 @@ az network application-gateway show-backend-health \
     | `az network application-gateway http-settings update` | Makes the HTTP setting derive its Host header from that FQDN target. |
     | `az network application-gateway probe update` | Changes the health probe to the app's working path and accepted status range. |
     | `--name` (`az containerapp show`) | Reads ingress settings from `$APP_NAME`. |
-    | `--resource-group` (`az containerapp show`) | Locates `$APP_NAME` in `$RG`. |
+    | `--resource-group` (`az containerapp show`) | Scopes the FQDN lookup to the resource group containing the internal app used as the Application Gateway backend. |
     | `--query` (`az containerapp show`) | Extracts `properties.configuration.ingress.fqdn` for use as the backend server. |
     | `--output` (`az containerapp show`) | Returns the FQDN as an unquoted scalar assigned to `$APP_FQDN`. |
     | `--gateway-name` (`az network application-gateway address-pool update`) | Selects Application Gateway `$APPGW_NAME`. |

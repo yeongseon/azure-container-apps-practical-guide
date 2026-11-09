@@ -118,7 +118,7 @@ az containerapp env show \
 | `--output` (`az containerapp show`) | Outputs the verification token as raw text so it can be compared with the DNS TXT value. |
 | `az containerapp env show` | Reports whether the environment is internal, which determines the DNS path used for domain validation. |
 | `--name` (`az containerapp env show`) | Reads `$ACA_ENV_NAME` to determine whether the hostname is on an internal environment. |
-| `--resource-group` (`az containerapp env show`) | Finds the managed environment in `$RG`. |
+| `--resource-group` (`az containerapp env show`) | Selects the resource group containing the environment whose internal mode determines the certificate validation path. |
 | `--query` (`az containerapp env show`) | Selects the internal-environment flag because certificate reachability differs for internal and external environments. |
 | `--output` (`az containerapp env show`) | Prints the Boolean environment mode plainly for use in the renewal-path decision. |
 
@@ -157,7 +157,7 @@ az containerapp hostname bind \
 | `--hostname` (`az containerapp hostname add`) | Registers `app.example.com` as the custom host to validate. |
 | `az containerapp hostname bind` | Validates DNS ownership and binds a managed certificate to the corrected hostname. |
 | `--name` (`az containerapp hostname bind`) | Binds the certificate to `$APP_NAME`. |
-| `--resource-group` (`az containerapp hostname bind`) | Locates the app in `$RG` for certificate binding. |
+| `--resource-group` (`az containerapp hostname bind`) | Directs certificate binding to the resource group containing the app whose repaired hostname is being renewed. |
 | `--hostname` (`az containerapp hostname bind`) | Chooses `app.example.com`, matching the hostname added immediately above. |
 | `--environment` (`az containerapp hostname bind`) | Uses `$ACA_ENV_NAME`, the environment that issues and stores the managed binding. |
 | `--validation-method` (`az containerapp hostname bind`) | Validates ownership through the hostname's `CNAME` record. |

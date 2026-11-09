@@ -141,7 +141,7 @@ az containerapp update \
 |---|---|
 | `az containerapp update` | Lowers the idle replica floor so this workload can stop accruing replica runtime cost when no requests arrive. |
 | `--name` (`az containerapp update`) | Applies the scale-to-zero correction to `$APP_NAME`, the app whose idle replicas produced the measured cost. |
-| `--resource-group` (`az containerapp update`) | Locates `$APP_NAME` in `$RG` before changing its scale bounds. |
+| `--resource-group` (`az containerapp update`) | Directs the scale-to-zero correction to the resource group containing the app responsible for the idle replica cost. |
 | `--min-replicas` (`az containerapp update`) | Removes the always-on replica floor by allowing the app to scale to zero. |
 | `--max-replicas` (`az containerapp update`) | Caps burst scaling at three replicas while correcting the idle-cost configuration. |
 

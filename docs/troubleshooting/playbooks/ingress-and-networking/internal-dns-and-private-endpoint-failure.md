@@ -116,7 +116,7 @@ az network private-dns link vnet list --resource-group "$RG" --zone-name "privat
 |---|---|
 | `az containerapp env show` | Returns the environment VNet configuration so the DNS investigation starts from the actual workload network. |
 | `--name` (`az containerapp env show`) | Inspects `$ACA_ENV_NAME`, whose VNet attachment defines the replica's resolver path. |
-| `--resource-group` (`az containerapp env show`) | Finds the managed environment in `$RG` before reading its network configuration. |
+| `--resource-group` (`az containerapp env show`) | Scopes network inspection to the environment whose VNet attachment carries the failing private DNS query. |
 | `--query` (`az containerapp env show`) | Reveals the environment VNet configuration that determines which resolver and private endpoint path the replica uses. |
 | `--output` (`az containerapp env show`) | Presents `az containerapp env show` in the format required by the next platform signals comparison or shell assignment, retaining fields selected in this fence. |
 | `az network private-dns link vnet list` | Lists VNet links for the ACR private zone to verify that the environment network is registered. |

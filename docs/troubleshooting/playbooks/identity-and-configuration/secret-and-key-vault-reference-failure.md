@@ -127,7 +127,7 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity
 |---|---|
 | `az containerapp secret list` | Lists secret names and Key Vault references to determine whether the expected reference exists on the app. |
 | `--name` (`az containerapp secret list`) | Lists secrets defined on `$APP_NAME`, where the unresolved `secretRef` is consumed. |
-| `--resource-group` (`az containerapp secret list`) | Locates the app in `$RG` for secret inventory. |
+| `--resource-group` (`az containerapp secret list`) | Scopes the secret inventory to the resource group containing the app with the unresolved `secretRef`. |
 | `az containerapp show` | Projects container environment-variable bindings so each `secretRef` can be matched to the secret inventory. |
 | `--name` (`az containerapp show`) | Reads environment mappings and identity from `$APP_NAME`. |
 | `--resource-group` (`az containerapp show`) | Retrieves the affected app configuration from `$RG`. |
@@ -226,7 +226,7 @@ az role assignment list --scope "$(az keyvault show --name "my-kv" --resource-gr
 |---|---|
 | `az keyvault show` | Resolves the Key Vault ARM ID used as the exact RBAC scope for the access check. |
 | `--name` (`az keyvault show`) | Selects `my-kv`, matching the vault named in the nested command. |
-| `--resource-group` (`az keyvault show`) | Finds `my-kv` in `$RG` before returning its authorization scope. |
+| `--resource-group` (`az keyvault show`) | Selects the resource group containing `my-kv` so the command returns the exact vault ARM scope used by RBAC. |
 | `--query` (`az keyvault show`) | Selects the vault resource ID used as the expected RBAC assignment scope. |
 | `--output` (`az keyvault show`) | Assigns the full vault ARM ID to the shell variable without enclosing quotes. |
 | `az containerapp show` | Returns the app identity used for Key Vault access so its object can be checked against vault permissions. |
@@ -360,7 +360,7 @@ az keyvault show --name "$KEY_VAULT_NAME" --resource-group "$RG" \
 |---|---|
 | `az containerapp env show` | Reads the managed environment to discover its infrastructure subnet. |
 | `--name` (`az containerapp env show`) | Selects `$ACA_ENV_NAME`, whose infrastructure subnet owns the forced egress route. |
-| `--resource-group` (`az containerapp env show`) | Finds the managed environment in `$RG` so its infrastructure subnet can seed the route trace. |
+| `--resource-group` (`az containerapp env show`) | Scopes the lookup to the environment whose infrastructure subnet supplies the starting point for the forced-egress route trace. |
 | `--query` (`az containerapp env show`) | Identifies the environment infrastructure subnet whose route table controls managed-identity discovery traffic. |
 | `--output` (`az containerapp env show`) | Captures the subnet ARM ID as a raw string for the nested subnet inspection. |
 | `az network vnet subnet show` | Resolves the route table attached to the infrastructure subnet. |

@@ -84,7 +84,7 @@ az containerapp show \
 |---|---|
 | `az containerapp show` | Projects the assigned workload profile and container CPU request so their compatibility can be compared directly. |
 | `--name` (`az containerapp show`) | Selects `$APP_NAME`, whose assigned workload profile and resource request are being compared. |
-| `--resource-group` (`az containerapp show`) | Locates the app in `$RG` before reading its profile and sizing settings. |
+| `--resource-group` (`az containerapp show`) | Scopes the profile comparison to the resource group containing the app whose replica placement failed. |
 | `--query` (`az containerapp show`) | Builds a compact view of the selected workload profile and requested CPU so the placement mismatch is visible in one record. |
 | `--output` (`az containerapp show`) | Emits the response as `json` so the decisive fields remain usable in this diagnostic step. |
 

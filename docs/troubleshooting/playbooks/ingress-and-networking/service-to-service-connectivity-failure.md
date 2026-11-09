@@ -115,7 +115,7 @@ az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "
 |---|---|
 | `az containerapp show` | Retrieves the destination app's ingress mode and FQDN to verify that the caller uses a reachable endpoint. |
 | `--name` (`az containerapp show`) | Inspects `$APP_NAME`, the service endpoint involved in the failed call. |
-| `--resource-group` (`az containerapp show`) | Locates the app in `$RG` before reading its ingress contract. |
+| `--resource-group` (`az containerapp show`) | Scopes ingress inspection to the resource group containing the downstream service that the caller cannot reach. |
 | `--query` (`az containerapp show`) | Returns the downstream app's ingress contract so the caller's hostname, transport, and port can be checked against it. |
 | `--output` (`az containerapp show`) | Returns the complete ingress object as JSON so hostname, transport, and port stay together. |
 | `az containerapp env show` | Reads the managed environment network configuration to identify the shared routing boundary between caller and downstream app. |

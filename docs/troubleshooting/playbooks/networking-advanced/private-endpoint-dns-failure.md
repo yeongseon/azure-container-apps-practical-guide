@@ -107,7 +107,7 @@ az containerapp exec \
 |---|---|
 | `az network private-endpoint show` | Displays the endpoint's connection state and network interface details used to validate the private path. |
 | `--name` (`az network private-endpoint show`) | Inspects `pe-storage`, the private endpoint expected to serve the storage account. |
-| `--resource-group` (`az network private-endpoint show`) | Locates `pe-storage` in `$RG` before checking its connection and subnet state. |
+| `--resource-group` (`az network private-endpoint show`) | Scopes endpoint inspection to the resource group containing the storage private path whose DNS resolution failed. |
 | `--output` (`az network private-endpoint show`) | Returns the full endpoint record as JSON for connection and NIC inspection. |
 | `az network private-dns link vnet list` | Lists virtual-network links for the Blob private zone to verify that the workload VNet can resolve it. |
 | `--resource-group` (`az network private-dns link vnet list`) | Reads VNet links for the storage private zone in `$RG`. |

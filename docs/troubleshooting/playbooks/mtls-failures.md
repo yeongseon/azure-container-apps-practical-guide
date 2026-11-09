@@ -155,7 +155,7 @@ az containerapp logs show \
 |---|---|
 | `az containerapp show` | Reads the selected Container App configuration to evaluate Dapr enablement and sidecar failure signals. |
 | `--name` (`az containerapp show`) | Selects `$APP_NAME`, the resource whose state contributes to Dapr enablement and sidecar failure signals. |
-| `--resource-group` (`az containerapp show`) | Finds `$APP_NAME` in `$RG` before reading its Dapr sidecar configuration. |
+| `--resource-group` (`az containerapp show`) | Scopes the Dapr configuration lookup to the resource group containing the app with the failed sidecar handshake. |
 | `--query` (`az containerapp show`) | Projects the Dapr configuration used to check whether the sidecar is enabled and participating in the failing service call. |
 | `--output` (`az containerapp show`) | Keeps the nested Dapr configuration as JSON for sidecar enablement and app-ID inspection. |
 | `az containerapp logs show` | Retrieves the requested Container Apps log stream to evaluate Dapr enablement and sidecar failure signals. |

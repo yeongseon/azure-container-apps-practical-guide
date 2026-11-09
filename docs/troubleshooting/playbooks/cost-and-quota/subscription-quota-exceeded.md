@@ -102,7 +102,7 @@ az containerapp env list-usages \
 |---|---|
 | `az containerapp env list-usages` | Returns the managed-environment usage counters and limits that can block another workload-profile or replica allocation. |
 | `--name` (`az containerapp env list-usages`) | Checks capacity consumption for `$ACA_ENV_NAME`, the environment reporting the quota-related deployment failure. |
-| `--resource-group` (`az containerapp env list-usages`) | Finds `$ACA_ENV_NAME` in `$RG` so the usage evidence comes from the affected environment. |
+| `--resource-group` (`az containerapp env list-usages`) | Scopes usage counters to the resource group containing the environment that could not allocate additional capacity. |
 
 
 4. Inspect subscription quota for the target region:

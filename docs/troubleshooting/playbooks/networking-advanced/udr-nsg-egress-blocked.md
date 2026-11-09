@@ -114,7 +114,7 @@ az network nsg rule list \
 | `--output` (`az containerapp env show`) | Prints the environment subnet ID in table form so the subsequent route and NSG checks target the same network. |
 | `az network route-table route list` | Lists effective UDR entries to identify a default route or next hop that diverts Container Apps egress. |
 | `--route-table-name` (`az network route-table route list`) | Inspects `rt-aca`, the route table expected on the environment subnet. |
-| `--resource-group` (`az network route-table route list`) | Locates `rt-aca` in `$RG` for forced-tunnel review. |
+| `--resource-group` (`az network route-table route list`) | Scopes route enumeration to the resource group containing the environment subnet's forced-tunnel table. |
 | `--output` (`az network route-table route list`) | Presents route prefixes and next-hop targets as columns for tracing the blocked outbound path. |
 | `az network nsg rule list` | Lists outbound NSG priorities and actions to locate the rule denying required egress. |
 | `--nsg-name` (`az network nsg rule list`) | Inspects `nsg-aca`, the security group applied to the Container Apps subnet. |

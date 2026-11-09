@@ -454,7 +454,7 @@ gh secret list --repo "$GH_REPO"
 | `--output` (`az acr show`) | Emits a command-ready registry resource ID for the leftover-assignment query. |
 | `az containerapp show` | Resolves the Container App ARM ID used to search for deployment-era role assignments. |
 | `--name` (`az containerapp show`) | Selects `$APP_NAME`, the previous CD target. |
-| `--resource-group` (`az containerapp show`) | Finds that app in `$RG`. |
+| `--resource-group` (`az containerapp show`) | Resolves the previous deployment target from `$RG` so its ARM ID can anchor the app-scope leftover-assignment check. |
 | `--query` (`az containerapp show`) | Resolves the deployed app resource to the exact scope where CD may have created an assignment. |
 | `--output` (`az containerapp show`) | Returns the app ARM path alone so it can feed the cross-scope comparison. |
 | `az account show` | Reads the active subscription ID used to construct the resource-group scope. |
@@ -946,12 +946,12 @@ az role assignment list --scope "$APP_ID" --query "[?scope=='$APP_ID']" --output
 |---|---|
 | `az acr show` | Reconstructs the registry ARM scope used to verify that the deleted assignment no longer exists there. |
 | `--name` (`az acr show`) | Reads `$ACR_NAME` to rebuild the registry scope used for post-delete verification. |
-| `--resource-group` (`az acr show`) | Finds `$ACR_NAME` in `$RG` for post-delete verification. |
+| `--resource-group` (`az acr show`) | Resolves the registry from `$RG` so the post-delete sweep checks the same ACR scope that held the stale grant. |
 | `--query` (`az acr show`) | Resolves the registry scope used to verify that deletion removed the assignment from ACR. |
 | `--output` (`az acr show`) | Saves the registry ARM path in a shell-safe form for the post-delete sweep. |
 | `az containerapp show` | Reconstructs the app scope before verifying that no conflicting role assignment remains there. |
 | `--name` (`az containerapp show`) | Selects `$APP_NAME`, whose continuous-deployment principal previously held the stale grant. |
-| `--resource-group` (`az containerapp show`) | Finds `$APP_NAME` in `$RG` before rebuilding its ARM scope. |
+| `--resource-group` (`az containerapp show`) | Resolves the former CD target from `$RG` so its ARM ID can be rechecked after assignment deletion. |
 | `--query` (`az containerapp show`) | Resolves the app scope included in the verification sweep after deleting the full assignment ID. |
 | `--output` (`az containerapp show`) | Provides the app resource ID as plain text for the three-scope absence check. |
 | `az role assignment list` | Rechecks the resource-group, registry, and app scopes after the stale assignment is deleted. |
@@ -997,7 +997,7 @@ gh secret list --repo "$GH_REPO"
 |---|---|
 | `az containerapp github-action delete` | Disconnects the Container App source-control resource and asks GitHub to remove its generated workflow. |
 | `--name` (`az containerapp github-action delete`) | Disconnects continuous deployment from `$APP_NAME`. |
-| `--resource-group` (`az containerapp github-action delete`) | Locates the app in `$RG` for source-control deletion. |
+| `--resource-group` (`az containerapp github-action delete`) | Scopes the disconnect operation to the resource group containing the app's stale source-control configuration. |
 | `--token` (`az containerapp github-action delete`) | Supplies the current GitHub CLI token so Azure can update the repository workflow. |
 
 
@@ -1134,7 +1134,7 @@ az containerapp github-action show \
 | `--output` (`az ad sp show`) | Produces the assignee object ID as raw text accepted by role-assignment creation. |
 | `az acr show` | Reads registry scope and permission mode so the reconnect uses an RBAC- or ABAC-compatible push role. |
 | `--name` (`az acr show`) | Selects `$ACR_NAME`, matching the registry named in this fence. |
-| `--resource-group` (`az acr show`) | Finds `$ACR_NAME` in `$RG`. |
+| `--resource-group` (`az acr show`) | Selects the resource group containing the deployment registry whose permission mode determines the replacement push role. |
 | `--query` (`az acr show`) | Returns the registry scope with `roleAssignmentMode` so reconnecting CD chooses the correct RBAC or ABAC repository role. |
 | `--output` (`az acr show`) | Returns registry ID and `roleAssignmentMode` as JSON for role selection. |
 | `az ad sp create-for-rbac` | Creates fresh credentials for the replacement GitHub Actions identity. |
@@ -1150,7 +1150,7 @@ az containerapp github-action show \
 | `--scope` (`az role assignment create`) | Creates the push grant directly on `$ACR_ID`. |
 | `az containerapp github-action add` | Reconnects the app to the GitHub repository and generates a new deployment workflow. |
 | `--name` (`az containerapp github-action add`) | Configures continuous deployment for `$APP_NAME`. |
-| `--resource-group` (`az containerapp github-action add`) | Locates the app in `$RG`. |
+| `--resource-group` (`az containerapp github-action add`) | Directs the reconnect to the resource group containing the app that will receive the replacement workflow. |
 | `--repo-url` (`az containerapp github-action add`) | Connects the source-control resource to `$GH_REPO_URL`. |
 | `--branch` (`az containerapp github-action add`) | Triggers deployments from `main`. |
 | `--registry-url` (`az containerapp github-action add`) | Pushes workflow images to `${ACR_NAME}.azurecr.io`. |

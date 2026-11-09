@@ -196,12 +196,12 @@ az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" \
 |---|---|
 | `az containerapp show` | Reads the app FQDN so its DNS suffix can be compared with the managed environment's default domain. |
 | `--name` (`az containerapp show`) | Reads the ingress hostname assigned to `$APP_NAME`; the environment name is not used by this command. |
-| `--resource-group` (`az containerapp show`) | Locates `$APP_NAME` in `$RG` before passing its FQDN to `nslookup`. |
+| `--resource-group` (`az containerapp show`) | Scopes the hostname lookup to the resource group containing the app whose ingress DNS record is being tested. |
 | `--query` (`az containerapp show`) | Reads the app-assigned ingress FQDN that the DNS test must resolve. |
 | `--output` (`az containerapp show`) | Places the hostname into the shell variable without JSON quotes for direct resolver use. |
 | `az containerapp env show` | Returns the environment default domain used to test DNS resolution independently of the app hostname. |
 | `--name` (`az containerapp env show`) | Opens `$ACA_ENV_NAME`, whose default domain should suffix the app FQDN. |
-| `--resource-group` (`az containerapp env show`) | Finds the managed environment in `$RG` for the domain comparison. |
+| `--resource-group` (`az containerapp env show`) | Selects the resource group containing the environment whose default domain must match the app FQDN suffix. |
 | `--query` (`az containerapp env show`) | Retrieves the environment default domain to verify that the app hostname uses the expected DNS suffix. |
 | `--output` (`az containerapp env show`) | Prints the domain suffix as plain text for comparison with the app FQDN. |
 
@@ -377,7 +377,7 @@ curl --verbose --connect-timeout 10 "https://${APP_FQDN}/health"
    |---|---|
    | `az containerapp ingress traffic set` | In **8. Immediate Mitigations**, sets the displayed configuration required by the remediation. |
    | `--name` | Selects `$APP_NAME` for the traffic rollback. |
-   | `--resource-group` | Locates the app in `$RG`. |
+   | `--resource-group` | Directs the rollback to the resource group containing the unreachable app whose last healthy revision will receive traffic. |
    | `--revision-weight` | Sends 100 percent of traffic to `<previous-healthy-revision>`. |
 
 2. **If target port mismatch:** Update ingress target port
@@ -403,7 +403,7 @@ curl --verbose --connect-timeout 10 "https://${APP_FQDN}/health"
    |---|---|
    | `az containerapp update` | Creates a revision with the temporary probe-delay setting used by this example. |
    | `--name` | Applies the temporary setting to `$APP_NAME`. |
-   | `--resource-group` | Finds that app in `$RG`. |
+   | `--resource-group` | Directs the temporary probe-delay update to the resource group containing the app with failing readiness checks. |
    | `--set-env-vars` | Sets `PROBE_INITIAL_DELAY=30` for the application's probe configuration logic. |
 
 4. **If ingress disabled:** Enable ingress

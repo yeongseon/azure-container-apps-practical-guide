@@ -43,7 +43,7 @@ az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type conso
 |---|---|
 | `az containerapp show` | Reads the app provisioning state for the first split between control-plane deployment failure and a later runtime problem. |
 | `--name` (`az containerapp show`) | Targets `ca-myapp`, the sample app being triaged. |
-| `--resource-group` (`az containerapp show`) | Locates `ca-myapp` in `rg-myapp` before checking its provisioning state. |
+| `--resource-group` (`az containerapp show`) | Scopes the initial provisioning-state check to `rg-myapp`, the deployment boundary under triage. |
 | `--query` (`az containerapp show`) | Pulls the app provisioning state for the first triage split between deployment failure and runtime failure. |
 | `az containerapp revision list` | Shows whether `ca-myapp` has an active, healthy revision before deeper log analysis. |
 | `--name` (`az containerapp revision list`) | Requests revisions owned by `ca-myapp`. |
