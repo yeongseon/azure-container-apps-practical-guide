@@ -8,6 +8,9 @@ content_sources:
       type: flowchart
       source: self-generated
       justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
+        - https://learn.microsoft.com/en-us/troubleshoot/azure/azure-kubernetes/storage/mountoptions-settings-azure-files
 content_validation:
   status: verified
   last_reviewed: 2026-07-18
@@ -28,17 +31,37 @@ content_validation:
 <!-- diagram-id: volume-permission-denied-flow -->
 ```mermaid
 flowchart TD
-    A[Container logs: permission denied on volume path] --> B[Check container UID/GID]
-    B --> C{UID matches volume mount ownership?}
-    C -->|No| D[Add mountOptions uid and gid to volume config]
-    C -->|Yes| E[Check volume type]
-    D --> F[Redeploy revision]
-    E -->|Azure Files| G[Verify share-level ACL allows container identity]
-    E -->|EmptyDir| H[Check init container sets correct ownership]
-    G --> F
-    H --> F
-    F --> I[Container accesses volume without permission error]
+    accTitle: Diagnose Azure Files permission errors after a successful mount
+    accDescr: Prove that the share is mounted, compare the container process user with CIFS mount options, and validate least-permissive mode and ownership settings in a new revision.
+
+    START[Application reports permission denied<br/>on the mounted Azure Files path]
+    MOUNTED{Share mounted successfully?}
+    MOUNT[Use the Azure Files mount-failure<br/>playbook first]
+    PROCESS[Record the container process<br/>UID and GID]
+    OPTIONS[Inspect dir_mode, file_mode,<br/>uid, and gid mount options]
+    ALIGNED{Mode and ownership permit<br/>the required operation?}
+    CORRECT[Set the least-permissive<br/>working mount options]
+    PATH[Check application path and<br/>read-versus-write expectation]
+    RETEST[Deploy a new revision<br/>and repeat the file operation]
+    WORKS{Required read or write succeeds?}
+    DONE[Permission path verified]
+    CONTINUE[Collect system and app evidence<br/>for the remaining access failure]
+
+    START --> MOUNTED
+    MOUNTED -->|No| MOUNT
+    MOUNTED -->|Yes| PROCESS
+    PROCESS --> OPTIONS
+    OPTIONS --> ALIGNED
+    ALIGNED -->|No| CORRECT
+    ALIGNED -->|Yes| PATH
+    CORRECT --> RETEST
+    PATH --> RETEST
+    RETEST --> WORKS
+    WORKS -->|Yes| DONE
+    WORKS -->|No| CONTINUE
 ```
+
+*Figure: A mounted share and a writable path are separate checks; the correction targets CIFS mode and ownership options rather than re-creating the app.*
 
 ## Symptom
 
