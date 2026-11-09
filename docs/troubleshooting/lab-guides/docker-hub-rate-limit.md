@@ -51,12 +51,24 @@ Reproduce a public-registry pull-rate failure pattern, then prove that authentic
 <!-- diagram-id: docker-hub-rate-limit-lab-flow -->
 ```mermaid
 flowchart TD
-    A[Deploy revision from Docker Hub] --> B[Trigger repeated pull attempts]
-    B --> C[Capture toomanyrequests evidence]
-    C --> D[Add registry credentials or mirror image]
-    D --> E[Create new revision]
-    E --> F[Verify pull succeeds]
+    accTitle: Test recovery from a Docker Hub rate-limit response
+    accDescr: Capture the registry response for an anonymous Docker Hub image pull, change the pull path to authenticated Docker Hub or a controlled registry, and verify a new revision.
+
+    DEPLOY[Deploy a revision from Docker Hub]
+    PULLS[Generate controlled image-pull attempts]
+    EVIDENCE[Capture the registry response<br/>and Container Apps system logs]
+    REMEDIATE[Configure Docker Hub credentials<br/>or mirror the image to ACR]
+    RETRY[Create a new revision<br/>with the corrected source]
+    VERIFY[Verify image pull and startup]
+
+    DEPLOY --> PULLS
+    PULLS --> EVIDENCE
+    EVIDENCE --> REMEDIATE
+    REMEDIATE --> RETRY
+    RETRY --> VERIFY
 ```
+
+*Figure: A registry rate-limit response is the required evidence before the lab changes authentication or image source and retries the deployment.*
 
 !!! note "Evidence depth"
     This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/docker-hub-rate-limit/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/docker-hub-rate-limit/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.
