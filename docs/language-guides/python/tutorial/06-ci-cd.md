@@ -39,9 +39,9 @@ Automate build and deployment so every commit can produce a new Container App re
 %%{init: {"themeVariables": {"fontSize": "10px"}, "flowchart": {"curve": "linear", "nodeSpacing": 5, "rankSpacing": 20, "diagramPadding": 2, "wrappingWidth": 55}}}%%
 flowchart TD
     accTitle: Production-ready Container Apps context for the Python tutorial
-    accDescr: Client requests and responses pass through managed ingress to Python replicas. The customer VNet contains infrastructure and private-endpoint subnets associated with the environment and ACR private endpoint. Managed identity is assigned to the app, and platform provisioning exchanges image pull requests and layer responses with ACR through that endpoint.
+    accDescr: Client requests and responses pass through managed ingress to Python replicas. The customer VNet associates with the environment and ACR private endpoint and links the endpoint's private DNS zone. Managed identity is assigned to the app, and platform provisioning exchanges image pull requests and layer responses with ACR through that endpoint.
     CALLER(["Client"])
-    VNET["Customer VNet<br/>infra + PE subnets"]
+    VNET["VNet + PE<br/>subnet"]
     IDENTITY["Managed identity"]
     PE_ACR["ACR PE"]
     ACR["ACR"]
@@ -60,6 +60,7 @@ flowchart TD
     REPLICAS ==>|"Response"| INGRESS
     VNET -.-> ENV
     VNET -.-> PE_ACR
+    DNS -.-> VNET
     APP -.-> IDENTITY
     IDENTITY -.-> ACR
     APP -.-> REVISION
@@ -72,7 +73,7 @@ flowchart TD
     PE_ACR -.-> DNS
 ```
 
-*Figure: Client traffic crosses managed ingress to Python replicas. The customer VNet's infrastructure subnet associates with the environment, and its private-endpoint subnet associates with the ACR private endpoint. Managed identity is assigned to the app and authorizes registry pulls; platform provisioning sends pull requests and receives image layers through that endpoint.*
+*Figure: Client traffic crosses managed ingress to Python replicas. The customer VNet associates with the environment and ACR private endpoint and links the endpoint's private DNS zone. Managed identity is assigned to the app and authorizes registry pulls; platform provisioning sends pull requests and receives image layers through that endpoint.*
 
 ## CI/CD Pipeline Flow
 
