@@ -51,14 +51,28 @@ Reproduce a missed scheduled execution by using the wrong timezone assumption, t
 <!-- diagram-id: scheduled-job-missed-lab-diagram -->
 ```mermaid
 flowchart TD
-    A[Author local-time cron assumption] --> B[Deploy scheduled job]
-    B --> C[Wait for expected local-time window]
-    C --> D[Observe no execution]
-    D --> E[Check configured UTC schedule]
-    E --> F[Manually start job]
-    F --> G[Correct cron to UTC]
-    G --> H[Observe next expected execution]
+    accTitle: Distinguish a missed schedule from an execution failure
+    accDescr: Compare the five-field UTC cron expression and execution history, use a manual run to test the job template, then correct the schedule and observe the next trigger.
+
+    EXPECT[Record the expected UTC window]
+    CONFIG[Read the five-field<br/>UTC cron expression]
+    HISTORY[Inspect recent job executions]
+    TRIGGERED[Check whether an execution exists<br/>for the expected window]
+    FAILURE[Investigate execution status,<br/>logs, retries, and timeout]
+    MANUAL[Start one manual execution<br/>to test the job template]
+    FIX[Correct the cron expression<br/>or UTC conversion]
+    VERIFY[Observe the next scheduled execution]
+
+    EXPECT --> CONFIG
+    CONFIG --> HISTORY
+    HISTORY --> TRIGGERED
+    TRIGGERED -->|Execution exists| FAILURE
+    TRIGGERED -->|No execution| MANUAL
+    MANUAL --> FIX
+    FIX --> VERIFY
 ```
+
+*Figure: A missing execution points to schedule or trigger configuration; an execution that exists but fails belongs on the execution-diagnostics path.*
 
 !!! note "Evidence depth"
     This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/scheduled-job-missed/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/scheduled-job-missed/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.

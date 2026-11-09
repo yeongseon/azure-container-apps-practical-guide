@@ -1,3 +1,13 @@
+---
+content_sources:
+  diagrams:
+    - id: startup-degraded-evidence-flow
+      type: flowchart
+      source: self-generated
+      justification: Repository-only evidence flow synthesized from the lab deployment, perturbation, sampling, and verification scripts.
+      based_on:
+        - https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/startup-degraded-transient-failure
+---
 # Lab: Startup-degraded transient failure (issue #205)
 
 This lab provides the runnable infrastructure and scripts for the
@@ -108,27 +118,46 @@ export LOADGEN_IMAGE="${ACR_NAME}.azurecr.io/startup-degraded/loadgen:latest"
 
 Offline Gate 10(c) requires qF to map at least one baseline run and one perturbation run through the documented prefixes; two arbitrary distinct IDs do not satisfy the mapping. Gate 12(b) requires exactly one baseline run and one perturbation run in qF, both reporting no falsification; Gate 13(b) requires a shared qA/qE perturbation ID. The error-rate, snapshot and capture-window checks retain their strong and lower-evidence fallback tiers. Gate 12(a) additionally requires the perturbation run's `err_pct` to be present and a finite, non-negative number: an absent, null, empty or malformed value fails the gate (with an `a_input_problem` note) instead of counting as a zero error rate. The value is compared as an exact decimal (JSON numbers are decoded without float rounding), so `-1e-400` is rejected and `0.49999999999999999` stays inside the lower-evidence tier; when the value does not survive conversion to a float unchanged, the gate also records its exact decimal text as `observed_perturbation_err_pct_exact`. Only plain decimal notation is accepted: underscores, non-ASCII digits and bare `NaN` or `Infinity` tokens fail the gate. Missing perturbation rows or empty qA input produce complete Gate 10-13 reports with failed owning sub-gates instead of aborting midway. All four emitted gates record replay time in `evaluated_at_utc`, not a new capture date.
 
+<!-- diagram-id: startup-degraded-evidence-flow -->
 ```mermaid
 flowchart TD
-    A[Audit Job<br/>cron every 5 min] --> B[ARM REST: revisions + replicas]
-    B --> C[Emit ReplicaInventorySample +<br/>RevisionStateSample JSON]
-    C --> D[ACA console log shipper]
-    D --> E[Log Analytics<br/>ContainerAppConsoleLogs_CL]
-    F[trigger.sh --perturbation] --> G[perturbation-sampler Job<br/>5s cadence x 10 min]
-    G --> H[PerturbationWindowMarker +<br/>high-freq RevisionStateSample]
-    H --> D
-    F --> I[az containerapp update<br/>set ROLLOUT_GENERATION env var]
-    I --> J[ACA-managed new revision rollout]
-    J --> K[Subject app new revision<br/>3 replicas, each 25s startup]
-    K --> L[ACA system events:<br/>Revision/Replica transitions]
-    L --> M[Log Analytics<br/>ContainerAppSystemLogs_CL]
-    N[loadgen-k6 Job<br/>200 RPS constant arrival rate] --> O[Public FQDN: subject app]
-    O --> K
-    N --> P[Emit per-req +<br/>10s bucket JSON with<br/>embedded client timestamp]
-    P --> D
-    E --> Q[KQL: per-event err_pct,<br/>control vs perturbation,<br/>H0 falsification]
-    M --> Q
+    accTitle: Startup-degraded perturbation and evidence flow
+    accDescr: Correlate a controlled revision rollout with high-frequency revision sampling, client-side request buckets, and legacy Log Analytics console and system tables.
+
+    AUDIT[Audit job<br/>supplemental cadence]
+    ARM[Azure Resource Manager<br/>revision and replica reads]
+    TRIGGER[Perturbation trigger]
+    SAMPLER[Perturbation sampler<br/>high-frequency cadence]
+    UPDATE[Change rollout-generation<br/>environment value]
+    ROLLOUT[Container Apps<br/>new revision rollout]
+    SUBJECT[Subject revision<br/>deterministic startup delay]
+    LOAD[Load-generator job]
+    FQDN[Public app FQDN]
+    CONSOLE[Legacy Log Analytics<br/>ContainerAppConsoleLogs_CL]
+    SYSTEM[Legacy Log Analytics<br/>ContainerAppSystemLogs_CL]
+    QUERY[Correlate request buckets,<br/>revision state, and system events]
+
+    AUDIT ==>|Management requests| ARM
+    ARM ==>|Revision and replica state| AUDIT
+    AUDIT -.->|Inventory samples| CONSOLE
+    TRIGGER --> SAMPLER
+    SAMPLER ==>|Management requests| ARM
+    ARM ==>|High-frequency state| SAMPLER
+    SAMPLER -.->|Window markers and samples| CONSOLE
+    TRIGGER --> UPDATE
+    UPDATE --> ROLLOUT
+    ROLLOUT --> SUBJECT
+    SUBJECT -.->|Revision and replica events| SYSTEM
+    LOAD ==>|Requests| FQDN
+    FQDN ==>|Routed requests| SUBJECT
+    SUBJECT ==>|Responses| FQDN
+    FQDN ==>|Responses| LOAD
+    LOAD -.->|Timestamped request buckets| CONSOLE
+    CONSOLE --> QUERY
+    SYSTEM --> QUERY
 ```
+
+The `_CL` table names match this lab's direct Log Analytics destination. Client requests and responses are separate from management reads and telemetry associations.
 
 ## Cleanup
 

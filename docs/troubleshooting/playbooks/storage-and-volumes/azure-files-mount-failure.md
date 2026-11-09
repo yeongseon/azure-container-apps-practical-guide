@@ -8,6 +8,9 @@ content_sources:
       type: flowchart
       source: self-generated
       justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-storage-mount-failures
+        - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts-azure-files
 content_validation:
   status: verified
   last_reviewed: 2026-07-18
@@ -28,18 +31,32 @@ content_validation:
 <!-- diagram-id: azure-files-mount-failure-flow -->
 ```mermaid
 flowchart TD
-    A[Container fails to start: mount error] --> B[Check ACA environment storage definition]
-    B -->|Missing| C[Add storage definition with correct account key and share name]
-    B -->|Exists| D[Verify storage account key is current]
-    C --> E[Update container volume mount config]
-    D -->|Stale key| F[Rotate storage account key and update secret]
-    D -->|Current| G[Check SMB port 445 not blocked by NSG]
-    F --> E
-    G -->|Blocked| H[Add NSG rule to allow port 445 outbound]
-    G -->|Open| E
-    H --> E
-    E --> I[Container mounts volume successfully]
+    accTitle: Diagnose an Azure Files mount failure
+    accDescr: Verify the environment storage definition, credential and share values, revision volume references, and platform storage evidence before redeploying a corrected mount.
+
+    START[Revision reports an Azure Files<br/>mount failure]
+    ENV[Verify the environment<br/>storage definition]
+    VALUES[Verify account, key,<br/>share, and protocol]
+    REFERENCES[Verify storageName, volume,<br/>and mount-name alignment]
+    DETECTOR[Run Storage Mount Failures<br/>diagnostics if needed]
+    CORRECT[Correct the identified<br/>configuration or credential]
+    REDEPLOY[Deploy a corrected revision]
+    MOUNTED[Check the corrected revision's<br/>mount result]
+    DONE[Mount path verified]
+    CONTINUE[Investigate the detector result<br/>and storage network policy]
+
+    START --> ENV
+    ENV --> VALUES
+    VALUES --> REFERENCES
+    REFERENCES --> DETECTOR
+    DETECTOR --> CORRECT
+    CORRECT --> REDEPLOY
+    REDEPLOY --> MOUNTED
+    MOUNTED -->|Mount succeeds| DONE
+    MOUNTED -->|Mount still fails| CONTINUE
 ```
+
+*Figure: Environment storage configuration and revision volume references are separate contracts; the portal detector supplies evidence when both appear correct.*
 
 ## Symptom
 

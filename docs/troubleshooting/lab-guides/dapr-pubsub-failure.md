@@ -51,14 +51,32 @@ Reproduce a message-flow failure by breaking the Dapr pub/sub component or its s
 <!-- diagram-id: dapr-pubsub-failure-lab-diagram -->
 ```mermaid
 flowchart TD
-    A[Publisher sends message] --> B[Broken pubsub component or scope]
-    B --> C[Subscriber receives nothing]
-    C --> D[Inspect app Dapr config]
-    D --> E[Inspect pubsub component]
-    E --> F[Fix metadata or scopes]
-    F --> G[Replay message]
-    G --> H[Subscriber receives event]
+    accTitle: Test Dapr pub/sub component recovery
+    accDescr: Trace a publication through the publisher sidecar, environment-scoped component, broker, and subscriber sidecar before correcting component metadata or app-ID scopes and replaying the message.
+
+    PUBLISHER[Publisher app]
+    PUBSIDECAR[Publisher Dapr sidecar]
+    COMPONENT[Environment-level<br/>pub/sub component]
+    BROKER[Message broker]
+    SUBSIDECAR[Subscriber Dapr sidecar]
+    SUBSCRIBER[Subscriber app]
+    FAULT[Broken metadata, credentials,<br/>or app-ID scope]
+    EVIDENCE[Capture component YAML,<br/>sidecar logs, and timestamps]
+    FIX[Correct metadata or scopes]
+
+    PUBLISHER ==>|Publish request| PUBSIDECAR
+    COMPONENT -.->|Loaded by scoped app IDs| PUBSIDECAR
+    COMPONENT -.->|Loaded by scoped app IDs| SUBSIDECAR
+    PUBSIDECAR ==>|Publish| BROKER
+    BROKER ==>|Deliver event| SUBSIDECAR
+    SUBSIDECAR ==>|Invoke subscription endpoint| SUBSCRIBER
+    FAULT -.-> COMPONENT
+    COMPONENT --> EVIDENCE
+    EVIDENCE --> FIX
+    FIX -->|Replay test message| PUBLISHER
 ```
+
+*Figure: The lab keeps component scope and broker transport distinct, then replays one test message after correcting the verified component fault.*
 
 !!! note "Evidence depth"
     This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/dapr-pubsub-failure/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/dapr-pubsub-failure/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.

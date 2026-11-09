@@ -51,13 +51,31 @@ Break state access by using a scopes mismatch or bad component metadata, then va
 <!-- diagram-id: dapr-state-store-failure-lab-diagram -->
 ```mermaid
 flowchart TD
-    A[Healthy app uses Dapr state] --> B[Change component scopes or metadata]
-    B --> C[State operation fails]
-    C --> D[Inspect app Dapr config]
-    D --> E[Inspect environment component]
-    E --> F[Correct scopes or metadata]
-    F --> G[Retest state read and write]
+    accTitle: Test Dapr state-store component recovery
+    accDescr: Trace a state request from the app through its Dapr sidecar and environment component to the backing store, then correct the scoped component fault and repeat the same read and write.
+
+    APP[Stateful app]
+    SIDECAR[Dapr sidecar]
+    COMPONENT[Environment-level<br/>state-store component]
+    STORE[Backing state service]
+    FAULT[Invalid metadata, secret,<br/>endpoint, or app-ID scope]
+    EVIDENCE[Capture component YAML<br/>and sidecar initialization logs]
+    FIX[Correct the verified component fault]
+    RETEST[Repeat the same state read and write]
+
+    APP ==>|State API request| SIDECAR
+    COMPONENT -.->|Loaded for scoped app ID| SIDECAR
+    SIDECAR ==>|Backend operation| STORE
+    STORE ==>|Backend response| SIDECAR
+    SIDECAR ==>|State API response| APP
+    FAULT -.-> COMPONENT
+    COMPONENT --> EVIDENCE
+    EVIDENCE --> FIX
+    FIX --> RETEST
+    RETEST --> APP
 ```
+
+*Figure: The controlled loop separates the app-to-sidecar API from component loading and backend connectivity before repeating the same state operation.*
 
 !!! note "Evidence depth"
     This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/dapr-state-store-failure/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/dapr-state-store-failure/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.

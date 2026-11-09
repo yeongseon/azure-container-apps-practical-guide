@@ -37,15 +37,36 @@ Control-plane success is easy to misread as workload success. A deployment comma
 <!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
 flowchart TD
-    A[Revision health is Failed] --> B{Error references secret or env?}
-    B -->|Yes| C[Fix secret names and env secretRef mapping]
-    B -->|No| D{Probe or startup timeout in logs?}
-    D -->|Yes| E[Adjust startup and readiness probe settings]
-    D -->|No| F[Validate command, resources, and template fields]
-    C --> G[Deploy new revision and verify health]
-    E --> G
-    F --> G
+    accTitle: Diagnose a revision provisioning failure
+    accDescr: Separate control-plane acceptance from runtime readiness, then branch on secret resolution, startup probes, and remaining template or image evidence before creating a corrected revision.
+
+    START[New revision never becomes healthy]
+    EVIDENCE[Capture revision state,<br/>template, and system logs]
+    SECRET{Evidence names a missing<br/>secret or secretRef?}
+    FIX_SECRET[Correct secret inventory<br/>and environment mapping]
+    PROBE{Container starts but startup<br/>or readiness probes fail?}
+    FIX_PROBE[Correct probe endpoint<br/>or startup timing]
+    TEMPLATE[Validate image, command,<br/>resources, and template fields]
+    REDEPLOY[Create a corrected revision]
+    HEALTHY{Corrected revision<br/>becomes healthy?}
+    DONE[Provisioning path verified]
+    ESCALATE[Collect the new failure evidence<br/>and continue diagnosis]
+
+    START --> EVIDENCE
+    EVIDENCE --> SECRET
+    SECRET -->|Yes| FIX_SECRET
+    SECRET -->|No| PROBE
+    PROBE -->|Yes| FIX_PROBE
+    PROBE -->|No| TEMPLATE
+    FIX_SECRET --> REDEPLOY
+    FIX_PROBE --> REDEPLOY
+    TEMPLATE --> REDEPLOY
+    REDEPLOY --> HEALTHY
+    HEALTHY -->|Yes| DONE
+    HEALTHY -->|No| ESCALATE
 ```
+
+*Figure: A successful deployment request is only control-plane acceptance; revision state and system evidence determine whether runtime provisioning completed.*
 
 ## 2. Common Misreadings
 

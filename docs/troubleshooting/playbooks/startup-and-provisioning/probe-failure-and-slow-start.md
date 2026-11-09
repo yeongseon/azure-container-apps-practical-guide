@@ -35,15 +35,29 @@ The application code is correct and the container runs fine locally. The problem
 
 <!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
-graph TD
-    A[Symptom: Probe failures, restart loops] --> B{Probe path returns 200 when tested manually?}
-    B -->|No| H1[H1: Wrong probe path or port]
-    B -->|Yes| C{Failures only during startup?}
-    C -->|Yes| H2[H2: Startup probe too aggressive]
-    C -->|No| D{App crashes after some runtime?}
-    D -->|Yes| H3[H3: Liveness probe fails due to app hang]
-    D -->|No| H4[H4: Resource contention slows responses]
+flowchart TD
+    accTitle: Classify probe failures by path, timing, and runtime health
+    accDescr: Verify the configured endpoint first, then separate startup-only failures from later liveness failures and resource-related response delays.
+
+    START[Probe failures or restart loops]
+    ENDPOINT{Configured probe path and port<br/>return success manually?}
+    PATH[H1: Correct the probe<br/>path, port, or protocol]
+    STARTUP{Failures confined to<br/>the startup window?}
+    BUDGET[H2: Measure startup time<br/>and tune the startup probe budget]
+    RUNTIME{App becomes unresponsive<br/>after stable runtime?}
+    LIVENESS[H3: Investigate an app hang<br/>or an over-strict liveness probe]
+    RESOURCES[H4: Correlate probe latency<br/>with CPU and memory pressure]
+
+    START --> ENDPOINT
+    ENDPOINT -->|No| PATH
+    ENDPOINT -->|Yes| STARTUP
+    STARTUP -->|Yes| BUDGET
+    STARTUP -->|No| RUNTIME
+    RUNTIME -->|Yes| LIVENESS
+    RUNTIME -->|No| RESOURCES
 ```
+
+*Figure: Probe configuration, startup timing, later runtime health, and resource pressure are tested in order so one signal is not mistaken for another.*
 
 ## 2. Common Misreadings
 

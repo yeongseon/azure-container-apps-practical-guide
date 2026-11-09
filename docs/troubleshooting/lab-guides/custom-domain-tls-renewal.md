@@ -187,16 +187,22 @@ az group delete \
 <!-- diagram-id: custom-domain-tls-renewal-page-flow -->
 ```mermaid
 flowchart TD
-    A["Custom Domain TLS Renewal Lab"]
-    B["Lab Metadata"]
-    C["1. Question"]
-    D["2. Setup"]
-    E["3. Hypothesis"]
-    A --> B
-    B --> C
-    C --> D
-    D --> E
+    accTitle: Test managed-certificate renewal eligibility
+    accDescr: Break a managed-certificate DNS prerequisite, capture the failed validation, restore the required record, and repeat validation to test recovery.
+
+    BASELINE[Record the bound hostname,<br/>certificate state, and DNS answers]
+    BREAK[Remove or alter one required<br/>DNS validation record]
+    OBSERVE[Capture hostname validation<br/>and certificate evidence]
+    RESTORE[Restore the documented<br/>A, CNAME, TXT, or CAA requirement]
+    RETEST[Resubmit the managed-certificate<br/>configuration and recheck status]
+
+    BASELINE --> BREAK
+    BREAK --> OBSERVE
+    OBSERVE --> RESTORE
+    RESTORE --> RETEST
 ```
+
+*Figure: The experiment changes one managed-certificate prerequisite, records the run-specific failure, and restores that same prerequisite before retesting.*
 
 ## See Also
 

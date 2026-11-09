@@ -52,14 +52,28 @@ Trigger an Entra ID redirect URI mismatch for Container Apps built-in auth, then
 <!-- diagram-id: easyauth-entra-id-failure-lab-diagram -->
 ```mermaid
 flowchart TD
-    A[User requests protected app] --> B[EasyAuth redirects to Entra ID]
-    B --> C[Redirect URI mismatch occurs]
-    C --> D[AADSTS50011 shown to user]
-    D --> E[Inspect app auth config and FQDN]
-    E --> F[Fix Entra redirect URI or EasyAuth settings]
-    F --> G[Retry sign-in]
-    G --> H[Successful callback to app]
+    accTitle: Trace an Entra redirect URI mismatch
+    accDescr: Follow the browser from the protected app through Container Apps authentication to Microsoft Entra ID, then compare the requested callback with the registered URI before retrying sign-in.
+
+    USER[Browser]
+    AUTH[Container Apps authentication]
+    ENTRA[Microsoft Entra ID]
+    REGISTRATION[Entra app registration<br/>redirect URI list]
+    ERROR[AADSTS50011<br/>redirect URI mismatch]
+    FIX[Register the exact app URL plus<br/>/.auth/login/aad/callback]
+
+    USER ==>|Request protected app| AUTH
+    AUTH ==>|Authorization request<br/>with redirect URI| ENTRA
+    REGISTRATION -.->|Allowed callback list| ENTRA
+    ENTRA ==>|Mismatch response| ERROR
+    ERROR --> FIX
+    FIX -.-> REGISTRATION
+    USER ==>|Retry protected app| AUTH
+    ENTRA ==>|Authorization response<br/>to corrected callback| AUTH
+    AUTH ==>|Authenticated app response| USER
 ```
+
+*Figure: The redirect URI is compared by Microsoft Entra ID; the corrected authorization response returns to Container Apps authentication before the app response reaches the browser.*
 
 !!! note "Evidence depth"
     This lab was reproduced with Azure CLI commands and live Azure observations, but it does not yet include dedicated `labs/easyauth-entra-id-failure/` infrastructure, `trigger.sh` / `verify.sh`, or reader-facing Azure Portal captures under `docs/assets/troubleshooting/easyauth-entra-id-failure/`. Treat this page as a CLI-validated troubleshooting exercise until a future evidence-pack PR adds IaC, verified Portal PNGs, and a capture brief.

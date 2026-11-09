@@ -8,6 +8,8 @@ content_sources:
       type: flowchart
       source: self-generated
       justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
 content_validation:
   status: verified
   last_reviewed: 2026-07-18
@@ -28,16 +30,35 @@ content_validation:
 <!-- diagram-id: emptydir-disk-full-flow -->
 ```mermaid
 flowchart TD
-    A[Container OOMKilled or restart loop] --> B[Check restart reason in system logs]
-    B -->|EphemeralStorageExceeded| C[Identify ephemeral storage consumer]
-    B -->|OOMKilled| D[Memory limit issue - different playbook]
-    C --> E{Log accumulation or temp files?}
-    E -->|Yes| F[Add log rotation or temp cleanup in app]
-    E -->|No| G[Increase ephemeralStorage limit in container spec]
-    F --> H[Redeploy revision]
-    G --> H
-    H --> I[Monitor storage usage stays within limits]
+    accTitle: Diagnose an EmptyDir capacity failure
+    accDescr: Confirm that the failing path uses replica-scoped temporary storage, separate durable data from scratch data, and verify cleanup or a storage redesign under the same workload.
+
+    START[Write failures or restart loop<br/>after temporary data grows]
+    VOLUME{Failing path uses<br/>EmptyDir storage?}
+    OTHER[Investigate memory, image-layer,<br/>or external-storage causes]
+    DURABLE{Data must survive a replica<br/>restart or be shared?}
+    PERSIST[Move durable or shared data<br/>to Azure Files or another service]
+    SCRATCH[Measure scratch growth<br/>and identify the producer]
+    CLEANUP[Add bounded cleanup,<br/>rotation, or streaming]
+    RETEST[Deploy and repeat<br/>the same write workload]
+    STABLE{Temporary writes remain<br/>within available capacity?}
+    DONE[Scratch-space use verified]
+    REDESIGN[Reduce the workload footprint<br/>or redesign the storage path]
+
+    START --> VOLUME
+    VOLUME -->|No| OTHER
+    VOLUME -->|Yes| DURABLE
+    DURABLE -->|Yes| PERSIST
+    DURABLE -->|No| SCRATCH
+    SCRATCH --> CLEANUP
+    PERSIST --> RETEST
+    CLEANUP --> RETEST
+    RETEST --> STABLE
+    STABLE -->|Yes| DONE
+    STABLE -->|No| REDESIGN
 ```
+
+*Figure: `EmptyDir` is replica-scoped temporary storage, so durable data takes a persistence path while scratch data takes a bounded-growth path.*
 
 ## Symptom
 
