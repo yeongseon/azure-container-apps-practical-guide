@@ -1,3 +1,13 @@
+---
+content_sources:
+  diagrams:
+    - id: metrics-load-test-topology
+      type: flowchart
+      source: self-generated
+      justification: Repository-only topology synthesized from this lab's deployment scripts, workload mapping, and committed evidence baseline.
+      based_on:
+        - https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/metrics-load-test
+---
 # Lab: Container Apps metrics load test
 
 Reproducible Azure deployment that drives every metric documented in
@@ -23,46 +33,49 @@ screenshot states.
 
 ## Topology
 
+<!-- diagram-id: metrics-load-test-topology -->
 ```mermaid
 flowchart TD
+    accTitle: Metrics load-test topology
+    accDescr: Show the external load generator, two Container Apps environments, workload roles, Azure Container Registry image associations, and Log Analytics destinations used by the metrics evidence baseline.
+
     subgraph LOAD[Load generation]
-        HEY[hey × 7 parallel processes<br/>health, cpu, mem, slow, error 4xx/5xx, payload<br/>~130-145 RPS aggregate steady state]
+        HEY[hey processes<br/>health, CPU, memory, slow,<br/>error, and payload routes]
     end
 
-    subgraph RG[Resource group: rg-aca-basics-d38538]
-        ACR[ACR: acrbasicsd38538<br/>4 images]
-        LAW[Log Analytics workspace<br/>law-aca-basics-d38538]
+    ACR[Azure Container Registry<br/>four lab images]
+    LAW[Log Analytics workspace]
 
-        subgraph CONS[cae-basics-d38538 - Consumption env]
-            LT[ca-loadtest-d38538<br/>external ingress<br/>min=2 max=10<br/>HTTP scaler concurrency=20]
-            CR[ca-crashloop-d38538<br/>no ingress, min=2 max=2<br/>OOM-by-design memory growth]
-            CALLER[ca-res-caller<br/>min=2 max=2<br/>100 threads × 5 targets]
-            R503[ca-res-503<br/>internal ingress<br/>policy-503: retry on 5xx + outlier]
-            RS[ca-res-slow<br/>internal ingress<br/>policy-slow: responseTimeout=1s]
-            RP[ca-res-pool<br/>internal ingress<br/>policy-pool: http1MaxPending=1]
-            RBH[ca-res-blackhole<br/>internal TCP ingress<br/>policy-blackhole: connectTimeout=1s]
-        end
-
-        subgraph WP[cae-wp-d38538 - Workload Profile env<br/>D4 profile pinned min=max=2 nodes]
-            AN[ca-node-anchor<br/>min=2 max=2<br/>internal ingress, holds the 2 D4 nodes<br/>image: mcr.microsoft.com/k8se/quickstart]
-        end
+    subgraph CONS[Consumption environment]
+        LT[Load target<br/>external ingress and HTTP scaling]
+        CR[Crash-loop target<br/>memory growth]
+        CALLER[Resiliency caller]
+        R503[503 target<br/>retry and outlier policy]
+        RS[Slow target<br/>response-timeout policy]
+        RP[Pool target<br/>pending-request policy]
+        RBH[Blackhole target<br/>connection policy]
     end
 
-    HEY -->|public FQDN| LT
-    CALLER -->|env-internal DNS| R503
-    CALLER -->|env-internal DNS| RS
-    CALLER -->|env-internal DNS| RP
-    CALLER -->|env-internal DNS| RBH
-    ACR -.->|4 ACR images| LT
-    ACR -.->|4 ACR images| CR
-    ACR -.->|4 ACR images| CALLER
-    ACR -.->|4 ACR images| R503
-    ACR -.->|4 ACR images| RS
-    ACR -.->|4 ACR images| RP
-    ACR -.->|4 ACR images| RBH
+    subgraph WP[Workload-profiles environment]
+        AN[Node anchor<br/>dedicated profile baseline]
+    end
+
+    HEY ==>|Public requests| LT
+    LT ==>|HTTP responses| HEY
+    CALLER ==>|Internal requests| R503
+    R503 ==>|503 responses| CALLER
+    CALLER ==>|Internal requests| RS
+    RS ==>|Slow responses| CALLER
+    CALLER ==>|Internal requests| RP
+    RP ==>|Pool-pressure responses| CALLER
+    CALLER ==>|Internal TCP requests| RBH
+    RBH ==>|Delayed or failed responses| CALLER
+    ACR -.->|Image source| CONS
     CONS -.->|logs| LAW
     WP -.->|logs| LAW
 ```
+
+The topology distinguishes request/response transport from image and telemetry associations. Exact app names, replica settings, policies, and measured rates remain in the mapping and evidence sections below.
 
 **Why two environments?** Container Apps consumption-only environments do
 not surface `NodeCount`, and the four `Ingress*` (Preview) metrics are only
