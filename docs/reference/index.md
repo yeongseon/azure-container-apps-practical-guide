@@ -27,36 +27,23 @@ This section is optimized for fast operational lookup during build, deploy, and 
 ```mermaid
 flowchart TD
     accTitle: Choose a Container Apps reference by operator question
-    accDescr: First decide whether you need to execute an operation or plan and diagnose. The execute branch leads to CLI syntax. The planning branch uses binary questions to separate change scope, runtime configuration, metrics, and platform limits, preserving all five reference destinations in a narrow staged flow.
+    accDescr: Scan the narrow reference path from operation syntax through configuration scope, runtime values, metric definitions, and platform limits. Stop at the first destination that matches the information you need.
 
-    QUESTION["Stage 1<br/>Choose the operator task"]
-    SCOPE_CHECK["Stage 2<br/>Check configuration scope"]
-    RUNTIME_CHECK["Stage 3<br/>Check runtime values"]
-    METRIC_CHECK["Stage 4<br/>Check metric definitions"]
+    START["Choose the needed<br/>reference detail"]
     CLI[CLI reference<br/>command syntax]
     SCOPE[Configuration scope matrix<br/>change impact]
     ENV[Environment variables<br/>runtime configuration]
     METRICS[Metrics reference<br/>names, dimensions, and aggregation]
     LIMITS[Platform limits<br/>quota scope and constraints]
-    EXECUTE[Execute and verify<br/>an operation]
-    PLAN[Plan and diagnose<br/>with the correct boundary]
 
-    QUESTION -->|Execute| CLI
-    QUESTION -->|Plan or diagnose| SCOPE_CHECK
-    SCOPE_CHECK -->|Yes| SCOPE
-    SCOPE_CHECK -->|No| RUNTIME_CHECK
-    RUNTIME_CHECK -->|Yes| ENV
-    RUNTIME_CHECK -->|No| METRIC_CHECK
-    METRIC_CHECK -->|Yes| METRICS
-    METRIC_CHECK -->|No, check limits| LIMITS
-    CLI --> EXECUTE
-    SCOPE --> PLAN
-    ENV --> PLAN
-    METRICS --> PLAN
-    LIMITS --> PLAN
+    START -->|Operation syntax| CLI
+    CLI -->|Configuration scope| SCOPE
+    SCOPE -->|Runtime values| ENV
+    ENV -->|Metric definitions| METRICS
+    METRICS -->|Other lookup| LIMITS
 ```
 
-Choose one branch from the operator question. The linked page then provides the exact lookup details; this diagram is navigation, not a runtime dependency map.
+Scan downward and stop at the first destination that matches your lookup. Each linked page provides the exact details; this diagram is navigation, not a runtime dependency map.
 
 ## Reference coverage map
 
