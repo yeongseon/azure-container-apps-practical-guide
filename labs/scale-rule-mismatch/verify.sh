@@ -3,12 +3,18 @@ set -euo pipefail
 
 export PYTHONWARNINGS="${PYTHONWARNINGS:-ignore}"
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [[ -n "${GATE_REPLAY_BASELINE_DIR:-}" || "${1:-}" == "--offline" ]]; then
+    python3 "${SCRIPT_DIR}/verify_offline.py"
+    exit $?
+fi
+
 : "${AZ_SUBSCRIPTION:?Set AZ_SUBSCRIPTION before running}"
 : "${RG:?Set RG before running}"
 : "${APP_NAME:?Set APP_NAME before running}"
 : "${WORKSPACE_CUSTOMER_ID:?Set WORKSPACE_CUSTOMER_ID before running (the LAW guid, not the resource ID)}"
 
-EVIDENCE_DIR="$(cd "$(dirname "$0")" && pwd)/evidence"
+EVIDENCE_DIR="${SCRIPT_DIR}/evidence"
 mkdir -p "$EVIDENCE_DIR"
 
 UTC_NOW="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -256,8 +262,8 @@ az deployment group show \
     --output json \
     > "$EVIDENCE_DIR/23-deployment-outputs.json" 2>&1 || true
 
-UTC_CAPTURED="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-export EVIDENCE_DIR APP_NAME RG POST_FIX_REVISION_NAME POST_FIX_FQDN FIX_UTC LOAD_START_UTC_AFTER_FIX LOAD_END_UTC_AFTER_FIX UTC_CAPTURED
+EVALUATED_AT_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+export EVIDENCE_DIR APP_NAME RG POST_FIX_REVISION_NAME POST_FIX_FQDN FIX_UTC LOAD_START_UTC_AFTER_FIX LOAD_END_UTC_AFTER_FIX EVALUATED_AT_UTC
 export REPLICAS_PRE_LOAD_AFTER_FIX REPLICAS_15S_AFTER_FIX REPLICAS_30S_AFTER_FIX REPLICAS_60S_AFTER_FIX REPLICAS_90S_AFTER_FIX
 export SCALE_EVENTS_COUNT_AFTER_FIX
 export REVISION_FINAL_HEALTH="$revision_health"
@@ -326,7 +332,7 @@ h2_sub_gates = {
 h2_all_subgates_pass = all(h2_sub_gates.values())
 
 out = {
-    'utc_captured': os.environ['UTC_CAPTURED'],
+    'evaluated_at_utc': os.environ['EVALUATED_AT_UTC'],
     'fix_utc': os.environ['FIX_UTC'],
     'app_name': os.environ['APP_NAME'],
     'rg': os.environ['RG'],

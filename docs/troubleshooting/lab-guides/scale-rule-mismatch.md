@@ -226,6 +226,8 @@ az containerapp update \
 
 Expected output: replicas remain pinned at 1 throughout the 90 s load window despite sustained 60-concurrent load (samples at +15 s / +30 s / +60 s / +90 s all return 1 replica). `trigger.sh` emits the H1 gate JSON to `evidence/10-h1-gate.json` with `gate_classification: scale_rule_mismatch_replicas_capped` when all three sub-gates pass (baseline 1 replica, max-during-load <= 1, zero strict scale events).
 
+Gates 10 and 19 were originally emitted during the live run and were later re-evaluated offline from the unchanged raw evidence. Each replay writes its invocation time as top-level `evaluated_at_utc`; this is not a capture or current validation date. Capture-script, revision, scaler, replica, and log timestamps remain the original observation times.
+
 ### Inspect scaling-related signals
 
 `trigger.sh` Phase 8 queries `ContainerAppSystemLogs_CL` for the strict load window via `az monitor log-analytics query`, filtered to scale-related `Reason_s` values for the active revision. The canonical query is:

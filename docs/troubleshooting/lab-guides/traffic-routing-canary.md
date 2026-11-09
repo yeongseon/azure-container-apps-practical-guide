@@ -466,6 +466,8 @@ Request 4: HTTP 000
 
 A second end-to-end live Azure run executed on **2026-06-24** with `az` CLI version **2.79.0** (see `labs/traffic-routing-canary/evidence/19-cli-versions.json`) against resource group `rg-aca-lab-traffic2` (subscription redacted to placeholder `00000000-0000-0000-0000-000000000000`). The run produced 22 numbered evidence prefixes (`01-*` through `22-*`, totaling 27 files when counting `.stderr` companions to `05-*`, `09-*`, and `15-*`, plus the two `08-*` per-revision and two `17-*` per-snapshot pairs) under `labs/traffic-routing-canary/evidence/`, covering H1 (50/50-split canary failure reproduction) and H2 (config-plane rollback without minting a new GOOD revision). All 11 sub-gates across both hypotheses passed.
 
+Gates 12 and 22 were originally emitted during that live run and were later re-evaluated offline from the unchanged raw evidence. Each replay writes its invocation time as top-level `evaluated_at_utc`; this is not a capture or current validation date. Capture-script, revision, traffic, and log timestamps remain the original observation times.
+
 **H1 reproduction** — `evidence/12-h1-gate.json`:
 
 | Sub-gate | Value | Source |

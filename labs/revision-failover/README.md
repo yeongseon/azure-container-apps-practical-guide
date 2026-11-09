@@ -41,13 +41,13 @@ labs/revision-failover/
     ├── 08-containerapp-show-after-break.json           # Phase 9: containerapp show post-break (expect targetPort=9999, latestRevisionName=baseline)
     ├── 09-system-logs-probe-failures.json              # Phase 10: az monitor log-analytics query for ContainerAppSystemLogs_CL probe/deployment failure events in the break window (expect >=1 row with Reason_s=ProbeFailed and Log_s="Probe of StartUp failed with status code: 1" on the affected revision; the Portal Diagnose-and-Solve flyout text "TargetPort 9999 does not match the listening port 8000" is rendered separately in the Portal blade and is preserved as PNG 03 in the 2026-06-03 section of docs/troubleshooting/lab-guides/revision-failover.md)
     ├── 10-curl-after-break.txt                         # Phase 11: curl post-break FQDN (expect non-200 or timeout)
-    ├── 11-h1-gate.json                                 # Phase 12: parsed H1 gate classification (expect revision_failover_broken_revision_unhealthy)
+    ├── 11-h1-gate.json                                 # Phase 12: derived H1 gate classification (expect revision_failover_broken_revision_unhealthy)
     ├── 12-containerapp-ingress-update-fix.json         # Phase 14: az containerapp ingress update --target-port 8000 result (FIX, in-place on same revision)
     ├── 13-revision-list-after-fix.json                 # Phase 16: revision list post-fix (expect same revision name, healthState=Healthy)
     ├── 14-containerapp-show-after-fix.json             # Phase 17: containerapp show post-fix (expect targetPort=8000, latestRevisionName=baseline, same name as Phase 4)
     ├── 15-curl-after-fix.txt                           # Phase 18: curl post-fix FQDN (expect HTTP 200)
     ├── 16-system-logs-recovery.json                    # Phase 19: az monitor log-analytics query for ContainerAppSystemLogs_CL in the fix window
-    ├── 17-h2-gate.json                                 # Phase 20: parsed H2 gate classification (expect revision_failover_recovered_in_place_no_new_revision)
+    ├── 17-h2-gate.json                                 # Phase 20: derived H2 gate classification (expect revision_failover_recovered_in_place_no_new_revision)
     ├── 18-cli-versions.json                            # Post-run: `az version`
     ├── 19-cli-containerapp-ext.json                    # Post-run: containerapp extension version
     ├── 20-region.json                                  # Post-run: deployment region
@@ -170,7 +170,7 @@ When you ship this lab's evidence into a docs PR or a support ticket, ALWAYS rec
 
 - **Azure region** (e.g., `koreacentral`). Captured to `evidence/20-region.json`.
 - **Azure CLI version** and **`containerapp` extension version** (`az version`, `az extension list --query "[?name=='containerapp']"`). Captured to `evidence/18-cli-versions.json` and `evidence/19-cli-containerapp-ext.json`.
-- **Date of the run in UTC** (visible at the top of `00-trigger-run.txt` and `00-verify-run.txt`, and on the `utc_captured` field of `11-h1-gate.json` and `17-h2-gate.json`).
+- **Date of the live run in UTC** (visible at the top of `00-trigger-run.txt` and `00-verify-run.txt`). Gates 11 and 17 were originally emitted during that run and were later re-evaluated offline from the unchanged raw evidence; each replay records its invocation time as top-level `evaluated_at_utc`, which is not a capture or current validation date.
 - **The exit code of `trigger.sh` and `verify.sh`** (0 = hypothesis supported, 1 = invalid run, 2 = falsified).
 - **The deployment outputs blob** captured to `evidence/21-deployment-outputs.json`. Six resource identifiers are returned by the Bicep template: Container App name and URL, ACR name and login server, environment name, and Log Analytics workspace name. The LAW customer ID is queried separately via `az monitor log-analytics workspace show --query customerId` because it is a resource property, not a Bicep output.
 - **The break window UTC range** captured as `break_window.start_utc` / `end_utc` on `11-h1-gate.json` and the fix window as `fix_window.start_utc` / `end_utc` on `17-h2-gate.json`. The KQL queries in Phase 10 (probe failures) and Phase 19 (recovery events) use these exact windows; widening them risks pulling in noise from outside the experimental windows.
