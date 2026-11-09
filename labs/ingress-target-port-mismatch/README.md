@@ -120,6 +120,8 @@ This lab now splits the live-Azure reproduction from the offline evidence-pack v
 - **Phase A — Live Azure reproduction.** `trigger.sh` captures the healthy baseline, applies the trigger (`targetPort=8081`), drives failed traffic, waits for system-log ingestion, and captures the populated PortMismatch window. `fix-and-capture.sh` then restores `targetPort=80`, re-runs traffic, waits for the strict post-fix ingestion window, and captures the silent PortMismatch result. The historical Phase A script name was `verify.sh`; it was renamed to `fix-and-capture.sh` so `verify.sh` could become the offline verifier. The captured log file remains `00-verify-run.txt` for schema stability.
 - **Phase B — Offline evidence-pack verification.** `verify.sh` is now a pure file processor that reads the committed Phase A cohort plus `evidence/README.md` and the `evidence/` directory listing for Gate 14 integrity checks, emits four derived gate JSONs, and exits 0 only when all 16 sub-gates pass. See [`evidence/README.md`](evidence/README.md) for the full evidence-pack tour.
 
+Gate 14 through Gate 17 were originally emitted on 2026-06-26 and later re-evaluated offline from the unchanged raw cohort. Each replay records its own invocation time in top-level `evaluated_at_utc`; that value is not a capture date and implies no current Azure replay or validation.
+
 ## What this lab demonstrates
 
 - The Container Apps environment is provisioned by `infra/main.bicep` with `appLogsConfiguration.destination='log-analytics'` so that `ContainerAppSystemLogs_CL` ingests platform events, which is what the H1 KQL gate reads.

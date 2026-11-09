@@ -361,5 +361,5 @@
     "h2_firewall_row_count_expected_min": 1,
     "expected_acr_public_network_access": "Disabled"
   },
-  "utc_captured": "2026-06-29T00:42:44Z"
+  "evaluated_at_utc": "2026-11-09T13:05:31Z"
 }
