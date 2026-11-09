@@ -1,4 +1,5 @@
 ---
+description: Azure Container Apps configuration scope matrix for deciding whether a setting affects an environment, every revision, or a new revision.
 content_sources:
   diagrams:
     - id: config-scope-decision
@@ -7,32 +8,6 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/revisions
         - https://learn.microsoft.com/en-us/azure/container-apps/azure-resource-manager-api-spec
-content_validation:
-  status: verified
-  last_reviewed: '2026-07-18'
-  reviewer: ai-agent
-  core_claims:
-    - claim: Changes to parameters in the container app's properties.template section are revision-scope changes that trigger a new revision.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
-      verified: true
-    - claim: Changes to parameters in the container app's properties.configuration section are application-scope changes that are applied to all revisions and do not create a new revision.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
-      verified: true
-    - claim: Secret value changes are application-scope, but revisions must be restarted before a container recognizes the new secret values.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
-      verified: true
-    - claim: The properties.template section includes revisionSuffix, containers, initContainers, scale, and volumes, while properties.configuration includes activeRevisionsMode, secrets, ingress, registries, and dapr.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/azure-resource-manager-api-spec
-      verified: true
-    - claim: Container Apps environment-level properties such as vnetConfiguration, appLogsConfiguration, workloadProfiles, and zoneRedundant are defined on the managed environment resource.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/azure-resource-manager-api-spec
-      verified: true
-    - claim: Zone redundancy must be enabled during environment creation and cannot be changed or disabled after the environment is created.
-      source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
-      verified: true
-    - claim: The virtual network used by a Container Apps environment is configured at environment creation and cannot be changed afterward.
-      source: https://learn.microsoft.com/en-us/azure/container-apps/networking
-      verified: true
 ---
 # Configuration Scope Matrix
 
@@ -48,18 +23,36 @@ Use this matrix to answer a common production question: **"If I change this sett
 <!-- diagram-id: config-scope-decision -->
 ```mermaid
 flowchart TD
-    A[You change a setting] --> B{Which resource?}
-    B -->|Managed environment| C[Environment scope]
-    B -->|Container app| D{Which section?}
-    D -->|properties.template| E[Revision scope: new revision created]
-    D -->|properties.configuration| F[Application scope: applies to all revisions]
-    C --> C1[Some values immutable after creation<br/>e.g. VNet, zone redundancy]
-    E --> E1[Immutable snapshot<br/>image, scale, probes, volumes]
-    F --> F1[No new revision<br/>secrets, ingress, traffic, registries, Dapr]
-    F1 --> F2{Secret value change?}
-    F2 -->|Yes| G[Restart revisions to pick up new value]
-    F2 -->|No| H[Takes effect without restart]
+    accTitle: Decide the scope and effect of a Container Apps setting change
+    accDescr: First identify whether the setting belongs to the managed environment or container app. For app settings, template changes create a revision while configuration changes apply to all revisions; changed secret values also require affected revisions to restart.
+
+    CHANGE[Change a setting]
+    RESOURCE{Which Azure resource<br/>owns the setting?}
+    ENVIRONMENT[Managed environment scope]
+    APP_SECTION{Which container app<br/>section owns it?}
+    TEMPLATE[properties.template]
+    CONFIGURATION[properties.configuration]
+    NEW_REVISION[Create a new immutable revision<br/>for the changed template]
+    ALL_REVISIONS[Apply the configuration change<br/>to all revisions]
+    SECRET{Did a secret value change?}
+    RESTART[Restart affected revisions<br/>to load the new value]
+    COMPLETE[No revision restart required<br/>by the secret-value rule]
+    ENV_REVIEW[Check the property contract<br/>before changing the environment]
+
+    CHANGE --> RESOURCE
+    RESOURCE -->|Managed environment| ENVIRONMENT
+    RESOURCE -->|Container app| APP_SECTION
+    ENVIRONMENT --> ENV_REVIEW
+    APP_SECTION -->|properties.template| TEMPLATE
+    APP_SECTION -->|properties.configuration| CONFIGURATION
+    TEMPLATE --> NEW_REVISION
+    CONFIGURATION --> ALL_REVISIONS
+    ALL_REVISIONS --> SECRET
+    SECRET -->|Yes| RESTART
+    SECRET -->|No| COMPLETE
 ```
+
+The branches classify change impact; they do not imply that every managed-environment property is mutable after creation. Check the property-specific guidance before changing the environment resource.
 
 ## Change-type model
 
