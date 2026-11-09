@@ -5,8 +5,9 @@ content_sources:
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts
         - https://learn.microsoft.com/en-us/javascript/api/overview/azure/storage-blob-readme
+        - https://learn.microsoft.com/en-us/azure/storage/blobs/assign-azure-role-data-access
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 ---
 # Blob Storage Integration (Managed Identity)
 
@@ -17,15 +18,35 @@ Use this recipe to connect a Node.js Container App to Azure Blob Storage with ma
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Node.js Container App]
-    APP --> BLOB[Azure Blob Storage]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> BLOB
+    accTitle: Passwordless Blob Storage request from an Express container app
+    accDescr: A client request reaches Express through managed ingress. DefaultAzureCredential obtains a Storage access token through the app's managed identity, then BlobServiceClient sends a data request. Storage separately evaluates the identity's Blob data role assignment.
+    CLIENT[Client]
+    INGRESS[Managed ingress]
+    APP[Express app<br/>BlobServiceClient]
+    ENDPOINT[Container Apps identity endpoint]
+    ENTRA[Microsoft Entra ID]
+    BLOB[Azure Blob Storage]
+    AUTHZ[Blob authorization result]
+    RESULT[Blob operation result]
+    DENIED[Authorization failure]
+
+    CLIENT ==>|"HTTPS request"| INGRESS
+    INGRESS ==>|"Routed request"| APP
+    APP ==>|"Request Storage token"| ENDPOINT
+    ENDPOINT ==>|"Token request"| ENTRA
+    ENTRA ==>|"Access token response"| ENDPOINT
+    ENDPOINT ==>|"Return access token"| APP
+    APP ==>|"Blob request + token"| BLOB
+    BLOB -->|"Evaluate Blob data role"| AUTHZ
+    AUTHZ -->|"Allowed"| RESULT
+    AUTHZ -.->|"Denied"| DENIED
+    RESULT ==>|"Blob response"| APP
+    DENIED -.->|"Authorization error"| APP
+    APP ==>|"Application response"| INGRESS
+    INGRESS ==>|"HTTPS response"| CLIENT
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+*Figure: Token acquisition, Blob transport, and Storage data-plane authorization are separate steps. This SDK-access recipe does not depict an Azure Files or BlobFuse volume mount.*
 
 ## Prerequisites
 
@@ -214,5 +235,6 @@ az containerapp logs show \
 
 ## Sources
 
-- [Use storage mounts in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/storage-mounts)
 - [Azure Storage Blob client library for JavaScript](https://learn.microsoft.com/en-us/javascript/api/overview/azure/storage-blob-readme)
+- [Assign an Azure role for Blob data access](https://learn.microsoft.com/en-us/azure/storage/blobs/assign-azure-role-data-access)
+- [Managed identities in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)

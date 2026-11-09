@@ -7,6 +7,7 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
         - https://learn.microsoft.com/en-us/azure/redis/nodejs-get-started
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 ---
 # Azure Cache for Redis Integration (Microsoft Entra Authentication)
 
@@ -17,15 +18,46 @@ Use this recipe to connect Azure Container Apps to Azure Cache for Redis with Mi
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Node.js Container App]
-    APP --> REDIS[Azure Cache for Redis]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> REDIS
+    accTitle: Microsoft Entra authenticated Redis request from an Express app
+    accDescr: A client request reaches Express through managed ingress. DefaultAzureCredential obtains a Redis token through the app's managed identity, then the Redis client opens a TLS connection on port 6380. The cache separately evaluates its data access policy. A required production extension, not implemented by the short-lived sample, refreshes the token and sends AUTH again on the existing connection. Reconnect only if the connection drops or the client cannot reauthenticate in place.
+    CLIENT[Client]
+    INGRESS[Managed ingress]
+    APP1[Express app<br/>node-redis client]
+    ENDPOINT1[Container Apps identity endpoint]
+    ENTRA[Microsoft Entra ID]
+    REDIS[Azure Cache for Redis<br/>TLS port 6380]
+    AUTHZ[Redis authorization result]
+    RESULT[Cache operation result]
+    DENIED[Authorization failure]
+    APP2[Express app<br/>response stage]
+    REFRESH[Required production extension<br/>not implemented below]
+    REFRESH_ENDPOINT[Container Apps identity endpoint]
+    REFRESH_ENTRA[Microsoft Entra ID]
+    REAUTH[Redis client<br/>AUTH with new token]
+
+    CLIENT ==>|"HTTPS request"| INGRESS
+    INGRESS ==>|"Routed request"| APP1
+    APP1 ==>|"Request Redis token"| ENDPOINT1
+    ENDPOINT1 ==>|"Token request"| ENTRA
+    ENTRA ==>|"Access token response"| ENDPOINT1
+    ENDPOINT1 ==>|"Return access token"| APP1
+    APP1 ==>|"TLS Redis connection + token"| REDIS
+    REDIS -->|"Evaluate data access policy"| AUTHZ
+    AUTHZ -->|"Allowed"| RESULT
+    AUTHZ -.->|"Denied"| DENIED
+    RESULT ==>|"Cache response"| APP2
+    DENIED -.->|"Authorization error"| APP2
+    APP2 ==>|"Application response"| INGRESS
+    INGRESS ==>|"HTTPS response"| CLIENT
+    APP2 -->|"Token nearing expiry"| REFRESH
+    REFRESH ==>|"Request replacement token"| REFRESH_ENDPOINT
+    REFRESH_ENDPOINT ==>|"Token request"| REFRESH_ENTRA
+    REFRESH_ENTRA ==>|"Access token response"| REFRESH_ENDPOINT
+    REFRESH_ENDPOINT ==>|"Replacement token"| REAUTH
+    REAUTH ==>|"AUTH on existing connection"| REDIS
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+*Figure: Token acquisition, TLS transport on port `6380`, and Redis data authorization are implemented by the short-lived sample. The refresh branch is a required production extension, not implemented below; long-lived clients must refresh the Microsoft Entra token and reauthenticate with `AUTH` on the existing connection. Reconnect only after a dropped connection or when the client library cannot reauthenticate in place.*
 
 ## Prerequisites
 
@@ -58,6 +90,7 @@ export PRINCIPAL_ID=$(az containerapp show \
 az redis access-policy-assignment create \
   --name "$REDIS_NAME" \
   --resource-group "$RG" \
+  --policy-assignment-name "$APP_NAME-data-owner" \
   --access-policy-name "Data Owner" \
   --object-id "$PRINCIPAL_ID" \
   --object-id-alias "$APP_NAME"
@@ -65,7 +98,13 @@ az redis access-policy-assignment create \
 
 | Command | Why it is used |
 |---|---|
-| `az redis access-policy-assignment ...` | Creates or inspects Azure Cache for Redis resources used by the sample app. |
+| `az redis access-policy-assignment create` | Creates the Redis Data Owner assignment for the Express app identity. |
+| `--name` | Selects cache `$REDIS_NAME`. |
+| `--resource-group` | Locates the cache in `$RG`. |
+| `--policy-assignment-name` | Names the assignment `$APP_NAME-data-owner`. |
+| `--access-policy-name` | Grants the built-in Redis `Data Owner` policy. |
+| `--object-id` | Authorizes managed-identity object ID `$PRINCIPAL_ID`. |
+| `--object-id-alias` | Labels the Redis assignment with `$APP_NAME`. |
 
 ## Step 3: Configure non-secret Redis settings
 
@@ -138,7 +177,7 @@ run().catch((error) => {
 ```
 
 !!! warning
-    The Entra token used for Redis expires. For long-lived connections, implement token refresh and reconnect logic that matches the guidance for your Redis tier and client library.
+    The Entra token used for Redis expires. For long-lived connections, refresh the token and reauthenticate by sending `AUTH` with the replacement token on the existing connection. Reconnect only if the connection drops or the Redis client library cannot reauthenticate in place.
 
 ## Step 5: Access key fallback
 
@@ -198,3 +237,4 @@ az containerapp logs show \
 
 - [Use Microsoft Entra for cache authentication](https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication)
 - [Use Azure Cache for Redis with Node.js](https://learn.microsoft.com/en-us/azure/redis/nodejs-get-started)
+- [Managed identities in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)

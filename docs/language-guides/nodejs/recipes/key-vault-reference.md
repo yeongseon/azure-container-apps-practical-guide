@@ -5,7 +5,8 @@ content_sources:
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets
+        - https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets#reference-secret-from-key-vault
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
         - https://learn.microsoft.com/en-us/javascript/api/overview/azure/keyvault-secrets-readme
 ---
 # Recipe: Key Vault Reference in Node.js Apps on Azure Container Apps
@@ -15,13 +16,32 @@ Use Key Vault references and managed identity so Express workloads can consume s
 <!-- diagram-id: use-key-vault-references-and-managed -->
 ```mermaid
 flowchart TD
-    APP[Express App] -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> KV[Azure Key Vault]
-    KV -.-> SEC[Container Apps Secret]
-    SEC -.-> APP
-    style APP fill:#107c10,color:#fff
+    accTitle: Key Vault reference and direct JavaScript SDK access are separate secret paths
+    accDescr: For a Container Apps Key Vault reference, the platform uses the selected managed identity to resolve a vault secret into a Container Apps secret, which the revision consumes through secretRef. For direct SDK access, Express obtains a token and calls Key Vault at runtime.
+    IDENTITY[Managed identity]
+    ENDPOINT[Container Apps identity endpoint]
+    ENTRA[Microsoft Entra ID]
+    KV[Azure Key Vault]
+    PLATFORM[Container Apps secret resolver]
+    SECRET[Container Apps secret<br/>Key Vault reference]
+    REVISION[Express revision<br/>environment secretRef]
+    SDK[Express app<br/>SecretClient]
+
+    IDENTITY -.->|"Selected identity"| PLATFORM
+    PLATFORM ==>|"Resolve Key Vault secret"| KV
+    KV ==>|"Secret value"| PLATFORM
+    PLATFORM -->|"Populate reference"| SECRET
+    SECRET -.->|"Inject through secretRef"| REVISION
+    SDK ==>|"Request access token"| ENDPOINT
+    ENDPOINT ==>|"Token request"| ENTRA
+    ENTRA ==>|"Access token response"| ENDPOINT
+    ENDPOINT ==>|"Return access token"| SDK
+    SDK ==>|"Runtime secret request + token"| KV
+    KV ==>|"Runtime secret response"| SDK
+    IDENTITY -.->|"Identity used by DefaultAzureCredential"| ENDPOINT
 ```
+
+*Figure: A Container Apps Key Vault reference is platform-resolved configuration; direct `SecretClient` access is an Express runtime call. Both require an identity with Key Vault secret permissions, but they have different consumers and rotation behavior.*
 
 ## Prerequisites
 
@@ -104,5 +124,6 @@ app.get("/secret-check", async (_req, res) => {
 
 ## Sources
 
-- [Manage secrets in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets)
+- [Reference a Key Vault secret in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets#reference-secret-from-key-vault)
+- [Managed identities in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
 - [Azure Key Vault SecretClient for JavaScript](https://learn.microsoft.com/en-us/javascript/api/overview/azure/keyvault-secrets-readme)

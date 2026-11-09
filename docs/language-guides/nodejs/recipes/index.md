@@ -1,4 +1,5 @@
 ---
+description: Task-focused Node.js recipes for identity, data services, networking, registry access, jobs, security, and Dapr on Azure Container Apps.
 content_sources:
   diagrams:
     - id: integration-dependency-map
@@ -7,6 +8,7 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/
         - https://learn.microsoft.com/en-us/javascript/api/overview/azure/identity-readme
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 ---
 # Recipes: Integration Patterns for Azure Container Apps (Node.js)
 
@@ -58,17 +60,28 @@ These recipes are intentionally task-oriented: each page solves a specific produ
 <!-- diagram-id: integration-dependency-map -->
 ```mermaid
 flowchart TD
-    BASE[Baseline app deployed<br/>Steps 01-07] --> ID[Managed Identity]
-    BASE --> REV[Revision Validation]
-    ID --> KV[Key Vault Reference]
-    ID --> COSMOS[Cosmos DB]
-    ID --> SQL[Azure SQL]
-    ID --> ACR[Container Registry]
-    BASE --> REDIS[Redis]
-    BASE --> STORAGE[Storage]
-    BASE --> DAPR[Dapr Integration]
-    REV --> DOMAIN[Custom Domains]
+    accTitle: Node.js recipe selection by prerequisite
+    accDescr: Start from a deployed baseline app, then choose a recipe family. Managed identity is a shared prerequisite for private ACR pulls, Key Vault, and passwordless data SDK recipes. Arrows show prerequisites, not runtime network traffic.
+    BASE[Baseline app deployed<br/>tutorials 01-07]
+    ID[Managed identity +<br/>target authorization]
+    DEPLOY[Deployment<br/>ACR + revisions]
+    DATA[Data SDKs<br/>SQL + Cosmos + Redis]
+    STORAGE[Storage<br/>Blob SDK + mounts]
+    EDGE[Ingress<br/>domains + Easy Auth + mTLS]
+    WORK[Workload patterns<br/>Jobs + Dapr]
+
+    BASE --> ID
+    BASE --> DEPLOY
+    BASE --> DATA
+    BASE --> STORAGE
+    BASE --> EDGE
+    BASE --> WORK
+    ID -.->|"Required by passwordless paths"| DEPLOY
+    ID -.->|"Required by passwordless paths"| DATA
+    ID -.->|"Required by passwordless paths"| STORAGE
 ```
+
+*Figure: The map groups recipes by prerequisite. Managed identity provides an identity, but every target service still requires its own data-plane role or service-specific authorization.*
 
 !!! warning "Apply prerequisites before recipe commands"
     Most recipe failures come from missing baseline resources or missing role assignments. Confirm `$RG`, `$APP_NAME`, `$ACA_ENV_NAME`, and (when needed) `$ACR_NAME` are already set and valid in your current subscription context before you run recipe commands.
@@ -127,4 +140,5 @@ az containerapp show \
 
 - [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/)
 - [Azure Identity client library for JavaScript](https://learn.microsoft.com/en-us/javascript/api/overview/azure/identity-readme)
+- [Managed identities in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
 - [Dapr documentation](https://docs.dapr.io/)

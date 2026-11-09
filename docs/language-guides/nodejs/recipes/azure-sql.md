@@ -7,6 +7,7 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-overview
         - https://learn.microsoft.com/en-us/sql/connect/node-js/node-js-driver-for-sql-server
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity
 ---
 # Azure SQL Integration (Managed Identity)
 
@@ -17,15 +18,35 @@ Use this recipe to connect Azure Container Apps to Azure SQL Database with Micro
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    C[Client] --> I[Container Apps Ingress]
-    I --> APP[Node.js Container App]
-    APP --> SQL[Azure SQL Database]
-    APP -.-> MI[Managed Identity]
-    MI -.-> ENTRA[Microsoft Entra ID]
-    MI -.-> SQL
+    accTitle: Passwordless Azure SQL request from an Express container app
+    accDescr: A client request reaches Express through managed ingress. The Node.js SQL client obtains a database access token through the app's managed identity, then opens an encrypted SQL connection. Azure SQL separately authorizes the contained database user and roles.
+    CLIENT[Client]
+    INGRESS[Managed ingress]
+    APP[Express app<br/>Node.js SQL client]
+    ENDPOINT[Container Apps identity endpoint]
+    ENTRA[Microsoft Entra ID]
+    SQL[Azure SQL Database]
+    AUTHZ[Database authorization result]
+    RESULT[Query result]
+    DENIED[Authorization failure]
+
+    CLIENT ==>|"HTTPS request"| INGRESS
+    INGRESS ==>|"Routed request"| APP
+    APP ==>|"Request database token"| ENDPOINT
+    ENDPOINT ==>|"Token request"| ENTRA
+    ENTRA ==>|"Access token response"| ENDPOINT
+    ENDPOINT ==>|"Return access token"| APP
+    APP ==>|"Encrypted SQL connection + token"| SQL
+    SQL -->|"Evaluate database permissions"| AUTHZ
+    AUTHZ -->|"Allowed"| RESULT
+    AUTHZ -.->|"Denied"| DENIED
+    RESULT ==>|"Query response"| APP
+    DENIED -.->|"Authorization error"| APP
+    APP ==>|"Application response"| INGRESS
+    INGRESS ==>|"HTTPS response"| CLIENT
 ```
 
-Solid arrows show runtime data flow. Dashed arrows show identity and authentication.
+*Figure: Token acquisition, SQL transport, and database authorization are separate steps. Network reachability through a firewall rule, VNet path, or Private Link must already exist.*
 
 ## Prerequisites
 
@@ -194,3 +215,4 @@ az containerapp logs show \
 
 - [Azure SQL and Microsoft Entra authentication overview](https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-overview)
 - [Connect to Azure SQL Database using Node.js](https://learn.microsoft.com/en-us/sql/connect/node-js/node-js-driver-for-sql-server)
+- [Managed identities in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
