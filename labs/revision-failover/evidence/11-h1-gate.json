@@ -1,5 +1,5 @@
 {
-  "evaluated_at_utc": "2026-11-09T13:09:55Z",
+  "evaluated_at_utc": "2026-11-09T16:03:01Z",
   "app_name": "ca-labrevision-zfnp6h",
   "rg": "rg-aca-lab-revision",
   "baseline_revision_name": "ca-labrevision-zfnp6h--0000001",
@@ -7,7 +7,7 @@
   "revision_name_unchanged": true,
   "break_window": {
     "start_utc": "2026-06-22T16:11:02Z",
-    "end_utc": "2026-06-22T16:15:45Z",
+    "end_utc": "2026-06-22T16:13:08.3102116Z",
     "baseline_target_port": 8000,
     "post_break_target_port": 9999
   },

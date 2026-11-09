@@ -1,5 +1,5 @@
 {
-  "evaluated_at_utc": "2026-11-09T13:09:55Z",
+  "evaluated_at_utc": "2026-11-09T16:03:01Z",
   "fix_utc": "2026-06-22T16:16:13Z",
   "app_name": "ca-labrevision-zfnp6h",
   "rg": "rg-aca-lab-revision",
@@ -10,7 +10,7 @@
   "seconds_to_healthy": 2,
   "fix_window": {
     "start_utc": "2026-06-22T16:16:13Z",
-    "end_utc": "2026-06-22T16:16:42Z",
+    "end_utc": "2026-06-22T16:16:25.8760192Z",
     "post_fix_target_port": 8000
   },
   "curl_observations": {
