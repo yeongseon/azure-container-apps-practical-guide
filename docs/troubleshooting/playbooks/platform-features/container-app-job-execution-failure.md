@@ -40,7 +40,7 @@ Container Apps Jobs can fail before the workload does useful work, fail near the
 ```mermaid
 flowchart TD
     accTitle: Diagnose a failed Container Apps job execution
-    accDescr: First determine whether an execution was created, then separate timeout and retry exhaustion from container, secret, identity, and dependency failures before starting a controlled verification execution.
+    accDescr: First determine whether an execution was created, then separate timeout, failure, and still-running or unknown outcomes. Inspect elapsed time, execution details, and logs before starting a controlled verification execution.
 
     START[Job does not complete] --> CREATED{Execution created?}
     CREATED -->|No| TRIGGER{Trigger type?}
@@ -50,6 +50,7 @@ flowchart TD
     CREATED -->|Yes| RESULT{Execution outcome?}
     RESULT -->|Timed out| TIMEOUT[Compare runtime with<br/>replica timeout]
     RESULT -->|Failed| RETRIES{Retry limit exhausted?}
+    RESULT -->|In progress or unknown| PENDING[Inspect elapsed time,<br/>execution details, and logs]
     RETRIES -->|Yes| ROOT[Fix repeatable workload<br/>or dependency failure]
     RETRIES -->|No| RUNTIME[Inspect image, command,<br/>secrets, identity, and logs]
     SCHEDULE --> VERIFY[Start a controlled execution]
@@ -58,12 +59,13 @@ flowchart TD
     TIMEOUT --> VERIFY
     ROOT --> VERIFY
     RUNTIME --> VERIFY
+    PENDING --> VERIFY
     VERIFY --> SUCCESS{Execution succeeds?}
     SUCCESS -->|Yes| DONE[Record corrected configuration]
     SUCCESS -->|No| EVIDENCE[Collect execution details<br/>and escalate]
 ```
 
-*Figure: Trigger creation and execution completion are separate fault domains; retries repeat failed replicas and do not repair the underlying cause.*
+*Figure: Trigger creation and execution completion are separate fault domains. Timed-out and failed runs follow cause-specific checks, while in-progress or unknown runs require elapsed-time, execution-detail, and log inspection before controlled verification.*
 
 ## 2. Common Misreadings
 
