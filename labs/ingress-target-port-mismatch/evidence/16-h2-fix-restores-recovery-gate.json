@@ -1,6 +1,7 @@
 {
   "claim": "The fix restored ingress.targetPort to 80, edge traffic recovered to 10/10 HTTP 200, the strictly post-fix KQL window returned portmismatch_rows='0' with gate_classification='silent_valid_baseline', and the query string proves the silence claim was bounded to TimeGenerated > datetime(2026-06-22T12:25:06Z).",
   "claim_level": "Observed",
+  "evaluated_at_utc": "2026-11-09T13:05:31Z",
   "gate_classification": "H2 gate: confirms that the same app recovered when ingress.targetPort returned to the listening port and that the post-fix silence claim is bounded to a strict UTC cutoff.",
   "hypothesis": "H2_fix_restores_recovery",
   "ingress_target_port_mismatch_h2_fix_restores_recovery_all_subgates_pass": true,
@@ -89,6 +90,5 @@
     "post_fix_portmismatch_rows_expected": 0,
     "post_fix_requests_ok_min": 8,
     "target_port_fix_expected": 80
-  },
-  "utc_captured": "2026-06-26T05:41:52Z"
+  }
 }

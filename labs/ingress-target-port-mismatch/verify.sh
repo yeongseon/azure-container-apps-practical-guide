@@ -5,9 +5,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EVIDENCE_DIR="${SCRIPT_DIR}/evidence"
 REPO_RELATIVE_EVIDENCE_DIR="labs/ingress-target-port-mismatch/evidence"
-UTC_NOW="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+EVALUATED_AT_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-export EVIDENCE_DIR REPO_RELATIVE_EVIDENCE_DIR UTC_NOW
+export EVIDENCE_DIR REPO_RELATIVE_EVIDENCE_DIR EVALUATED_AT_UTC
 
 if [ ! -d "${EVIDENCE_DIR}" ]; then
     echo "[FATAL] Evidence directory not found: ${EVIDENCE_DIR}"
@@ -50,7 +50,7 @@ done
 
 echo "===== Phase B falsification gates -- ingress-target-port-mismatch ====="
 echo "Evidence directory: ${EVIDENCE_DIR}"
-echo "Phase B run UTC:    ${UTC_NOW}"
+echo "Phase B evaluated:  ${EVALUATED_AT_UTC}"
 echo
 
 python3 <<'PY'
@@ -61,7 +61,7 @@ from pathlib import Path
 
 EVIDENCE_DIR = Path(os.environ["EVIDENCE_DIR"])
 REL = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
-UTC_NOW = os.environ["UTC_NOW"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 
 CANONICAL = [
     "00-trigger-run.txt",
@@ -213,7 +213,7 @@ except Exception as exc:  # noqa: BLE001
 b14_pass = b14_strong or b14_fallback
 
 allowed = set(CANONICAL) | set(GATE_OUTPUTS) | {"README.md"}
-on_disk = sorted(path.name for path in EVIDENCE_DIR.iterdir() if path.is_file())
+on_disk = sorted(set(path.name for path in EVIDENCE_DIR.iterdir() if path.is_file()) | set(GATE_OUTPUTS))
 ignored_junk = [name for name in on_disk if name in JUNK_NAMES or name.startswith(".") or name.endswith(JUNK_SUFFIXES)]
 extras = [name for name in on_disk if name not in allowed and name not in ignored_junk]
 c14_pass = len(extras) == 0
@@ -296,7 +296,7 @@ gate14_sub_gates = [
 ]
 
 gate14_payload = {
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "ingress_target_port_mismatch",
     "hypothesis": "H_cohort_integrity",
     "claim": "The 25-file ingress-target-port-mismatch evidence cohort is internally consistent: the canonical files are present, the baseline→trigger→fix→post-fix anchors are monotonic and bounded, no unexpected non-junk extras exist, and evidence/README.md cross-references all four Phase B gate JSON files.",
@@ -420,7 +420,7 @@ gate15_sub_gates = [
 ]
 
 gate15_payload = {
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "ingress_target_port_mismatch",
     "hypothesis": "H1_trigger_produces_failure",
     "claim": "The trigger mutated ingress.targetPort from 80 to 8081, edge traffic collapsed to 0/10 HTTP 200, the strictly post-trigger KQL window materialized 25 PortMismatch rows with gate_classification='populated_table', and the sample evidence includes the smoking-gun platform attribution 'The TargetPort 8081 does not match the listening port 80.'.",
@@ -544,7 +544,7 @@ gate16_sub_gates = [
 ]
 
 gate16_payload = {
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "ingress_target_port_mismatch",
     "hypothesis": "H2_fix_restores_recovery",
     "claim": "The fix restored ingress.targetPort to 80, edge traffic recovered to 10/10 HTTP 200, the strictly post-fix KQL window returned portmismatch_rows='0' with gate_classification='silent_valid_baseline', and the query string proves the silence claim was bounded to TimeGenerated > datetime(2026-06-22T12:25:06Z).",
@@ -675,7 +675,7 @@ gate17_sub_gates = [
 ]
 
 gate17_payload = {
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "ingress_target_port_mismatch",
     "hypothesis": "H3_single_variable_falsification",
     "claim": "The bounded falsification is that the integer ingress.targetPort is the controlling variable across the baseline→trigger→fix sequence: external, transport, fqdn, revision name, and Container App identity stay constant, while the platform-attributed smoking-gun log explicitly states 'The TargetPort 8081 does not match the listening port 80.'.",

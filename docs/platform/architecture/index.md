@@ -58,7 +58,7 @@ Azure Container Apps is a serverless container platform built on a managed, Kube
 ```mermaid
 flowchart TD
     accTitle: Azure Container Apps logical base topology
-    accDescr: Management requests pass through Azure Resource Manager and the Container Apps resource provider. In the managed environment, Envoy ingress routes requests to active revisions and their replicas, while KEDA-powered scale decisions change replica count within the selected workload profile.
+    accDescr: Management requests pass through Azure Resource Manager and the Container Apps resource provider. In the managed environment, Envoy ingress selects replicas under revision traffic rules, while revisions remain configuration groupings and KEDA-powered scale decisions change replica count within the selected workload profile.
 
     DEPLOYER["Deployer<br/>Portal, CLI, IaC"]
     CLIENT["Request caller"]
@@ -85,11 +85,9 @@ flowchart TD
     RP -.->|"3  Apply desired state"| APP
 
     CLIENT ==>|"A  HTTPS request"| INGRESS
-    INGRESS ==>|"B  Normal traffic"| REV_ACTIVE
-    REV_ACTIVE ==>|"C  Serve request"| REPLICAS
+    INGRESS ==>|"B  Stable replica selection"| REPLICAS
 
-    INGRESS ==>|"Optional weighted traffic"| REV_CANARY
-    REV_CANARY ==>|"Serve request"| CANARY_REPLICAS
+    INGRESS ==>|"Weighted canary selection"| CANARY_REPLICAS
 
     SIGNAL -->|"Scale input"| SCALE
     SCALE -.->|"Desired replica count"| REV_ACTIVE
@@ -97,13 +95,15 @@ flowchart TD
     PROFILES -.->|"Compute placement"| CANARY_REPLICAS
     APP -.-> REV_ACTIVE
     APP -.-> REV_CANARY
+    REV_ACTIVE -.->|"Revision configuration"| REPLICAS
+    REV_CANARY -.->|"Revision configuration"| CANARY_REPLICAS
 
     LEGEND["Arrow key<br/>thick = runtime request<br/>solid = management or scale input<br/>dotted = logical platform control"]
 ```
 
 *Figure: Logical ACA base with ingress/revision and scaling/workload-profile extensions. The boundary is intentionally logical: it does not place hidden cluster nodes or pods in a customer VNet.*
 
-- **Base path:** `ENV` → `INGRESS` → `REV_ACTIVE` → `REPLICAS` is the stable managed environment/ingress/revision/replica vocabulary used by extension diagrams.
+- **Base relationships:** `ENV` contains `INGRESS`, `APP`, `REV_ACTIVE`, and `REPLICAS`; request traffic runs from `INGRESS` directly to a selected replica, while dotted edges preserve app → revision → replica configuration membership.
 - **Ingress and revision extension:** `REV_CANARY` and `CANARY_REPLICAS` show optional weighted routing without redefining the base path.
 - **Scaling extension:** `SIGNAL` → `SCALE` and `PROFILES` → `REPLICAS` separate scale input and logical scale decisions from request traffic and compute placement.
 - **Boundary rule:** The diagram does not imply that revisions or replicas are customer-managed Azure resources, Kubernetes pods, or nodes. It also makes no claim that the managed environment is physically inside a customer VNet.
@@ -118,7 +118,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     accTitle: Azure Container Apps management and runtime diagnostic paths
-    accDescr: The management path configures a managed environment. The normal runtime path sends a request through managed Envoy ingress to an active revision and ready replicas. A dashed fault branch shows the symptom, evidence, and next check when no replica is ready.
+    accDescr: The management path configures a managed environment. The normal runtime path sends a request through managed Envoy ingress directly to a ready replica selected under active-revision traffic configuration. A dashed fault branch shows the symptom, evidence, and next check when no replica is ready.
 
     CONFIG["Desired configuration<br/>app, ingress, scale rules"]
     CALLER["Request caller"]
@@ -148,13 +148,13 @@ flowchart TD
     RP -.->|"Apply desired state"| APP
 
     CALLER ==>|"Normal request path"| INGRESS
-    INGRESS ==>|"Route traffic"| REV_ACTIVE
-    REV_ACTIVE ==>|"Select ready replica"| REPLICAS
+    INGRESS ==>|"Select ready replica under traffic rules"| REPLICAS
     REPLICAS ==>|"Return"| RESPONSE
 
     SIGNAL -->|"Scale input"| SCALE
     SCALE -.->|"Desired replica count"| REV_ACTIVE
     APP -.-> REV_ACTIVE
+    REV_ACTIVE -.->|"Revision configuration"| REPLICAS
 
     REV_ACTIVE -.->|"FAULT branch"| FAULT
     FAULT -.-> SYMPTOM
@@ -509,7 +509,9 @@ Use this page as a quick architecture review guide before you deploy a new workl
 
 ## Sources
 - [Azure Container Apps overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/overview)
+- [Azure Resource Manager API specification for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/azure-resource-manager-api-spec)
 - [Environment in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/environment)
+- [Configure ingress for a Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/ingress-environment-configuration)
 - [Networking in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
 - [Set scaling rules in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/scale-app)
 - [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
@@ -517,3 +519,4 @@ Use this page as a quick architecture review guide before you deploy a new workl
 - [Managed identities in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity)
 - [Ingress in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview)
 - [Jobs in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/jobs)
+- [Workload profiles in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview)

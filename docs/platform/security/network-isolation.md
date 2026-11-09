@@ -55,7 +55,7 @@ Microsoft Learn documents several network controls that work together rather tha
 ```mermaid
 flowchart TD
     accTitle: Layered Azure Container Apps network isolation decisions
-    accDescr: A layered decision view separates environment accessibility and direct app ingress in the Azure-managed Container Apps environment from customer-managed virtual network resources. Actual inbound transport reaches managed ingress only for a published app. Outbound packets leave replicas through the dedicated environment subnet before following a firewall or dependency private endpoint path. DNS, policy association, and transport remain distinct.
+    accDescr: A layered decision view separates environment accessibility and direct app ingress in the Azure-managed Container Apps environment from customer-managed virtual network resources. Actual inbound transport reaches managed ingress and then selected replicas under revision traffic configuration. Outbound packets leave replicas through the dedicated environment subnet before following a firewall or dependency private endpoint path. DNS, policy association, and transport remain distinct.
 
     BOUNDARY["Environment entry<br/>public, internal load balancer,<br/>or private endpoint"]
     PUBLISHED["Published app<br/>external: true"]
@@ -89,8 +89,7 @@ flowchart TD
     INTERNAL_APP -.->|"environment-local target"| INGRESS
     SAME_ENV ==>|"Internal request"| INGRESS
     NO_ENDPOINT -.->|"no direct path"| APP
-    INGRESS ==>|"Route request"| REV_ACTIVE
-    REV_ACTIVE ==>|"Select replica"| REPLICAS
+    INGRESS ==>|"Select replica under revision traffic rules"| REPLICAS
 
     BOUNDARY -.->|"available entry"| DIRECT_CALLER
     ENV -.->|"uses dedicated subnet"| ENV_SUBNET
