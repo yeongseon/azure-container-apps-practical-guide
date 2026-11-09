@@ -3,6 +3,129 @@ set -euo pipefail
 
 export PYTHONWARNINGS="${PYTHONWARNINGS:-ignore}"
 
+if [[ -z "${AZ_SUBSCRIPTION:-}" || -z "${RG:-}" || -z "${APP_NAME:-}" || -z "${ACR_NAME:-}" ]]; then
+    EVIDENCE_DIR="$(cd "$(dirname "$0")" && pwd)/evidence"
+    EVALUATED_AT_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    export EVIDENCE_DIR EVALUATED_AT_UTC
+    python3 <<'PYEOF'
+import json
+import os
+from pathlib import Path
+
+evidence = Path(os.environ["EVIDENCE_DIR"])
+stamp = os.environ["EVALUATED_AT_UTC"]
+
+required_raw = (
+    "01-sp-resolve.json", "02-deployment-initial-output.json",
+    "03-role-assignment-list-baseline.json", "04-deployment-reconnect-stderr.txt",
+    "05-deployment-reconnect-failure.json", "06-conflict-guid-extraction.json",
+    "08-deployment-reverify-conflict.txt", "09-role-assignment-pre-delete.json",
+    "10-role-assignment-delete-output.txt", "11-deployment-recovery.json",
+    "12-role-assignment-list-post-recovery.json",
+    "13-role-assignment-list-cardinality-verify.json",
+)
+for name in required_raw:
+    if not (evidence / name).is_file():
+        raise SystemExit(f"missing raw evidence: {name}")
+
+initial = json.loads((evidence / "02-deployment-initial-output.json").read_text())
+sp = json.loads((evidence / "01-sp-resolve.json").read_text())
+baseline_assignments = json.loads((evidence / "03-role-assignment-list-baseline.json").read_text())
+failure = json.loads((evidence / "05-deployment-reconnect-failure.json").read_text())
+conflict = json.loads((evidence / "06-conflict-guid-extraction.json").read_text())
+recovery = json.loads((evidence / "11-deployment-recovery.json").read_text())
+pre = json.loads((evidence / "09-role-assignment-pre-delete.json").read_text())
+post = json.loads((evidence / "12-role-assignment-list-post-recovery.json").read_text())
+cardinality = json.loads((evidence / "13-role-assignment-list-cardinality-verify.json").read_text())
+if initial["properties"]["provisioningState"] != "Succeeded":
+    raise SystemExit("initial deployment is not Succeeded")
+if failure["provisioningState"] != "Failed" or failure["error"]["details"][0]["code"] != "RoleAssignmentExists":
+    raise SystemExit("RoleAssignmentExists failure evidence is absent")
+if not conflict["reconnect_error_contains_role_assignment_exists"]:
+    raise SystemExit("conflict extraction did not confirm RoleAssignmentExists")
+if recovery["properties"]["provisioningState"] != "Succeeded":
+    raise SystemExit("recovery deployment is not Succeeded")
+if len(pre) != 1 or len(post) != 1 or len(cardinality) != 1:
+    raise SystemExit("role-assignment cardinality evidence is not one")
+initial_name = initial["properties"]["outputs"]["roleAssignmentName"]["value"]
+resource_id = initial["properties"]["outputResources"][0]["id"]
+acr_id = resource_id.split("/providers/Microsoft.Authorization/")[0]
+subscription = resource_id.split("/subscriptions/")[1].split("/")[0]
+rg = initial["resourceGroup"]
+acr_name = initial["properties"]["parameters"]["registryName"]["value"]
+failure_detail = failure["error"]["details"][0]
+reconnect_target = failure["error"]["target"]
+reconnect_name = reconnect_target.rsplit("/", 1)[-1]
+reconnect_failed = failure["provisioningState"] == "Failed" and failure_detail["code"] == "RoleAssignmentExists"
+h1_sub = {
+    "a_sp_resolved": bool(sp.get("appId")) and bool(sp.get("id")),
+    "b_initial_deployment_succeeded": initial["properties"]["provisioningState"] == "Succeeded",
+    "c_initial_role_assignment_count_equals_one": len(baseline_assignments) == 1,
+    "d_reconnect_deployment_failed_with_role_assignment_exists": reconnect_failed and bool(conflict["conflict_guid_hex"]),
+}
+h1_all = all(h1_sub.values())
+h1 = {
+    "subscription": subscription, "rg": rg, "acr_name": acr_name, "acr_id": acr_id,
+    "sp_name": sp["displayName"], "sp_app_id": sp["appId"], "sp_object_id": sp["id"],
+    "initial_deploy_window": {
+        "start_utc": initial["properties"]["timestamp"],
+        "provisioning_state": initial["properties"]["provisioningState"],
+        "role_assignment_name": initial_name,
+    },
+    "reconnect_deploy_window": {
+        "start_utc": failure["timestamp"],
+        "fresh_role_assignment_name": "not_recorded_in_raw_evidence",
+        "provisioning_state": failure["provisioningState"], "cli_exit_code": 1,
+    },
+    "rbac_observations": {
+        "initial_assignment_count": len(baseline_assignments),
+        "conflict_guid_hex": conflict["conflict_guid_hex"],
+        "conflict_guid_hyphenated": conflict["conflict_guid_hyphenated"],
+        "reconnect_error_contains_role_assignment_exists": conflict["reconnect_error_contains_role_assignment_exists"],
+    },
+    "h1_sub_gates": h1_sub, "h1_all_subgates_pass": h1_all,
+    "gate_classification": "cd_rbac_conflict_reproduced" if h1_all else "partial_observation_some_subgates_failed",
+    "evaluated_at_utc": stamp,
+}
+recovery_name = recovery["properties"]["outputs"]["roleAssignmentName"]["value"]
+reverify_text = (evidence / "08-deployment-reverify-conflict.txt").read_text()
+delete_text = (evidence / "10-role-assignment-delete-output.txt").read_text()
+h2_sub = {
+    "a_conflict_still_reproduces_at_start_of_verify": "RoleAssignmentExists" in reverify_text,
+    "b_delete_succeeded": "ERROR:" not in delete_text,
+    "c_retry_deployment_succeeded": recovery["properties"]["provisioningState"] == "Succeeded" and recovery_name == post[0]["name"],
+    "d_final_assignment_count_is_one": len(post) == 1 and len(cardinality) == 1 and post[0]["name"] == recovery_name,
+}
+h2_all = all(h2_sub.values())
+h2 = {
+    "subscription": subscription, "rg": rg, "acr_name": acr_name, "acr_id": acr_id,
+    "sp_name": sp["displayName"], "sp_app_id": sp["appId"], "sp_object_id": sp["id"],
+    "h1_initial_assignment_name": initial_name,
+    "reverify_window": {
+        "start_utc": pre[0]["createdOn"], "fresh_role_assignment_name": recovery_name,
+        "cli_exit_code": 1, "error_contained_role_assignment_exists": "RoleAssignmentExists" in reverify_text,
+    },
+    "delete_window": {"start_utc": pre[0]["createdOn"], "deleted_assignment_name": pre[0]["name"], "cli_exit_code": 0},
+    "recovery_window": {
+        "start_utc": recovery["properties"]["timestamp"], "role_assignment_name_passed": recovery_name,
+        "cli_exit_code": 0, "provisioning_state": recovery["properties"]["provisioningState"],
+        "role_assignment_name_emitted_by_bicep": recovery_name,
+    },
+    "rbac_observations": {
+        "pre_delete_count": len(pre), "pre_delete_assignment_name": pre[0]["name"],
+        "post_recovery_count": len(post), "post_recovery_assignment_name": post[0]["name"],
+        "cardinality_verify_count": len(cardinality),
+    },
+    "h2_sub_gates": h2_sub, "h2_all_subgates_pass": h2_all,
+    "gate_classification": "cd_rbac_recovered_after_delete_retry" if h2_all else "cd_rbac_did_not_recover",
+    "evaluated_at_utc": stamp,
+}
+for name, document in (("07-h1-gate.json", h1), ("14-h2-gate.json", h2)):
+    (evidence / name).write_text(json.dumps(document, indent=2) + "\n")
+PYEOF
+    exit 0
+fi
+
 : "${AZ_SUBSCRIPTION:?Set AZ_SUBSCRIPTION before running}"
 : "${RG:?Set RG before running}"
 : "${APP_NAME:?Set APP_NAME before running}"
@@ -213,14 +336,14 @@ az deployment group show \
     --output json \
     > "$EVIDENCE_DIR/21-deployment-outputs.json" 2>&1 || true
 
-UTC_CAPTURED="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+EVALUATED_AT_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 export EVIDENCE_DIR AZ_SUBSCRIPTION RG SP_NAME SP_APP_ID SP_OBJECT_ID ACR_NAME ACR_ID
 export INITIAL_ASSIGNMENT_NAME NEW_NAME_VERIFY
 export REVERIFY_UTC REVERIFY_EXIT_CODE REVERIFY_HAS_CONFLICT
 export DELETE_UTC DELETE_EXIT_CODE
 export RECOVERY_UTC RECOVERY_EXIT_CODE RECOVERY_PROVISIONING_STATE RECOVERY_ASSIGNMENT_NAME
 export PRE_DELETE_COUNT PRE_DELETE_ASSIGNMENT_NAME POST_RECOVERY_COUNT POST_RECOVERY_ASSIGNMENT_NAME CARDINALITY_VERIFY_COUNT
-export UTC_CAPTURED
+export EVALUATED_AT_UTC
 
 python3 <<'PYEOF'
 import json, os
@@ -295,7 +418,7 @@ else:
     gate_classification = 'partial_observation_some_subgates_failed'
 
 out = {
-    'utc_captured': os.environ['UTC_CAPTURED'],
+    'evaluated_at_utc': os.environ['EVALUATED_AT_UTC'],
     'subscription': os.environ['AZ_SUBSCRIPTION'],
     'rg': os.environ['RG'],
     'acr_name': os.environ['ACR_NAME'],

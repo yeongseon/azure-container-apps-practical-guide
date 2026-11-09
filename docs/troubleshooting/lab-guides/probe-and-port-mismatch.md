@@ -511,6 +511,8 @@ Gate classification: `port_mismatch_probe_failure_reproduced`.
 
 **H2 same-revision recovery** — `evidence/22-h2-gate.json`:
 
+The H1/H2 gates were originally emitted during the live run and later re-evaluated offline from unchanged raw evidence. Top-level `evaluated_at_utc` records each replay invocation; capture-script timestamps and raw revision/log times remain the original evidence, and no current replay date is claimed.
+
 | Sub-gate | Value | Source |
 |---| --- |---|
 | `a_failure_state_persisted_into_verify` | true | Pre-fix `runningState=Degraded` + `runningStateDetails` contains port mismatch evidence + 0/5 curl + `createdTime` matches H1 capture |

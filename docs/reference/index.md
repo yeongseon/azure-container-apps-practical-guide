@@ -27,30 +27,23 @@ This section is optimized for fast operational lookup during build, deploy, and 
 ```mermaid
 flowchart TD
     accTitle: Choose a Container Apps reference by operator question
-    accDescr: Start from the question you need to answer, then choose command syntax, configuration scope, environment variables, metrics, or platform quotas and limits.
+    accDescr: Scan the narrow reference path from operation syntax through configuration scope, runtime values, metric definitions, and platform limits. Stop at the first destination that matches the information you need.
 
-    QUESTION[Start with the operator question<br/>that needs a reference]
+    START["Choose the needed<br/>reference detail"]
     CLI[CLI reference<br/>command syntax]
     SCOPE[Configuration scope matrix<br/>change impact]
     ENV[Environment variables<br/>runtime configuration]
     METRICS[Metrics reference<br/>names, dimensions, and aggregation]
     LIMITS[Platform limits<br/>quota scope and constraints]
-    EXECUTE[Execute and verify<br/>an operation]
-    PLAN[Plan and diagnose<br/>with the correct boundary]
 
-    QUESTION -->|How do I run it?| CLI
-    QUESTION -->|Will it create a revision?| SCOPE
-    QUESTION -->|What reaches the container?| ENV
-    QUESTION -->|What should I measure?| METRICS
-    QUESTION -->|Which quota or limit applies?| LIMITS
-    CLI --> EXECUTE
-    SCOPE --> PLAN
-    ENV --> PLAN
-    METRICS --> PLAN
-    LIMITS --> PLAN
+    START -->|Operation syntax| CLI
+    CLI -->|Configuration scope| SCOPE
+    SCOPE -->|Runtime values| ENV
+    ENV -->|Metric definitions| METRICS
+    METRICS -->|Other lookup| LIMITS
 ```
 
-Choose one branch from the operator question. The linked page then provides the exact lookup details; this diagram is navigation, not a runtime dependency map.
+Scan downward and stop at the first destination that matches your lookup. Each linked page provides the exact details; this diagram is navigation, not a runtime dependency map.
 
 ## Reference coverage map
 

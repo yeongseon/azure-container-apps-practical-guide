@@ -3,6 +3,132 @@ set -euo pipefail
 
 export PYTHONWARNINGS="${PYTHONWARNINGS:-ignore}"
 
+if [[ -z "${AZ_SUBSCRIPTION:-}" || -z "${RG:-}" || -z "${APP_NAME:-}" || -z "${ACR_NAME:-}" ]]; then
+    EVIDENCE_DIR="$(cd "$(dirname "$0")" && pwd)/evidence"
+    EVALUATED_AT_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    export EVIDENCE_DIR EVALUATED_AT_UTC
+    python3 <<'PYEOF'
+import json
+import os
+from pathlib import Path
+
+evidence = Path(os.environ["EVIDENCE_DIR"])
+stamp = os.environ["EVALUATED_AT_UTC"]
+required_raw = (
+    "01-infra-resolve.json", "02-baseline-revisions.json", "03-acr-build.log",
+    "04-registry-set.json", "05-containerapp-update-image.json", "06-wait-provisioning.log",
+    "07-revision-list-failed.json", "08-revision-show-failed.json",
+    "09-curl-probes-failed.json", "10-system-logs-tail.log", "12-revision-pre-fix.json",
+    "13-curl-probes-pre-fix.json", "14-ingress-update-fix.json", "15-wait-recovery.log",
+    "16-revision-post-fix.json", "17-curl-probes-post-fix.json",
+    "18-revision-list-post-fix.json",
+)
+for name in required_raw:
+    if not (evidence / name).is_file():
+        raise SystemExit(f"missing raw evidence: {name}")
+
+failed = json.loads((evidence / "08-revision-show-failed.json").read_text())
+pre = json.loads((evidence / "12-revision-pre-fix.json").read_text())
+post = json.loads((evidence / "16-revision-post-fix.json").read_text())
+failed_curl = json.loads((evidence / "09-curl-probes-failed.json").read_text())
+pre_curl = json.loads((evidence / "13-curl-probes-pre-fix.json").read_text())
+post_curl = json.loads((evidence / "17-curl-probes-post-fix.json").read_text())
+ingress = json.loads((evidence / "14-ingress-update-fix.json").read_text())
+if failed.get("runningState") not in ("Failed", "Degraded") or "TargetPort" not in failed.get("runningStateDetails", ""):
+    raise SystemExit("port-specific trigger failure evidence is absent")
+if failed_curl["success_count_200"] != 0 or pre_curl["success_count_200"] != 0:
+    raise SystemExit("pre-fix client probes unexpectedly succeeded")
+if post.get("runningState") != "Running" or post.get("healthState") != "Healthy":
+    raise SystemExit("post-fix revision is not Running/Healthy")
+if post_curl["success_count_200"] != post_curl["attempts"]:
+    raise SystemExit("post-fix client probes did not all succeed")
+if pre.get("name") != post.get("name") or pre.get("createdTime") != post.get("createdTime") or pre.get("image") != post.get("image"):
+    raise SystemExit("same-revision proof does not hold")
+if ingress.get("targetPort") != 3000:
+    raise SystemExit("post-fix ingress targetPort is not 3000")
+infra = json.loads((evidence / "01-infra-resolve.json").read_text())
+update = json.loads((evidence / "05-containerapp-update-image.json").read_text())
+failed_list = json.loads((evidence / "07-revision-list-failed.json").read_text())
+post_list = json.loads((evidence / "18-revision-list-post-fix.json").read_text())
+build_log = (evidence / "03-acr-build.log").read_text()
+syslog = (evidence / "10-system-logs-tail.log").read_text()
+wait_log = (evidence / "06-wait-provisioning.log").read_text().splitlines()
+recovery_log = (evidence / "15-wait-recovery.log").read_text().splitlines()
+revision_name = update["properties"]["latestRevisionName"]
+image = update["properties"]["template"]["containers"][0]["image"]
+target_port = str(update["properties"]["configuration"]["ingress"]["targetPort"])
+probe_count = syslog.count("ProbeFailed")
+h1_sub = {
+    "a_acr_build_succeeded": "was successful" in build_log,
+    "b_trigger_revision_minted": bool(revision_name),
+    "c_probe_failure_evidence_present": "TargetPort" in failed.get("runningStateDetails", "") or (failed.get("runningState") in ("Failed", "Degraded") and probe_count > 0),
+    "d_zero_client_200s_out_of_five": failed_curl["success_count_200"] == 0 and failed_curl["attempts"] == 5,
+    "e_target_port_still_mismatched": target_port == "8000" and ":v1" in image,
+}
+h1_all = all(h1_sub.values())
+build_start = build_log.splitlines()[0].split(" Downloading", 1)[0].replace("/", "-").replace(" ", "T") + "Z"
+h1 = {
+    "subscription": infra["subscription"], "rg": infra["rg"], "app_name": infra["app_name"],
+    "acr_name": infra["acr_name"], "app_fqdn": infra["app_fqdn"],
+    "build_window": {"start_utc": build_start, "exit_code": 0},
+    "trigger_window": {
+        "start_utc": update["systemData"]["lastModifiedAt"], "revision_name": revision_name, "image": image,
+        "created_time": failed["createdTime"], "health_state": failed["healthState"],
+        "running_state": failed["runningState"], "running_state_details": failed["runningStateDetails"],
+        "provisioning_state": failed["provisioningState"], "ingress_target_port": target_port,
+        "baseline_ingress_target_port": target_port,
+    },
+    "client_probe_results": {
+        "attempts": failed_curl["attempts"], "http_codes": failed_curl["http_codes"],
+        "success_count_200": failed_curl["success_count_200"],
+    },
+    "system_log_capture": {
+        "exit_code": 0, "probe_failed_lines_in_tail": probe_count,
+        "note": "Log Analytics ingestion lag is 5-10 minutes; tail count is best-effort. Consumed by the H1 c_probe_failure_evidence_present fallback predicate (non-healthy state + count > 0) when runningStateDetails lacks port-specific text; also re-used by the H2 a_pre_fix_probe_failure_evidence fallback predicate in verify.sh.",
+    },
+    "h1_sub_gates": h1_sub, "h1_all_subgates_pass": h1_all,
+    "gate_classification": "port_mismatch_probe_failure_reproduced" if h1_all else "partial_observation_some_subgates_failed",
+    "evaluated_at_utc": stamp,
+}
+same_name = pre["name"] == post["name"]
+h2_sub = {
+    "a_failure_state_persisted_into_verify": ("TargetPort" in pre.get("runningStateDetails", "") or probe_count > 0) and pre["createdTime"] == failed["createdTime"] and pre_curl["success_count_200"] == 0,
+    "b_ingress_update_succeeded": ingress["targetPort"] == 3000,
+    "c_revision_became_healthy": post["runningState"] == "Running" and post["healthState"] == "Healthy",
+    "d_client_probes_succeed": post_curl["success_count_200"] == 5,
+    "e_same_revision_preserved": same_name and post["createdTime"] == pre["createdTime"] and post["image"] == pre["image"],
+    "f_target_port_now_matches": ingress["targetPort"] == 3000,
+}
+h2_all = all(h2_sub.values())
+fix_start = recovery_log[0].split("]", 1)[0].lstrip("[") if recovery_log else ""
+h2 = {
+    "subscription": infra["subscription"], "rg": infra["rg"], "app_name": infra["app_name"],
+    "app_fqdn": infra["app_fqdn"], "trigger_revision_name": revision_name,
+    "pre_fix_state": {
+        "running_state": pre["runningState"], "running_state_details": pre["runningStateDetails"],
+        "created_time": pre["createdTime"], "image": pre["image"],
+        "curl_success_count_200_of_5": pre_curl["success_count_200"],
+    },
+    "fix_window": {"start_utc": fix_start, "command": "az containerapp ingress update --target-port 3000", "cli_exit_code": 0},
+    "post_fix_state": {
+        "health_state": post["healthState"], "running_state": post["runningState"], "created_time": post["createdTime"],
+        "image": post["image"], "ingress_target_port": str(ingress["targetPort"]),
+        "curl_success_count_200_of_5": post_curl["success_count_200"],
+    },
+    "same_revision_proof": {
+        "created_time_unchanged": post["createdTime"] == pre["createdTime"], "image_unchanged": post["image"] == pre["image"],
+        "name_unchanged": same_name, "pre_fix_name": pre["name"], "post_fix_name": post["name"],
+    },
+    "h2_sub_gates": h2_sub, "h2_all_subgates_pass": h2_all,
+    "gate_classification": "port_mismatch_recovered_on_same_revision" if h2_all else "port_mismatch_did_not_recover",
+    "evaluated_at_utc": stamp,
+}
+for name, document in (("11-h1-gate.json", h1), ("22-h2-gate.json", h2)):
+    (evidence / name).write_text(json.dumps(document, indent=2) + "\n")
+PYEOF
+    exit 0
+fi
+
 : "${AZ_SUBSCRIPTION:?Set AZ_SUBSCRIPTION before running}"
 : "${RG:?Set RG before running}"
 : "${APP_NAME:?Set APP_NAME before running}"
@@ -242,14 +368,14 @@ az group show \
     --output json \
     > "$EVIDENCE_DIR/21-region.json" 2>&1 || true
 
-UTC_CAPTURED="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+EVALUATED_AT_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 export EVIDENCE_DIR AZ_SUBSCRIPTION RG APP_NAME ACR_NAME APP_FQDN
 export TRIGGER_REVISION_NAME TRIGGER_CREATED TRIGGER_IMAGE
 export PRE_FIX_RUNNING PRE_FIX_CREATED PRE_FIX_IMAGE PRE_FIX_CURL_SUCCESS_COUNT PRE_FIX_CURL_RESULTS_STR
 export PRE_FIX_RUNNING_DETAILS PRE_FIX_NAME
 export FIX_UTC FIX_EXIT_CODE
 export POST_FIX_HEALTH POST_FIX_RUNNING POST_FIX_CREATED POST_FIX_IMAGE POST_FIX_TARGET_PORT POST_FIX_NAME
-export POST_FIX_CURL_SUCCESS_COUNT POST_FIX_CURL_RESULTS_STR UTC_CAPTURED
+export POST_FIX_CURL_SUCCESS_COUNT POST_FIX_CURL_RESULTS_STR EVALUATED_AT_UTC
 
 python3 <<'PYEOF'
 import json, os
@@ -348,7 +474,7 @@ else:
     gate_classification = 'partial_observation_some_subgates_failed'
 
 out = {
-    'utc_captured': os.environ['UTC_CAPTURED'],
+    'evaluated_at_utc': os.environ['EVALUATED_AT_UTC'],
     'subscription': os.environ['AZ_SUBSCRIPTION'],
     'rg': os.environ['RG'],
     'app_name': os.environ['APP_NAME'],

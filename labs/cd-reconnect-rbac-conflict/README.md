@@ -42,6 +42,8 @@ export ACR_ID=$(az acr show --name "$ACR_NAME" --resource-group "$RG" --query id
 
 ## Notes
 
+The committed H1/H2 gates were originally emitted during the 2026-06-23 capture and later re-evaluated offline from unchanged raw evidence. A replay writes its own invocation time as `evaluated_at_utc`; this is not a new capture or validation date.
+
 - The lab simulates the CD identity by creating a regular service principal (`<APP_NAME>-github-actions-lab`) and granting it `AcrPush` on the registry. This mirrors what `az containerapp github-action add` does internally.
 - "Disconnect" is simulated by skipping all Azure-side cleanup, which is the failure mode the Portal disconnect exhibits in practice.
 - The conflict is reproduced via two ARM deployments of `infra/role-assignment.bicep` with different `roleAssignmentName` values but the same `(scope, principal, role)` triple. ARM enforces RBAC's uniqueness constraint and surfaces it as `RoleAssignmentExists`, which is the same error CD setup produces.

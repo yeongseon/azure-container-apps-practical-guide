@@ -7,7 +7,7 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/container-apps/networking
         - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
-        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-link
     - id: ci-cd-pipeline-flow
       type: flowchart
       source: mslearn-adapted
@@ -32,66 +32,48 @@ Automate build and deployment so every commit can produce a new Container App re
 !!! info "Infrastructure Context"
     **Service**: Container Apps (Consumption) | **Network**: VNet integrated | **VNet**: ✅
 
-    This tutorial assumes a production-ready Container Apps deployment with a custom VNet, ACR with managed identity pull, and private endpoints for backend services.
+    This tutorial assumes a production-ready Container Apps deployment with a custom VNet and private ACR access using managed identity.
 
     <!-- diagram-id: this-tutorial-assumes-a-production-ready-container -->
 ```mermaid
+%%{init: {"themeVariables": {"fontSize": "10px"}, "flowchart": {"curve": "linear", "nodeSpacing": 5, "rankSpacing": 20, "diagramPadding": 2, "wrappingWidth": 55}}}%%
 flowchart TD
     accTitle: Production-ready Container Apps context for the Node.js tutorial
-    accDescr: A caller reaches managed ingress and an active Node.js revision. The app uses managed identity for an Azure Container Registry image pull and reaches backend services through private endpoints whose DNS zones are linked to the virtual network.
-
-    CALLER["Request caller"]
-    ACR["Azure Container Registry"]
-    KV["Azure Key Vault"]
-    STORAGE["Storage account"]
-    ENTRA["Microsoft Entra ID"]
-    DNS["Private DNS zones<br/>linked to the VNet"]
-
-    subgraph VNET["Customer virtual network"]
-        INFRA["Dedicated Container Apps<br/>infrastructure subnet"]
-        subgraph PESUBNET["Private endpoint subnet"]
-            PE_ACR["ACR private endpoint"]
-            PE_KV["Key Vault private endpoint"]
-            PE_STORAGE["Storage private endpoint"]
-        end
-    end
-
-    subgraph ENV["Managed Container Apps environment"]
-        INGRESS["Managed Envoy ingress<br/>TLS and request routing"]
+    accDescr: Client requests and responses pass through managed ingress to Node.js replicas. The customer VNet associates with the environment and ACR private endpoint and links the endpoint's private DNS zone. Managed identity is assigned to the app, and platform provisioning exchanges image pull requests and layer responses with ACR through that endpoint.
+    CALLER(["Client"])
+    VNET["VNet + PE<br/>subnet"]
+    IDENTITY["Managed identity"]
+    PE_ACR["ACR PE"]
+    ACR["ACR"]
+    DNS["ACR DNS zone"]
+    subgraph ENV["ACA environment"]
+        INGRESS["Ingress"]
         APP["Container app<br/>Node.js"]
-        REVISION["Active revision<br/>immutable app version"]
-        REPLICAS["Revision replicas<br/>running instances"]
+        REVISION["Revision config"]
+        REPLICAS["Replicas"]
+        PLATFORM["Provisioning<br/>(platform)"]
     end
-
-    CALLER ==>|"HTTPS request"| INGRESS
-    INGRESS ==>|"Routed request"| REPLICAS
-    REPLICAS ==>|"App response"| INGRESS
-    INGRESS ==>|"HTTPS response"| CALLER
-    INFRA -.->|"Environment VNet integration"| APP
+    CALLER ~~~ INGRESS ~~~ REPLICAS ~~~ REVISION ~~~ APP ~~~ IDENTITY ~~~ ACR ~~~ PE_ACR ~~~ PLATFORM ~~~ DNS ~~~ VNET
+    CALLER ==>|"Request"| INGRESS
+    INGRESS ==>|"Response"| CALLER
+    INGRESS ==>|"Request"| REPLICAS
+    REPLICAS ==>|"Response"| INGRESS
+    VNET -.-> ENV
+    VNET -.-> PE_ACR
+    DNS -.-> VNET
+    APP -.-> IDENTITY
+    IDENTITY -.-> ACR
     APP -.-> REVISION
     REVISION -.-> REPLICAS
-    REPLICAS -.->|"Managed identity"| ENTRA
-    ENTRA -.->|"Registry authorization"| ACR
-    REPLICAS ==>|"Image pull request"| PE_ACR
-    PE_ACR ==>|"Image pull request"| ACR
-    ACR ==>|"Image response"| PE_ACR
-    PE_ACR ==>|"Image response"| REPLICAS
-    REPLICAS ==>|"Secret request"| PE_KV
-    PE_KV ==>|"Secret request"| KV
-    KV ==>|"Secret response"| PE_KV
-    PE_KV ==>|"Secret response"| REPLICAS
-    REPLICAS ==>|"Data request"| PE_STORAGE
-    PE_STORAGE ==>|"Data request"| STORAGE
-    STORAGE ==>|"Data response"| PE_STORAGE
-    PE_STORAGE ==>|"Data response"| REPLICAS
-    DNS -.->|"Name resolution"| PE_ACR
-    DNS -.->|"Name resolution"| PE_KV
-    DNS -.->|"Name resolution"| PE_STORAGE
-
-    LEGEND["Arrow key<br/>thick = request or data transport<br/>dotted = identity, authorization, DNS, or logical association"]
+    PLATFORM -.-> REVISION
+    PLATFORM ==>|"Pull"| PE_ACR
+    PE_ACR ==>|"Pull"| ACR
+    ACR ==>|"Layers"| PE_ACR
+    PE_ACR ==>|"Layers"| PLATFORM
+    PE_ACR -.-> DNS
 ```
 
-*Figure: The tutorial's shared production context. The Container Apps environment is a managed logical boundary integrated with a dedicated subnet; ACR, Key Vault, Storage, private DNS zones, and Microsoft Entra ID remain separate Azure resources.*
+*Figure: Client traffic crosses managed ingress to Node.js replicas. The customer VNet associates with the environment and ACR private endpoint and links the endpoint's private DNS zone. Managed identity is assigned to the app and authorizes registry pulls; platform provisioning sends pull requests and receives image layers through that endpoint.*
 
 ## CI/CD Pipeline Flow
 
@@ -99,7 +81,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     accTitle: GitHub Actions delivery flow for the Node.js container app
-    accDescr: A commit starts a workflow that builds a commit-tagged container image, pushes it to Azure Container Registry, and updates the container app. Tests are an optional addition, while revision health and traffic are verified manually after deployment.
+    accDescr: A commit starts a workflow that builds a commit-tagged image and pushes it to Azure Container Registry. The workflow independently invokes the deploy action with that image reference; ACR returns the push result but does not initiate deployment. Revision health and traffic are then verified manually.
 
     COMMIT["Commit to the configured branch"]
     WORKFLOW["GitHub Actions workflow"]
@@ -113,8 +95,9 @@ flowchart TD
 
     COMMIT -->|"Trigger"| WORKFLOW
     WORKFLOW --> IMAGE
-    IMAGE -->|"Push image"| ACR
-    ACR --> DEPLOY
+    IMAGE ==>|"Push image"| ACR
+    ACR ==>|"Push result"| WORKFLOW
+    WORKFLOW -->|"Deploy image reference"| DEPLOY
     DEPLOY -->|"Update image reference"| REVISION
     REVISION --> VERIFY
     VERIFY -->|"Expected state confirmed"| COMPLETE
@@ -281,7 +264,7 @@ flowchart TD
 ## Sources
 - [Networking in an Azure Container Apps environment (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
 - [Azure Container Apps image pull from ACR with managed identity (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
-- [Private endpoints and DNS for Container Apps environments (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns)
+- [Azure Container Registry private link (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-link)
 - [GitHub Actions (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/github-actions)
 - [Connect GitHub Actions to Azure (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure)
 - [Revisions in Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/revisions)

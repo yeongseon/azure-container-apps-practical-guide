@@ -318,13 +318,13 @@ echo "ProbeFailed event lines captured in tail: ${SYSLOG_PROBE_FAILED_COUNT} (ex
 echo ""
 
 echo "=== Phase 9: emit H1 gate JSON ==="
-UTC_CAPTURED="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+EVALUATED_AT_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 export EVIDENCE_DIR AZ_SUBSCRIPTION RG APP_NAME ACR_NAME APP_FQDN
 export BUILD_UTC TRIGGER_UTC ACR_BUILD_EXIT_CODE TRIGGER_REVISION_NAME
 export TRIGGER_HEALTH TRIGGER_RUNNING TRIGGER_PROVISIONING TRIGGER_IMAGE TRIGGER_CREATED
 export TRIGGER_RUNNING_DETAILS
 export TRIGGER_TARGET_PORT BASELINE_TARGET_PORT CURL_SUCCESS_COUNT CURL_RESULTS_STR
-export SYSLOG_EXIT_CODE SYSLOG_PROBE_FAILED_COUNT UTC_CAPTURED
+export SYSLOG_EXIT_CODE SYSLOG_PROBE_FAILED_COUNT EVALUATED_AT_UTC
 
 python3 <<'PYEOF'
 import json, os
@@ -396,7 +396,7 @@ else:
     gate_classification = 'partial_observation_some_subgates_failed'
 
 out = {
-    'utc_captured': os.environ['UTC_CAPTURED'],
+    'evaluated_at_utc': os.environ['EVALUATED_AT_UTC'],
     'subscription': os.environ['AZ_SUBSCRIPTION'],
     'rg': os.environ['RG'],
     'app_name': os.environ['APP_NAME'],

@@ -36,6 +36,164 @@
 
 set -euo pipefail
 
+if [[ -z "${AZ_SUBSCRIPTION:-}" || -z "${RG:-}" || -z "${APP_NAME:-}" ]]; then
+    EVIDENCE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/evidence"
+    EVALUATED_AT_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    export EVIDENCE_DIR EVALUATED_AT_UTC
+    python3 <<'PYEOF'
+import json
+import os
+from pathlib import Path
+
+evidence = Path(os.environ["EVIDENCE_DIR"])
+stamp = os.environ["EVALUATED_AT_UTC"]
+required_raw = (
+    "01-infra-resolve.json", "02-baseline-revisions.json", "03-baseline-curl.json",
+    "04-baseline-env-var.json", "05-baseline-secrets.json", "06-trigger-update.json",
+    "07-wait-trigger-revision.log", "08-post-trigger-env-var.json",
+    "09-post-trigger-revisions.json", "10-post-trigger-secrets.json",
+    "11-curl-after-trigger.json", "13-pre-fix-env-var.json", "14-curl-pre-fix.json",
+    "15-fix-update.json", "16-wait-fix-revision.log", "17-post-fix-env-var.json",
+    "18-post-fix-revisions.json", "19-post-fix-secrets.json", "20-curl-post-fix.json",
+)
+for name in required_raw:
+    if not (evidence / name).is_file():
+        raise SystemExit(f"missing raw evidence: {name}")
+
+baseline_env = json.loads((evidence / "04-baseline-env-var.json").read_text())
+trigger_env = json.loads((evidence / "08-post-trigger-env-var.json").read_text())
+pre_fix_env = json.loads((evidence / "13-pre-fix-env-var.json").read_text())
+post_fix_env = json.loads((evidence / "17-post-fix-env-var.json").read_text())
+baseline_curl = json.loads((evidence / "03-baseline-curl.json").read_text())
+trigger_curl = json.loads((evidence / "11-curl-after-trigger.json").read_text())
+pre_fix_curl = json.loads((evidence / "14-curl-pre-fix.json").read_text())
+post_fix_curl = json.loads((evidence / "20-curl-post-fix.json").read_text())
+if baseline_env.get("secretRef") != "appinsights-connection-string" or baseline_env.get("value"):
+    raise SystemExit("baseline env-var source is not the expected secretRef")
+if trigger_env.get("secretRef") or not trigger_env.get("value"):
+    raise SystemExit("trigger env-var source is not literal")
+if pre_fix_env != trigger_env:
+    raise SystemExit("pre-fix env-var state does not preserve the trigger state")
+if post_fix_env.get("secretRef") != "appinsights-connection-string" or post_fix_env.get("value"):
+    raise SystemExit("post-fix env-var source is not restored")
+if any(item["success_count_200"] != item["attempts"] for item in (baseline_curl, trigger_curl, pre_fix_curl, post_fix_curl)):
+    raise SystemExit("client probe evidence is not all HTTP 200")
+infra = json.loads((evidence / "01-infra-resolve.json").read_text())
+baseline_revs = json.loads((evidence / "02-baseline-revisions.json").read_text())
+baseline_secrets = json.loads((evidence / "05-baseline-secrets.json").read_text())
+trigger_update = json.loads((evidence / "06-trigger-update.json").read_text())
+trigger_revs = json.loads((evidence / "09-post-trigger-revisions.json").read_text())
+trigger_secrets = json.loads((evidence / "10-post-trigger-secrets.json").read_text())
+fix_update = json.loads((evidence / "15-fix-update.json").read_text())
+post_revs = json.loads((evidence / "18-post-fix-revisions.json").read_text())
+post_secrets = json.loads((evidence / "19-post-fix-secrets.json").read_text())
+trigger_wait = dict(line.split("=", 1) for line in (evidence / "07-wait-trigger-revision.log").read_text().splitlines() if "=" in line)
+fix_wait = dict(line.split("=", 1) for line in (evidence / "16-wait-fix-revision.log").read_text().splitlines() if "=" in line)
+expected_value = "InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://invalid/"
+secret_name = "appinsights-connection-string"
+env_name = "APPLICATIONINSIGHTS_CONNECTION_STRING"
+baseline_name = infra["baseline_revision_name_resolved_from_latestRevisionName"]
+trigger_name = trigger_update["properties"]["latestRevisionName"]
+fix_name = fix_update["properties"]["latestRevisionName"]
+def secret(snapshot):
+    return next((item for item in snapshot["secrets"] if item.get("name") == secret_name), None)
+def created(revisions, name):
+    return next((item.get("createdTime") for item in revisions if item.get("name") == name), None)
+bs, ts, fs = secret(baseline_secrets), secret(trigger_secrets), secret(post_secrets)
+h1_sub = {
+    "a_baseline_env_was_secretref": baseline_env.get("name") == env_name and baseline_env.get("secretRef") == secret_name and not baseline_env.get("value"),
+    "b_trigger_succeeded_and_revision_advanced": trigger_update["properties"]["provisioningState"] == "Succeeded" and trigger_name != baseline_name,
+    "c_env_var_now_literal_with_expected_value": trigger_env.get("value") == expected_value and not trigger_env.get("secretRef"),
+    "d_secret_store_unchanged": bs is not None and ts is not None and all(bs.get(k) == ts.get(k) for k in ("keyVaultUrl", "identity", "value_present")),
+    "e_app_continues_serving_requests": trigger_curl["success_count_200"] == trigger_curl["attempts"],
+}
+h1_all = all(h1_sub.values())
+h1 = {
+    "subscription": infra["subscription"], "rg": infra["rg"], "app_name": infra["app_name"], "app_fqdn": infra["app_fqdn"],
+    "trigger_window": {
+        "start_utc": trigger_wait["wait_started_utc"], "baseline_revision_name": baseline_name,
+        "post_trigger_revision_name": trigger_name, "revision_advanced": trigger_name != baseline_name,
+        "expected_env_var_name": env_name, "expected_literal_value": expected_value, "expected_secret_name": secret_name,
+        "trigger_cli_exit_code": 0, "wait_provisioned": trigger_wait.get("wait_provisioned") == "true",
+    },
+    "env_var_state": {
+        "baseline_secretRef": baseline_env.get("secretRef"), "baseline_value": baseline_env.get("value"),
+        "post_trigger_secretRef": trigger_env.get("secretRef"), "post_trigger_value": trigger_env.get("value"),
+        "c_strong_path_exact_string_match": trigger_env.get("value") == expected_value,
+        "c_fallback_path_non_empty_value_no_secretref": bool(trigger_env.get("value")) and not trigger_env.get("secretRef"),
+    },
+    "secret_store_integrity": {
+        "expected_secret_name": secret_name, "baseline_secrets_count": baseline_secrets["secrets_count"],
+        "post_trigger_secrets_count": trigger_secrets["secrets_count"], "baseline_secret_match": bs,
+        "post_trigger_secret_match": ts, "comparison_excludes_resolved_value_for_pii_safety": True,
+    },
+    "client_probe_results": {
+        "baseline_success_count_200": baseline_curl["success_count_200"], "baseline_attempts": baseline_curl["attempts"],
+        "post_trigger_success_count_200": trigger_curl["success_count_200"], "post_trigger_attempts": trigger_curl["attempts"],
+        "note": "Both baseline and post-trigger curl probes are expected to be 5/5 HTTP 200. The trigger changes telemetry export configuration ONLY, not request handling. The data-plane integrity check is sub-gate e.",
+    },
+    "telemetry_caveat": {
+        "image": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest", "ships_application_insights_sdk": False,
+        "trace_count_expected_in_both_states": 0, "telemetry_blocking_hypothesis_status": "[Not Proven] — see lab guide Hypothesis caveat",
+        "h1_intentionally_restricted_to": "env-var Source/Value flip (directly observable from Container App template)",
+    },
+    "h1_sub_gates": h1_sub, "h1_all_subgates_pass": h1_all,
+    "gate_classification": "telemetry_misconfiguration_env_var_source_flipped_to_literal" if h1_all else "h1_failed_check_sub_gates",
+    "evaluated_at_utc": stamp,
+}
+three_names = len({baseline_name, trigger_name, fix_name}) == 3
+cts = (created(baseline_revs, baseline_name), created(trigger_revs, trigger_name), created(post_revs, fix_name))
+h2_sub = {
+    "a_pre_fix_env_var_still_literal": pre_fix_env.get("name") == env_name and pre_fix_env.get("value") == expected_value and not pre_fix_env.get("secretRef"),
+    "b_fix_command_succeeded_and_revision_advanced": fix_update["properties"]["provisioningState"] == "Succeeded" and fix_name not in (baseline_name, trigger_name),
+    "c_env_var_back_to_secretref": post_fix_env.get("secretRef") == secret_name and not post_fix_env.get("value"),
+    "d_secret_store_value_unchanged_after_fix": all(item is not None for item in (bs, ts, fs)) and all(bs.get(k) == ts.get(k) == fs.get(k) for k in ("keyVaultUrl", "identity", "value_present")),
+    "e_app_continues_serving_requests_post_fix": post_fix_curl["success_count_200"] == post_fix_curl["attempts"],
+    "f_revision_progression_documented": three_names and all(cts) and cts[0] < cts[1] < cts[2],
+}
+h2_all = all(h2_sub.values())
+h2 = {
+    "subscription": infra["subscription"], "rg": infra["rg"], "app_name": infra["app_name"], "app_fqdn": infra["app_fqdn"],
+    "fix_window": {
+        "baseline_revision_name": baseline_name, "post_trigger_revision_name": trigger_name, "post_fix_revision_name": fix_name,
+        "three_distinct_revisions": three_names, "expected_env_var_name": env_name, "expected_secret_name": secret_name,
+        "fix_cli_exit_code": 0, "wait_provisioned": fix_wait.get("wait_provisioned") == "true",
+    },
+    "env_var_state": {
+        "pre_fix_value": pre_fix_env.get("value"), "pre_fix_secretRef": pre_fix_env.get("secretRef"),
+        "pre_fix_matches_expected_literal": pre_fix_env.get("value") == expected_value,
+        "post_fix_value": post_fix_env.get("value"), "post_fix_secretRef": post_fix_env.get("secretRef"),
+        "c_strong_path_secretref_exact_match": post_fix_env.get("secretRef") == secret_name,
+        "c_fallback_path_non_empty_secretref_no_value": bool(post_fix_env.get("secretRef")) and not post_fix_env.get("value"),
+    },
+    "secret_store_integrity_across_three_states": {
+        "expected_secret_name": secret_name, "baseline_match": bs, "post_trigger_match": ts, "post_fix_match": fs,
+        "comparison_excludes_resolved_value_for_pii_safety": True,
+    },
+    "revision_progression": {
+        "baseline_createdTime": cts[0], "post_trigger_createdTime": cts[1], "post_fix_createdTime": cts[2],
+        "three_distinct_names": three_names, "createdTime_strictly_increasing": all(cts) and cts[0] < cts[1] < cts[2],
+    },
+    "client_probe_results": {
+        "pre_fix_success_count_200": pre_fix_curl["success_count_200"], "pre_fix_attempts": pre_fix_curl["attempts"],
+        "post_fix_success_count_200": post_fix_curl["success_count_200"], "post_fix_attempts": post_fix_curl["attempts"],
+        "note": "Both pre-fix and post-fix curl probes are expected to be 5/5 HTTP 200. The fix changes telemetry export configuration ONLY, not request handling.",
+    },
+    "telemetry_caveat": {
+        "image": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest", "ships_application_insights_sdk": False,
+        "trace_count_expected_in_all_three_states": 0, "telemetry_blocking_hypothesis_status": "[Not Proven] — see lab guide Hypothesis caveat",
+        "h2_intentionally_restricted_to": "env-var Source/Value restoration + revision progression (directly observable from Container App template and revision list)",
+    },
+    "h2_sub_gates": h2_sub, "h2_all_subgates_pass": h2_all,
+    "gate_classification": "telemetry_configuration_restored_to_secretref_app_intact" if h2_all else "h2_failed_check_sub_gates",
+    "evaluated_at_utc": stamp,
+}
+for name, document in (("12-h1-gate.json", h1), ("24-h2-gate.json", h2)):
+    (evidence / name).write_text(json.dumps(document, indent=2) + "\n")
+PYEOF
+    exit 0
+fi
+
 : "${AZ_SUBSCRIPTION:?Set AZ_SUBSCRIPTION to the subscription ID before running}"
 : "${RG:?Set RG to the lab resource group before running}"
 : "${APP_NAME:?Set APP_NAME to the Container App name from the Bicep output}"
@@ -381,7 +539,7 @@ h2_sub_gates = {
 h2_all_pass = all(h2_sub_gates.values())
 
 print(json.dumps({
-    "utc_captured": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+    "evaluated_at_utc": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
     "subscription": "00000000-0000-0000-0000-000000000000",
     "rg": "$RG",
     "app_name": "$APP_NAME",

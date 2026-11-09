@@ -15,6 +15,15 @@ from typing import Final
 
 REPO_ROOT: Final = Path(__file__).resolve().parents[1]
 REPLAY_LABS: Final = {
+    "acr-network-path-pe-forced-inspection": (
+        (
+            "14-cohort-integrity-gate.json",
+            "15-h1-trigger-produces-failure-gate.json",
+            "16-h2-fix-restores-recovery-gate.json",
+            "17-bounded-falsification-gate.json",
+        ),
+        (),
+    ),
     "acr-network-path-dns-forwarder-bypass": (
         (
             "14-cohort-integrity-gate.json",
@@ -51,6 +60,10 @@ REPLAY_LABS: Final = {
         ),
         (),
     ),
+    "cd-reconnect-rbac-conflict": (
+        ("07-h1-gate.json", "14-h2-gate.json"),
+        (),
+    ),
     "dapr-integration": (
         (
             "14-cohort-integrity-gate.json",
@@ -66,6 +79,23 @@ REPLAY_LABS: Final = {
             "11-h1-b-small-cold-pull-gate.json",
             "12-h1-c-speedup-ratio-gate.json",
             "13-h2-falsification-gate.json",
+        ),
+        (),
+    ),
+    "observability-tracing": (
+        ("12-h1-gate.json", "24-h2-gate.json"),
+        (),
+    ),
+    "probe-and-port-mismatch": (
+        ("11-h1-gate.json", "22-h2-gate.json"),
+        (),
+    ),
+    "ingress-target-port-mismatch": (
+        (
+            "14-cohort-integrity-gate.json",
+            "15-h1-trigger-produces-failure-gate.json",
+            "16-h2-fix-restores-recovery-gate.json",
+            "17-single-variable-falsification-gate.json",
         ),
         (),
     ),
@@ -695,6 +725,102 @@ class EvaluationReplayTests(unittest.TestCase):
                     data.pop("evaluated_at_utc")
                     self.assertEqual(json.dumps(data, sort_keys=True), json.dumps(first[output], sort_keys=True))
 
+    def test_batch_c_direct_replay_is_hermetic_in_fresh_copy(self) -> None:
+        for name in ("acr-network-path-pe-forced-inspection", "ingress-target-port-mismatch"):
+            outputs, arguments = REPLAY_LABS[name]
+            with self.subTest(lab=name), self.replay_fixture(name) as lab:
+                for path in lab.rglob("*"):
+                    if path.is_file():
+                        path.touch()
+                for output in outputs:
+                    (lab / "evidence" / output).unlink()
+
+                env = os.environ.copy()
+                env.pop("GATE_REPLAY_BASELINE_DIR", None)
+                start = datetime.now(timezone.utc).replace(microsecond=0)
+                result = subprocess.run(
+                    ["bash", "verify.sh", *arguments], cwd=lab, env=env,
+                    capture_output=True, text=True, timeout=60, check=False,
+                )
+                end = datetime.now(timezone.utc).replace(microsecond=0)
+
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                for output in outputs:
+                    actual = json.loads((lab / "evidence" / output).read_text())
+                    self.assertNotIn("utc_captured", actual)
+                    stamp_value = actual.pop("evaluated_at_utc")
+                    stamp = datetime.strptime(stamp_value, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+                    self.assertLessEqual(start, stamp)
+                    self.assertLessEqual(stamp, end)
+                    expected = json.loads((lab.parent / "committed-gates" / output).read_text())
+                    expected.pop("evaluated_at_utc", None)
+                    expected.pop("utc_captured", None)
+                    self.assertEqual(
+                        json.dumps(actual, sort_keys=True),
+                        json.dumps(expected, sort_keys=True),
+                        output,
+                    )
+
+    def test_batch_e_direct_replay_is_hermetic_in_fresh_copy(self) -> None:
+        for name in ("cd-reconnect-rbac-conflict", "observability-tracing", "probe-and-port-mismatch"):
+            outputs, arguments = REPLAY_LABS[name]
+            with self.subTest(lab=name), self.replay_fixture(name) as lab:
+                for path in lab.rglob("*"):
+                    if path.is_file():
+                        path.touch()
+                for output in outputs:
+                    path = lab / "evidence" / output
+                    tampered = json.loads(path.read_text())
+                    tampered["gate_classification"] = "tampered_existing_gate_must_not_be_reused"
+                    path.write_text(json.dumps(tampered))
+
+                env = os.environ.copy()
+                for variable in (
+                    "GATE_REPLAY_BASELINE_DIR", "AZ_SUBSCRIPTION", "RG", "APP_NAME",
+                    "ACR_NAME", "APPINSIGHTS_NAME",
+                ):
+                    env.pop(variable, None)
+                start = datetime.now(timezone.utc).replace(microsecond=0)
+                result = subprocess.run(
+                    ["bash", "verify.sh", *arguments], cwd=lab, env=env,
+                    capture_output=True, text=True, timeout=60, check=False,
+                )
+                end = datetime.now(timezone.utc).replace(microsecond=0)
+
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                for output in outputs:
+                    actual = json.loads((lab / "evidence" / output).read_text())
+                    self.assertNotEqual(
+                        actual.get("gate_classification"),
+                        "tampered_existing_gate_must_not_be_reused",
+                    )
+                    self.assertNotIn("utc_captured", actual)
+                    stamp_value = actual.pop("evaluated_at_utc")
+                    stamp = datetime.strptime(stamp_value, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+                    self.assertLessEqual(start, stamp)
+                    self.assertLessEqual(stamp, end)
+                    expected = json.loads((lab.parent / "committed-gates" / output).read_text())
+                    expected.pop("evaluated_at_utc", None)
+                    expected.pop("utc_captured", None)
+                    if name == "cd-reconnect-rbac-conflict" and output == "07-h1-gate.json":
+                        expected["initial_deploy_window"]["start_utc"] = "2026-06-23T12:22:11.177411+00:00"
+                        expected["reconnect_deploy_window"]["start_utc"] = "2026-06-23T12:23:05.503886+00:00"
+                        expected["reconnect_deploy_window"]["fresh_role_assignment_name"] = "not_recorded_in_raw_evidence"
+                    elif name == "cd-reconnect-rbac-conflict" and output == "14-h2-gate.json":
+                        expected["reverify_window"]["start_utc"] = "2026-06-23T12:25:00.658016+00:00"
+                        expected["delete_window"]["start_utc"] = "2026-06-23T12:25:00.658016+00:00"
+                        expected["recovery_window"]["start_utc"] = "2026-06-23T12:32:56.311469+00:00"
+                    elif name == "probe-and-port-mismatch" and output == "11-h1-gate.json":
+                        expected["build_window"]["start_utc"] = "2026-06-23T14:05:17Z"
+                        expected["trigger_window"]["start_utc"] = "2026-06-23T14:06:13.4898709"
+                    elif name == "probe-and-port-mismatch" and output == "22-h2-gate.json":
+                        expected["fix_window"]["start_utc"] = "2026-06-23T22:39:51Z"
+                    self.assertEqual(
+                        json.dumps(actual, sort_keys=True),
+                        json.dumps(expected, sort_keys=True),
+                        output,
+                    )
+
     def test_batch_f_direct_replay_is_hermetic_in_fresh_copy(self) -> None:
         for name in ("revision-failover", "scale-rule-mismatch", "traffic-routing-canary"):
             outputs, arguments = REPLAY_LABS[name]
@@ -778,7 +904,12 @@ class EvaluationReplayTests(unittest.TestCase):
             "acr-network-path-dns-forwarder-bypass",
             "acr-network-path-firewall-allowlist",
             "acr-network-path-pe-direct",
+            "acr-network-path-pe-forced-inspection",
             "acr-network-path-record-split-brain",
+            "cd-reconnect-rbac-conflict",
+            "observability-tracing",
+            "probe-and-port-mismatch",
+            "ingress-target-port-mismatch",
             "revision-failover",
             "scale-rule-mismatch",
             "traffic-routing-canary",
@@ -792,6 +923,12 @@ class EvaluationReplayTests(unittest.TestCase):
                 ).replace(
                     '"evaluated_at_utc": EVALUATED_AT_UTC,',
                     '"utc_captured": EVALUATED_AT_UTC,',
+                ).replace(
+                    'document["evaluated_at_utc"] = stamp',
+                    'document["utc_captured"] = stamp',
+                ).replace(
+                    '"evaluated_at_utc": stamp,',
+                    '"utc_captured": stamp,',
                 ).replace(
                     '"evaluated_at_utc": STAMP,',
                     '"utc_captured": STAMP,',

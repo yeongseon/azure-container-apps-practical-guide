@@ -70,6 +70,8 @@ The committed evidence pack was captured on **2026-06-24** against Container App
 
 Secret-store snapshots redact the resolved connection string value (a real instrumentation key would be a P0 PII leak); the gates compare only `name`, `value_present`, `keyVaultUrl`, and `identity`. See [`evidence/README.md`](evidence/README.md) for the full file index, PII policy, and CLI versions.
 
+The committed gates were originally emitted during the 2026-06-24 capture and later re-evaluated offline from unchanged raw evidence. A replay writes its invocation time as `evaluated_at_utc`; it does not create a new capture or validation date.
+
 ## Cost and cleanup
 
 Expected runtime ~10 minutes; estimated cost <$0.10 USD (Consumption plan, three short-lived helloworld revisions, one Log Analytics workspace, one Application Insights component, Korea Central). Run `cleanup.sh` immediately after capturing evidence.

@@ -74,60 +74,67 @@
         "labs/acr-network-path-pe-forced-inspection/evidence/12-h2-recovery-window.json"
       ],
       "observed_values": {
-        "utc_window_start": "2026-06-29T00:25:14+00:00",
+        "utc_window_start": "2026-06-29T00:23:52.266174+00:00",
         "utc_window_end": "2026-06-29T00:35:41+00:00",
-        "utc_window_span_seconds": 627.0,
+        "utc_window_span_seconds": 708.733826,
         "monotonic_ordering_holds": true,
         "pre_anchor_timestamps": {
           "02-revision-list-pre-fix.json": {
             "timestamp_utc": "2026-06-29T00:27:28+00:00",
             "time_source": "revision.createdTime",
-            "raw_epoch": "2026-06-29T00:27:28+00:00"
+            "raw_epoch": "2026-06-29T00:27:28+00:00",
+            "anchor_kind": "direct_payload"
           },
           "06-firewall-log-baseline.json": {
             "timestamp_utc": "2026-06-29T00:25:14+00:00",
             "time_source": "payload.window_end_utc",
-            "raw_epoch": "2026-06-29T00:25:14Z"
+            "raw_epoch": "2026-06-29T00:25:14Z",
+            "anchor_kind": "direct_payload"
           },
           "07-containerapp-spec-pre-fix.yaml": {
-            "timestamp_utc": "2026-06-29T00:25:31.381567+00:00",
-            "time_source": "birthtime",
-            "raw_epoch": 1782692731.381567
+            "timestamp_utc": "2026-06-29T00:23:52.266174+00:00",
+            "time_source": "systemData.lastModifiedAt",
+            "raw_epoch": "2026-06-29T00:23:52.2661745",
+            "anchor_kind": "direct_payload"
           },
           "08-h1-silence-window.json": {
             "timestamp_utc": "2026-06-29T00:27:13+00:00",
             "time_source": "payload.h1_trigger_ts_utc",
-            "raw_epoch": "2026-06-29T00:27:13Z"
+            "raw_epoch": "2026-06-29T00:27:13Z",
+            "anchor_kind": "direct_payload"
           }
         },
         "post_anchor_timestamps": {
           "09-route-table-post-fix.json": {
             "timestamp_utc": "2026-06-29T00:35:22+00:00",
             "time_source": "payload.h2_recovery_ts_utc",
-            "raw_epoch": "2026-06-29T00:35:22Z"
+            "raw_epoch": "2026-06-29T00:35:22Z",
+            "anchor_kind": "direct_payload"
           },
           "10-revision-list-post-fix.json": {
             "timestamp_utc": "2026-06-29T00:35:41+00:00",
             "time_source": "revision.createdTime",
-            "raw_epoch": "2026-06-29T00:35:41+00:00"
+            "raw_epoch": "2026-06-29T00:35:41+00:00",
+            "anchor_kind": "direct_payload"
           },
           "12-h2-recovery-window.json": {
             "timestamp_utc": "2026-06-29T00:35:22+00:00",
             "time_source": "payload.h2_recovery_ts_utc",
-            "raw_epoch": "2026-06-29T00:35:22Z"
+            "raw_epoch": "2026-06-29T00:35:22Z",
+            "anchor_kind": "direct_payload"
           }
         },
         "sorted_anchor_sequence": [
           {
-            "file": "06-firewall-log-baseline.json",
-            "timestamp_utc": "2026-06-29T00:25:14+00:00",
-            "time_source": "payload.window_end_utc",
+            "file": "07-containerapp-spec-pre-fix.yaml",
+            "timestamp_utc": "2026-06-29T00:23:52.266174+00:00",
+            "time_source": "systemData.lastModifiedAt",
             "anchor_class": "pre"
           },
           {
-            "file": "07-containerapp-spec-pre-fix.yaml",
-            "timestamp_utc": "2026-06-29T00:25:31.381567+00:00",
-            "time_source": "birthtime",
+            "file": "06-firewall-log-baseline.json",
+            "timestamp_utc": "2026-06-29T00:25:14+00:00",
+            "time_source": "payload.window_end_utc",
             "anchor_class": "pre"
           },
           {
@@ -224,32 +231,32 @@
           },
           {
             "pre_file": "07-containerapp-spec-pre-fix.yaml",
-            "pre_timestamp_utc": "2026-06-29T00:25:31.381567+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-29T00:23:52.266174+00:00",
+            "pre_time_source": "systemData.lastModifiedAt",
             "post_file": "09-route-table-post-fix.json",
             "post_timestamp_utc": "2026-06-29T00:35:22+00:00",
             "post_time_source": "payload.h2_recovery_ts_utc",
-            "delta_seconds": 590.618433,
+            "delta_seconds": 689.733826,
             "holds": true
           },
           {
             "pre_file": "07-containerapp-spec-pre-fix.yaml",
-            "pre_timestamp_utc": "2026-06-29T00:25:31.381567+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-29T00:23:52.266174+00:00",
+            "pre_time_source": "systemData.lastModifiedAt",
             "post_file": "10-revision-list-post-fix.json",
             "post_timestamp_utc": "2026-06-29T00:35:41+00:00",
             "post_time_source": "revision.createdTime",
-            "delta_seconds": 609.618433,
+            "delta_seconds": 708.733826,
             "holds": true
           },
           {
             "pre_file": "07-containerapp-spec-pre-fix.yaml",
-            "pre_timestamp_utc": "2026-06-29T00:25:31.381567+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-29T00:23:52.266174+00:00",
+            "pre_time_source": "systemData.lastModifiedAt",
             "post_file": "12-h2-recovery-window.json",
             "post_timestamp_utc": "2026-06-29T00:35:22+00:00",
             "post_time_source": "payload.h2_recovery_ts_utc",
-            "delta_seconds": 590.618433,
+            "delta_seconds": 689.733826,
             "holds": true
           },
           {
@@ -292,7 +299,7 @@
           "max_span_seconds": 5400
         },
         "time_source_summary": {
-          "birthtime_count": 1,
+          "birthtime_count": 0,
           "mtime_count": 0,
           "fallback_used": false
         }
@@ -425,11 +432,11 @@
         "labs/acr-network-path-pe-forced-inspection/evidence/12-h2-recovery-window.json"
       ],
       "observed_values": {
-        "utc_window_start": "2026-06-29T00:25:14+00:00",
+        "utc_window_start": "2026-06-29T00:23:52.266174+00:00",
         "utc_window_end": "2026-06-29T00:35:41+00:00",
-        "utc_window_span_seconds": 627.0,
+        "utc_window_span_seconds": 708.733826,
         "time_source_summary": {
-          "birthtime_count": 1,
+          "birthtime_count": 0,
           "mtime_count": 0,
           "fallback_used": false
         }
@@ -445,5 +452,5 @@
     "utc_window_span_strong_seconds_max": 1800,
     "utc_window_span_fallback_seconds_max": 5400
   },
-  "utc_captured": "2026-06-29T00:42:44Z"
+  "evaluated_at_utc": "2026-11-09T14:43:43Z"
 }
