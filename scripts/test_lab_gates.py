@@ -15,6 +15,24 @@ from typing import Final
 
 REPO_ROOT: Final = Path(__file__).resolve().parents[1]
 REPLAY_LABS: Final = {
+    "managed-identity-key-vault-failure": (
+        (
+            "14-cohort-integrity-gate.json",
+            "15-h1-trigger-produces-failure-gate.json",
+            "16-h2-fix-restores-recovery-gate.json",
+            "17-bounded-falsification-gate.json",
+        ),
+        (),
+    ),
+    "revision-provisioning-failure": (
+        (
+            "14-cohort-integrity-gate.json",
+            "15-h1-trigger-produces-failure-gate.json",
+            "16-h2-fix-restores-recovery-gate.json",
+            "17-bounded-falsification-gate.json",
+        ),
+        (),
+    ),
     "acr-network-path-dns-forwarder-bypass": (
         (
             "14-cohort-integrity-gate.json",
@@ -709,6 +727,8 @@ class EvaluationReplayTests(unittest.TestCase):
             "acr-network-path-firewall-allowlist",
             "acr-network-path-pe-direct",
             "acr-network-path-record-split-brain",
+            "managed-identity-key-vault-failure",
+            "revision-provisioning-failure",
         ):
             with self.subTest(lab=name), self.replay_fixture(name) as lab:
                 verify = lab / "verify.sh"
