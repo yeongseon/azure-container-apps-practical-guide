@@ -41,13 +41,29 @@ The key troubleshooting lesson is that ingress `targetPort` and Dapr `appPort` a
 <!-- diagram-id: architecture -->
 ```mermaid
 flowchart TD
-    A[External Request] --> B[Ingress :8000]
-    B --> C[App Container :8000]
-    D[Dapr Sidecar :3500] --> E[App Container :appPort]
-    F[Other Dapr Apps] --> D
-    E -. correct .-> C
-    D -. wrong appPort 8081 .-> G[Connection failure]
+    accTitle: Separate ingress traffic from Dapr service invocation
+    accDescr: Compare the independent ingress path to port 8000 with the Dapr sidecar path whose appPort is changed from the real listener to an unused port.
+
+    CALLER[Other Dapr-enabled app]
+    CLIENT[External client]
+    SIDECAR[Dapr sidecar<br/>HTTP port 3500]
+    APP[App container<br/>listens on port 8000]
+    INGRESS[Managed ingress<br/>target port 8000]
+    CONFIG[Dapr appPort setting]
+    FAILURE[Run-specific invocation failure<br/>when appPort is 8081]
+
+    CLIENT ==>|Request| INGRESS
+    INGRESS ==>|Routed request| APP
+    APP ==>|Response| INGRESS
+    INGRESS ==>|Response| CLIENT
+    CALLER ==>|Service invocation| SIDECAR
+    CONFIG -.->|Selects app listener| SIDECAR
+    SIDECAR ==>|appPort 8000| APP
+    APP ==>|Invocation response| SIDECAR
+    SIDECAR -.->|appPort 8081| FAILURE
 ```
+
+*Figure: Ingress and Dapr use separate configuration paths; the lab changes only Dapr `appPort` and compares invocation evidence with the still-working ingress path.*
 
 ### Dapr App Port Configuration
 
