@@ -1,4 +1,5 @@
 ---
+description: Follow the seven-step Java path from local Spring Boot container development through Azure deployment, automation, and revision traffic management.
 content_sources:
   diagrams:
     - id: java-tutorial-flow
@@ -34,13 +35,24 @@ Install and verify:
 <!-- diagram-id: java-tutorial-flow -->
 ```mermaid
 flowchart TD
-    S01[01 Local Development] --> S02[02 First Deploy]
-    S02 --> S03[03 Configuration]
-    S03 --> S04[04 Logging & Monitoring]
-    S04 --> S05[05 Infrastructure as Code]
-    S05 --> S06[06 CI/CD]
-    S06 --> S07[07 Revisions & Traffic]
+    accTitle: Java tutorial progression
+    accDescr: Seven modules progress from building a Spring Boot container locally through deployment, configuration, observability, infrastructure as code, CI/CD, and revision traffic management.
+    S01["01 Local development<br/>build and test Java image"]
+    S02["02 First deploy<br/>publish and verify"]
+    S03["03 Configuration<br/>environment and secrets"]
+    S04["04 Logging and monitoring<br/>logs, metrics, and traces"]
+    S05["05 Infrastructure as code<br/>Bicep lifecycle"]
+    S06["06 CI/CD<br/>automated image delivery"]
+    S07["07 Revisions and traffic<br/>safe production rollout"]
+    S01 -->|"Local image is healthy"| S02
+    S02 -->|"Running revision"| S03
+    S03 -->|"Runtime settings applied"| S04
+    S04 -->|"Deployment is observable"| S05
+    S05 -->|"Infrastructure is repeatable"| S06
+    S06 -->|"Delivery is automated"| S07
 ```
+
+*Figure: Complete each Java module in order; every step establishes the prerequisite used by the next production-readiness activity.*
 
 ## Steps
 

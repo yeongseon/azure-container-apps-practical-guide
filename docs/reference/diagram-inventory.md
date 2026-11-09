@@ -67,8 +67,8 @@ The following summary tables are generated directly from `docs/reference/diagram
 <!-- BEGIN GENERATED: diagram-inventory:type -->
 | Type | Count |
 |---|---:|
-| flowchart | 438 |
-| graph | 25 |
+| flowchart | 446 |
+| graph | 17 |
 | pie | 2 |
 | quadrantChart | 1 |
 | sequenceDiagram | 9 |
