@@ -1,4 +1,5 @@
 ---
+description: Follow the seven-step Node.js path from local Express container development through Azure deployment, automation, and revision traffic management.
 content_sources:
   diagrams:
     - id: tutorial-progression
@@ -25,7 +26,7 @@ This tutorial path walks you from local development to safe traffic shifting for
 
 Before starting, install and verify:
 
-- Node.js 18+
+- Node.js 20+
 - Docker
 - Azure CLI
 
@@ -34,13 +35,24 @@ Before starting, install and verify:
 <!-- diagram-id: tutorial-progression -->
 ```mermaid
 flowchart TD
-    S01[01 Local Development] --> S02[02 First Deploy]
-    S02 --> S03[03 Configuration]
-    S03 --> S04[04 Logging & Monitoring]
-    S04 --> S05[05 Infrastructure as Code]
-    S05 --> S06[06 CI/CD]
-    S06 --> S07[07 Revisions & Traffic]
+    accTitle: Node.js tutorial progression
+    accDescr: Seven modules progress from building an Express container locally through deployment, configuration, observability, infrastructure as code, CI/CD, and revision traffic management.
+    S01["01 Local development<br/>build and test Node.js image"]
+    S02["02 First deploy<br/>publish and verify"]
+    S03["03 Configuration<br/>environment and secrets"]
+    S04["04 Logging and monitoring<br/>logs, metrics, and traces"]
+    S05["05 Infrastructure as code<br/>Bicep lifecycle"]
+    S06["06 CI/CD<br/>automated image delivery"]
+    S07["07 Revisions and traffic<br/>safe production rollout"]
+    S01 -->|"Local image is healthy"| S02
+    S02 -->|"Running revision"| S03
+    S03 -->|"Runtime settings applied"| S04
+    S04 -->|"Deployment is observable"| S05
+    S05 -->|"Infrastructure is repeatable"| S06
+    S06 -->|"Delivery is automated"| S07
 ```
+
+*Figure: Complete each Node.js module in order; every step establishes the prerequisite used by the next production-readiness activity.*
 
 ## Steps
 
