@@ -54,9 +54,9 @@ Starting from the **19 verifiers and 36 committed derived gates** remaining afte
 
 ## Batch F
 
-Batch F converts `revision-failover`, `scale-rule-mismatch`, and `traffic-routing-canary`. Their offline replay paths derive Gates 11/17, 10/19, and 12/22 respectively from the current raw payloads, while `GATE_REPLAY_BASELINE_DIR` supplies only the guarded historical fields that the raw pack did not persist separately. Capture-script start times and raw revision, traffic, scaler, replica, and log timestamps remain unchanged.
+Batch F converts `revision-failover`, `scale-rule-mismatch`, and `traffic-routing-canary`. Their offline replay paths derive Gates 11/17, 10/19, and 12/22 respectively from the current raw payloads. Direct replay is independent of existing gates; `GATE_REPLAY_BASELINE_DIR` is an explicit opt-in comparison source used only after `scripts/check_gate_replay.py` proves the raw cohort byte-identical to `HEAD`. Capture-script start times and raw revision, traffic, scaler, replica, and log timestamps remain unchanged.
 
-The current tree before Batch F contained **18 verifier files** that still emitted top-level `utc_captured` and **24 committed derived gates** with that key. Removing these three verifiers and their six gates leaves **15 affected verifiers and 18 committed derived gates**.
+Against current `origin/main` after Batch C, Batch F removes these three actual emitters and their six current Phase B gates, reducing the remaining semantic inventory from **15 affected verifiers and 20 committed derived gates** to **12 affected verifiers and 14 committed derived gates**. A literal `grep -l utc_captured labs/*/verify.sh` reports 16 textual hits before Batch F because `acr-pull-failure/verify.sh` contains legitimate references and comments for raw capture fields while its current Phase B outputs already emit `evaluated_at_utc`; that file is not an affected emitter. Historical `acr-pull-failure` Gates 06 and 14 likewise are not current offline-verifier outputs and are excluded from the semantic gate count.
 
 ## Fail-Open Gate Replay Audit
 
