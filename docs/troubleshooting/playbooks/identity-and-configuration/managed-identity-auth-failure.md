@@ -40,21 +40,39 @@ It is also common for the app to fail only for one dependency while everything e
 
 <!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
-graph TD
-    A[Managed identity call fails] --> B{Identity assigned to Container App?}
-    B -->|No| C[Assign system or user-assigned identity]
-    B -->|Yes| D{Principal ID visible and active?}
-    D -->|No| E[Wait for propagation or recreate revision]
-    D -->|Yes| F{RBAC role exists at exact target scope?}
-    F -->|No| G[Grant least-privilege role at exact scope]
-    F -->|Yes| H{Token audience/scope correct?}
-    H -->|No| I[Fix SDK resource URI or .default scope]
-    H -->|Yes| J{Token cache or identity mix-up?}
-    J -->|Yes| K[Restart replica and clear stale token path]
-    J -->|No| L{IMDS endpoint reachable in container?}
-    L -->|No| M[Check runtime path and platform constraints]
-    L -->|Yes| N[Inspect target-service logs and retry headers]
+flowchart TD
+    accTitle: Diagnose a managed identity authorization failure
+    accDescr: Check identity assignment, token acquisition, token audience, and target-resource authorization as separate stages.
+
+    CALL[Application requests an Azure resource]
+    ASSIGNED{Expected managed identity assigned?}
+    TOKEN{Token request succeeds?}
+    AUDIENCE{Token audience matches the target service?}
+    AUTHZ{Required data-plane or management role at the intended scope?}
+    TARGET{Target service accepts the request?}
+    ASSIGN[Assign or select the intended identity]
+    TOKEN_FIX[Inspect identity endpoint use, identity selection, and propagation]
+    AUDIENCE_FIX[Request the documented service audience or scope]
+    RBAC_FIX[Grant the least-privilege role at the intended scope]
+    SERVICE[Inspect target-service policy, logs, and response]
+    SUCCESS[Dependency call succeeds]
+
+    CALL --> ASSIGNED
+    ASSIGNED -->|No| ASSIGN
+    ASSIGNED -->|Yes| TOKEN
+    TOKEN -->|No| TOKEN_FIX
+    TOKEN -->|Yes| AUDIENCE
+    AUDIENCE -->|No| AUDIENCE_FIX
+    AUDIENCE -->|Yes| AUTHZ
+    AUTHZ -->|No| RBAC_FIX
+    AUTHZ -->|Yes| TARGET
+    TARGET -->|No| SERVICE
+    TARGET -->|Yes| SUCCESS
+
+    LEGEND["Arrow key<br/>solid = diagnostic progression"]
 ```
+
+*Figure: Identity assignment, token issuance, audience selection, and target authorization are independent gates that can produce similar symptoms.*
 
 ## 2. Common Misreadings
 
@@ -110,11 +128,18 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az role assignment list --assignee "$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query identity.principalId --output tsv)" --all --output table
 ```
 
-| Command | Purpose |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json` | Reads the app's identity object so you can inspect whether the revision has a system-assigned identity, user-assigned identities, and the expected `principalId`/`clientId` values before troubleshooting RBAC. |
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.identity" --output json` | Reads the Container App resource and extracts the revision template identity settings in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
-| `az role assignment list --assignee "$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query identity.principalId --output tsv)" --all --output table` | Lists every RBAC grant for the selected principal so you can see whether the expected role exists and whether it was assigned at the wrong scope. |
+| `az containerapp show` | Reads the selected Container App so the operator can evaluate the identity evidence. |
+| `--name` (`az containerapp show`) | Reads identity metadata from `$APP_NAME`, the workload failing authentication. |
+| `--resource-group` (`az containerapp show`) | Locates the app in `$RG` before resolving its principal. |
+| `--query` (`az containerapp show`) | Collects the app principal, complete identity block, and template identity reference to expose assignment inconsistencies in one response. |
+| `--output` (`az containerapp show`) | Returns identity objects as JSON and the nested principal ID as raw text for the RBAC lookup. |
+| `az role assignment list` | Lists grants for the app's principal to reveal whether any usable role assignment exists. |
+| `--assignee` (`az role assignment list`) | Filters assignments to the principal ID returned by the nested `az containerapp show` command. |
+| `--all` (`az role assignment list`) | Retrieves every assignment page for the resolved principal. |
+| `--output` (`az role assignment list`) | Displays role names and scopes in a table to expose missing or misplaced grants. |
+
 
 ## 5. Evidence to Collect
 
@@ -142,9 +167,22 @@ az role assignment list --assignee "$PRINCIPAL_ID" --all --output json
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command 'python -c "from azure.identity import ManagedIdentityCredential; token = ManagedIdentityCredential().get_token(\"https://vault.azure.net/.default\"); print(token.expires_on)"'
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the system- and user-assigned identity IDs that must be used in the subsequent role-assignment lookup. |
+| `--name` (`az containerapp show`) | Inspects `$APP_NAME`, the workload presenting the managed-identity authentication failure. |
+| `--resource-group` (`az containerapp show`) | Reads `$APP_NAME` from `$RG` before assigning its principal ID to the shell. |
+| `--query` (`az containerapp show`) | Selects the system-assigned principal ID used by the following RBAC lookup. |
+| `--output` (`az containerapp show`) | Stores only the principal GUID in the shell variable, without JSON quotes. |
+| `az role assignment list` | Enumerates all grants for the resolved principal so inherited or unexpectedly scoped access remains visible. |
+| `--assignee` (`az role assignment list`) | Filters grants to `$PRINCIPAL_ID`, the app identity returned above. |
+| `--all` (`az role assignment list`) | Includes all matching assignments instead of only the first result page. |
+| `--output` (`az role assignment list`) | Preserves complete assignment properties as JSON for scope analysis. |
+| `az containerapp exec` | Runs the diagnostic probe inside the selected app to evaluate the Azure state that distinguishes this hypothesis. |
+| `--name` (`az containerapp exec`) | Executes the token probe inside `$APP_NAME`, where the managed-identity endpoint is actually consumed. |
+| `--resource-group` (`az containerapp exec`) | Connects to `$APP_NAME` in `$RG` for the runtime token request. |
+| `--command` (`az containerapp exec`) | Executes `python -c "from azure.identity import ManagedIdentityCredential; token …` inside the app to observe the Azure state that distinguishes this hypothesis from the workload's runtime boundary. |
+
 
 ## 6. Validation and Disproof by Hypothesis
 
@@ -168,9 +206,14 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity.principalId" --output tsv
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the selected Container App so the operator can evaluate the identity evidence. |
+| `--name` (`az containerapp show`) | Reads identity assignment from `$APP_NAME`. |
+| `--resource-group` (`az containerapp show`) | Retrieves identity state for `$APP_NAME` from `$RG`. |
+| `--query` (`az containerapp show`) | Shows both identity type and principal ID so an absent assignment is distinguishable from an unprovisioned principal. |
+| `--output` (`az containerapp show`) | Emits the complete identity as JSON and the principal ID as plain text, making an absent assignment explicit. |
+
 
 If the app is supposed to use a user-assigned identity, confirm the identity resource is attached to the app and selected by the SDK.
 
@@ -195,9 +238,18 @@ az role assignment list --assignee "$PRINCIPAL_ID" --scope "/subscriptions/<subs
 az role assignment list --assignee "$PRINCIPAL_ID" --scope "/subscriptions/<subscription-id>/resourceGroups/$RG" --output table
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Resolves the principal ID used to test whether RBAC is missing or attached at the wrong scope. |
+| `--name` (`az containerapp show`) | Reads identity metadata from `$APP_NAME`, the caller receiving the authorization error. |
+| `--resource-group` (`az containerapp show`) | Resolves the calling app in `$RG` before extracting its principal. |
+| `--query` (`az containerapp show`) | Retrieves the app's principal ID so role assignments can be filtered to the exact managed identity. |
+| `--output` (`az containerapp show`) | Produces a bare object ID accepted directly by the role-assignment command substitution. |
+| `az role assignment list` | Compares the principal's grants at the resource and resource-group scopes to locate the RBAC mismatch. |
+| `--assignee` (`az role assignment list`) | Requests grants held by `$PRINCIPAL_ID`. |
+| `--scope` (`az role assignment list`) | Compares the exact Key Vault scope with the broader `$RG` scope to reveal a misplaced role. |
+| `--output` (`az role assignment list`) | Renders both scope queries as tables for side-by-side RBAC comparison. |
+
 
 Check whether the service expects a data-plane role, not a management-plane role. Key Vault, Storage, and Service Bus often require service-specific data roles.
 
@@ -220,9 +272,13 @@ Check whether the service expects a data-plane role, not a management-plane role
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command 'python -c "from azure.identity import ManagedIdentityCredential; token = ManagedIdentityCredential().get_token(\"https://vault.azure.net/.default\"); print(token.token[:20] + \"...\")"'
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp exec --name ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp exec` | Runs the diagnostic probe inside the selected app to evaluate the Azure state that distinguishes this hypothesis. |
+| `--name` (`az containerapp exec`) | Runs the audience probe from `$APP_NAME`, the same process environment that requests the failing token. |
+| `--resource-group` (`az containerapp exec`) | Runs the audience probe against `$APP_NAME` in `$RG`. |
+| `--command` (`az containerapp exec`) | Executes `python -c "from azure.identity import ManagedIdentityCredential; token …` inside the app to observe the Azure state that distinguishes this hypothesis from the workload's runtime boundary. |
+
 
 Use service-specific audiences such as `https://vault.azure.net/.default`, `https://storage.azure.com/.default`, or the documented resource URI for the target service.
 
@@ -246,14 +302,18 @@ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output
 az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --revision "$REVISION_NAME" --output table
 ```
 
-| Command | Purpose |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists revisions, so you can see whether rollout state matches the failure pattern. |
-| `az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --revision "$REVISION_NAME" --output table` | Lists only the replicas for the specified revision so you can confirm how many instances exist and whether the platform is creating, restarting, or recycling them. |
+| `az containerapp revision list` | Enumerates revision records to assemble revision inventory for comparison. |
+| `--name` (`az containerapp revision list`) | Lists revisions for `$APP_NAME` after the identity or role change. |
+| `--resource-group` (`az containerapp revision list`) | Reads app revision history from `$RG`. |
+| `--output` (`az containerapp revision list`) | Shows revision activity in a table so stale instances can be identified. |
+| `az containerapp replica list` | Enumerates replica records to assemble replica health inventory for comparison. |
+| `--name` (`az containerapp replica list`) | Requests replicas belonging to `$APP_NAME`. |
+| `--resource-group` (`az containerapp replica list`) | Finds those replicas in `$RG`. |
+| `--revision` (`az containerapp replica list`) | Selects revision `$REVISION_NAME`, whose provisioning or replica state is being tested. |
+| `--output` (`az containerapp replica list`) | Displays the selected revision's replicas as a table to isolate one stale token cache. |
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
 
 If you are using a user-assigned identity, confirm the app is not caching a token from a stale identity selection or stale environment variable.
 
@@ -276,9 +336,13 @@ If you are using a user-assigned identity, confirm the app is not caching a toke
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command 'sh -c "python - <<\"PY\"\nfrom azure.identity import ManagedIdentityCredential\ntry:\n    token = ManagedIdentityCredential().get_token(\"https://management.azure.com/.default\")\n    print(token.expires_on)\nexcept Exception as exc:\n    print(type(exc).__name__, exc)\nPY"'
 ```
 
-| Command | Purpose |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command 'sh -c "python - <<\"PY\"...PY"'` | Executes a minimal managed-identity token request inside the live replica so you can verify whether IMDS/token acquisition itself fails before any downstream service authorization is attempted. |
+| `az containerapp exec` | Runs the diagnostic probe inside the selected app to evaluate the Azure state that distinguishes this hypothesis. |
+| `--name` (`az containerapp exec`) | Runs the managed-identity endpoint test inside `$APP_NAME`. |
+| `--resource-group` (`az containerapp exec`) | Connects to the affected app in `$RG`. |
+| `--command` (`az containerapp exec`) | Executes `sh -c "python - <<\"PY\"\nfrom azure.identity import ManagedIdentityCre…` inside the app to observe the Azure state that distinguishes this hypothesis from the workload's runtime boundary. |
+
 
 If this fails before token issuance, inspect container runtime constraints, network path, or platform-level identity availability for the revision.
 
@@ -300,9 +364,13 @@ If this fails before token issuance, inspect container runtime constraints, netw
     az containerapp show --name "$APP_NAME" --resource-group "$RG" --query identity --output json
     ```
 
-    | Command | Why it is used |
+    | Command/Parameter | Purpose |
     |---|---|
-    | `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+    | `az containerapp show` | In **8. Immediate Mitigations**, reads `identity` from the live resource so this hypothesis can be tested. |
+    | `--name` | Reads identity configuration from `$APP_NAME`. |
+    | `--resource-group` | Locates the app in `$RG`. |
+    | `--query` | Returns only the `identity` object needed for this check. |
+    | `--output` | Preserves system- and user-assigned identity fields as JSON. |
 
 2. Grant the minimal required role at the exact resource scope.
 
@@ -313,9 +381,12 @@ If this fails before token issuance, inspect container runtime constraints, netw
         --scope "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/$KV_NAME"
     ```
 
-    | Command | Why it is used |
+    | Command/Parameter | Purpose |
     |---|---|
-    | `az role assignment create ...` | Grants the required Azure RBAC role at the documented scope. |
+    | `az role assignment create` | In **8. Immediate Mitigations**, creates the remediation resource with the displayed settings. |
+    | `--assignee` | Grants the role to `$PRINCIPAL_ID`, the app identity verified in the prior step. |
+    | `--role` | Assigns the least-privilege `Key Vault Secrets User` role. |
+    | `--scope` | Limits the grant to the named Key Vault resource under `$RG`. |
 
 3. Restart the replica or deploy a new revision to clear stale token state.
 
@@ -323,9 +394,12 @@ If this fails before token issuance, inspect container runtime constraints, netw
     az containerapp revision restart --name "$APP_NAME" --resource-group "$RG" --revision "$REVISION_NAME"
     ```
 
-    | Command | Why it is used |
+    | Command/Parameter | Purpose |
     |---|---|
-    | `az containerapp revision restart ...` | Restarts the selected revision when validating runtime recovery. |
+    | `az containerapp revision restart` | In **8. Immediate Mitigations**, restarts the selected revision for the recovery test. |
+    | `--name` | Restarts a revision belonging to `$APP_NAME`. |
+    | `--resource-group` | Finds the app in `$RG`. |
+    | `--revision` | Selects `$REVISION_NAME`, the revision holding stale token state. |
 
 4. Confirm the SDK requests the correct token audience for the target service.
 
@@ -343,9 +417,12 @@ If this fails before token issuance, inspect container runtime constraints, netw
     az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command 'curl -i https://$TARGET_HOST/health'
     ```
 
-    | Command | Why it is used |
+    | Command/Parameter | Purpose |
     |---|---|
-    | `az containerapp exec --name ...` | Runs the Azure CLI operation required by the documented step. |
+    | `az containerapp exec` | In **8. Immediate Mitigations**, runs `curl -i https://$TARGET_HOST/health` inside the affected app to observe the caller's real runtime path. |
+    | `--name` | Opens an execution session in `$APP_NAME`. |
+    | `--resource-group` | Resolves the running app from `$RG`. |
+    | `--command` | Runs `curl -i https://$TARGET_HOST/health` from the workload's actual network path. |
 
 6. If the app uses multiple identities, explicitly select the intended user-assigned identity in code and configuration.
 

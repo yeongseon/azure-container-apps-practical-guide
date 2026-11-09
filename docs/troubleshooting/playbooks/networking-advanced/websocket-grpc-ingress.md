@@ -7,7 +7,11 @@ content_sources:
     - id: websocket-grpc-ingress-flow
       type: flowchart
       source: self-generated
-      justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
+      justification: Diagnostic decision flow synthesized from the documented HTTP ingress transport, HTTP/2, WebSocket, gRPC, and sticky-session behavior.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to
+        - https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions
 content_validation:
   status: verified
   last_reviewed: '2026-07-18'
@@ -25,16 +29,37 @@ content_validation:
 <!-- diagram-id: websocket-grpc-ingress-flow -->
 ```mermaid
 flowchart TD
-    A[WebSocket or gRPC connection fails] --> B{Check ingress transport setting}
-    B -->|http| C[Set transport: http2 for gRPC]
-    B -->|http2| D[Check sticky sessions for WebSocket]
-    C --> E[Redeploy revision]
-    D -->|Disabled| F[Enable session affinity on ingress]
-    D -->|Enabled| G[Check upstream app WebSocket handling]
-    F --> E
-    G --> E
-    E --> H[Verify connection succeeds]
+    accTitle: Diagnose WebSocket or gRPC ingress
+    accDescr: Classify the protocol, verify main HTTP ingress and its transport setting, then separate protocol negotiation from optional session affinity and application state.
+
+    FAILURE[Streaming connection fails or resets]
+    PROTOCOL{WebSocket or gRPC?}
+    MAIN{Uses the main HTTP ingress port?}
+    TRANSPORT{Ingress transport supports the protocol?}
+    APP{Application listens with compatible protocol settings?}
+    STATE{Failure occurs only after reconnect or replica change?}
+    PORT_FIX[Move HTTP semantics from an extra TCP port to main ingress]
+    TRANSPORT_FIX[Use the documented HTTP transport setting for the workload]
+    APP_FIX[Correct application protocol and upstream handling]
+    STATE_FIX[Externalize state or use supported sticky sessions as a mitigation]
+    SUCCESS[Connection and reconnect behavior verified]
+
+    FAILURE --> PROTOCOL
+    PROTOCOL -->|WebSocket| MAIN
+    PROTOCOL -->|gRPC| MAIN
+    MAIN -->|No| PORT_FIX
+    MAIN -->|Yes| TRANSPORT
+    TRANSPORT -->|No| TRANSPORT_FIX
+    TRANSPORT -->|Yes| APP
+    APP -->|No| APP_FIX
+    APP -->|Yes| STATE
+    STATE -->|Yes| STATE_FIX
+    STATE -->|No| SUCCESS
+
+    LEGEND["Arrow key<br/>solid = diagnostic progression"]
 ```
+
+*Figure: Protocol transport and reconnect state are separate concerns; session affinity cannot repair an incompatible gRPC or WebSocket configuration.*
 
 ## Symptom
 
@@ -76,10 +101,18 @@ az containerapp replica list \
   --output table
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show ... --query "properties.configuration.ingress"` | Reveals the active ingress transport, target port, and whether sticky session settings exist. |
-| `az containerapp replica list ...` | Confirms whether more than one replica is available to expose reconnect and distribution behavior. |
+| `az containerapp show` | Reads ingress transport and target-port settings before attributing a failed WebSocket or gRPC upgrade to the application. |
+| `--name` (`az containerapp show`) | Selects the Container App whose ingress protocol settings are being compared with the failing client request. |
+| `--resource-group` (`az containerapp show`) | Finds that app in `$RG`, keeping the ingress diagnosis within the intended deployment boundary. |
+| `--query` (`az containerapp show`) | Focuses the response on ingress protocol and transport settings that govern WebSocket or gRPC upgrades. |
+| `--output` (`az containerapp show`) | Preserves nested ingress transport fields as JSON for protocol and target-port inspection. |
+| `az containerapp replica list` | Lists current replicas to distinguish protocol negotiation failures from an app that has no healthy backend. |
+| `--name` (`az containerapp replica list`) | Requests replicas for `$APP_NAME`, the backend expected to receive the upgraded connection. |
+| `--resource-group` (`az containerapp replica list`) | Resolves the `az containerapp replica list` target from the resource group used by the diagnosis steps workflow, alongside the related resources in this command block. |
+| `--output` (`az containerapp replica list`) | Uses a table to compare replica readiness before treating the failure as protocol-specific. |
+
 
 Interpretation:
 
@@ -112,9 +145,13 @@ az containerapp update \
   --yaml "websocket-grpc-ingress-fixed.yaml"
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp update ... --yaml "websocket-grpc-ingress-fixed.yaml"` | Applies the corrected ingress transport and sticky-session settings in one revision-safe update. |
+| `az containerapp update` | Applies the reviewed YAML that corrects ingress transport settings for WebSocket or gRPC traffic. |
+| `--name` (`az containerapp update`) | Updates `$APP_NAME`, the app whose ingress negotiation failed during diagnosis. |
+| `--resource-group` (`az containerapp update`) | Resolves the affected app from `$RG` before applying the corrected ingress YAML. |
+| `--yaml` (`az containerapp update`) | Sets the yaml input to `websocket-grpc-ingress-fixed.yaml`, the value used by `az containerapp update` to evaluate or correct the Azure state that distinguishes this hypothesis. |
+
 
 ## Prevention
 
@@ -133,4 +170,5 @@ az containerapp update \
 ## Sources
 
 - [Ingress in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview)
+- [Configure ingress in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to)
 - [Session affinity in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions)

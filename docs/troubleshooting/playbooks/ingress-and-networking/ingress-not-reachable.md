@@ -36,19 +36,43 @@ Ingress failures have many possible causes spanning DNS, networking, revision he
 
 <!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
-graph TD
-    A[Symptom: Endpoint unreachable] --> B{DNS resolves to correct IP?}
-    B -->|No| H1[H1: DNS/Environment misconfiguration]
-    B -->|Yes| C{Ingress enabled and mode correct?}
-    C -->|No| H2[H2: Ingress mode mismatch]
-    C -->|Yes| D{Healthy replicas running?}
-    D -->|No| H3[H3: No healthy backend]
-    D -->|Yes| E{Target port matches app?}
-    E -->|No| H4[H4: Target port mismatch]
-    E -->|Yes| F{Network path clear?}
-    F -->|No| H5[H5: Firewall/NSG blocking]
-    F -->|Yes| G[Investigate app-level issues]
+flowchart TD
+    accTitle: Diagnose an unreachable Container Apps ingress endpoint
+    accDescr: Follow DNS, environment accessibility, app ingress, revision health, target port, and network policy evidence before investigating application behavior.
+
+    CALLER[Request caller]
+    DNS{FQDN resolves for the caller's network?}
+    ACCESS{Environment accessibility and public network access permit this caller?}
+    ENABLED{App ingress enabled with intended external or internal setting?}
+    HEALTH{Traffic targets an active revision with healthy replicas?}
+    PORT{Ingress target port matches the listening container port?}
+    POLICY{NSG, firewall, and route permit the path?}
+    APP[Investigate application protocol and response behavior]
+    DNS_FIX[Correct DNS zone, record, or resolver path]
+    ACCESS_FIX[Use the intended private path or correct environment access]
+    INGRESS_FIX[Correct app ingress exposure]
+    HEALTH_FIX[Repair revision startup or health probes]
+    PORT_FIX[Align ingress and container ports]
+    POLICY_FIX[Correct the blocking network policy]
+
+    CALLER --> DNS
+    DNS -->|No| DNS_FIX
+    DNS -->|Yes| ACCESS
+    ACCESS -->|No| ACCESS_FIX
+    ACCESS -->|Yes| ENABLED
+    ENABLED -->|No| INGRESS_FIX
+    ENABLED -->|Yes| HEALTH
+    HEALTH -->|No| HEALTH_FIX
+    HEALTH -->|Yes| PORT
+    PORT -->|No| PORT_FIX
+    PORT -->|Yes| POLICY
+    POLICY -->|No| POLICY_FIX
+    POLICY -->|Yes| APP
+
+    LEGEND["Arrow key<br/>solid = diagnostic progression"]
 ```
+
+*Figure: External app ingress does not by itself prove public reachability; environment accessibility and network policy remain separate gates.*
 
 ## 2. Common Misreadings
 
@@ -104,11 +128,23 @@ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" \
 az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table
 ```
 
-| Command | Purpose |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress" --output json` | Reads the Container App resource and extracts the effective ingress configuration in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
-| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "[].{name:name,active:properties.active,replicas:properties.replicas,health:properties.healthState,traffic:properties.trafficWeight}" --output table` | Lists revisions and filters them to the health, traffic, or timing fields needed for this hypothesis, so you can see whether rollout state matches the failure pattern. |
-| `az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table` | Lists live replicas so you can confirm how many instances exist and whether the platform is creating, restarting, or recycling them. |
+| `az containerapp show` | Returns the app ingress configuration so exposure mode, target port, and FQDN can be checked before testing backends. |
+| `--name` (`az containerapp show`) | Inspects `$APP_NAME`, the endpoint that callers cannot reach. |
+| `--resource-group` (`az containerapp show`) | Finds the affected app in `$RG` before reading its ingress contract. |
+| `--query` (`az containerapp show`) | Projects the configuration ingress fields so the response exposes the configuration ingress evidence without unrelated resource properties. |
+| `--output` (`az containerapp show`) | Preserves the complete ingress object as JSON for field-by-field inspection. |
+| `az containerapp revision list` | Lists traffic-bearing revisions and their health to determine whether ingress has a viable backend. |
+| `--name` (`az containerapp revision list`) | Enumerates revisions owned by `$APP_NAME`. |
+| `--resource-group` (`az containerapp revision list`) | Reads revision state from the app deployed in `$RG`. |
+| `--query` (`az containerapp revision list`) | Summarizes each revision's activity, replica count, and health to show whether ingress has a viable backend. |
+| `--output` (`az containerapp revision list`) | Displays traffic, health, and replica counts in aligned columns for rapid comparison. |
+| `az containerapp replica list` | Enumerates replica records to assemble replica health inventory for comparison. |
+| `--name` (`az containerapp replica list`) | Requests replicas created for `$APP_NAME`. |
+| `--resource-group` (`az containerapp replica list`) | Limits replica discovery to the app in `$RG`. |
+| `--output` (`az containerapp replica list`) | Presents replica readiness and running state as a table to expose an empty or unhealthy backend pool. |
+
 
 ## 5. Evidence to Collect
 
@@ -156,9 +192,19 @@ az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" \
   --query "properties.defaultDomain" --output tsv
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the app FQDN so its DNS suffix can be compared with the managed environment's default domain. |
+| `--name` (`az containerapp show`) | Reads the ingress hostname assigned to `$APP_NAME`; the environment name is not used by this command. |
+| `--resource-group` (`az containerapp show`) | Locates `$APP_NAME` in `$RG` before passing its FQDN to `nslookup`. |
+| `--query` (`az containerapp show`) | Reads the app-assigned ingress FQDN that the DNS test must resolve. |
+| `--output` (`az containerapp show`) | Places the hostname into the shell variable without JSON quotes for direct resolver use. |
+| `az containerapp env show` | Reads the selected managed environment so the operator can evaluate the default domain evidence. |
+| `--name` (`az containerapp env show`) | Opens `$ACA_ENV_NAME`, whose default domain should suffix the app FQDN. |
+| `--resource-group` (`az containerapp env show`) | Finds the managed environment in `$RG` for the domain comparison. |
+| `--query` (`az containerapp env show`) | Retrieves the environment default domain to verify that the app hostname uses the expected DNS suffix. |
+| `--output` (`az containerapp env show`) | Prints the domain suffix as plain text for comparison with the app FQDN. |
+
 
 ### H2: Ingress mode mismatch
 
@@ -183,9 +229,14 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
 # Expected: true for public access, false for VNet-only
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the selected Container App so the operator can evaluate the configuration ingress external evidence. |
+| `--name` (`az containerapp show`) | Reads `$APP_NAME`, the app whose exposure mode is being checked. |
+| `--resource-group` (`az containerapp show`) | Reads the ingress exposure flag from `$APP_NAME` in `$RG`. |
+| `--query` (`az containerapp show`) | Selects the external-ingress flag that determines whether callers outside the environment can reach the app. |
+| `--output` (`az containerapp show`) | Shows the exposure flag as an undecorated Boolean for the ingress-mode check. |
+
 
 ### H3: No healthy backend replicas
 
@@ -213,9 +264,18 @@ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" \
 az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output table
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+| `az containerapp revision list` | Lists revisions and their current lifecycle state to evaluate the revision and replica state behind the symptom. |
+| `--name` (`az containerapp revision list`) | Requests active revisions for `$APP_NAME`. |
+| `--resource-group` (`az containerapp revision list`) | Looks up `$APP_NAME` in `$RG` before filtering to active revisions. |
+| `--query` (`az containerapp revision list`) | Filters to active revisions and reports health plus replica counts to identify traffic targets with no healthy capacity. |
+| `--output` (`az containerapp revision list`) | Formats active revision health and replica counts as a table for backend comparison. |
+| `az containerapp replica list` | Enumerates replica records to assemble replica health inventory for comparison. |
+| `--name` (`az containerapp replica list`) | Requests backend replicas created for `$APP_NAME`. |
+| `--resource-group` (`az containerapp replica list`) | Retrieves the app's replica records from `$RG`. |
+| `--output` (`az containerapp replica list`) | Presents `az containerapp replica list` in the format required by the next check replica status comparison or shell assignment, retaining fields selected in this fence. |
+
 
 KQL for probe failures:
 
@@ -255,14 +315,14 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
   --output table
 ```
 
-| Command | Purpose |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress.targetPort" --output tsv` | Reads the Container App resource and extracts the ingress target port as plain text for reuse in later commands, which is the specific surface this troubleshooting step needs to confirm. |
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.template.containers[0].env[?name=='PORT' || name=='CONTAINER_APP_PORT']" --output table` | Reads the Container App resource and extracts the container environment-variable mapping, which is the specific surface this troubleshooting step needs to confirm. |
+| `az containerapp show` | Reads the selected Container App so the operator can evaluate the configuration ingress target port evidence. |
+| `--name` (`az containerapp show`) | Checks `$APP_NAME`, whose declared listener must match ingress `targetPort`. |
+| `--resource-group` (`az containerapp show`) | Reads both port-related queries from the app in `$RG`. |
+| `--query` (`az containerapp show`) | Places ingress target port beside declared container ports so a listener mismatch is apparent without scanning the full template. |
+| `--output` (`az containerapp show`) | Emits the scalar target port and the matching environment-variable rows in forms suited to direct comparison. |
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
 
 ### H5: Firewall/NSG blocking
 
@@ -287,10 +347,13 @@ az network nsg rule list --resource-group "$RG" --nsg-name "$NSG_NAME" --output 
 curl --verbose --connect-timeout 10 "https://${APP_FQDN}/health"
 ```
 
-| Command | Purpose |
+| Command/Parameter | Purpose |
 |---|---|
-| `az network nsg rule list --resource-group "$RG" --nsg-name "$NSG_NAME" --output table` | Lists the NSG rules on the ingress path so you can confirm whether a network policy block explains why only certain caller networks time out. |
-| `curl --verbose --connect-timeout 10 "https://${APP_FQDN}/health"` | Tests the app endpoint from the current client path and shows connection, TLS, and HTTP details, which helps separate network blocking from application failures. |
+| `az network nsg rule list` | Enumerates NSG rule records to assemble network rule inventory for comparison. |
+| `--resource-group` (`az network nsg rule list`) | Searches `$RG` for the NSG attached to the Container Apps network path. |
+| `--nsg-name` (`az network nsg rule list`) | Chooses the network security group evaluated by `$NSG_NAME`, anchoring network rule inventory to the exact value used by this operation. |
+| `--output` (`az network nsg rule list`) | Shows rule priority, direction, ports, and action in a table for the inbound-path review. |
+
 
 ## 7. Likely Root Cause Patterns
 
@@ -310,9 +373,12 @@ curl --verbose --connect-timeout 10 "https://${APP_FQDN}/health"
      --revision-weight "<previous-healthy-revision>=100"
    ```
 
-   | Command | Why it is used |
+   | Command/Parameter | Purpose |
    |---|---|
-   | `az containerapp ingress traffic ...` | Runs the Azure CLI operation required by the documented step. |
+   | `az containerapp ingress traffic set` | In **8. Immediate Mitigations**, sets the displayed configuration required by the remediation. |
+   | `--name` | Selects `$APP_NAME` for the traffic rollback. |
+   | `--resource-group` | Locates the app in `$RG`. |
+   | `--revision-weight` | Sends 100 percent of traffic to `<previous-healthy-revision>`. |
 
 2. **If target port mismatch:** Update ingress target port
    ```bash
@@ -320,9 +386,12 @@ curl --verbose --connect-timeout 10 "https://${APP_FQDN}/health"
      --target-port 8000
    ```
 
-   | Command | Why it is used |
+   | Command/Parameter | Purpose |
    |---|---|
-   | `az containerapp ingress update ...` | Updates ingress settings on an existing Container App. |
+   | `az containerapp ingress update` | Aligns the existing ingress configuration with the port exposed by the app process. |
+   | `--name` | Changes ingress on `$APP_NAME`. |
+   | `--resource-group` | Resolves the target app from `$RG`. |
+   | `--target-port` | Routes ingress traffic to container port `8000`. |
 
 3. **If probe too aggressive:** Relax probe settings temporarily
    ```bash
@@ -330,9 +399,12 @@ curl --verbose --connect-timeout 10 "https://${APP_FQDN}/health"
      --set-env-vars "PROBE_INITIAL_DELAY=30"
    ```
 
-   | Command | Why it is used |
+   | Command/Parameter | Purpose |
    |---|---|
-   | `az containerapp update --name ...` | Updates the existing Container App configuration without recreating the app. |
+   | `az containerapp update` | Creates a revision with the temporary probe-delay setting used by this example. |
+   | `--name` | Applies the temporary setting to `$APP_NAME`. |
+   | `--resource-group` | Finds that app in `$RG`. |
+   | `--set-env-vars` | Sets `PROBE_INITIAL_DELAY=30` for the application's probe configuration logic. |
 
 4. **If ingress disabled:** Enable ingress
    ```bash
@@ -340,9 +412,14 @@ curl --verbose --connect-timeout 10 "https://${APP_FQDN}/health"
      --type external --target-port 8000 --transport http
    ```
 
-   | Command | Why it is used |
+   | Command/Parameter | Purpose |
    |---|---|
-   | `az containerapp ingress enable ...` | Enables ingress for workloads that must receive inbound traffic. |
+   | `az containerapp ingress enable` | In **8. Immediate Mitigations**, enables the displayed feature required by the remediation. |
+   | `--name` | Enables ingress for `$APP_NAME`. |
+   | `--resource-group` | Selects the app from `$RG`. |
+   | `--type` | Exposes the endpoint externally. |
+   | `--target-port` | Forwards requests to port `8000`. |
+   | `--transport` | Uses HTTP transport detection for the ingress route. |
 
 ## 9. Prevention
 

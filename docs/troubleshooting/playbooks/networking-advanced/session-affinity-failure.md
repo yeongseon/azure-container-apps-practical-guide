@@ -7,7 +7,10 @@ content_sources:
     - id: session-affinity-failure-flow
       type: flowchart
       source: self-generated
-      justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
+      justification: Diagnostic decision flow synthesized from the documented HTTP ingress sticky-session behavior and its cookie and revision-mode limitations.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions
+        - https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to
 content_validation:
   status: verified
   last_reviewed: '2026-07-18'
@@ -25,16 +28,36 @@ content_validation:
 <!-- diagram-id: session-affinity-failure-flow -->
 ```mermaid
 flowchart TD
-    A[Session state lost across requests] --> B{Check ingress affinity setting}
-    B -->|none| C[Enable sticky sessions in ingress config]
-    B -->|sticky| D[Check Sticky-bit cookie in response]
-    C --> E[Redeploy revision]
-    D -->|Missing| F[Verify ingress revision mode is single]
-    D -->|Present| G[Investigate app-level session handling]
-    F --> E
-    G --> E
-    E --> H[Session state persists correctly]
+    accTitle: Diagnose HTTP session affinity
+    accDescr: Verify the request uses main HTTP ingress in single revision mode, sticky session affinity is enabled, and the client returns the affinity cookie.
+
+    CLIENT[HTTP client with session state]
+    PATH{Main HTTP ingress in single revision mode?}
+    CONFIG{Sticky session affinity enabled?}
+    COOKIE{Client receives and returns the affinity cookie?}
+    REPLICA[Selected replica]
+    APP{Application still loses state?}
+    PATH_FIX[Use supported main HTTP ingress and revision mode]
+    CONFIG_FIX[Enable sticky session affinity]
+    CLIENT_FIX[Correct client cookie handling or intermediary behavior]
+    STATE_FIX[Move session state to a shared backing store]
+    SUCCESS[Requests remain on the selected replica]
+
+    CLIENT --> PATH
+    PATH -->|No| PATH_FIX
+    PATH -->|Yes| CONFIG
+    CONFIG -->|No| CONFIG_FIX
+    CONFIG -->|Yes| COOKIE
+    COOKIE -->|No| CLIENT_FIX
+    COOKIE -->|Yes| REPLICA
+    REPLICA --> APP
+    APP -->|Yes| STATE_FIX
+    APP -->|No| SUCCESS
+
+    LEGEND["Arrow key<br/>solid = diagnostic progression"]
 ```
+
+*Figure: Sticky sessions are a supported HTTP routing aid, not a substitute for shared application state.*
 
 ## Symptom
 
@@ -76,10 +99,18 @@ az containerapp replica list \
   --output table
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show ... --query "properties.configuration.ingress"` | Confirms whether session affinity is enabled or disabled on HTTP ingress. |
-| `az containerapp replica list ...` | Verifies that multiple replicas exist to reproduce the state-loss symptom. |
+| `az containerapp show` | Reads sticky-session ingress configuration to verify whether affinity is enabled on the failing app. |
+| `--name` (`az containerapp show`) | Inspects `$APP_NAME`, the app whose requests are not returning to the expected replica. |
+| `--resource-group` (`az containerapp show`) | Finds the affinity test app in `$RG` before reading its ingress configuration. |
+| `--query` (`az containerapp show`) | Exposes the ingress settings where sticky-session affinity is configured, avoiding unrelated app properties. |
+| `--output` (`az containerapp show`) | Serializes the diagnosis steps response from `az containerapp show` while retaining fields selected in this fence. |
+| `az containerapp replica list` | Lists serving replicas so affinity behavior can be distinguished from a single-replica deployment. |
+| `--name` (`az containerapp replica list`) | Returns replicas for `$APP_NAME`, the same app used in the cookie-routing test. |
+| `--resource-group` (`az containerapp replica list`) | Retrieves serving replicas for `$APP_NAME` from `$RG`. |
+| `--output` (`az containerapp replica list`) | Serializes the diagnosis steps response from `az containerapp replica list` while retaining fields selected in this fence. |
+
 
 Interpretation:
 
@@ -110,9 +141,13 @@ az containerapp update \
   --yaml "session-affinity-enabled.yaml"
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp update ... --yaml "session-affinity-enabled.yaml"` | Applies sticky-session configuration as a fast mitigation while the application is made stateless. |
+| `az containerapp update` | Applies the YAML that enables sticky sessions on the app's HTTP ingress. |
+| `--name` (`az containerapp update`) | Updates `$APP_NAME`, whose affinity cookie behavior failed the diagnosis. |
+| `--resource-group` (`az containerapp update`) | Finds that app in `$RG` before replacing its ingress configuration. |
+| `--yaml` (`az containerapp update`) | Applies `session-affinity-enabled.yaml`, whose ingress block sets sticky-session affinity. |
+
 
 ## Prevention
 
@@ -131,4 +166,5 @@ az containerapp update \
 ## Sources
 
 - [Session affinity in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/sticky-sessions)
+- [Configure ingress in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/ingress-how-to)
 - [Ingress in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview)

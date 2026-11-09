@@ -7,7 +7,10 @@ content_sources:
     - id: private-endpoint-dns-failure-flow
       type: flowchart
       source: self-generated
-      justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
+      justification: Diagnostic decision flow synthesized from the documented service-specific private DNS zone, VNet link, record, and private endpoint requirements.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
 content_validation:
   status: verified
   last_reviewed: 2026-07-18
@@ -25,17 +28,36 @@ content_validation:
 <!-- diagram-id: private-endpoint-dns-failure-flow -->
 ```mermaid
 flowchart TD
-    A[Service call returns NXDOMAIN] --> B[Check private DNS zone exists]
-    B -->|Missing| C[Create private DNS zone]
-    B -->|Exists| D{VNet link present?}
-    C --> D
-    D -->|No| E[Add VNet link to ACA VNet]
-    D -->|Yes| F[Check DNS record A record exists]
-    E --> F
-    F -->|Missing| G[Add A record for private endpoint IP]
-    F -->|Exists| H[DNS resolves correctly]
-    G --> H
+    accTitle: Diagnose private endpoint DNS resolution
+    accDescr: Check the target service's documented private DNS zone, the Container Apps VNet link or forwarding path, and the endpoint record before testing transport.
+
+    APP[Container app replica]
+    QUERY[Query the service public FQDN]
+    ZONE{Correct service-specific private DNS zone exists?}
+    LINK{Container Apps VNet can resolve the zone?}
+    RECORD{Record resolves to the intended private endpoint IP?}
+    TRANSPORT{Private endpoint transport succeeds?}
+    ZONE_FIX[Create or correct the documented private DNS zone]
+    LINK_FIX[Add the VNet link or correct custom DNS forwarding]
+    RECORD_FIX[Correct the private endpoint record or zone group]
+    PATH_FIX[Inspect endpoint connection, NSG, and route]
+    SUCCESS[Private dependency call can proceed]
+
+    APP ==>|DNS query| QUERY
+    QUERY --> ZONE
+    ZONE -->|No| ZONE_FIX
+    ZONE -->|Yes| LINK
+    LINK -->|No| LINK_FIX
+    LINK -->|Yes| RECORD
+    RECORD -->|No| RECORD_FIX
+    RECORD -->|Yes| TRANSPORT
+    TRANSPORT -->|No| PATH_FIX
+    TRANSPORT -->|Yes| SUCCESS
+
+    LEGEND["Arrow key<br/>thick = DNS transport<br/>solid = diagnostic progression"]
 ```
+
+*Figure: Correct private DNS is necessary but does not by itself prove the private endpoint transport path.*
 
 ## Symptom
 
@@ -81,11 +103,21 @@ az containerapp exec \
   --command "python -c 'import socket; print(socket.getaddrinfo(\"mystorage.blob.core.windows.net\", 443))'"
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az network private-endpoint show ...` | Confirms the dependency really has a private endpoint and exposes its NIC and connection metadata. |
-| `az network private-dns link vnet list ...` | Shows whether the Container Apps VNet is linked to the required private DNS zone. |
-| `az containerapp exec ...` | Tests the actual runtime resolution path instead of assuming workstation DNS matches app DNS. |
+| `az network private-endpoint show` | Reads the selected network private endpoint so the operator can evaluate resource configuration record. |
+| `--name` (`az network private-endpoint show`) | Inspects `pe-storage`, the private endpoint expected to serve the storage account. |
+| `--resource-group` (`az network private-endpoint show`) | Locates `pe-storage` in `$RG` before checking its connection and subnet state. |
+| `--output` (`az network private-endpoint show`) | Returns the full endpoint record as JSON for connection and NIC inspection. |
+| `az network private-dns link vnet list` | Enumerates private DNS link records to assemble private-zone link inventory for comparison. |
+| `--resource-group` (`az network private-dns link vnet list`) | Reads VNet links for the storage private zone in `$RG`. |
+| `--zone-name` (`az network private-dns link vnet list`) | Chooses the private DNS zone evaluated by `privatelink.blob.core.windows.net`, anchoring private-zone link inventory to the exact value used by this operation. |
+| `--output` (`az network private-dns link vnet list`) | Displays link state as a table so an absent or disconnected VNet is visible. |
+| `az containerapp exec` | Resolves the storage hostname from inside a running replica, using the same DNS path as the application. |
+| `--name` (`az containerapp exec`) | Runs the lookup in `$APP_NAME`. |
+| `--resource-group` (`az containerapp exec`) | Connects to the app deployed in `$RG`. |
+| `--command` (`az containerapp exec`) | Runs the quoted probe inside the workload to observe diagnosis steps from the replica network namespace. |
+
 
 Diagnostic interpretation:
 
@@ -113,10 +145,18 @@ az network private-dns link vnet create \
   --registration-enabled false
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az network private-dns zone create ...` | Creates the service-specific private DNS zone required for private endpoint resolution. |
-| `az network private-dns link vnet create ...` | Makes that zone resolvable from the Container Apps VNet. |
+| `az network private-dns zone create` | Creates the network private dns zone that implements the documented correction and returns its provisioning result. |
+| `--resource-group` (`az network private-dns zone create`) | Creates the storage private zone in `$RG`. |
+| `--name` (`az network private-dns zone create`) | Names the authoritative zone `privatelink.blob.core.windows.net`. |
+| `az network private-dns link vnet create` | Creates the private DNS link that implements the documented correction and returns its provisioning result. |
+| `--resource-group` (`az network private-dns link vnet create`) | Adds the VNet link to the zone held in `$RG`. |
+| `--zone-name` (`az network private-dns link vnet create`) | Chooses the private DNS zone evaluated by `privatelink.blob.core.windows.net`, anchoring resource creation result to the exact value used by this operation. |
+| `--name` (`az network private-dns link vnet create`) | Creates the link named `link-aca-vnet`. |
+| `--virtual-network` (`az network private-dns link vnet create`) | Links the zone to the full ARM ID of `vnet-myapp`, where Container Apps DNS queries originate. |
+| `--registration-enabled` (`az network private-dns link vnet create`) | Disables automatic VM record registration because this link is for resolving private endpoint records. |
+
 
 ## Prevention
 

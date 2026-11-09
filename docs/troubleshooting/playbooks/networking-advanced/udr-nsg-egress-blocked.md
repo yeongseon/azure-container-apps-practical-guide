@@ -7,7 +7,11 @@ content_sources:
     - id: udr-nsg-egress-blocked-flow
       type: flowchart
       source: self-generated
-      justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
+      justification: Diagnostic decision flow synthesized from the documented Container Apps UDR, firewall, NSG, DNS, and required outbound dependency rules.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/user-defined-routes
+        - https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
 content_validation:
   status: verified
   last_reviewed: 2026-07-18
@@ -25,18 +29,36 @@ content_validation:
 <!-- diagram-id: udr-nsg-egress-blocked-flow -->
 ```mermaid
 flowchart TD
-    A[Replica fails to start] --> B{Check system logs}
-    B --> C[Outbound connection refused or timeout]
-    C --> D{UDR or NVA present?}
-    D -->|Yes| E[Check NVA allows required FQDNs]
-    D -->|No| F[Check NSG outbound rules]
-    E --> G{Required FQDNs allowed?}
-    F --> G
-    G -->|No| H[Add allow rules for ACA required endpoints]
-    G -->|Yes| I[Check DNS resolution]
-    H --> J[Replica starts successfully]
-    I --> J
+    accTitle: Diagnose egress blocked by a route, firewall, or NSG
+    accDescr: Use system evidence to identify the failing outbound dependency, then evaluate DNS, effective routes, firewall policy, and NSG policy as separate controls.
+
+    FAILURE[Replica startup or dependency call fails]
+    DEPENDENCY[Identify the failed registry, identity, monitoring, or app dependency]
+    DNS{Dependency name resolves?}
+    ROUTE{Effective route uses the intended next hop?}
+    FIREWALL{Firewall or NVA permits the documented destination and port?}
+    NSG{Subnet NSG permits the outbound flow and required inbound probes?}
+    DNS_FIX[Correct resolver or forwarding policy]
+    ROUTE_FIX[Correct the route table or next hop]
+    FIREWALL_FIX[Add the required application or network rule]
+    NSG_FIX[Correct the effective NSG rules and priorities]
+    VERIFY[Retest the same dependency and verify replica health]
+
+    FAILURE --> DEPENDENCY
+    DEPENDENCY --> DNS
+    DNS -->|No| DNS_FIX
+    DNS -->|Yes| ROUTE
+    ROUTE -->|No| ROUTE_FIX
+    ROUTE -->|Yes| FIREWALL
+    FIREWALL -->|No| FIREWALL_FIX
+    FIREWALL -->|Yes| NSG
+    NSG -->|No| NSG_FIX
+    NSG -->|Yes| VERIFY
+
+    LEGEND["Arrow key<br/>solid = diagnostic progression"]
 ```
+
+*Figure: DNS, routing, firewall policy, and NSG policy are distinct evidence gates; changing one does not prove the others.*
 
 ## Symptom
 
@@ -83,11 +105,22 @@ az network nsg rule list \
   --output table
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp env show ...` | Confirms the environment is on the expected subnet and helps validate whether custom VNet networking is in scope. |
-| `az network route-table route list ...` | Shows whether a `0.0.0.0/0` route or another custom route is forcing traffic through a firewall or NVA. |
-| `az network nsg rule list ...` | Reveals outbound deny rules and missing inbound health-probe allows. |
+| `az containerapp env show` | Reads the infrastructure subnet attachment that determines which route table and NSG govern environment egress. |
+| `--name` (`az containerapp env show`) | Inspects `$ACA_ENV_NAME`, the environment whose outbound connections are being blocked. |
+| `--resource-group` (`az containerapp env show`) | Reads `$ACA_ENV_NAME` from `$RG` before tracing its infrastructure subnet. |
+| `--query` (`az containerapp env show`) | Limits the output to the environment's VNet attachment so subsequent route and NSG checks use the correct subnet. |
+| `--output` (`az containerapp env show`) | Serializes the diagnosis steps response from `az containerapp env show` while retaining fields projected by that command. |
+| `az network route-table route list` | Enumerates network route table route records to assemble resource inventory for comparison. |
+| `--route-table-name` (`az network route-table route list`) | Inspects `rt-aca`, the route table expected on the environment subnet. |
+| `--resource-group` (`az network route-table route list`) | Locates `rt-aca` in `$RG` for forced-tunnel review. |
+| `--output` (`az network route-table route list`) | Serializes the diagnosis steps response from `az network route-table route list` while retaining fields projected by that command. |
+| `az network nsg rule list` | Enumerates NSG rule records to assemble network rule inventory for comparison. |
+| `--nsg-name` (`az network nsg rule list`) | Chooses the network security group evaluated by `nsg-aca`, anchoring network rule inventory to the exact value used by this operation. |
+| `--resource-group` (`az network nsg rule list`) | Reads rules from `nsg-aca` in `$RG`. |
+| `--output` (`az network nsg rule list`) | Displays the NSG rule inventory as columns so outbound priorities and actions can be compared quickly. |
+
 
 Validate against these minimum checks:
 
@@ -129,10 +162,21 @@ az network nsg rule create \
   --destination-port-ranges "443"
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az network nsg rule create ... allow-azure-load-balancer` | Restores inbound probe reachability so healthy replicas can be recognized. |
-| `az network nsg rule create ... allow-aca-outbound` | Restores core outbound platform dependencies commonly broken by restrictive egress controls. |
+| `az network nsg rule create` | Creates the NSG rule that implements the documented correction and returns its provisioning result. |
+| `--name` (`az network nsg rule create`) | Creates `allow-azure-load-balancer` and `allow-aca-outbound`, the two missing allowances shown in the fence. |
+| `--nsg-name` (`az network nsg rule create`) | Chooses the network security group evaluated by `nsg-aca`, anchoring required network allowance to the exact value used by this operation. |
+| `--resource-group` (`az network nsg rule create`) | Adds both rules to `nsg-aca` in `$RG`. |
+| `--priority` (`az network nsg rule create`) | Assigns priority `100` to health probes and `110` to required outbound dependencies. |
+| `--direction` (`az network nsg rule create`) | Makes the first rule `Inbound` and the dependency rule `Outbound`. |
+| `--access` (`az network nsg rule create`) | Allows traffic matching either correction rule. |
+| `--protocol` (`az network nsg rule create`) | Restricts both allowances to `Tcp`, matching probe and HTTPS traffic. |
+| `--source-address-prefixes` (`az network nsg rule create`) | Accepts health probes from `AzureLoadBalancer` and outbound flows from any subnet source. |
+| `--source-port-ranges` (`az network nsg rule create`) | Accepts ephemeral source ports for both traffic directions. |
+| `--destination-address-prefixes` (`az network nsg rule create`) | Sends probe traffic to any backend and outbound traffic only to the listed Azure service tags. |
+| `--destination-port-ranges` (`az network nsg rule create`) | Opens `30000-32767` for platform probes and `443` for identity, monitoring, and registry calls. |
+
 
 If a firewall or NVA is in the path, mirror the same dependency categories there and include required FQDNs such as `mcr.microsoft.com`, `login.microsoftonline.com`, and your ACR login server.
 

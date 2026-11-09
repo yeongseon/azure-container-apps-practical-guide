@@ -35,13 +35,31 @@ Teams expect a long rollback history, but older inactive revisions disappear aft
 <!-- diagram-id: revision-history-limit-flow -->
 ```mermaid
 flowchart TD
-    A[Each revision-scope deployment creates a revision] --> B[Current revision becomes active]
-    B --> C[Older revisions become inactive]
-    C --> D{Inactive count exceeds retention?}
-    D -->|No| E[Rollback target still present]
-    D -->|Yes| F[Oldest inactive revisions are purged]
-    F --> G[Rollback history is shorter than expected]
+    accTitle: Diagnose inactive revision retention
+    accDescr: Revision-scope deployments create immutable revisions; inactive revisions remain available until their configured retention count is exceeded.
+
+    CHANGE[Revision-scope deployment]
+    NEW[New immutable revision]
+    MODE{Revision mode and activation outcome}
+    ACTIVE[Active revision set]
+    INACTIVE[Inactive revision inventory]
+    LIMIT{Inactive count exceeds maxInactiveRevisions?}
+    RETAIN[Rollback target remains listed]
+    PURGE[Oldest inactive revision is removed]
+
+    CHANGE --> NEW
+    NEW --> MODE
+    MODE -->|Active| ACTIVE
+    MODE -->|Deactivated later| INACTIVE
+    ACTIVE --> INACTIVE
+    INACTIVE --> LIMIT
+    LIMIT -->|No| RETAIN
+    LIMIT -->|Yes| PURGE
+
+    LEGEND["Arrow key<br/>solid = revision lifecycle and retention progression"]
 ```
+
+*Figure: Inactive revisions are a bounded rollback inventory, not a permanent release archive.*
 
 ## Possible Causes
 
@@ -70,10 +88,19 @@ az containerapp show \
     --output tsv
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query "[].{name:name,active:properties.active,createdTime:properties.createdTime}" --output table` | Shows the retained revision set and helps confirm whether an expected rollback target has already been purged. |
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.maxInactiveRevisions" --output tsv` | Reveals the configured inactive revision retention limit for the app. |
+| `az containerapp revision list` | Enumerates the app's retained revisions so missing rollback targets can be compared with the inactive-revision limit. |
+| `--name` (`az containerapp revision list`) | Lists revision history for `$APP_NAME`, the app whose older rollback revision disappeared. |
+| `--resource-group` (`az containerapp revision list`) | Reads that history from the app in `$RG`, preserving the correct deployment boundary. |
+| `--query` (`az containerapp revision list`) | Reduces revision history to names, active flags, and creation times so the oldest inactive entries are easy to identify. |
+| `--output` (`az containerapp revision list`) | Renders the selected revision fields as a table so age and active state can be compared quickly. |
+| `az containerapp show` | Reads the selected Container App so the operator can evaluate the configuration max inactive revisions evidence. |
+| `--name` (`az containerapp show`) | Selects `$APP_NAME`, whose inactive revision retention setting is being verified. |
+| `--resource-group` (`az containerapp show`) | Resolves the app from `$RG` before reading its revision-history limit. |
+| `--query` (`az containerapp show`) | Reads the configured inactive-revision ceiling that controls when historical revisions are removed. |
+| `--output` (`az containerapp show`) | Displays the numeric revision limit without JSON decoration so it can be checked against the observed history count. |
+
 
 ## Resolution
 

@@ -1,4 +1,5 @@
 ---
+description: Symptom-first Azure Container Apps troubleshooting playbooks for provisioning, ingress, scaling, identity, configuration, and platform features.
 content_sources:
   references:
     - type: mslearn-adapted
@@ -38,9 +39,30 @@ az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type syste
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console --follow
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the app provisioning state for the first split between control-plane deployment failure and a later runtime problem. |
+| `--name` (`az containerapp show`) | Targets `ca-myapp`, the sample app being triaged. |
+| `--resource-group` (`az containerapp show`) | Locates `ca-myapp` in `rg-myapp` before checking its provisioning state. |
+| `--query` (`az containerapp show`) | Pulls the app provisioning state for the first triage split between deployment failure and runtime failure. |
+| `az containerapp revision list` | Shows whether `ca-myapp` has an active, healthy revision before deeper log analysis. |
+| `--name` (`az containerapp revision list`) | Requests revisions owned by `ca-myapp`. |
+| `--resource-group` (`az containerapp revision list`) | Searches `rg-myapp` for the app's revision records. |
+| `az containerapp logs show` | Retrieves both platform events and application output to separate provisioning failures from container errors. |
+| `--name` (`az containerapp logs show`) | Reads logs emitted for `ca-myapp`. |
+| `--resource-group` (`az containerapp logs show`) | Restricts both log requests to the app deployed in `rg-myapp`. |
+| `--type` (`az containerapp logs show`) | Requests `system` events first and `console` output second, covering both platform and application evidence. |
+| `--follow` (`az containerapp logs show`) | Streams new console lines while the failure is reproduced. |
+
+
+| Example output command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query properties.provisioningState` | Shows the healthy app provisioning state used as the triage baseline below. |
+| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Shows the healthy active revision, traffic weight, replica count, health state, and running state used as the baseline below. |
+| `--name` | Identifies the Container App represented by the example output. |
+| `--resource-group` | Scopes the example lookup to the resource group that contains the app. |
+| `--query` | Selects the app provisioning state displayed in the example. |
+| `--output` | Formats the revision baseline as the displayed table. |
 
 Use `APP_NAME="ca-myapp"` for the examples below. Real observed healthy outputs:
 
@@ -54,27 +76,57 @@ Name               Active    TrafficWeight    Replicas    HealthState    Running
 ca-myapp--0000001  True      100              1           Healthy        Running
 ```
 
+| Example output command | Purpose |
+|---|---|
+| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query properties.provisioningState` | Shows the healthy app provisioning state represented by the captured output. |
+| `az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output table` | Shows the healthy active revision represented by the captured output. |
+| `--name` | Identifies the Container App represented by the captured output. |
+| `--resource-group` | Scopes the captured output to the resource group that contains the app. |
+| `--query` | Selects the app provisioning state represented by the captured output. |
+| `--output` | Formats the captured revision evidence as a table. |
+
 <!-- diagram-id: ca-myapp-0000001-true-100-1-healthy-running -->
 ```mermaid
 flowchart TD
-    TRIAGE["Fast Triage Commands"] --> SYM{"First Symptom?"}
-    SYM --> S1["Startup and Provisioning"]
-    SYM --> S2["Ingress and Networking"]
-    SYM --> S3["Scaling and Runtime"]
-    SYM --> S4["Identity and Configuration"]
-    SYM --> S5["Platform Features"]
-    S1 --> PB1["Image Pull / Revision / Container Start / Probe"]
-    S2 --> PB2["Ingress / DNS / Service-to-Service"]
-    S3 --> PB3["HTTP Scaling / Event Scaler / CrashLoop"]
-    S4 --> PB4["Managed Identity / Secret Reference"]
-    S5 --> PB5["Dapr / Jobs / Rollback"]
+    accTitle: Route the first confirmed Container Apps symptom
+    accDescr: Fast triage collects provisioning, revision, and log evidence before routing the incident to one primary playbook category.
+
+    TRIAGE[Fast triage evidence<br/>provisioning state, revisions, system logs, console logs]
+    SYM{Provisioning or startup evidence?}
+    REQUEST{Request or dependency path evidence?}
+    REPLICAS{Replica, scaler, or runtime evidence?}
+    AUTH{Authentication or secret evidence?}
+    FEATURE{Feature-specific evidence?}
+    STARTUP[Startup and provisioning<br/>image, revision, container, or probe]
+    INGRESS[Ingress and networking<br/>reachability, DNS, or service path]
+    SCALING[Scaling and runtime<br/>replicas, scaler, restart, or resource pressure]
+    IDENTITY[Identity and configuration<br/>token, RBAC, or secret]
+    FEATURES[Platform features<br/>Dapr, jobs, rollout, or failover]
+    RECLASSIFY[Collect another distinguishing signal and reclassify]
+
+    TRIAGE --> SYM
+    SYM -->|Yes| STARTUP
+    SYM -->|No| REQUEST
+    REQUEST -->|Yes| INGRESS
+    REQUEST -->|No| REPLICAS
+    REPLICAS -->|Yes| SCALING
+    REPLICAS -->|No| AUTH
+    AUTH -->|Yes| IDENTITY
+    AUTH -->|No| FEATURE
+    FEATURE -->|Yes| FEATURES
+    FEATURE -->|No| RECLASSIFY
+    RECLASSIFY --> TRIAGE
+
+    LEGEND["Arrow key<br/>solid = symptom routing"]
 ```
+
+*Figure: Route by the first evidence-backed symptom; if no category fits, collect a different signal instead of forcing a diagnosis.*
 
 ## Common Errors
 
 | Error message / symptom | Likely cause | Fix |
 | --- | --- | --- |
-| `ImagePullBackOff`, `unauthorized: authentication required` | ACR auth/identity not configured | Grant `AcrPull` to Container App managed identity and verify `--registry-server` |
+| `ImagePullBackOff`, `unauthorized: authentication required` | ACR auth/identity not configured | Inspect the registry's `roleAssignmentMode`; grant `AcrPull` in RBAC-only mode or `Container Registry Repository Reader` in RBAC Registry + ABAC Repository Permissions mode, optionally restricted with a repository condition, then verify `--registry-server` |
 | `CrashLoopBackOff` | App exits on startup | Check console logs, missing package/env var, verify startup command |
 | `ModuleNotFoundError: <module>` | Dependency missing from image | Add package to `requirements.txt`, rebuild image, redeploy |
 | `Address already in use` or bind failure | Port mismatch | Ensure container listens on `0.0.0.0:8000` and Azure Container Apps `--target-port 8000` |
@@ -194,3 +246,5 @@ Start from the [playbook template](../../contributing/playbook-template.md). Cop
 - [Azure Container Apps troubleshooting overview](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
 - [Azure Container Apps overview](https://learn.microsoft.com/en-us/azure/container-apps/overview)
 - [Azure Container Apps revisions](https://learn.microsoft.com/en-us/azure/container-apps/revisions)
+- [Azure Container Registry roles and permission modes](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-built-in-roles-overview)
+- [Azure Container Registry repository permissions with ABAC](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-abac-repository-permissions)

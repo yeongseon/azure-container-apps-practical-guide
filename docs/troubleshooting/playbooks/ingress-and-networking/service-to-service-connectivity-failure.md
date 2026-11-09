@@ -39,15 +39,40 @@ The caller app can be healthy while every downstream call still fails. Ingress s
 <!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
 flowchart TD
-    A[Inter-service call fails] --> B{DNS resolves target?}
-    B -->|No| C[Fix DNS name and private zone linkage]
-    B -->|Yes| D{TCP/HTTPS connection succeeds?}
-    D -->|No| E[Fix NSG, route, firewall, or target port]
-    D -->|Yes| F[Validate target auth and token scope]
-    C --> G[Retest with same caller context]
-    E --> G
-    F --> G
+    accTitle: Diagnose a service-to-service call
+    accDescr: Choose the intended Container Apps service address, then distinguish name resolution, request transport, target ingress, and authorization failures.
+
+    CALLER[Caller container app]
+    ADDRESS{Which documented address is intended?}
+    APPNAME[App-name call within the environment]
+    FQDN[FQDN call through managed ingress]
+    DNS{Target name resolves?}
+    TRANSPORT{Connection reaches the target ingress and port?}
+    TARGET[Target revision replicas]
+    AUTH{Target accepts the caller's authorization?}
+    NAME_FIX[Correct app name, FQDN, DNS, or private zone]
+    PATH_FIX[Correct ingress, target port, NSG, route, or firewall]
+    AUTH_FIX[Correct token audience, role, or application policy]
+    RESPONSE[Target service response]
+
+    CALLER --> ADDRESS
+    ADDRESS -->|App name| APPNAME
+    ADDRESS -->|FQDN| FQDN
+    APPNAME --> DNS
+    FQDN --> DNS
+    DNS -->|No| NAME_FIX
+    DNS -->|Yes| TRANSPORT
+    TRANSPORT -->|No| PATH_FIX
+    TRANSPORT -->|Yes| TARGET
+    TARGET --> AUTH
+    AUTH -->|No| AUTH_FIX
+    AUTH -->|Yes| RESPONSE
+    RESPONSE ==>|Application response| CALLER
+
+    LEGEND["Arrow key<br/>thick = response transport<br/>solid = address and diagnostic progression"]
 ```
+
+*Figure: App-name and FQDN calls are different address choices; prove resolution and transport before diagnosing target authorization.*
 
 ## 2. Common Misreadings
 
@@ -86,10 +111,19 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json
 ```
 
-| Command | Purpose |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress" --output json` | Reads the Container App resource and extracts the effective ingress configuration in structured form for operator review, which is the specific surface this troubleshooting step needs to confirm. |
-| `az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json` | Reads the managed environment and extracts the environment VNet configuration, which tells you whether the environment-level network or subnet context matches the scenario under investigation. |
+| `az containerapp show` | Reads the selected Container App so the operator can evaluate the configuration ingress evidence. |
+| `--name` (`az containerapp show`) | Inspects `$APP_NAME`, the service endpoint involved in the failed call. |
+| `--resource-group` (`az containerapp show`) | Locates the app in `$RG` before reading its ingress contract. |
+| `--query` (`az containerapp show`) | Returns the downstream app's ingress contract so the caller's hostname, transport, and port can be checked against it. |
+| `--output` (`az containerapp show`) | Returns the complete ingress object as JSON so hostname, transport, and port stay together. |
+| `az containerapp env show` | Reads the managed environment network configuration to identify the shared routing boundary between caller and downstream app. |
+| `--name` (`az containerapp env show`) | Reads `$ACA_ENV_NAME`, the network boundary shared by the services. |
+| `--resource-group` (`az containerapp env show`) | Finds that environment in `$RG` for VNet-path analysis. |
+| `--query` (`az containerapp env show`) | Shows the environment network attachment that constrains service-to-service routing and egress. |
+| `--output` (`az containerapp env show`) | Keeps the VNet configuration as JSON for subnet and routing inspection. |
+
 
 ## 5. Evidence to Collect
 
@@ -143,9 +177,18 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properties.configuration.ingress" --output json
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp exec --name ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp exec` | Runs DNS and HTTPS probes inside the caller replica, preserving the workload's actual resolver and route. |
+| `--name` (`az containerapp exec`) | Executes both probes in `$APP_NAME`, the calling service. |
+| `--resource-group` (`az containerapp exec`) | Opens the caller deployed in `$RG`. |
+| `--command` (`az containerapp exec`) | Runs the quoted probe inside the workload to observe h1: wrong downstream hostname or port from the replica network namespace. |
+| `az containerapp show` | Reads the selected Container App so the operator can evaluate the configuration ingress evidence. |
+| `--name` (`az containerapp show`) | Inspects `$APP_NAME`, matching the value present in this fence; use the downstream app name here when validating a separate target. |
+| `--resource-group` (`az containerapp show`) | Reads that app's ingress settings from `$RG`. |
+| `--query` (`az containerapp show`) | Isolates downstream ingress values to validate the hostname and target port used by the calling service. |
+| `--output` (`az containerapp show`) | Preserves all selected ingress fields as JSON for comparison with the probe destination. |
+
 
 **Disproof logic:** If the target hostname resolves and the HTTPS check succeeds from the same caller context, the endpoint definition is not the primary issue.
 
@@ -171,20 +214,22 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console
 ```
 
-| Command | Purpose |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import urllib.request; print(urllib.request.urlopen(\"https://target-service/health\", timeout=5).status)'"` | Calls the downstream endpoint from inside the caller replica so you can prove whether the target service is reachable before focusing on downstream auth logic. |
-| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console` | Pulls caller-side console logs so you can see whether the request failed as a timeout, TLS problem, or 401/403 after the downstream service was reached. |
+| `az containerapp env show` | Returns VNet and routing settings used to determine whether the downstream path leaves through an egress control. |
+| `--name` (`az containerapp env show`) | Opens `$ACA_ENV_NAME`, whose VNet attachment determines the caller's egress route. |
+| `--resource-group` (`az containerapp env show`) | Locates the managed environment in `$RG`. |
+| `--query` (`az containerapp env show`) | Identifies the VNet and subnet context where UDR or NSG policy could block the downstream connection. |
+| `--output` (`az containerapp env show`) | Returns the VNet attachment as JSON for route and NSG correlation. |
+| `az containerapp exec` | Runs the diagnostic probe inside the selected app to evaluate the subnet route and outbound policy. |
+| `--name` (`az containerapp exec`) | Launches the HTTPS test inside `$APP_NAME`, where the suspected egress policy applies. |
+| `--resource-group` (`az containerapp exec`) | Selects the caller app from `$RG` for the in-replica probe. |
+| `--command` (`az containerapp exec`) | Executes `python -c 'import urllib.request; print(urllib.request.urlopen("https:/…` inside the app to observe the subnet route and outbound policy from the workload's runtime boundary. |
+| `az containerapp logs show` | Reads the selected Container App log stream so the operator can evaluate runtime log stream. |
+| `--name` (`az containerapp logs show`) | Reads console output from `$APP_NAME` during the egress probe. |
+| `--resource-group` (`az containerapp logs show`) | Reads caller logs from `$RG` during the same failed request. |
+| `--type` (`az containerapp logs show`) | Chooses the `console` log stream because it carries the expected failure signal. |
 
-| Command | Purpose |
-|---|---|
-| `az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json` | Reads the managed environment and extracts the environment VNet configuration, which tells you whether the environment-level network or subnet context matches the scenario under investigation. |
-| `az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import urllib.request; print(urllib.request.urlopen(\"https://target-service/health\", timeout=5).status)'"` | Runs a command inside a live replica so DNS, HTTP, token, or TLS checks use the same network path and identity context as the failing workload. |
-| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console` | Pulls application stdout/stderr from the running container so you can correlate platform symptoms with app-level exceptions or request handling. |
-
-| Command | Why it is used |
-|---|---|
-| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
 
 ```kusto
 let AppName = "ca-myapp";
@@ -218,10 +263,17 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python
 az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console
 ```
 
-| Command | Purpose |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import urllib.request; print(urllib.request.urlopen(\"https://target-service/health\", timeout=5).status)'"` | Calls the downstream endpoint from inside the caller replica so you can prove whether the target service is reachable before focusing on downstream auth mismatches. |
-| `az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type console` | Pulls caller-side console logs so you can see whether the request failed as a timeout, TLS problem, or 401/403 after the downstream service was reached. |
+| `az containerapp exec` | Replays the downstream request from the caller to distinguish a reachable 401/403 from a transport failure. |
+| `--name` (`az containerapp exec`) | Runs the request within `$APP_NAME`. |
+| `--resource-group` (`az containerapp exec`) | Connects to the caller app in `$RG`. |
+| `--command` (`az containerapp exec`) | Runs the quoted probe inside the workload to observe h3: downstream auth mismatch from the replica network namespace. |
+| `az containerapp logs show` | Reads the selected Container App log stream so the operator can evaluate runtime log stream. |
+| `--name` (`az containerapp logs show`) | Retrieves output from `$APP_NAME` for the replayed request. |
+| `--resource-group` (`az containerapp logs show`) | Limits the log lookup to the caller in `$RG`. |
+| `--type` (`az containerapp logs show`) | Chooses `console` output, where downstream HTTP status and authentication errors are recorded. |
+
 
 **Disproof logic:** If the caller never reaches the target service and only times out or fails DNS resolution, fix connectivity first; auth mismatch is not yet validated.
 

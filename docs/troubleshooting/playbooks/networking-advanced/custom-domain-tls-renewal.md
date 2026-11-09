@@ -7,7 +7,9 @@ content_sources:
     - id: custom-domain-tls-renewal-flow
       type: flowchart
       source: self-generated
-      justification: Troubleshooting flow synthesized from MSLearn ACA networking and storage documentation
+      justification: Diagnostic decision flow synthesized from the documented managed-certificate DNS, accessibility, issuance, and renewal requirements.
+      based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates
 content_validation:
   status: verified
   last_reviewed: '2026-07-18'
@@ -25,18 +27,37 @@ content_validation:
 <!-- diagram-id: custom-domain-tls-renewal-flow -->
 ```mermaid
 flowchart TD
-    A[Managed certificate stuck in Pending] --> B[Check CNAME record points to ACA FQDN]
-    B -->|Missing or stale| C[Update CNAME in DNS provider]
-    B -->|Correct| D[Check asuid TXT record exists]
-    C --> D
-    D -->|Missing| E[Add asuid TXT record]
-    D -->|Exists| F[Trigger certificate renewal]
-    E --> F
-    F --> G{Certificate issued?}
-    G -->|Yes| H[Custom domain active with TLS]
-    G -->|No| I[Check DNS propagation delay and retry]
-    I --> G
+    accTitle: Diagnose a Container Apps managed certificate
+    accDescr: Verify domain binding, ownership and routing records, public accessibility for validation, and certificate state before choosing managed or customer-provided certificates.
+
+    PENDING[Managed certificate pending or renewal unhealthy]
+    BINDING{Custom hostname binding exists?}
+    OWNERSHIP{asuid ownership record matches?}
+    ROUTING{CNAME or A record meets the documented requirement?}
+    ACCESS{App is publicly accessible from documented DigiCert addresses?}
+    ISSUED{Certificate reaches a healthy state?}
+    BIND[Create or correct the hostname binding]
+    DNS_FIX[Correct ownership and routing DNS records]
+    ACCESS_FIX[Restore validation access or use a customer-provided certificate]
+    WAIT[Allow DNS and certificate state to propagate, then recheck]
+    HEALTHY[Custom domain serves the intended certificate]
+
+    PENDING --> BINDING
+    BINDING -->|No| BIND
+    BINDING -->|Yes| OWNERSHIP
+    OWNERSHIP -->|No| DNS_FIX
+    OWNERSHIP -->|Yes| ROUTING
+    ROUTING -->|No| DNS_FIX
+    ROUTING -->|Yes| ACCESS
+    ACCESS -->|No| ACCESS_FIX
+    ACCESS -->|Yes| ISSUED
+    ISSUED -->|No| WAIT
+    ISSUED -->|Yes| HEALTHY
+
+    LEGEND["Arrow key<br/>solid = diagnostic progression"]
 ```
+
+*Figure: Automatic renewal depends on the hostname continuing to meet the documented DNS and accessibility requirements.*
 
 ## Symptom
 
@@ -84,11 +105,23 @@ az containerapp env show \
   --output tsv
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp hostname list ...` | Shows the current hostname binding state on the app. |
-| `az containerapp show ... --query "properties.customDomainVerificationId"` | Retrieves the exact verification value required for the `asuid` TXT record. |
-| `az containerapp env show ... --query "properties.vnetConfiguration.internal"` | Confirms whether the environment is internal-only and therefore ineligible for managed certificates. |
+| `az containerapp hostname list` | Enumerates custom hostname records to assemble resource inventory for comparison. |
+| `--name` (`az containerapp hostname list`) | Lists bindings on `$APP_NAME`, where the managed certificate failed to renew. |
+| `--resource-group` (`az containerapp hostname list`) | Retrieves the app's hostname records from `$RG`. |
+| `--output` (`az containerapp hostname list`) | Presents hostname and certificate-binding state in a table for renewal review. |
+| `az containerapp show` | Reads the selected Container App so the operator can evaluate the custom domain verification evidence. |
+| `--name` (`az containerapp show`) | Selects `$APP_NAME`, whose bound hostname and certificate state are under review. |
+| `--resource-group` (`az containerapp show`) | Finds the custom-domain app in `$RG` before reading its ingress bindings. |
+| `--query` (`az containerapp show`) | Selects the domain-verification identifier required to validate the current custom-domain ownership record. |
+| `--output` (`az containerapp show`) | Outputs the verification token as raw text so it can be compared with the DNS TXT value. |
+| `az containerapp env show` | Reads the selected managed environment so the operator can evaluate the vnet configuration internal evidence. |
+| `--name` (`az containerapp env show`) | Reads `$ACA_ENV_NAME` to determine whether the hostname is on an internal environment. |
+| `--resource-group` (`az containerapp env show`) | Finds the managed environment in `$RG`. |
+| `--query` (`az containerapp env show`) | Selects the internal-environment flag because certificate reachability differs for internal and external environments. |
+| `--output` (`az containerapp env show`) | Prints the Boolean environment mode plainly for use in the renewal-path decision. |
+
 
 Interpretation:
 
@@ -116,10 +149,19 @@ az containerapp hostname bind \
   --validation-method CNAME
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp hostname add ...` | Re-registers the hostname on the app after DNS prerequisites are corrected. |
-| `az containerapp hostname bind ...` | Re-triggers managed certificate validation and binding for the corrected hostname. |
+| `az containerapp hostname add` | Adds the corrected custom hostname to the app after DNS ownership records are restored. |
+| `--name` (`az containerapp hostname add`) | Changes `$APP_NAME`, the app receiving the renewed binding. |
+| `--resource-group` (`az containerapp hostname add`) | Applies the hostname update to the app in `$RG`. |
+| `--hostname` (`az containerapp hostname add`) | Registers `app.example.com` as the custom host to validate. |
+| `az containerapp hostname bind` | Validates DNS ownership and binds a managed certificate to the corrected hostname. |
+| `--name` (`az containerapp hostname bind`) | Binds the certificate to `$APP_NAME`. |
+| `--resource-group` (`az containerapp hostname bind`) | Locates the app in `$RG` for certificate binding. |
+| `--hostname` (`az containerapp hostname bind`) | Chooses `app.example.com`, matching the hostname added immediately above. |
+| `--environment` (`az containerapp hostname bind`) | Uses `$ACA_ENV_NAME`, the environment that issues and stores the managed binding. |
+| `--validation-method` (`az containerapp hostname bind`) | Validates ownership through the hostname's `CNAME` record. |
+
 
 ## Prevention
 

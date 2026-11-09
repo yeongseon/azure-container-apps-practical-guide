@@ -5,7 +5,7 @@ content_sources:
       type: flowchart
       source: mslearn-adapted
       based_on:
-        - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
         - https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns
         - https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting
 content_validation:
@@ -39,15 +39,41 @@ The dependency service may be healthy while the resolution path is broken somewh
 <!-- diagram-id: troubleshooting-decision-flow -->
 ```mermaid
 flowchart TD
-    A[Dependency unreachable from app] --> B{Hostname resolves to private IP?}
-    B -->|No| C[Fix private DNS zone and VNet link]
-    B -->|Yes| D{TCP path to endpoint works?}
-    D -->|No| E[Fix NSG or route to private endpoint subnet]
-    D -->|Yes| F[Investigate app auth or protocol settings]
-    C --> G[Retest from container]
-    E --> G
-    F --> G
+    accTitle: Diagnose a dependency behind a private endpoint
+    accDescr: Resolve the dependency name from the Container Apps network, verify private DNS zone authority and links, then test transport and authorization separately.
+
+    APP[Container app replica]
+    RESOLVER[Configured DNS resolver path]
+    ZONE{Correct private DNS zone answers?}
+    PRIVATE{Answer is the intended private endpoint IP?}
+    ENDPOINT[Private endpoint NIC]
+    SERVICE[Azure service]
+    TRANSPORT{TCP or TLS transport succeeds?}
+    AUTH{Service accepts application authorization?}
+    DNS_FIX[Correct zone records, VNet link, or forwarding]
+    PATH_FIX[Correct NSG, route, or endpoint connection]
+    AUTH_FIX[Correct service authentication or protocol]
+    SUCCESS[Dependency response succeeds]
+
+    APP ==>|DNS query| RESOLVER
+    RESOLVER ==>|DNS answer| ZONE
+    ZONE -->|No| DNS_FIX
+    ZONE -->|Yes| PRIVATE
+    PRIVATE -->|No| DNS_FIX
+    PRIVATE -->|Yes| TRANSPORT
+    TRANSPORT -->|No| PATH_FIX
+    TRANSPORT -->|Yes| ENDPOINT
+    ENDPOINT ==>|Private request| SERVICE
+    SERVICE --> AUTH
+    AUTH -->|No| AUTH_FIX
+    AUTH -->|Yes| SUCCESS
+    SUCCESS ==>|Service response| ENDPOINT
+    ENDPOINT ==>|Response| APP
+
+    LEGEND["Arrow key<br/>thick = DNS or service transport<br/>solid = diagnostic progression"]
 ```
+
+*Figure: A private DNS answer proves only name resolution; transport and service authorization require separate evidence.*
 
 ## 2. Common Misreadings
 
@@ -86,10 +112,18 @@ az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "
 az network private-dns link vnet list --resource-group "$RG" --zone-name "privatelink.azurecr.io" --output table
 ```
 
-| Command | Purpose |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json` | Reads the managed environment and extracts the environment VNet configuration, which tells you whether the environment-level network or subnet context matches the scenario under investigation. |
-| `az network private-dns link vnet list --resource-group "$RG" --zone-name "privatelink.azurecr.io" --output table` | Lists the VNet links for the private DNS zone so you can confirm whether the workload VNet is actually attached to the zone that should resolve the dependency privately. |
+| `az containerapp env show` | Reads the selected managed environment so the operator can evaluate the vnet configuration evidence. |
+| `--name` (`az containerapp env show`) | Inspects `$ACA_ENV_NAME`, whose VNet attachment defines the replica's resolver path. |
+| `--resource-group` (`az containerapp env show`) | Finds the managed environment in `$RG` before reading its network configuration. |
+| `--query` (`az containerapp env show`) | Reveals the environment VNet configuration that determines which resolver and private endpoint path the replica uses. |
+| `--output` (`az containerapp env show`) | Presents `az containerapp env show` in the format required by the next platform signals comparison or shell assignment, retaining fields selected in this fence. |
+| `az network private-dns link vnet list` | Enumerates private DNS link records to assemble private-zone link inventory for comparison. |
+| `--resource-group` (`az network private-dns link vnet list`) | Searches `$RG` for VNet links attached to the ACR private DNS zone. |
+| `--zone-name` (`az network private-dns link vnet list`) | Chooses the private DNS zone evaluated by `privatelink.azurecr.io`, anchoring private-zone link inventory to the exact value used by this operation. |
+| `--output` (`az network private-dns link vnet list`) | Presents `az network private-dns link vnet list` in the format required by the next platform signals comparison or shell assignment, retaining fields selected in this fence. |
+
 
 ## 5. Evidence to Collect
 
@@ -149,9 +183,20 @@ az network private-dns zone list --resource-group "$RG" --output table
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import socket; print(socket.getaddrinfo(\"myregistry.azurecr.io\", 443))'"
 ```
 
-| Command | Why it is used |
+| Command/Parameter | Purpose |
 |---|---|
-| `az network private-dns link ...` | Creates or inspects networking resources such as VNets, DNS zones, routes, or private endpoints. |
+| `az network private-dns link vnet list` | Enumerates private DNS link records to assemble private-zone link inventory for comparison. |
+| `--resource-group` (`az network private-dns link vnet list`) | Reads zone-link records from `$RG`, where the private zone is expected to exist. |
+| `--zone-name` (`az network private-dns link vnet list`) | Chooses the private DNS zone evaluated by `privatelink.azurecr.io`, anchoring private-zone link inventory to the exact value used by this operation. |
+| `--output` (`az network private-dns link vnet list`) | Displays link names, VNet targets, and registration state in a table for the missing-link check. |
+| `az network private-dns zone list` | Enumerates network private dns zone records to assemble resource inventory for comparison. |
+| `--resource-group` (`az network private-dns zone list`) | Enumerates private DNS zones created in `$RG`. |
+| `--output` (`az network private-dns zone list`) | Renders the zone inventory as a table so `privatelink.azurecr.io` can be confirmed or ruled out. |
+| `az containerapp exec` | Runs the diagnostic probe inside the selected app to evaluate the DNS records, links, and resolver path. |
+| `--name` (`az containerapp exec`) | Runs the DNS probe from `$APP_NAME`, ensuring the result reflects the workload's resolver path. |
+| `--resource-group` (`az containerapp exec`) | Opens `$APP_NAME` from `$RG` for a DNS test inside the workload network. |
+| `--command` (`az containerapp exec`) | Executes `python -c 'import socket; print(socket.getaddrinfo("myregistry.azurecr.…` inside the app to observe the DNS records, links, and resolver path from the workload's runtime boundary. |
+
 
 **Disproof logic:** If the container consistently resolves the hostname to the correct private IP and required DNS zone links exist, the missing-link hypothesis is disproved.
 
@@ -176,14 +221,18 @@ az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import socket; print(socket.getaddrinfo(\"myregistry.azurecr.io\", 443))'"
 ```
 
-| Command | Purpose |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json` | Reads the managed environment and extracts the environment VNet configuration, which tells you whether the environment-level network or subnet context matches the scenario under investigation. |
-| `az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import socket; print(socket.getaddrinfo(\"myregistry.azurecr.io\", 443))'"` | Runs a command inside a live replica so DNS, HTTP, token, or TLS checks use the same network path and identity context as the failing workload. |
+| `az containerapp env show` | Reads the selected managed environment so the operator can evaluate the vnet configuration evidence. |
+| `--name` (`az containerapp env show`) | Opens `$ACA_ENV_NAME` to trace its resolver path. |
+| `--resource-group` (`az containerapp env show`) | Reads `$ACA_ENV_NAME` from `$RG` to identify the subnet feeding the custom resolver. |
+| `--query` (`az containerapp env show`) | Locates the environment's network integration so the configured DNS forwarder can be traced from the correct subnet. |
+| `--output` (`az containerapp env show`) | Keeps the network attachment intact as JSON while tracing forwarder configuration. |
+| `az containerapp exec` | Runs the diagnostic probe inside the selected app to evaluate the DNS records, links, and resolver path. |
+| `--name` (`az containerapp exec`) | Runs the repeated lookup inside `$APP_NAME` to expose intermittent forwarding behavior. |
+| `--resource-group` (`az containerapp exec`) | Connects to the app deployed in `$RG`. |
+| `--command` (`az containerapp exec`) | Executes `python -c 'import socket; print(socket.getaddrinfo("myregistry.azurecr.…` inside the app to observe the DNS records, links, and resolver path from the workload's runtime boundary. |
 
-| Command | Why it is used |
-|---|---|
-| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
 
 ```kusto
 let AppName = "ca-myapp";
@@ -218,11 +267,21 @@ az network private-endpoint list --resource-group "$RG" --output table
 az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import socket; print(socket.getaddrinfo(\"myregistry.azurecr.io\", 443))'"
 ```
 
-| Command | Purpose |
+| Command/Parameter | Purpose |
 |---|---|
-| `az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" --query "properties.vnetConfiguration" --output json` | Reads the environment's VNet attachment so you can verify the app is using the network path that should reach the private endpoint. |
-| `az network private-endpoint list --resource-group "$RG" --output table` | Lists private endpoints in scope so you can confirm the dependency really exposes a private network target to resolve and reach. |
-| `az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python -c 'import socket; print(socket.getaddrinfo(\"myregistry.azurecr.io\", 443))'"` | Resolves the dependency hostname from inside the running container so you can tell whether the private DNS path and endpoint route work from the actual caller context. |
+| `az containerapp env show` | Reads the selected managed environment so the operator can evaluate the vnet configuration evidence. |
+| `--name` (`az containerapp env show`) | Selects `$ACA_ENV_NAME`, whose infrastructure subnet carries DNS and endpoint traffic. |
+| `--resource-group` (`az containerapp env show`) | Retrieves the environment network record from `$RG`. |
+| `--query` (`az containerapp env show`) | Supplies the VNet attachment used to inspect NSG and route controls on both DNS and private endpoint traffic. |
+| `--output` (`az containerapp env show`) | Returns VNet configuration as JSON for NSG and route-table lookup. |
+| `az network private-endpoint list` | Enumerates network private endpoint records to assemble resource inventory for comparison. |
+| `--resource-group` (`az network private-endpoint list`) | Lists endpoint resources provisioned in `$RG`. |
+| `--output` (`az network private-endpoint list`) | Shows endpoint connection and subnet details in tabular form before transport testing. |
+| `az containerapp exec` | Runs the diagnostic probe inside the selected app to evaluate the DNS records, links, and resolver path. |
+| `--name` (`az containerapp exec`) | Performs the endpoint lookup from `$APP_NAME`, where the suspected NSG or UDR applies. |
+| `--resource-group` (`az containerapp exec`) | Selects the affected app from `$RG` for the network-path probe. |
+| `--command` (`az containerapp exec`) | Executes `python -c 'import socket; print(socket.getaddrinfo("myregistry.azurecr.…` inside the app to observe the DNS records, links, and resolver path from the workload's runtime boundary. |
+
 
 **Disproof logic:** If the container resolves the target and the private endpoint path is reachable, the main issue is no longer NSG or UDR blocking.
 
@@ -271,6 +330,6 @@ For the full validated procedure, see: [On-Premises DNS to Container Apps Intern
 
 ## Sources
 
-- [Container Apps environment custom DNS](https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns)
+- [Azure Container Apps networking](https://learn.microsoft.com/en-us/azure/container-apps/networking)
 - [Private endpoints in Azure Container Apps environments](https://learn.microsoft.com/en-us/azure/container-apps/private-endpoints-with-dns)
 - [Troubleshoot Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)
