@@ -5,8 +5,10 @@ content_sources:
       type: flowchart
       source: mslearn-adapted
       based_on:
+        - https://learn.microsoft.com/en-us/azure/container-apps/networking
+        - https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull
+        - https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-link
         - https://learn.microsoft.com/en-us/azure/container-apps/azure-resource-manager-api-spec
-        - https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps
     - id: iac-workflow
       type: flowchart
       source: mslearn-adapted
@@ -29,58 +31,71 @@ Azure Bicep provides a declarative way to define and manage your Azure Container
 !!! info "Infrastructure Context"
     **Service**: Container Apps (Consumption) | **Network**: VNet integrated | **VNet**: ✅
 
-    This tutorial assumes a production-ready Container Apps deployment with a custom VNet, ACR with managed identity pull, and private endpoints for backend services.
+    This tutorial assumes a production-ready Container Apps deployment with a custom VNet and private ACR access using managed identity.
 
     <!-- diagram-id: this-tutorial-assumes-a-production-ready-container -->
 ```mermaid
+%%{init: {"themeVariables": {"fontSize": "10px"}, "flowchart": {"curve": "linear", "nodeSpacing": 5, "rankSpacing": 20, "diagramPadding": 2, "wrappingWidth": 55}}}%%
 flowchart TD
-    INET[Internet] -->|HTTPS| CA["Container App\nConsumption\nLinux Java 17"]
-
-    subgraph VNET["VNet 10.0.0.0/16"]
-        subgraph ENV_SUB["Environment Subnet 10.0.0.0/23\nDelegation: Microsoft.App/environments"]
-            CAE[Container Apps Environment]
-            CA
-        end
-        subgraph PE_SUB["Private Endpoint Subnet 10.0.2.0/24"]
-            PE_ACR[PE: ACR]
-            PE_KV[PE: Key Vault]
-            PE_ST[PE: Storage]
-        end
+    accTitle: Production-ready Container Apps context for the Java tutorial
+    accDescr: Client requests and responses pass through managed ingress. The customer VNet and private-endpoint subnet host the ACR private endpoint and link its DNS zone. Managed identity is assigned to the app and authorizes registry pulls, while platform provisioning exchanges image traffic with ACR through the private endpoint.
+    CALLER(["Client"])
+    VNET["VNet + PE<br/>subnet"]
+    IDENTITY["Managed identity"]
+    PE_ACR["ACR PE"]
+    ACR["ACR"]
+    DNS["ACR DNS zone"]
+    subgraph ENV["ACA environment"]
+        INGRESS["Ingress"]
+        APP["Container app<br/>Java"]
+        REVISION["Revision config"]
+        REPLICAS["Replicas"]
+        PLATFORM["Provisioning<br/>(platform)"]
     end
-
-    PE_ACR --> ACR[Azure Container Registry]
-    PE_KV --> KV[Key Vault]
-    PE_ST --> ST[Storage Account]
-
-    subgraph DNS[Private DNS Zones]
-        DNS_ACR[privatelink.azurecr.io]
-        DNS_KV[privatelink.vaultcore.azure.net]
-        DNS_ST[privatelink.blob.core.windows.net]
-    end
-
-    PE_ACR -.-> DNS_ACR
-    PE_KV -.-> DNS_KV
-    PE_ST -.-> DNS_ST
-
-    CA -.->|System-Assigned MI| ENTRA[Microsoft Entra ID]
-    CAE --> LOG[Log Analytics]
-    CA --> AI[Application Insights]
-
-    style CA fill:#107c10,color:#fff
-    style VNET fill:#E8F5E9,stroke:#4CAF50
-    style DNS fill:#E3F2FD
+    CALLER ~~~ INGRESS ~~~ REPLICAS ~~~ REVISION ~~~ APP ~~~ IDENTITY ~~~ ACR ~~~ PE_ACR ~~~ PLATFORM ~~~ DNS ~~~ VNET
+    CALLER ==>|"Request"| INGRESS
+    INGRESS ==>|"Response"| CALLER
+    INGRESS ==>|"Request"| REPLICAS
+    REPLICAS ==>|"Response"| INGRESS
+    VNET -.-> ENV
+    VNET -.-> PE_ACR
+    DNS -.-> VNET
+    APP -.-> IDENTITY
+    IDENTITY -.-> ACR
+    APP -.-> REVISION
+    REVISION -.-> REPLICAS
+    PLATFORM -.-> REVISION
+    PLATFORM ==>|"Pull"| PE_ACR
+    PE_ACR ==>|"Pull"| ACR
+    ACR ==>|"Layers"| PE_ACR
+    PE_ACR ==>|"Layers"| PLATFORM
+    PE_ACR -.-> DNS
 ```
+
+*Figure: The customer VNet and private-endpoint subnet host the ACR private endpoint and link its DNS zone. Managed identity is assigned to the app and authorizes registry pulls through a role assignment; platform provisioning remains the image-pull actor, and both pull requests and layer responses pass through the private endpoint.*
 
 ## IaC Workflow
 
 <!-- diagram-id: iac-workflow -->
 ```mermaid
-graph TD
-    CODE[Bicep Templates] --> VALIDATE[az deployment validate]
-    VALIDATE --> DEPLOY[az deployment group create]
-    DEPLOY --> AZURE[Azure Resources]
-    AZURE --> VERIFY[az containerapp show]
+flowchart TD
+    accTitle: Safe Bicep deployment lifecycle for the Java tutorial
+    accDescr: Author the template, validate it, inspect the what-if result, deploy only after review, and verify deployment outputs. A failed check returns to template authoring.
+    WRITE["Author Bicep template"]
+    VALIDATE["Validate template"]
+    VALID@{ shape: diam, label: "Validation succeeded?" }
+    WHATIF["Review what-if changes"]
+    APPROVE@{ shape: diam, label: "Changes expected?" }
+    DEPLOY["Deploy resource-group template"]
+    VERIFY["Verify deployment outputs"]
+    WRITE --> VALIDATE --> VALID
+    VALID -->|"Yes"| WHATIF --> APPROVE
+    VALID -->|"No"| WRITE
+    APPROVE -->|"Yes"| DEPLOY --> VERIFY
+    APPROVE -->|"No"| WRITE
 ```
+
+*Figure: Validation and what-if are explicit gates before deployment; either failed validation or an unexpected change set returns the workflow to the template.*
 
 ## Prerequisites
 
@@ -366,5 +381,8 @@ az containerapp show --resource-group $RG --name $APP_NAME --query "{fqdn:proper
 - [Bicep Documentation (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/)
 
 ## Sources
+- [Container Apps networking (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/networking)
+- [Managed identity image pull (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull)
+- [Azure Container Registry private link (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-link)
 - [Bicep template for Azure Container Apps (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/azure-resource-manager-api-spec)
 - [Bicep resource reference (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps)
