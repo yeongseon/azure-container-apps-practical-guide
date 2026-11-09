@@ -35,8 +35,22 @@ Use this query to review Container Apps Job execution events, failures, retries,
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by job app name] --> B[Filter execution terms] --> C[Project run details] --> D[Sort by time]
+    accTitle: Review job execution events in legacy system logs
+    accDescr: Select one Container Apps Job, retain execution-related platform messages, keep execution and reason fields, and order the newest events first.
+
+    SOURCE["ContainerAppSystemLogs_CL<br/>legacy Log Analytics schema"]
+    JOB["Filter JobName_s"]
+    TERMS["Match execution, retry,<br/>timeout, failure, or completion terms"]
+    CONTEXT["Project ExecutionName_s,<br/>Reason_s, Type_s, and Log_s"]
+    RESULT["Newest execution events first"]
+
+    SOURCE --> JOB
+    JOB --> TERMS
+    TERMS --> CONTEXT
+    CONTEXT --> RESULT
 ```
+
+The pipeline surfaces platform messages for a job execution. Use `ExecutionName_s` to group related rows before concluding that retries or timeouts belong to the same run.
 
 ## Query
 

@@ -35,8 +35,22 @@ Use this query to spot memory pressure trends, allocation failures, and likely O
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by app and time window] --> B[Match memory and OOM terms] --> C[Classify signal type] --> D[Summarize by time bin and revision]
+    accTitle: Classify memory signals from legacy console logs
+    accDescr: Filter one app and time window, match memory-related text, classify each message, then count signals by time, revision, stream, and class.
+
+    SOURCE["ContainerAppConsoleLogs_CL<br/>legacy Log Analytics schema"]
+    SCOPE["Filter ContainerAppName_s<br/>and the analysis window"]
+    MATCH["Match memory, allocation,<br/>and OOM terms in Log_s"]
+    CLASSIFY["Classify OOM indicator,<br/>allocation failure, or warning"]
+    SUMMARY["Count by 15-minute bin,<br/>revision, stream, and signal"]
+
+    SOURCE --> SCOPE
+    SCOPE --> MATCH
+    MATCH --> CLASSIFY
+    CLASSIFY --> SUMMARY
 ```
+
+The result is text-derived evidence, not a container-memory measurement. Confirm a suspected OOM condition with platform events or memory metrics before assigning cause.
 
 ## Query
 

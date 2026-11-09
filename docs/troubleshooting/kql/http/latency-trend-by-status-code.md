@@ -28,11 +28,23 @@ content_validation:
 
 <!-- diagram-id: purpose-shows-p50-p95-p99-latency-trends-split -->
 ```mermaid
-graph TD
-    A[requests table] --> B[Percentile Calc per Status]
-    B --> C[P50 / P95 / P99 by 5m bins]
-    C --> D[Timechart: Tail Latency by Status]
+flowchart TD
+    accTitle: Calculate latency percentiles by HTTP status group
+    accDescr: Select request telemetry, classify result codes, calculate latency percentiles and counts per five-minute bin, then render tail-latency trends by status group.
+
+    SOURCE["Application Insights<br/>requests table"]
+    WINDOW["Filter the one-hour<br/>analysis window"]
+    BUCKET["Classify resultCode<br/>as 2xx, 3xx, 4xx, 5xx, or other"]
+    PERCENTILES["Calculate p50, p95, p99,<br/>and count by five-minute bin"]
+    TREND["Timechart by<br/>status bucket"]
+
+    SOURCE --> WINDOW
+    WINDOW --> BUCKET
+    BUCKET --> PERCENTILES
+    PERCENTILES --> TREND
 ```
+
+The primary path uses Application Insights request telemetry. The alternative query applies the same analysis only after parsing status and duration from a documented console-log format.
 
 ## Query
 

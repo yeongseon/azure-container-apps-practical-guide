@@ -1,4 +1,5 @@
 ---
+description: A ten-step Azure Container Apps triage checklist for revisions, replicas, logs, image pulls, ingress, probes, identity, secrets, and dependencies.
 content_sources:
   diagrams:
     - id: use-this-ordered-checklist-when-a
@@ -14,17 +15,36 @@ Use this ordered checklist when a Container App is down, unhealthy, or unreachab
 <!-- diagram-id: use-this-ordered-checklist-when-a -->
 ```mermaid
 flowchart TD
-    START["App Down / Unhealthy"] --> R["1) Revision Status"]
-    R --> REP["2) Replica Status"]
-    REP --> LOG["3) Container Logs"]
-    LOG --> IMG["4) Image Pull"]
-    IMG --> ING["5) Ingress Config"]
-    ING --> PROBE["6) Health Probes"]
-    PROBE --> REGAUTH["7) Registry Auth"]
-    REGAUTH --> SEC["8) Secrets and Config"]
-    SEC --> NET["9) Environment and Network"]
-    NET --> DEP["10) Dependencies"]
+    accTitle: First ten minutes of Container Apps triage
+    accDescr: Start with platform state, then inspect runtime evidence, configuration, identity, networking, and dependencies in order. Stop at the first confirmed failure.
+
+    START["App unavailable<br/>or unhealthy"]
+    R["1. Revision status"]
+    REP["2. Replica status"]
+    LOG["3. Console and<br/>system logs"]
+    IMG["4. Image reference<br/>and pull evidence"]
+    ING["5. Ingress mode<br/>and target port"]
+    PROBE["6. Startup, liveness,<br/>and readiness probes"]
+    REGAUTH["7. Registry identity<br/>and authorization"]
+    SEC["8. Secrets and<br/>environment configuration"]
+    NET["9. Environment,<br/>DNS, and network path"]
+    DEP["10. Dependency<br/>reachability"]
+    ESCALATE["Escalate with revision,<br/>error, and path evidence"]
+
+    START --> R
+    R --> REP
+    REP --> LOG
+    LOG --> IMG
+    IMG --> ING
+    ING --> PROBE
+    PROBE --> REGAUTH
+    REGAUTH --> SEC
+    SEC --> NET
+    NET --> DEP
+    DEP --> ESCALATE
 ```
+
+The ordering moves from Azure-managed state to workload and dependency evidence. Stop when a step confirms a failure and follow its linked playbook instead of continuing with assumptions.
 
 !!! tip "Run from a clean shell session"
     Export variables once to avoid command mistakes:
@@ -44,7 +64,11 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the app resource to check its provisioning state. |
+| `--name` | Identifies the unavailable app whose provisioning state starts the triage. |
+| `--resource-group` | Locates that app resource for the initial provisioning-state check. |
+| `--query` | Extracts `properties.provisioningState` from the resource. |
+| `--output` | Returns the state as plain TSV for quick triage. |
 
 Expected baseline from a healthy deployment:
 
@@ -58,7 +82,11 @@ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --query 
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp revision list ...` | Lists revisions so rollout state, traffic, and health can be verified. |
+| `az containerapp revision list` | Lists revisions so rollout and health states can be compared. |
+| `--name` | Identifies the app whose revision rollout and health history are inspected. |
+| `--resource-group` | Scopes the revision inventory to the resource group of the affected app. |
+| `--query` | Projects revision name, activation, health, running state, and creation time. |
+| `--output` | Formats the projected revision records as a table. |
 
 Observed output pattern:
 
@@ -92,7 +120,11 @@ az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --query "
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp replica list ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp replica list` | Lists current replicas to identify absent or repeatedly replaced instances. |
+| `--name` | Identifies the app whose live replica population is being examined. |
+| `--resource-group` | Locates the app for the replica-state and replacement-time inspection. |
+| `--query` | Projects replica name, running state, and creation time. |
+| `--output` | Formats the replica records as a table. |
 
 Observed output pattern:
 
@@ -126,7 +158,11 @@ az containerapp logs show --name "$APP_NAME" --resource-group "$RG" --type conso
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Retrieves recent application stdout and stderr for startup diagnosis. |
+| `--name` | Identifies the app whose recent startup output is being retrieved. |
+| `--resource-group` | Locates the app that emitted the console messages used for startup diagnosis. |
+| `--type` | Chooses the console-log channel. |
+| `--tail` | Limits the initial result to the newest 50 messages. |
 
 For continuous streaming, add `--follow` and press Ctrl+C to exit.
 
@@ -167,7 +203,13 @@ az acr repository show-tags --name "$ACR_NAME" --repository "$APP_NAME" --output
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp logs show ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp logs show` | Retrieves platform events for image-pull and authorization evidence. |
+| `az acr repository show-tags` | Confirms that the expected repository tag exists in ACR. |
+| `--name` | Selects the Container App for logs or the ACR instance for tag lookup. |
+| `--resource-group` | Locates the app for `az containerapp logs show` when checking image-pull failures. |
+| `--type` | Chooses the system-log channel for `az containerapp logs show`. |
+| `--repository` | Selects the image repository for `az acr repository show-tags`. |
+| `--output` | Formats the tags returned by `az acr repository show-tags` as a table. |
 
 Observed pull success pattern:
 
@@ -202,7 +244,11 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the ingress configuration used by the active app. |
+| `--name` | Identifies the app whose ingress exposure and target port are under review. |
+| `--resource-group` | Locates the app for the ingress-mode and backend-port inspection. |
+| `--query` | Extracts only `properties.configuration.ingress`. |
+| `--output` | Preserves the ingress object as JSON for field inspection. |
 
 - Confirm `external` setting matches your access model and `targetPort` matches app listening port.
 - Failure patterns: ingress disabled, wrong `targetPort`, internal app tested from public internet.
@@ -228,7 +274,11 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads probe definitions from the first container in the revision template. |
+| `--name` | Identifies the app whose startup, liveness, and readiness probes are inspected. |
+| `--resource-group` | Locates the app template that contains the failing probe definitions. |
+| `--query` | Extracts `properties.template.containers[0].probes`. |
+| `--output` | Preserves the probe array as JSON for field inspection. |
 
 - Confirm liveness/readiness probe paths and ports are valid; startup probe timeout fits app boot time.
 - Failure patterns: probe path returns 404/500, startup timeout too short, wrong probe port.
@@ -253,15 +303,24 @@ Navigate: **Container App → Application → Containers → Health probes**.
 
 ```bash
 az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity" --output json
+az acr show --name "$ACR_NAME" --query roleAssignmentMode --output tsv
 az role assignment list --scope "$(az acr show --name "$ACR_NAME" --query id --output tsv)" --assignee "$(az containerapp show --name "$APP_NAME" --resource-group "$RG" --query identity.principalId --output tsv)" --output table
 ```
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp show --name ...` | Reads the Container App configuration so the documented setting can be verified. |
+| `az containerapp show` | Reads the app identity and, in the nested call, its principal ID. |
+| `az acr show` | Reads the registry role-assignment mode to select the expected pull role and resolves the registry resource ID used as the authorization scope. |
+| `az role assignment list` | Lists role assignments for the app principal at the registry scope. |
+| `--name` | Selects the ACR instance for `az acr show` and the Container App for `az containerapp show`. |
+| `--resource-group` | Locates the app used by `az containerapp show` to resolve its managed-identity principal. |
+| `--query` | Extracts `roleAssignmentMode` and the registry ID with `az acr show`, and extracts identity values with `az containerapp show`. |
+| `--output` | Returns nested IDs as TSV and formats final assignments as a table. |
+| `--scope` | Restricts `az role assignment list` to the registry resolved by the nested `az acr show`. |
+| `--assignee` | Restricts `az role assignment list` to the principal resolved by the nested `az containerapp show`. |
 
-- Confirm managed identity exists and has `AcrPull` role on the registry scope.
-- Failure patterns: no principal ID, missing `AcrPull`, ACR firewall blocks environment egress.
+- Inspect `roleAssignmentMode` before evaluating the assignment. For **RBAC Registry Permissions**, confirm the managed identity has `AcrPull` on the registry scope. For **RBAC Registry + ABAC Repository Permissions** (`AbacRepositoryPermissions`), confirm it has `Container Registry Repository Reader`; if that assignment has an ABAC condition, verify the condition includes the image repository. ABAC-enabled registries do not honor `AcrPull`.
+- Failure patterns: no principal ID, missing or mode-inappropriate pull role, an ABAC condition that excludes the image repository, or an ACR firewall that blocks environment egress.
 - If failed → go to [Managed Identity Auth Failure](../playbooks/identity-and-configuration/managed-identity-auth-failure.md) and [Image Pull Failure](../playbooks/startup-and-provisioning/image-pull-failure.md).
 
 ### Portal view: Identity
@@ -272,7 +331,7 @@ Navigate: **Container App → Settings → Identity**.
 
 `[Observed]` The **System assigned** tab shows **Status: On**, an **Object (principal) ID** value, a **User assigned** sibling tab, and an **Azure role assignments** button under **Permissions**. A notice at the bottom of the blade confirms the resource is **registered with Microsoft Entra ID**.
 
-`[Inferred]` If **Status** is **Off**, the app cannot use a system-assigned managed identity at all — registry pulls fall back to admin credentials (which may be disabled on hardened ACRs) and any Key Vault references fail at revision-provisioning time. The **Azure role assignments** button is the quickest way to verify that this Object ID actually holds `AcrPull` (or whatever role) on the registry scope.
+`[Inferred]` If **Status** is **Off**, the app cannot use a system-assigned managed identity at all — registry pulls fall back to admin credentials (which may be disabled on hardened ACRs) and any Key Vault references fail at revision-provisioning time. After inspecting the registry's **Role assignment permissions mode**, use **Azure role assignments** to verify that this Object ID holds `AcrPull` for **RBAC Registry Permissions**, or `Container Registry Repository Reader` for **RBAC Registry + ABAC Repository Permissions**. For an ABAC-conditioned assignment, also verify that the condition includes the image repository.
 
 `[Not Proven]` This blade does not show which **revisions** are currently using the identity, nor whether a recent role assignment has propagated through Entra ID — propagation can lag image-pull attempts by minutes.
 
@@ -285,7 +344,12 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp secret list ...` | Manages Container Apps secrets without exposing secret values in plain configuration. |
+| `az containerapp secret list` | Lists secret names and references without returning secret values. |
+| `az containerapp show` | Reads environment-variable mappings from the revision template. |
+| `--name` | Identifies the app whose secret references and environment mappings are compared. |
+| `--resource-group` | Locates the app that owns the secret metadata and revision environment array. |
+| `--query` | Makes `az containerapp show` extract the first container's environment-variable array. |
+| `--output` | Makes `az containerapp show` preserve that array as JSON for mapping inspection. |
 
 - Confirm secret references exist and expected environment variables are present.
 - Failure patterns: `secretRef` points to missing secret, null env var values, stale revision after secret update.
@@ -303,7 +367,11 @@ az network private-endpoint list --resource-group "$RG" --output table
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp env show ...` | Reads managed environment settings for networking, logging, or workload profile verification. |
+| `az containerapp env show` | Reads the selected managed environment's health and network settings. |
+| `az network private-endpoint list` | Lists private endpoints in the resource group for dependency-path checks. |
+| `--name` | Selects the Container Apps environment for `az containerapp env show`. |
+| `--resource-group` | Selects the resource group searched by both commands. |
+| `--output` | Keeps environment details as JSON and formats private endpoints as a table. |
 
 - Confirm environment is healthy and network dependencies (private DNS/private endpoints) are correctly configured.
 - Failure patterns: DNS resolution failures, blocked NSG outbound rules, missing private DNS link.
@@ -329,7 +397,10 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command "python
 
 | Command | Why it is used |
 |---|---|
-| `az containerapp exec --name ...` | Runs the Azure CLI operation required by the documented step. |
+| `az containerapp exec` | Runs a DNS lookup from the workload's own replica context. |
+| `--name` | Identifies the app whose running replica performs the dependency DNS probe. |
+| `--resource-group` | Locates the app that provides the in-workload dependency-test context. |
+| `--command` | Executes the Python socket lookup inside the running container. |
 
 - Confirm the app can resolve and reach critical services (database, storage, API endpoints).
 - Failure patterns: DNS timeout, TLS handshake errors, outbound firewall denials.
@@ -379,3 +450,5 @@ If the checklist does not isolate root cause, continue with [Troubleshooting Met
 ## Sources
 
 - [Azure Container Apps documentation (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-apps/)
+- [Azure Container Registry permissions and role assignments overview (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-built-in-roles-overview)
+- [Azure ABAC repository permissions in Azure Container Registry (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-abac-repository-permissions)

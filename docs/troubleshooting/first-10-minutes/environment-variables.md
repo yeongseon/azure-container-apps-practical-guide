@@ -27,12 +27,26 @@ content_validation:
 <!-- diagram-id: environment-variables -->
 ```mermaid
 flowchart TD
-    APP["Container App"] --> APPVAR["Application Variables (LOG_LEVEL, FLASK_ENV)"]
-    APP --> SYSVAR["System Variables (CONTAINER_APP_NAME, CONTAINER_APP_REVISION)"]
-    APP --> RTVAR["Runtime Variables (PORT, PYTHONUNBUFFERED)"]
-    APP --> SECRETS["Secret References (secretref:db-connection)"]
-    SECRETS -.-> KV["Key Vault"]
+    accTitle: Environment variable sources in a Container App
+    accDescr: A container receives application configuration, platform-provided metadata, runtime settings, and secret-backed values. A Key Vault reference is resolved through a Container Apps secret before the value is exposed to the container.
+
+    APP_CONFIG["Application configuration<br/>LOG_LEVEL, TELEMETRY_MODE"]
+    PLATFORM["Platform-provided metadata<br/>CONTAINER_APP_NAME and REVISION"]
+    RUNTIME["Container runtime settings<br/>PORT, PYTHONUNBUFFERED"]
+    KV["Azure Key Vault<br/>external secret source"]
+    ACA_SECRET["Container Apps secret<br/>inline value or Key Vault reference"]
+    SECRET_REF["Environment variable<br/>secretref:secret-name"]
+    CONTAINER["Running container<br/>process environment"]
+
+    APP_CONFIG --> CONTAINER
+    PLATFORM --> CONTAINER
+    RUNTIME --> CONTAINER
+    KV -. "referenced by" .-> ACA_SECRET
+    ACA_SECRET --> SECRET_REF
+    SECRET_REF --> CONTAINER
 ```
+
+Plain settings and platform metadata enter the process environment directly. Secret-backed variables use a `secretref:` mapping; Key Vault remains a separate Azure resource rather than a child of the Container App.
 
 ## Application Variables (Reference App)
 
@@ -91,8 +105,12 @@ env | sort
 
 | Command | Purpose |
 |---|---|
-| `az containerapp show \ --name "$APP_NAME" \ --resource-group "$RG" \ --query "properties.template.containers[0].env"` | Reads the Container App resource and extracts the container environment-variable mapping, which is the specific surface this troubleshooting step needs to confirm. |
-| `az containerapp exec \ --name "$APP_NAME" \ --resource-group "$RG" \ --command "/bin/bash"` | Runs a command inside a live replica so DNS, HTTP, token, or TLS checks use the same network path and identity context as the failing workload. |
+| `az containerapp show` | Reads the revision template so the configured environment-variable mappings can be inspected. |
+| `az containerapp exec` | Starts an interactive shell in a running replica for runtime environment inspection. |
+| `--name` | Selects the Container App being compared at configuration and runtime. |
+| `--resource-group` | Selects the resource group containing that app. |
+| `--query` | Makes `az containerapp show` extract only the first container's environment-variable array. |
+| `--command` | Makes `az containerapp exec` start `/bin/bash` so `env` can be run inside the container. |
 
 Observed output pattern from a healthy replica:
 

@@ -35,8 +35,22 @@ Use this query for quick inspection of recent application exceptions and error l
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by app] --> B[Filter error patterns] --> C[Project key runtime fields] --> D[Sort by newest]
+    accTitle: Find recent application errors in legacy console logs
+    accDescr: Select one Container App, retain error-like console messages, keep revision and log context, and order the newest evidence first.
+
+    SOURCE["ContainerAppConsoleLogs_CL<br/>legacy Log Analytics schema"]
+    APP["Filter ContainerAppName_s<br/>to the target app"]
+    ERRORS["Match error, exception,<br/>traceback, or failed in Log_s"]
+    CONTEXT["Project TimeGenerated,<br/>RevisionName_s, and Log_s"]
+    RESULT["Newest error evidence first"]
+
+    SOURCE --> APP
+    APP --> ERRORS
+    ERRORS --> CONTEXT
+    CONTEXT --> RESULT
 ```
+
+This pipeline uses the legacy `_CL` table and suffixed column names shown in the query. A resource-specific `ContainerAppConsoleLogs` query must use that table's native column names instead of mixing schemas.
 
 ## Query
 

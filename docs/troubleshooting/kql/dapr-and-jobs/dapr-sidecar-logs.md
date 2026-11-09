@@ -35,8 +35,22 @@ Use this query when Dapr sidecar startup, component loading, or invocation behav
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by app] --> B[Filter Dapr and component terms] --> C[Project runtime context] --> D[Sort by time]
+    accTitle: Find Dapr-related messages in legacy console logs
+    accDescr: Select one Container App, keep messages containing Dapr, sidecar, component, pubsub, state, or invocation terms, retain revision context, and order the newest rows first.
+
+    SOURCE["ContainerAppConsoleLogs_CL<br/>legacy Log Analytics schema"]
+    APP["Filter ContainerAppName_s"]
+    TERMS["Match Dapr and component<br/>terms in Log_s"]
+    CONTEXT["Project TimeGenerated,<br/>RevisionName_s, and Log_s"]
+    RESULT["Newest candidate<br/>Dapr messages first"]
+
+    SOURCE --> APP
+    APP --> TERMS
+    TERMS --> CONTEXT
+    CONTEXT --> RESULT
 ```
+
+The text filter finds candidate Dapr evidence and can also match application messages that merely mention Dapr. Confirm the emitting container and message context before assigning the fault to the sidecar.
 
 ## Query
 

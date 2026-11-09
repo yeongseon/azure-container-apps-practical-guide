@@ -35,8 +35,22 @@ Use this query in Application Insights (workspace-based) to inspect failed HTTP 
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by cloud role name] --> B[Filter failed requests] --> C[Project operation metadata] --> D[Sort by time]
+    accTitle: Find failed requests in Application Insights
+    accDescr: Select the application role, retain request telemetry marked unsuccessful, keep operation context, and order the newest failed requests first.
+
+    SOURCE["Application Insights<br/>requests table"]
+    ROLE["Filter cloud_RoleName<br/>to the target app"]
+    FAILED["Keep success == false"]
+    CONTEXT["Project timestamp, request name,<br/>result code, duration, and operation_Id"]
+    RESULT["Newest failed requests first"]
+
+    SOURCE --> ROLE
+    ROLE --> FAILED
+    FAILED --> CONTEXT
+    CONTEXT --> RESULT
 ```
+
+`operation_Id` is the correlation key carried forward for matching request telemetry to traces or exceptions from the same operation.
 
 ## Query
 

@@ -35,8 +35,22 @@ Use this query to correlate exceptions to request operation IDs for end-to-end f
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by cloud role name] --> B[Project exception fields] --> C[Join mentally with requests on operation_Id] --> D[Sort by time]
+    accTitle: Prepare Application Insights exceptions for operation correlation
+    accDescr: Select exception telemetry for one application role, retain exception details and operation ID, then order the newest evidence for correlation with request telemetry.
+
+    SOURCE["Application Insights<br/>exceptions table"]
+    ROLE["Filter cloud_RoleName<br/>to the target app"]
+    CONTEXT["Project timestamp, type,<br/>outerMessage, and operation_Id"]
+    RESULT["Newest exception evidence first"]
+    REQUESTS["Related requests or traces<br/>with the same operation_Id"]
+
+    SOURCE --> ROLE
+    ROLE --> CONTEXT
+    CONTEXT --> RESULT
+    RESULT -. "correlate by operation_Id" .-> REQUESTS
 ```
+
+The query prepares the exception side of the correlation. It does not perform a KQL join; use the shared `operation_Id` to query related request or trace records.
 
 ## Query
 

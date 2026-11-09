@@ -35,8 +35,22 @@ Use this query to detect token acquisition and authorization failures related to
 <!-- diagram-id: query-pipeline -->
 ```mermaid
 flowchart TD
-    A[Filter by app] --> B[Filter identity and token terms] --> C[Project revision and replica] --> D[Sort by time]
+    accTitle: Find managed identity and authorization messages in console logs
+    accDescr: Select one app, keep credential, token, 401, 403, and forbidden messages, retain revision context, and order the newest candidate evidence first.
+
+    SOURCE["ContainerAppConsoleLogs_CL<br/>legacy Log Analytics schema"]
+    APP["Filter ContainerAppName_s"]
+    TERMS["Match managed identity,<br/>token, 401, and 403 terms in Log_s"]
+    CONTEXT["Project TimeGenerated,<br/>RevisionName_s, and Log_s"]
+    RESULT["Newest identity-related<br/>messages first"]
+
+    SOURCE --> APP
+    APP --> TERMS
+    TERMS --> CONTEXT
+    CONTEXT --> RESULT
 ```
+
+Token acquisition and downstream authorization are separate stages. A successful token message followed by a 403 strongly suggests checking resource authorization, but this query alone does not prove which role is missing.
 
 ## Query
 
