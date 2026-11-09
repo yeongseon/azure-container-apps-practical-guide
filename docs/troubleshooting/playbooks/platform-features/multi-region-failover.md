@@ -10,6 +10,7 @@ content_sources:
       based_on:
         - https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
         - https://learn.microsoft.com/en-us/azure/frontdoor/create-front-door-cli
+        - https://learn.microsoft.com/en-us/azure/frontdoor/health-probes
 content_validation:
   status: verified
   last_reviewed: 2026-07-18
@@ -18,8 +19,8 @@ content_validation:
     - claim: Azure reliability guidance for Container Apps recommends multi-region planning for higher resilience requirements.
       source: https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps
       verified: true
-    - claim: Azure Front Door can use health probes and origin groups to steer traffic.
-      source: https://learn.microsoft.com/en-us/azure/frontdoor/create-front-door-cli
+    - claim: Azure Front Door uses health probes to exclude unhealthy origins from normal origin selection, but if every origin fails probes it distributes traffic round-robin across all origins.
+      source: https://learn.microsoft.com/en-us/azure/frontdoor/health-probes
       verified: true
 ---
 # Multi-Region Failover
@@ -37,7 +38,7 @@ Use this playbook when traffic does not fail over away from an unhealthy Azure C
 ```mermaid
 flowchart TD
     accTitle: Diagnose regional failover through Azure Front Door
-    accDescr: Front Door probes each regional Container Apps origin, removes origins that fail the configured health evaluation, routes client requests to a healthy origin, and requires an explicit recovery and failback check.
+    accDescr: Front Door probes each regional Container Apps origin. When healthy origins exist, configured priority, latency, and weight settings select among eligible origins. If every origin fails health probes, Front Door distributes requests round-robin across all origins until one becomes healthy again.
 
     CLIENT[Client] ==>|Request| FRONTDOOR[Azure Front Door]
     FRONTDOOR -->|Health probes| PRIMARY[Primary regional app]
@@ -45,20 +46,24 @@ flowchart TD
     FRONTDOOR -->|Health probes| SECONDARY[Secondary regional app]
     SECONDARY -->|Probe response| FRONTDOOR
     FRONTDOOR --> HEALTHY{At least one origin<br/>passes health evaluation?}
-    HEALTHY -->|No| OUTAGE[No healthy origin<br/>Investigate both regions]
-    HEALTHY -->|Yes| ROUTE{Primary origin healthy?}
-    ROUTE -->|Yes| PRIMARY_ROUTE[Route requests to primary]
-    ROUTE -->|No| SECONDARY_ROUTE[Route requests to secondary]
+    HEALTHY -->|No| FALLBACK[All origins unhealthy<br/>Round-robin across all origins]
+    HEALTHY -->|Yes| SELECT[Apply configured priority,<br/>latency, and weight selection]
+    SELECT --> ROUTE{Selected origin?}
+    ROUTE -->|Primary| PRIMARY_ROUTE[Route requests to primary]
+    ROUTE -->|Secondary| SECONDARY_ROUTE[Route requests to secondary]
     PRIMARY_ROUTE ==>|Origin request| PRIMARY
     PRIMARY ==>|Response| FRONTDOOR
     SECONDARY_ROUTE ==>|Origin request| SECONDARY
     SECONDARY ==>|Response| FRONTDOOR
+    FALLBACK ==>|Origin request| PRIMARY
+    FALLBACK ==>|Origin request| SECONDARY
     FRONTDOOR ==>|Response| CLIENT
     PRIMARY_ROUTE --> RECOVERY[Validate recovery and<br/>failback behavior]
     SECONDARY_ROUTE --> RECOVERY[Validate data, dependencies,<br/>recovery, and failback]
+    FALLBACK --> RECOVERY
 ```
 
-*Figure: Health probes and client traffic are separate exchanges; Front Door can route only to origins that pass its configured health evaluation.*
+*Figure: Health probes and client traffic are separate exchanges. Healthy origins remain eligible for configured priority, latency, and weight selection; if all origins fail probes, Front Door falls back to round-robin distribution across every origin while operators investigate both regions.*
 
 ## Possible Causes
 
@@ -174,4 +179,5 @@ az afd origin-group update \
 
 - [Reliability in Azure Container Apps](https://learn.microsoft.com/en-us/azure/reliability/reliability-container-apps)
 - [Create an Azure Front Door with the Azure CLI](https://learn.microsoft.com/en-us/azure/frontdoor/create-front-door-cli)
+- [Health probes in Azure Front Door](https://learn.microsoft.com/en-us/azure/frontdoor/health-probes)
 - [Azure Front Door CLI reference](https://learn.microsoft.com/en-us/cli/azure/afd)
