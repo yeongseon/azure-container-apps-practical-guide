@@ -51,6 +51,10 @@ REPLAY_LABS: Final = {
         ),
         (),
     ),
+    "cd-reconnect-rbac-conflict": (
+        ("07-h1-gate.json", "14-h2-gate.json"),
+        (),
+    ),
     "dapr-integration": (
         (
             "14-cohort-integrity-gate.json",
@@ -67,6 +71,14 @@ REPLAY_LABS: Final = {
             "12-h1-c-speedup-ratio-gate.json",
             "13-h2-falsification-gate.json",
         ),
+        (),
+    ),
+    "observability-tracing": (
+        ("12-h1-gate.json", "24-h2-gate.json"),
+        (),
+    ),
+    "probe-and-port-mismatch": (
+        ("11-h1-gate.json", "22-h2-gate.json"),
         (),
     ),
     "zone-redundancy-best-effort": (
@@ -709,6 +721,9 @@ class EvaluationReplayTests(unittest.TestCase):
             "acr-network-path-firewall-allowlist",
             "acr-network-path-pe-direct",
             "acr-network-path-record-split-brain",
+            "cd-reconnect-rbac-conflict",
+            "observability-tracing",
+            "probe-and-port-mismatch",
         ):
             with self.subTest(lab=name), self.replay_fixture(name) as lab:
                 verify = lab / "verify.sh"
@@ -719,6 +734,9 @@ class EvaluationReplayTests(unittest.TestCase):
                 ).replace(
                     '"evaluated_at_utc": EVALUATED_AT_UTC,',
                     '"utc_captured": EVALUATED_AT_UTC,',
+                ).replace(
+                    'document["evaluated_at_utc"] = stamp',
+                    'document["utc_captured"] = stamp',
                 )
                 self.assertNotEqual(stale, original)
                 _ = verify.write_text(stale)
