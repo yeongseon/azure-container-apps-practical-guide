@@ -100,17 +100,17 @@ az containerapp env show \
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az network vnet subnet show` | Reads the selected subnet so the operator can evaluate the address prefix delegations service evidence. |
+| `az network vnet subnet show` | Retrieves the subnet prefix and delegation so available address capacity can be assessed against Container Apps requirements. |
 | `--name` (`az network vnet subnet show`) | Inspects the delegated Container Apps subnet named in the command. |
-| `--vnet-name` (`az network vnet subnet show`) | Chooses the virtual network participating in `vnet-myapp`, anchoring the address prefix delegations service evidence to the exact value used by this operation. |
+| `--vnet-name` (`az network vnet subnet show`) | Searches `vnet-myapp` for the environment subnet whose CIDR capacity is under investigation. |
 | `--resource-group` (`az network vnet subnet show`) | Finds `vnet-myapp` and its delegated subnet in `$RG`. |
 | `--query` (`az network vnet subnet show`) | Condenses the subnet prefix, delegation, and routing details needed to judge whether the delegated range can accommodate more infrastructure. |
-| `--output` (`az network vnet subnet show`) | Serializes the diagnosis steps response from `az network vnet subnet show` while retaining fields selected in this fence. |
-| `az containerapp env show` | Reads the selected managed environment so the operator can evaluate the vnet configuration static ip evidence. |
+| `--output` (`az network vnet subnet show`) | Renders the selected prefix and delegation columns as a readable table for the capacity check. |
+| `az containerapp env show` | Returns the environment's infrastructure subnet and static IP to confirm which subnet consumes addresses. |
 | `--name` (`az containerapp env show`) | Reads `$ACA_ENV_NAME`, the environment consuming addresses from the delegated subnet. |
 | `--resource-group` (`az containerapp env show`) | Locates that environment in `$RG` before comparing subnet attachment and static IP. |
 | `--query` (`az containerapp env show`) | Pairs the environment VNet configuration with its static IP to confirm which subnet the environment consumes. |
-| `--output` (`az containerapp env show`) | Serializes the diagnosis steps response from `az containerapp env show` while retaining fields projected by that command. |
+| `--output` (`az containerapp env show`) | Formats the environment subnet ID and static IP as columns that can be compared with the VNet result. |
 
 
 Interpretation guidance:
@@ -143,13 +143,13 @@ az containerapp env create \
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az network vnet subnet create` | Creates the subnet that implements the documented correction and returns its provisioning result. |
+| `az network vnet subnet create` | Allocates a larger delegated subnet to restore address headroom for environment infrastructure and replicas. |
 | `--name` (`az network vnet subnet create`) | Creates the replacement subnet `snet-aca-large`. |
 | `--vnet-name` (`az network vnet subnet create`) | Creates the replacement delegated subnet inside `vnet-myapp`, where additional address space was reserved. |
 | `--resource-group` (`az network vnet subnet create`) | Adds the replacement subnet to `vnet-myapp` in `$RG`. |
 | `--address-prefixes` (`az network vnet subnet create`) | Assigns `10.10.0.0/27`, providing the documented minimum range for a workload profiles environment. |
 | `--delegations` (`az network vnet subnet create`) | Delegates the subnet to `Microsoft.App/environments` so Container Apps can use it. |
-| `az containerapp env create` | Creates the managed environment that implements the documented correction and returns its provisioning result. |
+| `az containerapp env create` | Provisions the replacement environment on the expanded subnet because an existing environment cannot be moved in place. |
 | `--name` (`az containerapp env create`) | Creates `$ACA_ENV_NAME` on the larger delegated range. |
 | `--resource-group` (`az containerapp env create`) | Places the replacement environment in `$RG`. |
 | `--location` (`az containerapp env create`) | Deploys the environment in `$LOCATION`, matching the VNet region. |

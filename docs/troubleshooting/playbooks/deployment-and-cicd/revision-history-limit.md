@@ -95,7 +95,7 @@ az containerapp show \
 | `--resource-group` (`az containerapp revision list`) | Reads that history from the app in `$RG`, preserving the correct deployment boundary. |
 | `--query` (`az containerapp revision list`) | Reduces revision history to names, active flags, and creation times so the oldest inactive entries are easy to identify. |
 | `--output` (`az containerapp revision list`) | Renders the selected revision fields as a table so age and active state can be compared quickly. |
-| `az containerapp show` | Reads the selected Container App so the operator can evaluate the configuration max inactive revisions evidence. |
+| `az containerapp show` | Extracts `maxInactiveRevisions` to verify whether the retention ceiling is pruning revision history. |
 | `--name` (`az containerapp show`) | Selects `$APP_NAME`, whose inactive revision retention setting is being verified. |
 | `--resource-group` (`az containerapp show`) | Resolves the app from `$RG` before reading its revision-history limit. |
 | `--query` (`az containerapp show`) | Reads the configured inactive-revision ceiling that controls when historical revisions are removed. |

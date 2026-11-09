@@ -88,7 +88,7 @@ az rest \
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az ad app show` | Reads the selected app registration so the operator can evaluate resource configuration record. |
+| `az ad app show` | Returns the application registration identifiers needed to inspect the workflow's federated identity configuration. |
 | `--id` (`az ad app show`) | Selects directory or Azure object `<app-id>` for this exact lookup or mutation. |
 | `az ad app federated-credential list` | Runs `az ad app federated-credential list` to collect or change the Azure state evaluated by diagnosis steps. |
 | `--id` (`az ad app federated-credential list`) | Selects directory or Azure object `<app-id>` for this exact lookup or mutation. |
@@ -133,9 +133,9 @@ az ad app federated-credential create \
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az ad app federated-credential create` | Creates the app registration that implements the documented correction and returns its provisioning result. |
+| `az ad app federated-credential create` | Adds the GitHub subject, issuer, and audience trust described in `credential.json` to the application. |
 | `--id` (`az ad app federated-credential create`) | Selects directory or Azure object `<app-id>` for this exact lookup or mutation. |
-| `--parameters` (`az ad app federated-credential create`) | Sets the parameters input to `credential.json`, the value used by `az ad app federated-credential create` to evaluate or correct the Azure state that distinguishes this hypothesis. |
+| `--parameters` (`az ad app federated-credential create`) | Supplies `credential.json`, whose repository and branch subject must match the failing workflow token. |
 
 
 ## Prevention

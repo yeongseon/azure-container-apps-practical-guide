@@ -104,9 +104,9 @@ az network vnet subnet show \
 | `--name` (`az containerapp exec`) | Runs the egress measurement in `$APP_NAME`. |
 | `--resource-group` (`az containerapp exec`) | Connects to the app hosted in `$RG`. |
 | `--command` (`az containerapp exec`) | Runs `curl --silent https://api.ipify.org` inside the app and prints a newline after the measured public IP. |
-| `az network vnet subnet show` | Reads the selected subnet so the operator can evaluate the nat gateway route table evidence. |
+| `az network vnet subnet show` | Returns the subnet's NAT gateway and route-table associations to explain which component controls outbound addressing. |
 | `--name` (`az network vnet subnet show`) | Inspects `snet-aca`, the environment subnet whose outbound identity may have changed. |
-| `--vnet-name` (`az network vnet subnet show`) | Chooses the virtual network participating in `vnet-myapp`, anchoring the nat gateway route table evidence to the exact value used by this operation. |
+| `--vnet-name` (`az network vnet subnet show`) | Looks up the Container Apps infrastructure subnet within `vnet-myapp`. |
 | `--resource-group` (`az network vnet subnet show`) | Finds `vnet-myapp` and its subnet in `$RG`. |
 | `--query` (`az network vnet subnet show`) | Summarizes the subnet's NAT gateway, route table, and address prefix to identify which component can change outbound addressing. |
 | `--output` (`az network vnet subnet show`) | Returns NAT, route-table, and prefix fields as JSON for the egress-path comparison. |
@@ -140,14 +140,14 @@ az network vnet subnet update \
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az network nat gateway create` | Creates the network nat gateway that implements the documented correction and returns its provisioning result. |
+| `az network nat gateway create` | Provisions the NAT gateway that will provide a stable public egress address for the subnet. |
 | `--name` (`az network nat gateway create`) | Creates the stable egress resource `nat-aca`. |
 | `--resource-group` (`az network nat gateway create`) | Places the NAT gateway in `$RG` with the app network. |
 | `--location` (`az network nat gateway create`) | Deploys the gateway in `$LOCATION`, matching the VNet region. |
 | `--public-ip-addresses` (`az network nat gateway create`) | Attaches `pip-aca-egress`, the public IP downstream systems should allow-list. |
 | `az network vnet subnet update` | Changes the selected subnet configuration to apply the remediation established by configuration mutation. |
 | `--name` (`az network vnet subnet update`) | Updates `snet-aca`, the Container Apps environment subnet. |
-| `--vnet-name` (`az network vnet subnet update`) | Chooses the virtual network participating in `vnet-myapp`, anchoring configuration mutation to the exact value used by this operation. |
+| `--vnet-name` (`az network vnet subnet update`) | Locates the delegated subnet in `vnet-myapp` before attaching the new NAT gateway. |
 | `--resource-group` (`az network vnet subnet update`) | Locates `vnet-myapp` in `$RG` for the subnet change. |
 | `--nat-gateway` (`az network vnet subnet update`) | Associates `nat-aca` so replicas use its stable public IP for outbound connections. |
 

@@ -105,11 +105,11 @@ az containerapp replica list \
 | `--name` (`az containerapp show`) | Inspects `$APP_NAME`, the app whose requests are not returning to the expected replica. |
 | `--resource-group` (`az containerapp show`) | Finds the affinity test app in `$RG` before reading its ingress configuration. |
 | `--query` (`az containerapp show`) | Exposes the ingress settings where sticky-session affinity is configured, avoiding unrelated app properties. |
-| `--output` (`az containerapp show`) | Serializes the diagnosis steps response from `az containerapp show` while retaining fields selected in this fence. |
+| `--output` (`az containerapp show`) | Displays the ingress affinity setting and traffic weights as columns for checking whether sticky sessions are enabled on the routed revision. |
 | `az containerapp replica list` | Lists serving replicas so affinity behavior can be distinguished from a single-replica deployment. |
 | `--name` (`az containerapp replica list`) | Returns replicas for `$APP_NAME`, the same app used in the cookie-routing test. |
 | `--resource-group` (`az containerapp replica list`) | Retrieves serving replicas for `$APP_NAME` from `$RG`. |
-| `--output` (`az containerapp replica list`) | Serializes the diagnosis steps response from `az containerapp replica list` while retaining fields selected in this fence. |
+| `--output` (`az containerapp replica list`) | Shows replica names and states in table form to confirm that multiple healthy backends can receive the session. |
 
 
 Interpretation:

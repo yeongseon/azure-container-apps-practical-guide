@@ -83,7 +83,7 @@ az containerapp env show \
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az containerapp env show` | Reads the selected managed environment so the operator can evaluate the provisioning state evidence. |
+| `az containerapp env show` | Returns the environment provisioning state to distinguish a quota rejection from an app-level deployment failure. |
 | `--name` (`az containerapp env show`) | Checks `$ACA_ENV_NAME`, the environment whose provisioning request reported insufficient quota. |
 | `--resource-group` (`az containerapp env show`) | Finds the target in `$RG`, keeping this lookup within the deployment being diagnosed. |
 | `--query` (`az containerapp env show`) | Selects the environment provisioning state to distinguish a completed deployment from one blocked during capacity allocation. |

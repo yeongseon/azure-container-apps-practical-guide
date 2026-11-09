@@ -101,7 +101,7 @@ az containerapp show \
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az containerapp revision list` | Enumerates revision records to assemble revision inventory for comparison. |
+| `az containerapp revision list` | Lists revision provisioning states to reveal whether the timed-out deployment nevertheless created a revision. |
 | `--name` (`az containerapp revision list`) | Lists revisions belonging to `$APP_NAME`. |
 | `--resource-group` (`az containerapp revision list`) | Looks for revision history in `$RG`, where the timed-out deployment created the app. |
 | `--output` (`az containerapp revision list`) | Emits the response as `table` so the decisive fields remain usable in this diagnostic step. |
@@ -109,7 +109,7 @@ az containerapp show \
 | `--name` (`az containerapp revision show`) | Resolves `<revision-name>` under `$APP_NAME`. |
 | `--resource-group` (`az containerapp revision show`) | Resolves `<revision-name>` within `$RG` before inspecting its provisioning details. |
 | `--revision` (`az containerapp revision show`) | Selects revision `<revision-name>`, whose provisioning or replica state is being tested. |
-| `az containerapp show` | Reads the selected Container App so the operator can evaluate resource configuration record. |
+| `az containerapp show` | Reads the app's latest revision and provisioning details to correlate the ARM timeout with the resulting resource state. |
 | `--name` (`az containerapp show`) | Reads the parent app `$APP_NAME` after revision inspection. |
 | `--resource-group` (`az containerapp show`) | Reads the parent app from `$RG` after the revision-level checks. |
 | `--output` (`az containerapp show`) | Keeps the diagnosis steps result in the representation required by the next comparison or shell assignment. |

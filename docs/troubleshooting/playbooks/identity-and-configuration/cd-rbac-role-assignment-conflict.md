@@ -372,7 +372,7 @@ az role assignment list --assignee "$SP_OBJECT_ID" --all --include-inherited --o
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az role assignment list` | Enumerates role assignment records to assemble role-assignment search for comparison. |
+| `az role assignment list` | Lists assignments at the deployment scope to reveal an existing grant that conflicts with the pipeline's deterministic role-assignment name. |
 | `--assignee` (`az role assignment list`) | Restricts role results to principal `$SP_OBJECT_ID`, linking grants to the identity under test. |
 | `--all` (`az role assignment list`) | Retrieves every result page so the role or resource search cannot miss a later match. |
 | `--include-inherited` (`az role assignment list`) | Keeps parent-scope grants visible while evaluating the effective access path. |
@@ -596,7 +596,7 @@ az role assignment list --assignee "$SP_APP_ID" --all --output table
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az role assignment list` | Enumerates role assignment records to assemble role-assignment search for comparison. |
+| `az role assignment list` | Searches the principal's grants so the conflicting role and scope can be distinguished from an unrelated assignment. |
 | `--assignee` (`az role assignment list`) | Restricts role results to principal `$SP_APP_ID`, linking grants to the identity under test. |
 | `--all` (`az role assignment list`) | Retrieves every result page so the role or resource search cannot miss a later match. |
 | `--output` (`az role assignment list`) | Displays every grant still held by `$SP_APP_ID` in a table. |
@@ -660,7 +660,7 @@ az ad sp show --id "$PRINCIPAL_ID" --output json
 | `--url` (`az rest`) | Reads `$ROLE_ASSIGNMENT_ID` from the shown ARM authorization endpoint. |
 | `--query` (`az rest`) | Retrieves the object ID embedded in the old assignment so it can be compared with the newly recreated service principal. |
 | `--output` (`az rest`) | Returns only the historical principal GUID, making object-ID drift visible in the shell comparison. |
-| `az ad sp show` | Reads the selected service principal so the operator can evaluate resource configuration record. |
+| `az ad sp show` | Resolves the deployment service principal to its object ID for comparison with the assignment principal. |
 | `--id` (`az ad sp show`) | Attempts to resolve `$PRINCIPAL_ID`; not found confirms the old directory object is gone. |
 | `--output` (`az ad sp show`) | Returns the surviving service-principal record as JSON; a not-found response proves the old object was deleted. |
 
@@ -714,9 +714,9 @@ az ad user show --id "$PRINCIPAL_ID" 2>&1 | head -3
 | `--graph-query` (`az graph query`) | Runs the displayed authorization filter and projection to locate the assignment across scopes. |
 | `--query` (`az graph query`) | Pulls the principal ID from the orphaned assignment record even though Microsoft Entra ID no longer resolves it. |
 | `--output` (`az graph query`) | Stores the unresolved principal GUID as plain text for the deletion-state check. |
-| `az ad sp show` | Reads the selected service principal so the operator can evaluate resource configuration record. |
+| `az ad sp show` | Retrieves the pipeline service principal's tenant object, which is the identity RBAC stores in `principalId`. |
 | `--id` (`az ad sp show`) | Tests whether `$PRINCIPAL_ID` still resolves as a service principal. |
-| `az ad user show` | Reads the selected ad user so the operator can evaluate resource configuration record. |
+| `az ad user show` | Resolves the human assignee separately so a user object is not mistaken for the deployment service principal. |
 | `--id` (`az ad user show`) | Tests the same GUID as a user object before classifying it as orphaned. |
 
 
@@ -807,7 +807,7 @@ az account show --query "tenantId" --output tsv
 | `--first` (`az graph query`) | Returns one assignment row because the investigation starts from a single GUID. |
 | `--graph-query` (`az graph query`) | Projects scope and principal details for `$ROLE_ASSIGNMENT_ID` from `AuthorizationResources`. |
 | `--output` (`az graph query`) | Presents app owner organization evidence as `tsv` so the scalar can be consumed without JSON quoting. |
-| `az ad sp show` | Reads the selected service principal so the operator can evaluate the app owner organization evidence. |
+| `az ad sp show` | Returns the service principal ownership context used to detect a cross-tenant or wrong-directory identity. |
 | `--id` (`az ad sp show`) | Resolves the projected `$PRINCIPAL_ID` when the object still exists. |
 | `--query` (`az ad sp show`) | Reads the service principal's owning tenant so cross-tenant ownership can be compared with the active Azure context. |
 | `--output` (`az ad sp show`) | Captures the owner tenant GUID without JSON quotes for the tenant comparison. |
@@ -1036,11 +1036,11 @@ az ad app show --id "$SP_APP_ID" 2>&1 | head -3
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az ad sp show` | Reads the selected service principal so the operator can evaluate resource configuration record. |
+| `az ad sp show` | Looks up the expected automation principal before validating the repaired assignment. |
 | `--id` (`az ad sp show`) | Resolves `$PRINCIPAL_ID` first and then `$SP_APP_ID` to identify the service principal and its application registration. |
 | `--query` (`az ad sp show`) | Retrieves the application ID behind the leftover service principal so the paired app registration can also be removed. |
 | `--output` (`az ad sp show`) | Stores the client application ID without quoting for the application-delete command. |
-| `az role assignment list` | Enumerates role assignment records to assemble role-assignment search for comparison. |
+| `az role assignment list` | Verifies that the corrected scope now contains one grant for the expected principal and role. |
 | `--assignee` (`az role assignment list`) | Restricts role results to principal `$SP_APP_ID`, linking grants to the identity under test. |
 | `--all` (`az role assignment list`) | Retrieves every result page so the role or resource search cannot miss a later match. |
 | `--output` (`az role assignment list`) | Shows every remaining grant held by `$SP_APP_ID` before directory cleanup. |
@@ -1048,7 +1048,7 @@ az ad app show --id "$SP_APP_ID" 2>&1 | head -3
 | `--id` (`az ad sp delete`) | Selects the stale service principal represented by `$SP_APP_ID` for deletion. |
 | `az ad app delete` | Deletes the paired Microsoft Entra application registration. |
 | `--id` (`az ad app delete`) | Addresses the exact directory object required for `$SP_APP_ID`, anchoring resource deletion result to the exact value used by this operation. |
-| `az ad app show` | Reads the selected app registration so the operator can evaluate resource configuration record. |
+| `az ad app show` | Retrieves the application object tied to the deployment identity so app and service-principal IDs are not conflated. |
 | `--id` (`az ad app show`) | Rechecks the deleted application ID; a not-found result confirms cleanup. |
 
 
@@ -1160,7 +1160,7 @@ az containerapp github-action show \
 | `--token` (`az containerapp github-action add`) | Authorizes repository workflow and secret creation with the current GitHub token. |
 | `--context-path` (`az containerapp github-action add`) | Builds from the repository root `./`. |
 | `--image` (`az containerapp github-action add`) | Tags each build as `${ACR_NAME}.azurecr.io/${APP_NAME}:{{ .Run.Number }}`. |
-| `az containerapp github-action show` | Reads the selected continuous-deployment configuration so the operator can evaluate resource configuration record. |
+| `az containerapp github-action show` | Displays the app's GitHub Actions integration to confirm which identity and repository the deployment path uses. |
 | `--name` (`az containerapp github-action show`) | Verifies the new source-control resource on `$APP_NAME`. |
 | `--resource-group` (`az containerapp github-action show`) | Reads the app's CD registration from `$RG`. |
 | `--output` (`az containerapp github-action show`) | Returns branch and workflow metadata as JSON for reconnect verification. |

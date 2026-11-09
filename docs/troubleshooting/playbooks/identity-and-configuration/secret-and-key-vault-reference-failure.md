@@ -125,10 +125,10 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az containerapp secret list` | Enumerates Container App secret records to assemble resource inventory for comparison. |
+| `az containerapp secret list` | Lists secret names and Key Vault references to determine whether the expected reference exists on the app. |
 | `--name` (`az containerapp secret list`) | Lists secrets defined on `$APP_NAME`, where the unresolved `secretRef` is consumed. |
 | `--resource-group` (`az containerapp secret list`) | Locates the app in `$RG` for secret inventory. |
-| `az containerapp show` | Reads the selected Container App so the operator can evaluate the template containers env evidence. |
+| `az containerapp show` | Projects container environment-variable bindings so each `secretRef` can be matched to the secret inventory. |
 | `--name` (`az containerapp show`) | Reads environment mappings and identity from `$APP_NAME`. |
 | `--resource-group` (`az containerapp show`) | Retrieves the affected app configuration from `$RG`. |
 | `--query` (`az containerapp show`) | Places the first container's environment references beside app identity data to correlate a failing secret reference with its accessor. |
@@ -186,10 +186,10 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "properti
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az containerapp secret list` | Enumerates Container App secret records to assemble resource inventory for comparison. |
+| `az containerapp secret list` | Rechecks the app's secret reference metadata after the Key Vault URI or identity assignment is corrected. |
 | `--name` (`az containerapp secret list`) | Lists secret names defined on `$APP_NAME`. |
 | `--resource-group` (`az containerapp secret list`) | Reads `$APP_NAME` secret names from `$RG`. |
-| `az containerapp show` | Reads the selected Container App so the operator can evaluate the template containers env evidence. |
+| `az containerapp show` | Shows which environment variables consume each secret, identifying references that still use an obsolete name. |
 | `--name` (`az containerapp show`) | Reads environment mappings from `$APP_NAME`. |
 | `--resource-group` (`az containerapp show`) | Opens the app in `$RG` before comparing environment references with its secret inventory. |
 | `--query` (`az containerapp show`) | Lists the first container's environment entries so the misspelled or absent `secretRef` can be found directly. |
@@ -229,7 +229,7 @@ az role assignment list --scope "$(az keyvault show --name "my-kv" --resource-gr
 | `--resource-group` (`az keyvault show`) | Finds `my-kv` in `$RG` before returning its authorization scope. |
 | `--query` (`az keyvault show`) | Selects the vault resource ID used as the expected RBAC assignment scope. |
 | `--output` (`az keyvault show`) | Assigns the full vault ARM ID to the shell variable without enclosing quotes. |
-| `az containerapp show` | Reads the selected Container App so the operator can evaluate the identity evidence. |
+| `az containerapp show` | Returns the app identity used for Key Vault access so its object can be checked against vault permissions. |
 | `--name` (`az containerapp show`) | Selects `$APP_NAME`, whose managed-identity principal is the RBAC assignee. |
 | `--resource-group` (`az containerapp show`) | Reads the affected app from `$RG` before extracting its principal ID. |
 | `--query` (`az containerapp show`) | Returns the principal ID with its identity configuration to identify which app identity should have vault access. |
@@ -283,7 +283,7 @@ az containerapp revision list --name "$APP_NAME" --resource-group "$RG" --output
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az containerapp revision list` | Enumerates revision records to assemble revision inventory for comparison. |
+| `az containerapp revision list` | Lists revision provisioning states to identify the revision rejected while resolving its secret reference. |
 | `--name` (`az containerapp revision list`) | Lists revisions belonging to `$APP_NAME` after the secret update. |
 | `--resource-group` (`az containerapp revision list`) | Reads revision history for the app in `$RG`. |
 | `--output` (`az containerapp revision list`) | Shows active state and creation order in a table to identify whether the expected revision was created. |
@@ -381,7 +381,7 @@ az keyvault show --name "$KEY_VAULT_NAME" --resource-group "$RG" \
 | `--name` (`az containerapp secret set`) | Applies the diagnostic Key Vault reference to `$APP_NAME`. |
 | `--resource-group` (`az containerapp secret set`) | Applies the diagnostic Key Vault reference to the app deployed in `$RG`. |
 | `--secrets` (`az containerapp secret set`) | Creates `kvref-diag` with the shown vault URI and system identity so the failing control-plane lookup can be reproduced. |
-| `az network route-table route list` | Enumerates network route table route records to assemble resource inventory for comparison. |
+| `az network route-table route list` | Lists routes affecting vault traffic to expose a next hop that prevents the app from reaching Key Vault. |
 | `--route-table-name` (`az network route-table route list`) | Uses the basename of `$ROUTE_TABLE_ID`, the route table attached to the environment subnet. |
 | `--resource-group` (`az network route-table route list`) | Opens the route table from `$RG` that is attached to the environment infrastructure subnet. |
 | `--output` (`az network route-table route list`) | Displays routes in columns so the `0.0.0.0/0` next hop can be recognized immediately. |

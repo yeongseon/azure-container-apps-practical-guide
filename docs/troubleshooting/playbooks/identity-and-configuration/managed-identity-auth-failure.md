@@ -130,7 +130,7 @@ az role assignment list --assignee "$(az containerapp show --name "$APP_NAME" --
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show` | Reads the selected Container App so the operator can evaluate the identity evidence. |
+| `az containerapp show` | Returns the app's system- and user-assigned identity metadata to identify which principal should request the token. |
 | `--name` (`az containerapp show`) | Reads identity metadata from `$APP_NAME`, the workload failing authentication. |
 | `--resource-group` (`az containerapp show`) | Locates the app in `$RG` before resolving its principal. |
 | `--query` (`az containerapp show`) | Collects the app principal, complete identity block, and template identity reference to expose assignment inconsistencies in one response. |
@@ -178,10 +178,10 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command 'python
 | `--assignee` (`az role assignment list`) | Filters grants to `$PRINCIPAL_ID`, the app identity returned above. |
 | `--all` (`az role assignment list`) | Includes all matching assignments instead of only the first result page. |
 | `--output` (`az role assignment list`) | Preserves complete assignment properties as JSON for scope analysis. |
-| `az containerapp exec` | Runs the diagnostic probe inside the selected app to evaluate the Azure state that distinguishes this hypothesis. |
+| `az containerapp exec` | Starts a live replica session for testing managed-identity token acquisition before any service call. |
 | `--name` (`az containerapp exec`) | Executes the token probe inside `$APP_NAME`, where the managed-identity endpoint is actually consumed. |
 | `--resource-group` (`az containerapp exec`) | Connects to `$APP_NAME` in `$RG` for the runtime token request. |
-| `--command` (`az containerapp exec`) | Executes `python -c "from azure.identity import ManagedIdentityCredential; token …` inside the app to observe the Azure state that distinguishes this hypothesis from the workload's runtime boundary. |
+| `--command` (`az containerapp exec`) | Requests a token with `ManagedIdentityCredential` in the container and prints whether credential acquisition succeeds. |
 
 
 ## 6. Validation and Disproof by Hypothesis
@@ -208,7 +208,7 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" --query "identity
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show` | Reads the selected Container App so the operator can evaluate the identity evidence. |
+| `az containerapp show` | Re-reads the identity assignment after configuration changes to confirm the intended principal is attached. |
 | `--name` (`az containerapp show`) | Reads identity assignment from `$APP_NAME`. |
 | `--resource-group` (`az containerapp show`) | Retrieves identity state for `$APP_NAME` from `$RG`. |
 | `--query` (`az containerapp show`) | Shows both identity type and principal ID so an absent assignment is distinguishable from an unprovisioned principal. |
@@ -274,10 +274,10 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command 'python
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az containerapp exec` | Runs the diagnostic probe inside the selected app to evaluate the Azure state that distinguishes this hypothesis. |
+| `az containerapp exec` | Runs the corrected credential test in the same workload context that previously failed authentication. |
 | `--name` (`az containerapp exec`) | Runs the audience probe from `$APP_NAME`, the same process environment that requests the failing token. |
 | `--resource-group` (`az containerapp exec`) | Runs the audience probe against `$APP_NAME` in `$RG`. |
-| `--command` (`az containerapp exec`) | Executes `python -c "from azure.identity import ManagedIdentityCredential; token …` inside the app to observe the Azure state that distinguishes this hypothesis from the workload's runtime boundary. |
+| `--command` (`az containerapp exec`) | Uses the selected managed identity to obtain a token and exposes any client-ID or endpoint error from the replica. |
 
 
 Use service-specific audiences such as `https://vault.azure.net/.default`, `https://storage.azure.com/.default`, or the documented resource URI for the target service.
@@ -304,11 +304,11 @@ az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --revisio
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az containerapp revision list` | Enumerates revision records to assemble revision inventory for comparison. |
+| `az containerapp revision list` | Lists revision identity and activation states to locate the revision still running stale identity configuration. |
 | `--name` (`az containerapp revision list`) | Lists revisions for `$APP_NAME` after the identity or role change. |
 | `--resource-group` (`az containerapp revision list`) | Reads app revision history from `$RG`. |
 | `--output` (`az containerapp revision list`) | Shows revision activity in a table so stale instances can be identified. |
-| `az containerapp replica list` | Enumerates replica records to assemble replica health inventory for comparison. |
+| `az containerapp replica list` | Lists replicas for the target revision so the verification command reaches the newly configured runtime. |
 | `--name` (`az containerapp replica list`) | Requests replicas belonging to `$APP_NAME`. |
 | `--resource-group` (`az containerapp replica list`) | Finds those replicas in `$RG`. |
 | `--revision` (`az containerapp replica list`) | Selects revision `$REVISION_NAME`, whose provisioning or replica state is being tested. |
@@ -338,10 +338,10 @@ az containerapp exec --name "$APP_NAME" --resource-group "$RG" --command 'sh -c 
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az containerapp exec` | Runs the diagnostic probe inside the selected app to evaluate the Azure state that distinguishes this hypothesis. |
+| `az containerapp exec` | Opens the selected replica for a final end-to-end managed-identity credential check. |
 | `--name` (`az containerapp exec`) | Runs the managed-identity endpoint test inside `$APP_NAME`. |
 | `--resource-group` (`az containerapp exec`) | Connects to the affected app in `$RG`. |
-| `--command` (`az containerapp exec`) | Executes `sh -c "python - <<\"PY\"\nfrom azure.identity import ManagedIdentityCre…` inside the app to observe the Azure state that distinguishes this hypothesis from the workload's runtime boundary. |
+| `--command` (`az containerapp exec`) | Runs the embedded Python token request and reports the acquired token metadata or the precise credential exception. |
 
 
 If this fails before token issuance, inspect container runtime constraints, network path, or platform-level identity availability for the revision.

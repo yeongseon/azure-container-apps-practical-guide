@@ -80,7 +80,7 @@ az containerapp show \
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show` | Reads the selected Container App so the operator can evaluate the template scale evidence. |
+| `az containerapp show` | Retrieves the app's scale block so the configured replica floor can be checked as the source of idle cost. |
 | `--name` (`az containerapp show`) | Selects `$APP_NAME`, the resource whose state contributes to the Azure state that distinguishes this hypothesis. |
 | `--resource-group` (`az containerapp show`) | Finds the target in `$RG`, keeping this lookup within the deployment being diagnosed. |
 | `--query` (`az containerapp show`) | Returns only the scale block so `minReplicas` and its cost-driving baseline are visible together. |
@@ -109,17 +109,17 @@ az containerapp revision list \
 ```bash
 az monitor metrics list \
     --resource "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.App/containerApps/$APP_NAME" \
-    --metric Replicas \
+    --metrics Replicas \
     --aggregation Average \
     --offset 1d
 ```
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az monitor metrics list` | Lists `az monitor metrics list` to obtain or change the Azure state that distinguishes this hypothesis. |
-| `--resource` (`az monitor metrics list`) | Sets the resource input to `/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft…`, the value used by `az monitor metrics list` to evaluate or correct the Azure state that distinguishes this hypothesis. |
-| `--metric` (`az monitor metrics list`) | Sets the metric input to `Replicas`, the value used by `az monitor metrics list` to evaluate or correct the Azure state that distinguishes this hypothesis. |
-| `--aggregation` (`az monitor metrics list`) | Sets the aggregation input to `Average`, the value used by `az monitor metrics list` to evaluate or correct the Azure state that distinguishes this hypothesis. |
+| `az monitor metrics list` | Retrieves the Container App replica time series used to confirm whether capacity stayed allocated during an idle period. |
+| `--resource` (`az monitor metrics list`) | Identifies the full resource ID of `$APP_NAME` as the metric source. |
+| `--metrics` (`az monitor metrics list`) | Requests the `Replicas` series that records the app's running replica count. |
+| `--aggregation` (`az monitor metrics list`) | Averages replica samples within each interval to expose a sustained nonzero baseline. |
 | `--offset` (`az monitor metrics list`) | Limits the replica series to the preceding 24 hours so idle periods remain visible in the cost investigation. |
 
 
@@ -142,8 +142,8 @@ az containerapp update \
 | `az containerapp update` | Lowers the idle replica floor so this workload can stop accruing replica runtime cost when no requests arrive. |
 | `--name` (`az containerapp update`) | Applies the scale-to-zero correction to `$APP_NAME`, the app whose idle replicas produced the measured cost. |
 | `--resource-group` (`az containerapp update`) | Locates `$APP_NAME` in `$RG` before changing its scale bounds. |
-| `--min-replicas` (`az containerapp update`) | Sets the min replicas input to `0`, the value used by `az containerapp update` to evaluate or correct the Azure state that distinguishes this hypothesis. |
-| `--max-replicas` (`az containerapp update`) | Sets the max replicas input to `3`, the value used by `az containerapp update` to evaluate or correct the Azure state that distinguishes this hypothesis. |
+| `--min-replicas` (`az containerapp update`) | Removes the always-on replica floor by allowing the app to scale to zero. |
+| `--max-replicas` (`az containerapp update`) | Caps burst scaling at three replicas while correcting the idle-cost configuration. |
 
 
 2. **Keep `minReplicas` above zero intentionally** only when latency, cache warmness, or queue pickup time justifies the baseline spend.

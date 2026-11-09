@@ -107,16 +107,16 @@ az containerapp env show \
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az containerapp hostname list` | Enumerates custom hostname records to assemble resource inventory for comparison. |
+| `az containerapp hostname list` | Lists bound hostnames and certificate states to identify the domain whose renewal is stale or failing. |
 | `--name` (`az containerapp hostname list`) | Lists bindings on `$APP_NAME`, where the managed certificate failed to renew. |
 | `--resource-group` (`az containerapp hostname list`) | Retrieves the app's hostname records from `$RG`. |
 | `--output` (`az containerapp hostname list`) | Presents hostname and certificate-binding state in a table for renewal review. |
-| `az containerapp show` | Reads the selected Container App so the operator can evaluate the custom domain verification evidence. |
+| `az containerapp show` | Retrieves the domain-verification value that DNS must publish before certificate renewal can succeed. |
 | `--name` (`az containerapp show`) | Selects `$APP_NAME`, whose bound hostname and certificate state are under review. |
 | `--resource-group` (`az containerapp show`) | Finds the custom-domain app in `$RG` before reading its ingress bindings. |
 | `--query` (`az containerapp show`) | Selects the domain-verification identifier required to validate the current custom-domain ownership record. |
 | `--output` (`az containerapp show`) | Outputs the verification token as raw text so it can be compared with the DNS TXT value. |
-| `az containerapp env show` | Reads the selected managed environment so the operator can evaluate the vnet configuration internal evidence. |
+| `az containerapp env show` | Reports whether the environment is internal, which determines the DNS path used for domain validation. |
 | `--name` (`az containerapp env show`) | Reads `$ACA_ENV_NAME` to determine whether the hostname is on an internal environment. |
 | `--resource-group` (`az containerapp env show`) | Finds the managed environment in `$RG`. |
 | `--query` (`az containerapp env show`) | Selects the internal-environment flag because certificate reachability differs for internal and external environments. |

@@ -111,13 +111,13 @@ az network nsg rule list \
 | `--name` (`az containerapp env show`) | Inspects `$ACA_ENV_NAME`, the environment whose outbound connections are being blocked. |
 | `--resource-group` (`az containerapp env show`) | Reads `$ACA_ENV_NAME` from `$RG` before tracing its infrastructure subnet. |
 | `--query` (`az containerapp env show`) | Limits the output to the environment's VNet attachment so subsequent route and NSG checks use the correct subnet. |
-| `--output` (`az containerapp env show`) | Serializes the diagnosis steps response from `az containerapp env show` while retaining fields projected by that command. |
-| `az network route-table route list` | Enumerates network route table route records to assemble resource inventory for comparison. |
+| `--output` (`az containerapp env show`) | Prints the environment subnet ID in table form so the subsequent route and NSG checks target the same network. |
+| `az network route-table route list` | Lists effective UDR entries to identify a default route or next hop that diverts Container Apps egress. |
 | `--route-table-name` (`az network route-table route list`) | Inspects `rt-aca`, the route table expected on the environment subnet. |
 | `--resource-group` (`az network route-table route list`) | Locates `rt-aca` in `$RG` for forced-tunnel review. |
-| `--output` (`az network route-table route list`) | Serializes the diagnosis steps response from `az network route-table route list` while retaining fields projected by that command. |
-| `az network nsg rule list` | Enumerates NSG rule records to assemble network rule inventory for comparison. |
-| `--nsg-name` (`az network nsg rule list`) | Chooses the network security group evaluated by `nsg-aca`, anchoring network rule inventory to the exact value used by this operation. |
+| `--output` (`az network route-table route list`) | Presents route prefixes and next-hop targets as columns for tracing the blocked outbound path. |
+| `az network nsg rule list` | Lists outbound NSG priorities and actions to locate the rule denying required egress. |
+| `--nsg-name` (`az network nsg rule list`) | Inspects `nsg-aca`, the security group applied to the Container Apps subnet. |
 | `--resource-group` (`az network nsg rule list`) | Reads rules from `nsg-aca` in `$RG`. |
 | `--output` (`az network nsg rule list`) | Displays the NSG rule inventory as columns so outbound priorities and actions can be compared quickly. |
 
@@ -164,9 +164,9 @@ az network nsg rule create \
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az network nsg rule create` | Creates the NSG rule that implements the documented correction and returns its provisioning result. |
+| `az network nsg rule create` | Adds the outbound allow rule required for the previously blocked destination and port. |
 | `--name` (`az network nsg rule create`) | Creates `allow-azure-load-balancer` and `allow-aca-outbound`, the two missing allowances shown in the fence. |
-| `--nsg-name` (`az network nsg rule create`) | Chooses the network security group evaluated by `nsg-aca`, anchoring required network allowance to the exact value used by this operation. |
+| `--nsg-name` (`az network nsg rule create`) | Places the corrective rule in `nsg-aca`, where the denying policy was identified. |
 | `--resource-group` (`az network nsg rule create`) | Adds both rules to `nsg-aca` in `$RG`. |
 | `--priority` (`az network nsg rule create`) | Assigns priority `100` to health probes and `110` to required outbound dependencies. |
 | `--direction` (`az network nsg rule create`) | Makes the first rule `Inbound` and the dependency rule `Outbound`. |

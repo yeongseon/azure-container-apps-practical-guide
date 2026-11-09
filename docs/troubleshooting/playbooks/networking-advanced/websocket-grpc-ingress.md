@@ -150,7 +150,7 @@ az containerapp update \
 | `az containerapp update` | Applies the reviewed YAML that corrects ingress transport settings for WebSocket or gRPC traffic. |
 | `--name` (`az containerapp update`) | Updates `$APP_NAME`, the app whose ingress negotiation failed during diagnosis. |
 | `--resource-group` (`az containerapp update`) | Resolves the affected app from `$RG` before applying the corrected ingress YAML. |
-| `--yaml` (`az containerapp update`) | Sets the yaml input to `websocket-grpc-ingress-fixed.yaml`, the value used by `az containerapp update` to evaluate or correct the Azure state that distinguishes this hypothesis. |
+| `--yaml` (`az containerapp update`) | Applies `websocket-grpc-ingress-fixed.yaml`, which carries the corrected ingress transport and port configuration. |
 
 
 ## Prevention

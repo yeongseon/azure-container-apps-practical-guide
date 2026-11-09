@@ -82,7 +82,7 @@ az containerapp show \
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show` | Reads the selected Container App so the operator can evaluate the workload profile cpu template containers evidence. |
+| `az containerapp show` | Projects the assigned workload profile and container CPU request so their compatibility can be compared directly. |
 | `--name` (`az containerapp show`) | Selects `$APP_NAME`, whose assigned workload profile and resource request are being compared. |
 | `--resource-group` (`az containerapp show`) | Locates the app in `$RG` before reading its profile and sizing settings. |
 | `--query` (`az containerapp show`) | Builds a compact view of the selected workload profile and requested CPU so the placement mismatch is visible in one record. |

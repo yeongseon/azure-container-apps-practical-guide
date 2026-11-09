@@ -140,7 +140,7 @@ az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output 
 | `--resource-group` (`az containerapp revision list`) | Reads revision state from the app deployed in `$RG`. |
 | `--query` (`az containerapp revision list`) | Summarizes each revision's activity, replica count, and health to show whether ingress has a viable backend. |
 | `--output` (`az containerapp revision list`) | Displays traffic, health, and replica counts in aligned columns for rapid comparison. |
-| `az containerapp replica list` | Enumerates replica records to assemble replica health inventory for comparison. |
+| `az containerapp replica list` | Lists current replicas and health states to determine whether ingress has any ready backend. |
 | `--name` (`az containerapp replica list`) | Requests replicas created for `$APP_NAME`. |
 | `--resource-group` (`az containerapp replica list`) | Limits replica discovery to the app in `$RG`. |
 | `--output` (`az containerapp replica list`) | Presents replica readiness and running state as a table to expose an empty or unhealthy backend pool. |
@@ -199,7 +199,7 @@ az containerapp env show --name "$ACA_ENV_NAME" --resource-group "$RG" \
 | `--resource-group` (`az containerapp show`) | Locates `$APP_NAME` in `$RG` before passing its FQDN to `nslookup`. |
 | `--query` (`az containerapp show`) | Reads the app-assigned ingress FQDN that the DNS test must resolve. |
 | `--output` (`az containerapp show`) | Places the hostname into the shell variable without JSON quotes for direct resolver use. |
-| `az containerapp env show` | Reads the selected managed environment so the operator can evaluate the default domain evidence. |
+| `az containerapp env show` | Returns the environment default domain used to test DNS resolution independently of the app hostname. |
 | `--name` (`az containerapp env show`) | Opens `$ACA_ENV_NAME`, whose default domain should suffix the app FQDN. |
 | `--resource-group` (`az containerapp env show`) | Finds the managed environment in `$RG` for the domain comparison. |
 | `--query` (`az containerapp env show`) | Retrieves the environment default domain to verify that the app hostname uses the expected DNS suffix. |
@@ -231,7 +231,7 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show` | Reads the selected Container App so the operator can evaluate the configuration ingress external evidence. |
+| `az containerapp show` | Extracts the external-ingress setting to verify whether the endpoint is intentionally limited to the environment network. |
 | `--name` (`az containerapp show`) | Reads `$APP_NAME`, the app whose exposure mode is being checked. |
 | `--resource-group` (`az containerapp show`) | Reads the ingress exposure flag from `$APP_NAME` in `$RG`. |
 | `--query` (`az containerapp show`) | Selects the external-ingress flag that determines whether callers outside the environment can reach the app. |
@@ -271,7 +271,7 @@ az containerapp replica list --name "$APP_NAME" --resource-group "$RG" --output 
 | `--resource-group` (`az containerapp revision list`) | Looks up `$APP_NAME` in `$RG` before filtering to active revisions. |
 | `--query` (`az containerapp revision list`) | Filters to active revisions and reports health plus replica counts to identify traffic targets with no healthy capacity. |
 | `--output` (`az containerapp revision list`) | Formats active revision health and replica counts as a table for backend comparison. |
-| `az containerapp replica list` | Enumerates replica records to assemble replica health inventory for comparison. |
+| `az containerapp replica list` | Reports replica readiness after probe checks so an empty backend pool can be confirmed. |
 | `--name` (`az containerapp replica list`) | Requests backend replicas created for `$APP_NAME`. |
 | `--resource-group` (`az containerapp replica list`) | Retrieves the app's replica records from `$RG`. |
 | `--output` (`az containerapp replica list`) | Presents `az containerapp replica list` in the format required by the next check replica status comparison or shell assignment, retaining fields selected in this fence. |
@@ -317,7 +317,7 @@ az containerapp show --name "$APP_NAME" --resource-group "$RG" \
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az containerapp show` | Reads the selected Container App so the operator can evaluate the configuration ingress target port evidence. |
+| `az containerapp show` | Retrieves the configured ingress target port for comparison with the port where the container actually listens. |
 | `--name` (`az containerapp show`) | Checks `$APP_NAME`, whose declared listener must match ingress `targetPort`. |
 | `--resource-group` (`az containerapp show`) | Reads both port-related queries from the app in `$RG`. |
 | `--query` (`az containerapp show`) | Places ingress target port beside declared container ports so a listener mismatch is apparent without scanning the full template. |
@@ -349,9 +349,9 @@ curl --verbose --connect-timeout 10 "https://${APP_FQDN}/health"
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az network nsg rule list` | Enumerates NSG rule records to assemble network rule inventory for comparison. |
+| `az network nsg rule list` | Lists inbound NSG rules in priority order to find a deny affecting the app's ingress path. |
 | `--resource-group` (`az network nsg rule list`) | Searches `$RG` for the NSG attached to the Container Apps network path. |
-| `--nsg-name` (`az network nsg rule list`) | Chooses the network security group evaluated by `$NSG_NAME`, anchoring network rule inventory to the exact value used by this operation. |
+| `--nsg-name` (`az network nsg rule list`) | Targets `$NSG_NAME`, the group attached to the subnet carrying inbound traffic. |
 | `--output` (`az network nsg rule list`) | Shows rule priority, direction, ports, and action in a table for the inbound-path review. |
 
 

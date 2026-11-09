@@ -164,7 +164,7 @@ az network nsg rule list \
 | `--output` (`az containerapp env show`) | Writes the two selected network values as tab-separated fields for quick comparison. |
 | `az network nsg rule list` | Lists NSG rules that can affect the tested network path to evaluate the Azure state that distinguishes this hypothesis. |
 | `--resource-group` (`az network nsg rule list`) | Reads `$ACA_SUBNET_NSG_NAME` from `$RG`. |
-| `--nsg-name` (`az network nsg rule list`) | Chooses the network security group evaluated by `$ACA_SUBNET_NSG_NAME`, anchoring the direction inbound priority access src evidence to the exact value used by this operation. |
+| `--nsg-name` (`az network nsg rule list`) | Selects `$ACA_SUBNET_NSG_NAME`, the NSG governing traffic from Application Gateway to the environment subnet. |
 | `--query` (`az network nsg rule list`) | Filters inbound NSG rules and exposes priorities, actions, sources, destinations, and ports that govern the App Gateway path. |
 | `--output` (`az network nsg rule list`) | Presents inbound rule priorities, destinations, and ports as a table for the App Gateway path review. |
 
@@ -255,9 +255,9 @@ az network nsg rule show \
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az network nsg rule show` | Reads the selected NSG rule so the operator can evaluate the protocol src source address prefix srcs evidence. |
+| `az network nsg rule show` | Returns the candidate rule's protocol and source prefixes to verify that the gateway subnet is actually allowed. |
 | `--resource-group` (`az network nsg rule show`) | Finds `$ACA_SUBNET_NSG_NAME` in `$RG`. |
-| `--nsg-name` (`az network nsg rule show`) | Chooses the network security group evaluated by `$ACA_SUBNET_NSG_NAME`, anchoring the protocol src source address prefix srcs evidence to the exact value used by this operation. |
+| `--nsg-name` (`az network nsg rule show`) | Finds the named inbound rule within `$ACA_SUBNET_NSG_NAME`, not an unrelated gateway-side NSG. |
 | `--name` (`az network nsg rule show`) | Inspects `$APPGW_TO_ACA_RULE_NAME`, the App Gateway-facing rule that must include edge proxy ports. |
 | `--query` (`az network nsg rule show`) | Presents protocol, source, destination, and port ranges for the selected rule to verify coverage of edge proxy ports `31443` and `31080`. |
 | `--output` (`az network nsg rule show`) | Keeps source, destination, protocol, and port arrays as JSON for exact coverage checks. |
@@ -293,7 +293,7 @@ az network nsg rule list \
 |---|---|
 | `az network nsg rule list` | Lists NSG rules that can affect the tested network path to evaluate the effective network rule and destination path. |
 | `--resource-group` (`az network nsg rule list`) | Reads the infrastructure-subnet NSG from `$RG`. |
-| `--nsg-name` (`az network nsg rule list`) | Chooses the network security group evaluated by `$ACA_SUBNET_NSG_NAME`, anchoring the sort by direction inbound priority prio evidence to the exact value used by this operation. |
+| `--nsg-name` (`az network nsg rule list`) | Uses `$ACA_SUBNET_NSG_NAME` for the priority-ordered inbound rule review. |
 | `--query` (`az network nsg rule list`) | Orders inbound rules by priority and exposes service-tag and port coverage to find the first rule affecting Azure Load Balancer probes. |
 | `--output` (`az network nsg rule list`) | Displays the priority-sorted inbound rules as a table to reveal the first matching deny. |
 
@@ -352,7 +352,7 @@ az network application-gateway show-backend-health \
 
 | Command/Parameter | Purpose |
 |---|---|
-| `az network application-gateway address-pool show` | Reads the selected Application Gateway object so the operator can evaluate the fqdns backend addresses fqdn ips evidence. |
+| `az network application-gateway address-pool show` | Displays backend FQDNs and IPs to confirm that the pool points at the internal Container Apps endpoint. |
 | `--gateway-name` (`az network application-gateway address-pool show`) | Selects `$APPGW_NAME`, the gateway forwarding requests to Container Apps. |
 | `--resource-group` (`az network application-gateway address-pool show`) | Locates that gateway in `$RG`. |
 | `--name` (`az network application-gateway address-pool show`) | Reads `$APPGW_BACKEND_POOL_NAME`, whose targets should be FQDNs rather than the environment IP. |
@@ -364,7 +364,7 @@ az network application-gateway show-backend-health \
 | `--name` (`az network application-gateway http-settings show`) | Reads `$APPGW_HTTP_SETTING_NAME`. |
 | `--query` (`az network application-gateway http-settings show`) | Projects the setting's protocol, port, Host-selection flag, and probe resource ID. |
 | `--output` (`az network application-gateway http-settings show`) | Emits the HTTP setting and bound probe fields as JSON. |
-| `az network application-gateway probe show` | Reads the selected Application Gateway object so the operator can evaluate the protocol host pick evidence. |
+| `az network application-gateway probe show` | Shows probe protocol, host header, and path so health-check requests can be compared with the app's ingress contract. |
 | `--gateway-name` (`az network application-gateway probe show`) | Opens probe configuration on `$APPGW_NAME`. |
 | `--resource-group` (`az network application-gateway probe show`) | Finds the gateway in `$RG`. |
 | `--name` (`az network application-gateway probe show`) | Selects `$APPGW_PROBE_NAME`, the probe reporting the backend unhealthy. |
