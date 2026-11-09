@@ -121,7 +121,8 @@ h2 = {
 
 for name, document in (("10-h1-gate.json", h1), ("19-h2-gate.json", h2)):
     comparable = dict(document)
-    comparable.pop("evaluated_at_utc")
+    comparable.pop("evaluated_at_utc", None)
+    comparable.pop("utc_captured", None)
     if comparable != prior(name):
         raise SystemExit(f"{name}: raw-derived replay differs from the guarded historical gate")
     (EVIDENCE / name).write_text(json.dumps(document, indent=2))
