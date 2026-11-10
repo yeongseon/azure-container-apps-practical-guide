@@ -44,7 +44,21 @@ EXPENSIVE = {
 
 ISO_RE = re.compile(r"\b20\d\d-\d\d-\d\d[T ][0-2]\d:[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)?\b")
 FILENAME_TS_RE = re.compile(r"(?<!\d)(20\d{6})[T_-]?(\d{6})Z?(?!\d)")
-STATUS_RE = re.compile(r"(?:status:\s*(?:verified|reproduced|pending_review|blocked)|reproduced live|live reproduction)", re.I)
+STATUS_RE = re.compile(
+    r"(?:status:\s*(?:verified|reproduced(?:_partial)?|pending_review|blocked)"
+    r"|reproduced live|live[- ]azure|live (?:azure )?run|live-executed"
+    r"|re-executed(?: live)? run|executed end-to-end against a live Azure subscription"
+    r"|committed evidence pack captured)",
+    re.I,
+)
+CAPTURE_KEYS = {
+    "captured_at_utc", "captured_before_utc", "captured_after_utc", "utc_captured",
+}
+RUN_LOG_RE = re.compile(r"^00-(?:trigger|verify)-run\.txt$")
+DECLARED_CAPTURE_FILE_RE = re.compile(
+    r"(?:report|summary|revisions|health-snapshot|capture)[-_].*20\d{6}[T_-]?\d{6}Z?",
+    re.I,
+)
 EMAIL_RE = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
 GUID_RE = re.compile(r"(?<![0-9a-f])[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}(?![0-9a-f])", re.I)
 IPV4_RE = re.compile(r"(?<!\d)(?:10|192\.168|172\.(?:1[6-9]|2\d|3[01]))(?:\.\d{1,3}){2}(?!\d)")
@@ -80,7 +94,7 @@ def snapshot_bytes(root: Path, commit: str, path: str) -> bytes:
 
 def safe_quote(text: str) -> str:
     text = IPV4_RE.sub("<private-ip>", GUID_RE.sub("<identifier>", EMAIL_RE.sub("<email>", text.strip())))
-    return text if len(text) <= 300 else text[:297] + "..."
+    return text
 
 
 def normalized_timestamp(value: str) -> str | None:
@@ -96,22 +110,54 @@ def normalized_timestamp(value: str) -> str | None:
     return parsed.astimezone(dt.timezone.utc).isoformat().replace("+00:00", "Z")
 
 
-def timestamps(path: str, content: bytes) -> list[str]:
-    found: set[str] = set()
+def _json_capture_anchors(value: Any, location: str = "$") -> list[dict[str, str]]:
+    anchors: list[dict[str, str]] = []
+    if isinstance(value, dict):
+        for key, child in value.items():
+            child_location = f"{location}.{key}"
+            if key.lower() in CAPTURE_KEYS and isinstance(child, str):
+                timestamp = normalized_timestamp(child)
+                if timestamp:
+                    anchors.append({"timestamp_utc": timestamp, "anchor_kind": f"explicit-field:{key}", "location": child_location})
+            anchors.extend(_json_capture_anchors(child, child_location))
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            anchors.extend(_json_capture_anchors(child, f"{location}[{index}]"))
+    return anchors
+
+
+def capture_anchors(path: str, content: bytes) -> list[dict[str, str]]:
+    anchors: list[dict[str, str]] = []
     text = content.decode("utf-8", errors="ignore")
-    for match in ISO_RE.finditer(text):
-        value = normalized_timestamp(match.group(0))
-        if value:
-            found.add(value)
-    name_match = FILENAME_TS_RE.search(Path(path).name)
-    if name_match:
+    if path.endswith(".json"):
+        try:
+            anchors.extend(_json_capture_anchors(json.loads(text)))
+        except json.JSONDecodeError:
+            pass
+    name = Path(path).name
+    if RUN_LOG_RE.fullmatch(name):
+        first_line = text.splitlines()[0] if text.splitlines() else ""
+        match = ISO_RE.search(first_line)
+        if match and (value := normalized_timestamp(match.group(0))):
+            anchors.append({"timestamp_utc": value, "anchor_kind": "run-log-first-line", "location": "line:1"})
+    name_match = FILENAME_TS_RE.search(name)
+    if name_match and DECLARED_CAPTURE_FILE_RE.search(name):
         raw = name_match.group(1) + "T" + name_match.group(2) + "Z"
-        found.add(dt.datetime.strptime(raw, "%Y%m%dT%H%M%SZ").replace(tzinfo=dt.timezone.utc).isoformat().replace("+00:00", "Z"))
-    return sorted(found)
+        anchors.append({
+            "timestamp_utc": dt.datetime.strptime(raw, "%Y%m%dT%H%M%SZ").replace(tzinfo=dt.timezone.utc).isoformat().replace("+00:00", "Z"),
+            "anchor_kind": "declared-capture-filename",
+            "location": "filename",
+        })
+    unique = {(row["timestamp_utc"], row["anchor_kind"], row["location"]): row for row in anchors}
+    return [unique[key] for key in sorted(unique)]
 
 
 def claim_rows(root: Path, commit: str, lab: str, tracked: set[str]) -> list[dict[str, Any]]:
-    candidates = [f"docs/troubleshooting/lab-guides/{lab}.md", f"labs/{lab}/README.md"]
+    candidates = [
+        f"docs/troubleshooting/lab-guides/{lab}.md",
+        f"labs/{lab}/README.md",
+        f"labs/{lab}/evidence/README.md",
+    ]
     rows: list[dict[str, Any]] = []
     for path in candidates:
         if path not in tracked:
@@ -119,9 +165,41 @@ def claim_rows(root: Path, commit: str, lab: str, tracked: set[str]) -> list[dic
         for line_number, line in enumerate(snapshot_bytes(root, commit, path).decode(errors="replace").splitlines(), 1):
             if STATUS_RE.search(line):
                 rows.append({"file": path, "line": line_number, "quote": safe_quote(line)})
-                if len(rows) == 3:
-                    return rows
     return rows
+
+
+def discrepancy_batches(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    grouped: dict[str, list[str]] = collections.defaultdict(list)
+    for row in records:
+        lab = Path(row["lab_path"]).name
+        for discrepancy_type in row["discrepancy_types"]:
+            grouped[discrepancy_type].append(lab)
+    batches: list[dict[str, Any]] = []
+    number = 1
+    for discrepancy_type in sorted(grouped):
+        names = sorted(grouped[discrepancy_type])
+        for cost_class, candidates, prerequisite in (
+            ("blocked-no-run", [name for name in names if name in POLICY_BLOCKED], "Policy-free subscription or a Key Vault Private Endpoint redesign; explicit authorization before deployment."),
+            ("high", [name for name in names if name in EXPENSIVE and name not in POLICY_BLOCKED], "Explicit cost and cleanup approval; Azure Firewall/Private Endpoint prerequisites."),
+            ("low-to-moderate", [name for name in names if name not in POLICY_BLOCKED | EXPENSIVE], "Azure subscription access, per-lab prerequisites, and a plan to retain raw capture plus teardown output."),
+        ):
+            for offset in range(0, len(candidates), 8):
+                subset = candidates[offset:offset + 8]
+                if subset:
+                    batches.append({
+                        "batch": number,
+                        "discrepancy_type": discrepancy_type,
+                        "labs": subset,
+                        "size": len(subset),
+                        "prerequisites": prerequisite,
+                        "cost_class": cost_class,
+                    })
+                    number += 1
+    return batches
+
+
+def markdown_table_text(text: str) -> str:
+    return text.replace("|", "&#124;").replace("[", "&#91;").replace("]", "&#93;")
 
 
 def build_inventory(root: Path, commit: str, as_of: dt.date) -> dict[str, Any]:
@@ -139,14 +217,16 @@ def build_inventory(root: Path, commit: str, as_of: dt.date) -> dict[str, Any]:
         gate_files = [path for path in evidence_files if path.endswith(".json") and "gate" in Path(path).stem.lower()]
         raw_files = [path for path in evidence_files if path not in gate_files and "cleanup" not in Path(path).name.lower()]
         raw_rows = []
-        all_raw_times: list[str] = []
+        all_raw_anchors: list[dict[str, str]] = []
         for path in raw_files:
-            values = timestamps(path, snapshot_bytes(root, commit, path))
-            all_raw_times.extend(values)
+            anchors = capture_anchors(path, snapshot_bytes(root, commit, path))
+            all_raw_anchors.extend({"path": path, **anchor} for anchor in anchors)
+            values = sorted({anchor["timestamp_utc"] for anchor in anchors})
             raw_rows.append({
                 "path": path,
                 "capture_time_first_utc": values[0] if values else "unknown",
                 "capture_time_last_utc": values[-1] if values else "unknown",
+                "capture_anchors": anchors,
             })
         gate_rows = []
         for path in gate_files:
@@ -159,11 +239,11 @@ def build_inventory(root: Path, commit: str, as_of: dt.date) -> dict[str, Any]:
         cleanup_outputs = sorted(path for path in evidence_files if "cleanup" in Path(path).name.lower())
         cleanup_rows = []
         for path in cleanup_outputs:
-            values = timestamps(path, snapshot_bytes(root, commit, path))
-            cleanup_rows.append({"path": path, "recorded_times_utc": values})
+            anchors = capture_anchors(path, snapshot_bytes(root, commit, path))
+            cleanup_rows.append({"path": path, "recorded_times_utc": sorted({anchor["timestamp_utc"] for anchor in anchors})})
         claims = claim_rows(root, commit, lab, tracked)
         claim_text = " ".join(row["quote"] for row in claims).lower()
-        if raw_rows and all_raw_times:
+        if raw_rows and all_raw_anchors:
             classification = "live-azure-evidence"
             basis = "Committed non-gate evidence records capture timestamps; derived verifier gates are listed separately."
         elif gate_rows and not raw_rows:
@@ -179,12 +259,19 @@ def build_inventory(root: Path, commit: str, as_of: dt.date) -> dict[str, Any]:
             classification = "unknown"
             basis = "Repository artifacts do not establish a timestamped live Azure capture or a gate-only replay cohort."
         discrepancies = []
+        discrepancy_types = []
         if ("verified" in claim_text or "reproduced" in claim_text) and not raw_rows:
             discrepancies.append("Documentation claims verified or reproduced status, but no committed non-gate raw evidence is present.")
-        if raw_rows and not all_raw_times:
+            discrepancy_types.append("status-claim-without-raw-evidence")
+        if raw_rows and not all_raw_anchors:
             discrepancies.append("Raw evidence is committed, but no capture timestamp was found; last Azure run remains unknown.")
+            discrepancy_types.append("raw-evidence-without-explicit-capture-anchor")
         if cleanup_script in tracked and not cleanup_outputs:
             discrepancies.append("A cleanup script exists, but no committed teardown output proves cleanup ran or completed.")
+            discrepancy_types.append("missing-teardown-proof")
+        if classification != "live-azure-evidence":
+            discrepancies.append("Committed artifacts do not contain an explicit capture anchor that establishes a live Azure run time.")
+            discrepancy_types.append("missing-live-run-proof")
         records.append({
             "lab_path": f"labs/{lab}",
             "reproduction_scripts": reproduction,
@@ -192,7 +279,8 @@ def build_inventory(root: Path, commit: str, as_of: dt.date) -> dict[str, Any]:
             "status_claimed_in_docs": claims,
             "raw_evidence": raw_rows,
             "committed_gate_files": gate_rows,
-            "last_azure_run_utc": max(all_raw_times) if all_raw_times else "unknown",
+            "last_azure_run_utc": max((anchor["timestamp_utc"] for anchor in all_raw_anchors), default="unknown"),
+            "last_azure_run_anchor_kinds": sorted({anchor["anchor_kind"] for anchor in all_raw_anchors}),
             "cleanup_evidence": {
                 "script_present": cleanup_script in tracked,
                 "script": cleanup_script if cleanup_script in tracked else None,
@@ -202,21 +290,9 @@ def build_inventory(root: Path, commit: str, as_of: dt.date) -> dict[str, Any]:
             "classification": classification,
             "evidence_basis": basis,
             "discrepancies": discrepancies,
+            "discrepancy_types": discrepancy_types,
         })
     counts = collections.Counter(row["classification"] for row in records)
-    missing_proof = [Path(row["lab_path"]).name for row in records if row["classification"] != "live-azure-evidence"]
-    batches = []
-    batch_number = 1
-    for cost_class, names, prerequisite in (
-        ("blocked-no-run", [name for name in missing_proof if name in POLICY_BLOCKED], "Policy-free subscription or a Key Vault Private Endpoint redesign; explicit authorization before deployment."),
-        ("high", [name for name in missing_proof if name in EXPENSIVE and name not in POLICY_BLOCKED], "Explicit cost and cleanup approval; Azure Firewall/Private Endpoint prerequisites."),
-        ("low-to-moderate", [name for name in missing_proof if name not in POLICY_BLOCKED | EXPENSIVE], "Azure subscription access, per-lab prerequisites, and a plan to retain raw capture plus teardown output."),
-    ):
-        for offset in range(0, len(names), 8):
-            subset = names[offset:offset + 8]
-            if subset:
-                batches.append({"batch": batch_number, "labs": subset, "prerequisites": prerequisite, "cost_class": cost_class})
-                batch_number += 1
     return {
         "schema_version": 1,
         "source_commit_sha": commit,
@@ -233,7 +309,7 @@ def build_inventory(root: Path, commit: str, as_of: dt.date) -> dict[str, Any]:
             "rename_note": "No rename is asserted without repository evidence linking an old and new directory.",
         },
         "summary": {"labs": len(records), "classifications": dict(sorted(counts.items()))},
-        "follow_up_batches": batches,
+        "follow_up_batches": discrepancy_batches(records),
         "labs": records,
     }
 
@@ -243,10 +319,13 @@ def render_page(data: dict[str, Any]) -> str:
     counts = "\n".join(f"| `{name}` | {count} |" for name, count in data["summary"]["classifications"].items())
     rows = []
     for lab in data["labs"]:
-        claims = "<br>".join(f"`{row['file']}:{row['line']}` — {row['quote']}" for row in lab["status_claimed_in_docs"]) or "No explicit status line found"
+        claims = "<br>".join(
+            f"`{row['file']}:{row['line']}` — {markdown_table_text(row['quote'])}"
+            for row in lab["status_claimed_in_docs"]
+        ) or "No explicit status line found"
         rows.append(f"| `{lab['lab_path']}` | `{lab['classification']}` | `{lab['last_azure_run_utc']}` | {claims} | {len(lab['raw_evidence'])} | {len(lab['committed_gate_files'])} | `{lab['cleanup_evidence']['completion']}` |")
     batch_rows = "\n".join(
-        f"| {batch['batch']} | {', '.join(f'`{name}`' for name in batch['labs'])} | `{batch['cost_class']}` | {batch['prerequisites']} |"
+        f"| {batch['batch']} | `{batch['discrepancy_type']}` | {', '.join(f'`{name}`' for name in batch['labs'])} | {batch['size']} | `{batch['cost_class']}` | {batch['prerequisites']} |"
         for batch in data["follow_up_batches"]
     ) or "| — | _None_ | — | — |"
     discrepancies = []
@@ -294,8 +373,8 @@ Per-file raw capture ranges, gate `evaluated_at_utc` values, reproduction script
 
 These are proof-collection queues, not authorization to deploy. This inventory PR has cost class **none** because it performs no Azure work.
 
-| Batch | Labs | Future cost class | Prerequisites |
-|---:|---|---|---|
+| Batch | Discrepancy type | Labs | Size | Future cost class | Prerequisites |
+|---:|---|---|---:|---|---|
 {batch_rows}
 
 ## See Also
