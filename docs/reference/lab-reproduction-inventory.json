@@ -442,6 +442,36 @@
       "cost_class": "low-to-moderate",
       "discrepancy_type": "missing-execution-anchor",
       "labs": [
+        "appgw-to-internal-aca-nsg-mismatch"
+      ],
+      "prerequisites": "Azure subscription access, per-lab prerequisites, and a plan to retain raw capture plus teardown output.",
+      "size": 1
+    },
+    {
+      "batch": 45,
+      "cost_class": "low-to-moderate",
+      "discrepancy_type": "missing-execution-anchor",
+      "labs": [
+        "revision-provisioning-failure"
+      ],
+      "prerequisites": "Azure subscription access, per-lab prerequisites, and a plan to retain raw capture plus teardown output.",
+      "size": 1
+    },
+    {
+      "batch": 46,
+      "cost_class": "low-to-moderate",
+      "discrepancy_type": "missing-execution-anchor",
+      "labs": [
+        "scale-rule-mismatch"
+      ],
+      "prerequisites": "Azure subscription access, per-lab prerequisites, and a plan to retain raw capture plus teardown output.",
+      "size": 1
+    },
+    {
+      "batch": 47,
+      "cost_class": "low-to-moderate",
+      "discrepancy_type": "missing-execution-anchor",
+      "labs": [
         "zone-redundancy-best-effort"
       ],
       "prerequisites": "Azure subscription access, per-lab prerequisites, and a plan to retain raw capture plus teardown output.",
@@ -1997,7 +2027,12 @@
         "labs/appgw-to-internal-aca-nsg-mismatch/verify.sh",
         "labs/appgw-to-internal-aca-nsg-mismatch/workload/README.md"
       ],
-      "discrepancies": [],
+      "discrepancies": [
+        {
+          "detail": "The reviewed evidence records a 2026-07-04 live re-execution but no citation-safe exact UTC for the final capture, completion, or observation.",
+          "type": "missing-execution-anchor"
+        }
+      ],
       "evidence_basis": "Curated status citations record the re-executed live Azure reproduction; no exact final observation UTC is cited where the execution anchor remains unknown.",
       "execution_anchor": null,
       "execution_anchor_reason": "unknown",
@@ -5335,7 +5370,10 @@
         "labs/replica-node-spread/evidence/10-cohort-integrity-gate.json",
         "labs/replica-node-spread/evidence/11-matrix-coherence-gate.json",
         "labs/replica-node-spread/evidence/12-claim-eligibility-gate.json",
-        "labs/replica-node-spread/evidence/13-packaging-gate.json"
+        "labs/replica-node-spread/evidence/13-packaging-gate.json",
+        "labs/replica-node-spread/evidence/analysis-summary.json",
+        "labs/replica-node-spread/evidence/analysis-summary.md",
+        "labs/replica-node-spread/evidence/h3-20260614-143432.verdict.txt"
       ],
       "directory_listing": [
         "labs/replica-node-spread/README.md",
@@ -5389,8 +5427,6 @@
       "lab_path": "labs/replica-node-spread",
       "last_azure_run_utc": "2026-06-14T14:52:07Z",
       "raw_outputs": [
-        "labs/replica-node-spread/evidence/analysis-summary.json",
-        "labs/replica-node-spread/evidence/analysis-summary.md",
         "labs/replica-node-spread/evidence/consumption-scale-1-run-1.jsonl",
         "labs/replica-node-spread/evidence/consumption-scale-10-run-1.jsonl",
         "labs/replica-node-spread/evidence/consumption-scale-3-run-1.jsonl",
@@ -5402,8 +5438,7 @@
         "labs/replica-node-spread/evidence/dedicated-d8-scale-10-run-2.jsonl",
         "labs/replica-node-spread/evidence/dedicated-d8-scale-10-run-3.jsonl",
         "labs/replica-node-spread/evidence/dedicated-d8-scale-3-run-1.jsonl",
-        "labs/replica-node-spread/evidence/h3-20260614-143432.jsonl",
-        "labs/replica-node-spread/evidence/h3-20260614-143432.verdict.txt"
+        "labs/replica-node-spread/evidence/h3-20260614-143432.jsonl"
       ],
       "reproduction_scripts": [
         "labs/replica-node-spread/deploy.sh",
@@ -5967,17 +6002,17 @@
         "labs/revision-provisioning-failure/workload/app.py",
         "labs/revision-provisioning-failure/workload/requirements.txt"
       ],
-      "discrepancies": [],
-      "evidence_basis": "Committed raw revision evidence records the recovered revision creation time; curated status citations record the live Azure reproduction.",
-      "execution_anchor": {
-        "field_or_line": "$[0].properties.createdTime",
-        "file": "labs/revision-provisioning-failure/evidence/12-revision-list-recovered.json",
-        "kind": "captured_at",
-        "utc": "2026-06-20T14:26:09Z"
-      },
-      "execution_anchor_reason": null,
+      "discrepancies": [
+        {
+          "detail": "The recovered revision createdTime is a resource-creation timestamp, not an explicit capture, completion, or observation timestamp; no citation-safe exact final Azure observation UTC was verified.",
+          "type": "missing-execution-anchor"
+        }
+      ],
+      "evidence_basis": "Curated status citations and committed raw evidence record the live Azure reproduction, but the recovered revision createdTime is resource metadata rather than a capture or completion anchor.",
+      "execution_anchor": null,
+      "execution_anchor_reason": "unknown",
       "lab_path": "labs/revision-provisioning-failure",
-      "last_azure_run_utc": "2026-06-20T14:26:09Z",
+      "last_azure_run_utc": "unknown",
       "raw_outputs": [
         "labs/revision-provisioning-failure/evidence/01-revision-list.json",
         "labs/revision-provisioning-failure/evidence/02-failed-revision-detail.json",
@@ -6178,17 +6213,17 @@
         "labs/scale-rule-mismatch/workload/app.py",
         "labs/scale-rule-mismatch/workload/requirements.txt"
       ],
-      "discrepancies": [],
-      "evidence_basis": "Committed non-gate evidence records capture timestamps; derived verifier gates are listed separately.",
-      "execution_anchor": {
-        "field_or_line": 86,
-        "file": "labs/scale-rule-mismatch/evidence/00-verify-run.txt",
-        "kind": "capture_window_end",
-        "utc": "2026-06-22T15:15:39Z"
-      },
-      "execution_anchor_reason": null,
+      "discrepancies": [
+        {
+          "detail": "The cited strict load-window end was calculated and printed before the load ran, not recorded after completion or observation; no citation-safe exact final Azure observation UTC was verified.",
+          "type": "missing-execution-anchor"
+        }
+      ],
+      "evidence_basis": "Committed evidence records the live run, but its strict load-window end is calculated before load execution and is not an observed completion timestamp; derived verifier gates are listed separately.",
+      "execution_anchor": null,
+      "execution_anchor_reason": "unknown",
       "lab_path": "labs/scale-rule-mismatch",
-      "last_azure_run_utc": "2026-06-22T15:15:39Z",
+      "last_azure_run_utc": "unknown",
       "raw_outputs": [
         "labs/scale-rule-mismatch/evidence/00-cleanup-run.txt",
         "labs/scale-rule-mismatch/evidence/00-trigger-run.txt",
@@ -7515,13 +7550,13 @@
   ],
   "schema_version": 2,
   "scope": "Static repository inventory only; no Azure resources were queried or changed.",
-  "source_commit_sha": "3d4ad0784e93510eb8168bf3977e41d4b7bb9cc7",
+  "source_commit_sha": "1721e5bb9c3f0cc68f7a2ccac6eeebc548b14b31",
   "summary": {
     "classifications": {
       "blocked": 7,
       "live-azure-evidence": 29
     },
-    "execution_anchors": 27,
+    "execution_anchors": 25,
     "labs": 36,
     "status_claims": 100
   }
