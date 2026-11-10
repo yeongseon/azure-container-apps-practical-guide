@@ -46,11 +46,14 @@ ISO_RE = re.compile(r"\b20\d\d-\d\d-\d\d[T ][0-2]\d:[0-5]\d:[0-5]\d(?:\.\d+)?(?:
 FILENAME_TS_RE = re.compile(r"(?<!\d)(20\d{6})[T_-]?(\d{6})Z?(?!\d)")
 STATUS_RE = re.compile(
     r"(?:status:\s*(?:verified|reproduced(?:_partial)?|pending_review|blocked)"
-    r"|reproduced live|live[- ]azure|live (?:azure )?run|live-executed"
+    r"|reproduced (?:live|in|on|against)"
+    r"|live[- ]azure (?:capture|cohort|deployment|environment|evidence|experiment|reproduction|run|test|window)"
+    r"|live (?:azure )?run|live-executed"
     r"|re-executed(?: live)? run|executed end-to-end against a live Azure subscription"
     r"|committed evidence pack captured)",
     re.I,
 )
+MARKDOWN_QUOTE_LIMIT = 240
 CAPTURE_KEYS = {
     "captured_at_utc", "captured_before_utc", "captured_after_utc", "utc_captured",
 }
@@ -202,6 +205,12 @@ def markdown_table_text(text: str) -> str:
     return text.replace("|", "&#124;").replace("[", "&#91;").replace("]", "&#93;")
 
 
+def markdown_claim_quote(text: str) -> str:
+    if len(text) > MARKDOWN_QUOTE_LIMIT:
+        text = text[:MARKDOWN_QUOTE_LIMIT - 1].rstrip() + "…"
+    return markdown_table_text(text)
+
+
 def build_inventory(root: Path, commit: str, as_of: dt.date) -> dict[str, Any]:
     files = tracked_files(root, commit)
     tracked = set(files)
@@ -320,7 +329,7 @@ def render_page(data: dict[str, Any]) -> str:
     rows = []
     for lab in data["labs"]:
         claims = "<br>".join(
-            f"`{row['file']}:{row['line']}` — {markdown_table_text(row['quote'])}"
+            f"`{row['file']}:{row['line']}` — {markdown_claim_quote(row['quote'])}"
             for row in lab["status_claimed_in_docs"]
         ) or "No explicit status line found"
         rows.append(f"| `{lab['lab_path']}` | `{lab['classification']}` | `{lab['last_azure_run_utc']}` | {claims} | {len(lab['raw_evidence'])} | {len(lab['committed_gate_files'])} | `{lab['cleanup_evidence']['completion']}` |")

@@ -82,6 +82,41 @@ class LabReproductionInventoryTests(unittest.TestCase):
                 },
             ])
 
+    def test_status_pattern_rejects_live_azure_command_explanations(self) -> None:
+        for prose in (
+            "Captures APP_NAME from the live Azure lookup so later commands reuse it.",
+            "The verifier makes no live Azure calls.",
+            "Run the live Azure query to inspect current revisions.",
+        ):
+            with self.subTest(prose=prose):
+                self.assertIsNone(inventory.STATUS_RE.search(prose))
+
+    def test_status_pattern_accepts_repository_execution_claims(self) -> None:
+        for claim in (
+            "status: reproduced",
+            "Phase A — Live-Azure reproduction.",
+            "### Observed Evidence (Live Azure Test — 2026-06-06)",
+            "The cohort was captured in a single live-Azure window.",
+            "This subsection validates the lab against a live Azure environment.",
+            "The evidence pack was captured on the re-executed live run.",
+            "Live-executed on 2026-07-04.",
+            "The full lab was executed end-to-end against a live Azure subscription.",
+            "[Observed] On the 2026-07-04 re-executed live run all gates passed.",
+        ):
+            with self.subTest(claim=claim):
+                self.assertIsNotNone(inventory.STATUS_RE.search(claim))
+
+    def test_markdown_claim_quote_caps_long_rows_without_changing_json_quote(self) -> None:
+        quote = "[Observed] " + "x" * 400 + " | [verified]"
+        rendered = inventory.markdown_claim_quote(quote)
+
+        unescaped_brackets = rendered.replace("&#91;", "[").replace("&#93;", "]")
+        self.assertLessEqual(len(unescaped_brackets), inventory.MARKDOWN_QUOTE_LIMIT)
+        self.assertTrue(rendered.endswith("…"))
+        self.assertIn("&#91;Observed&#93;", rendered)
+        self.assertNotIn(" | ", rendered)
+        self.assertEqual(quote, "[Observed] " + "x" * 400 + " | [verified]")
+
     def test_appgw_live_run_claims_preserve_repository_file_lines_and_quotes(self) -> None:
         commit = inventory.current_head(inventory.ROOT)
         tracked = set(inventory.tracked_files(inventory.ROOT, commit))
@@ -89,6 +124,15 @@ class LabReproductionInventoryTests(unittest.TestCase):
             inventory.ROOT, commit, "appgw-to-internal-aca-nsg-mismatch", tracked
         )
         selected = {(row["file"], row["line"], row["quote"]) for row in rows}
+        selected_locations = {(row["file"], row["line"]) for row in rows}
+        expected_locations = {
+            ("docs/troubleshooting/lab-guides/appgw-to-internal-aca-nsg-mismatch.md", line)
+            for line in (50, 52, 53, 161, 186)
+        } | {
+            ("labs/appgw-to-internal-aca-nsg-mismatch/evidence/README.md", line)
+            for line in (32, 34, 36)
+        }
+        self.assertTrue(expected_locations <= selected_locations)
         self.assertIn((
             "docs/troubleshooting/lab-guides/appgw-to-internal-aca-nsg-mismatch.md",
             50,
