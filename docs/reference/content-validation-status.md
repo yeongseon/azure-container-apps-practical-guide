@@ -249,7 +249,7 @@ content_sources:
 content_validation:
   status: verified
   last_reviewed: 2026-04-12
-  reviewer: ai-agent
+  reviewer: agent
   core_claims:
     - claim: "Container Apps supports KEDA-based autoscaling on HTTP traffic, CPU, memory, and custom metrics."
       source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
