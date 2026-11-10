@@ -213,6 +213,8 @@ Every document ends with these sections in order:
 
 All content must be traceable to official Microsoft Learn documentation.
 
+For source-review states, required fields, honest unknowns, and the adoption denominator, see [Honest Content Validation States](content-validation-states.md).
+
 | Source Type | Description | Allowed? |
 |---|---|---|
 | `mslearn` | Directly from Microsoft Learn | Required for platform content |
