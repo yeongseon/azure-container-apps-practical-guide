@@ -115,6 +115,50 @@ class LabReproductionInventoryTests(unittest.TestCase):
             with self.subTest(claim=claim):
                 self.assertIsNotNone(inventory.STATUS_RE.search(claim))
 
+    def test_survey_derived_execution_claim_fixtures(self) -> None:
+        claims = (
+            "a total of ~7 minutes 37 seconds of wall-clock for the live-Azure portion",
+            "a total of ~18 minutes of wall-clock for the live-Azure portion",
+            "The historical Phase A `verify.sh` owned live Azure health checks.",
+            "A second live reproduction was executed on **2026-06-03**.",
+            "This evidence pack records the live Azure experiment captured on **2026-06-23**.",
+            "The 2026-06-23 reproduction ran end-to-end in ~10 minutes.",
+        )
+        for claim in claims:
+            with self.subTest(claim=claim):
+                self.assertTrue(inventory.is_execution_claim(claim))
+
+    def test_validation_pass_results_are_claims_with_source_lines(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            guide = root / "docs/troubleshooting/lab-guides"
+            lab = root / "labs/demo"
+            guide.mkdir(parents=True)
+            lab.mkdir(parents=True)
+            (lab / "README.md").write_text("# Demo\n")
+            (guide / "demo.md").write_text(
+                "---\nvalidation:\n  az_cli:\n    last_tested: '2026-06-22'\n"
+                "    cli_version: '2.79.0'\n    result: pass\n  bicep:\n"
+                "    last_tested: '2026-06-22'\n    result: pass\n---\n# Demo\n"
+            )
+            commit = self.commit_fixture(root)
+            tracked = set(inventory.tracked_files(root, commit))
+
+            rows = inventory.claim_rows(root, commit, "demo", tracked)
+
+            self.assertEqual(rows, [
+                {
+                    "file": "docs/troubleshooting/lab-guides/demo.md", "line": 6,
+                    "quote": "validation.az_cli result: pass (last_tested: 2026-06-22; cli_version: 2.79.0)",
+                    "claim_kind": "validation-result",
+                },
+                {
+                    "file": "docs/troubleshooting/lab-guides/demo.md", "line": 9,
+                    "quote": "validation.bicep result: pass (last_tested: 2026-06-22)",
+                    "claim_kind": "validation-result",
+                },
+            ])
+
     def test_markdown_claim_quote_caps_long_rows_without_changing_json_quote(self) -> None:
         quote = "[Observed] " + "x" * 400 + " | [verified]"
         rendered = inventory.markdown_claim_quote(quote)
@@ -248,6 +292,48 @@ class LabReproductionInventoryTests(unittest.TestCase):
             "anchor_kind": "explicit-field:captured_at_utc",
             "location": "$.captured_at_utc",
         }])
+
+    def test_http_date_and_observation_fields_are_narrow_capture_anchors(self) -> None:
+        content = json.dumps({
+            "headers": ["HTTP/2 200", "date: Fri, 26 Jun 2026 08:26:59 GMT"],
+            "observation_time_utc": "2026-06-26T08:27:01Z",
+            "expires_at_utc": "2027-06-26T08:27:01Z",
+            "planned_window_utc": "2026-06-27T08:27:01Z",
+        }).encode()
+
+        self.assertEqual(inventory.capture_anchors("labs/demo/evidence/http.json", content), [
+            {
+                "timestamp_utc": "2026-06-26T08:26:59Z",
+                "anchor_kind": "http-date-header",
+                "location": "$.headers[1]",
+            },
+            {
+                "timestamp_utc": "2026-06-26T08:27:01Z",
+                "anchor_kind": "observation-field:observation_time_utc",
+                "location": "$.observation_time_utc",
+            },
+        ])
+
+    def test_readme_declared_verifier_and_analysis_outputs_are_derived(self) -> None:
+        readme = """# Evidence
+## Files produced by `verify.sh`
+| `verify-result.json` | Derived gate JSON. |
+`analyze.py` emitted `analysis-summary.json` and `analysis-summary.md`.
+## Raw evidence
+The raw capture produced `h3-20260614-143432.verdict.txt`.
+"""
+        evidence_files = {
+            "labs/demo/evidence/verify-result.json",
+            "labs/demo/evidence/analysis-summary.json",
+            "labs/demo/evidence/analysis-summary.md",
+            "labs/demo/evidence/h3-20260614-143432.verdict.txt",
+        }
+
+        self.assertEqual(inventory.declared_derived_files("labs/demo/evidence/README.md", readme, evidence_files), {
+            "labs/demo/evidence/verify-result.json",
+            "labs/demo/evidence/analysis-summary.json",
+            "labs/demo/evidence/analysis-summary.md",
+        })
 
     def test_every_discrepancy_is_assigned_once_to_a_bounded_batch(self) -> None:
         records = [

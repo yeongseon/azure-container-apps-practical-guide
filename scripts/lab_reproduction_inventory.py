@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import collections
 import datetime as dt
+import email.utils
 import json
 import re
 import subprocess
@@ -51,8 +52,14 @@ STATUS_RE = re.compile(
     r"|live (?:azure )?run|live-executed"
     r"|(?:captured|executed|ran|validated)[^.\n]{0,120}live[- ]azure"
     r"|historical[^\n]{0,160}performed the live[- ]azure data collection"
+    r"|historical[^\n]{0,160}(?:owned|executed|ran)[^\n]{0,80}live[- ]azure (?:checks|health checks|data collection)"
+    r"|(?:historical|pre-Phase-B)[^\n]{0,160}(?:live[- ]azure|live Azure)[^\n]{0,80}(?:capture|checks|health-check|output|script)"
     r"|re-executed(?: live)? run|executed end-to-end against a live Azure subscription"
-    r"|committed evidence pack captured)",
+    r"|committed evidence pack captured"
+    r"|live reproduction was executed"
+    r"|live Azure experiment captured"
+    r"|reproduction ran end-to-end"
+    r"|wall-clock for the live[- ]Azure portion)",
     re.I,
 )
 MARKDOWN_QUOTE_LIMIT = 240
@@ -60,6 +67,9 @@ MARKDOWN_CLAIM_COUNT_LIMIT = 3
 MARKDOWN_CLAIM_CELL_LIMIT = 600
 CAPTURE_KEYS = {
     "captured_at_utc", "captured_before_utc", "captured_after_utc", "utc_captured",
+}
+OBSERVATION_KEYS = {
+    "observation_time_utc", "observation_utc", "observed_at_utc", "observed_time_utc",
 }
 RUN_LOG_RE = re.compile(r"^00-(?:trigger|verify)-run\.txt$")
 DECLARED_CAPTURE_FILE_RE = re.compile(
@@ -125,6 +135,18 @@ def normalized_timestamp(value: str) -> str | None:
     return parsed.astimezone(dt.timezone.utc).isoformat().replace("+00:00", "Z")
 
 
+def normalized_http_date(value: str) -> str | None:
+    if not value.lower().startswith("date:"):
+        return None
+    try:
+        parsed = email.utils.parsedate_to_datetime(value.split(":", 1)[1].strip())
+    except (TypeError, ValueError):
+        return None
+    if parsed is None:
+        return None
+    return parsed.astimezone(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+
+
 def _json_capture_anchors(value: Any, location: str = "$") -> list[dict[str, str]]:
     anchors: list[dict[str, str]] = []
     if isinstance(value, dict):
@@ -134,10 +156,17 @@ def _json_capture_anchors(value: Any, location: str = "$") -> list[dict[str, str
                 timestamp = normalized_timestamp(child)
                 if timestamp:
                     anchors.append({"timestamp_utc": timestamp, "anchor_kind": f"explicit-field:{key}", "location": child_location})
+            if key.lower() in OBSERVATION_KEYS and isinstance(child, str):
+                timestamp = normalized_timestamp(child)
+                if timestamp:
+                    anchors.append({"timestamp_utc": timestamp, "anchor_kind": f"observation-field:{key}", "location": child_location})
             anchors.extend(_json_capture_anchors(child, child_location))
     elif isinstance(value, list):
         for index, child in enumerate(value):
-            anchors.extend(_json_capture_anchors(child, f"{location}[{index}]"))
+            child_location = f"{location}[{index}]"
+            if isinstance(child, str) and (timestamp := normalized_http_date(child)):
+                anchors.append({"timestamp_utc": timestamp, "anchor_kind": "http-date-header", "location": child_location})
+            anchors.extend(_json_capture_anchors(child, child_location))
     return anchors
 
 
@@ -167,6 +196,66 @@ def capture_anchors(path: str, content: bytes) -> list[dict[str, str]]:
     return [unique[key] for key in sorted(unique)]
 
 
+def is_execution_claim(line: str) -> bool:
+    if re.search(r"\b(?:no|without) (?:live[- ]Azure|Azure) (?:calls?|queries|lookups?)\b", line, re.I):
+        return False
+    if re.search(r"\b(?:run|re-run) (?:the )?live[- ]Azure (?:call|query|lookup)\b", line, re.I):
+        return False
+    if re.search(r"\bcaptures? [A-Z_`]+ from the live Azure lookup\b", line, re.I):
+        return False
+    return STATUS_RE.search(line) is not None
+
+
+def validation_claim_rows(path: str, lines: list[str]) -> list[dict[str, Any]]:
+    if not lines or lines[0].strip() != "---":
+        return []
+    end = next((index for index, line in enumerate(lines[1:], 1) if line.strip() == "---"), None)
+    if end is None:
+        return []
+    rows: list[dict[str, Any]] = []
+    in_validation = False
+    component: str | None = None
+    fields: dict[str, str] = {}
+    field_lines: dict[str, int] = {}
+
+    def emit() -> None:
+        if not component or fields.get("result", "").lower() != "pass":
+            return
+        details = []
+        for key in ("last_tested", "cli_version"):
+            if fields.get(key):
+                details.append(f"{key}: {fields[key]}")
+        suffix = f" ({'; '.join(details)})" if details else ""
+        rows.append({
+            "file": path,
+            "line": field_lines["result"],
+            "quote": f"validation.{component} result: pass{suffix}",
+            "claim_kind": "validation-result",
+        })
+
+    for line_number, line in enumerate(lines[1:end], 2):
+        if line == "validation:":
+            in_validation = True
+            continue
+        if not in_validation:
+            continue
+        if line and not line.startswith(" "):
+            break
+        match = re.fullmatch(r"  ([A-Za-z0-9_-]+):\s*", line)
+        if match:
+            emit()
+            component = match.group(1)
+            fields = {}
+            field_lines = {}
+            continue
+        match = re.fullmatch(r"    ([A-Za-z0-9_-]+):\s*(.*?)\s*", line)
+        if match and component:
+            fields[match.group(1)] = match.group(2).strip("'\"")
+            field_lines[match.group(1)] = line_number
+    emit()
+    return rows
+
+
 def claim_rows(root: Path, commit: str, lab: str, tracked: set[str]) -> list[dict[str, Any]]:
     candidates = [
         f"docs/troubleshooting/lab-guides/{lab}.md",
@@ -177,10 +266,30 @@ def claim_rows(root: Path, commit: str, lab: str, tracked: set[str]) -> list[dic
     for path in candidates:
         if path not in tracked:
             continue
-        for line_number, line in enumerate(snapshot_bytes(root, commit, path).decode(errors="replace").splitlines(), 1):
-            if STATUS_RE.search(line):
+        lines = snapshot_bytes(root, commit, path).decode(errors="replace").splitlines()
+        if path.startswith("docs/troubleshooting/lab-guides/"):
+            rows.extend(validation_claim_rows(path, lines))
+        for line_number, line in enumerate(lines, 1):
+            if is_execution_claim(line):
                 rows.append({"file": path, "line": line_number, "quote": safe_quote(line)})
-    return rows
+    return sorted(rows, key=lambda row: (row["file"], row["line"], row["quote"]))
+
+
+def declared_derived_files(readme_path: str, text: str, evidence_files: set[str]) -> set[str]:
+    prefix = str(Path(readme_path).parent) + "/"
+    declared: set[str] = set()
+    verify_section = False
+    for line in text.splitlines():
+        if line.startswith("## "):
+            verify_section = bool(re.search(r"produced by `verify\.sh`|derived", line, re.I))
+        names = re.findall(r"`([^`]+\.(?:json|jsonl|txt|md))`", line)
+        verifier_context = verify_section or bool(re.search(r"(?:verify\.sh|verifier).*(?:emit|produc|writ)|derived (?:gate|output)", line, re.I))
+        analyzer_context = bool(re.search(r"analy(?:ze\.py|sis)[^\n]*(?:emit|produc)", line, re.I))
+        for name in names:
+            candidate = prefix + Path(name).name
+            if candidate in evidence_files and (verifier_context or analyzer_context):
+                declared.add(candidate)
+    return declared
 
 
 def discrepancy_batches(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -259,8 +368,19 @@ def build_inventory(root: Path, commit: str, as_of: dt.date) -> dict[str, Any]:
         verify = f"labs/{lab}/verify.sh" in tracked
         reproduction = [path for path in shell if Path(path).name not in {"verify.sh", "cleanup.sh"}]
         evidence_files = [path for path in lab_files if path.startswith(prefix + "evidence/") and not path.endswith("/README.md")]
-        gate_files = [path for path in evidence_files if path.endswith(".json") and "gate" in Path(path).stem.lower()]
-        raw_files = [path for path in evidence_files if path not in gate_files and "cleanup" not in Path(path).name.lower()]
+        evidence_readme = prefix + "evidence/README.md"
+        derived_files = {
+            path for path in evidence_files
+            if path.endswith(".json") and "gate" in Path(path).stem.lower()
+        }
+        if evidence_readme in tracked:
+            derived_files |= declared_derived_files(
+                evidence_readme,
+                snapshot_bytes(root, commit, evidence_readme).decode(errors="replace"),
+                set(evidence_files),
+            )
+        gate_files = sorted(derived_files)
+        raw_files = [path for path in evidence_files if path not in derived_files and "cleanup" not in Path(path).name.lower()]
         raw_rows = []
         all_raw_anchors: list[dict[str, str]] = []
         for path in raw_files:
@@ -277,9 +397,10 @@ def build_inventory(root: Path, commit: str, as_of: dt.date) -> dict[str, Any]:
         for path in gate_files:
             try:
                 document = json.loads(snapshot_bytes(root, commit, path))
-            except json.JSONDecodeError:
+            except (json.JSONDecodeError, UnicodeDecodeError):
                 document = {}
-            gate_rows.append({"path": path, "evaluated_at_utc": document.get("evaluated_at_utc", "unknown")})
+            evaluated_at = document.get("evaluated_at_utc", "unknown") if isinstance(document, dict) else "unknown"
+            gate_rows.append({"path": path, "evaluated_at_utc": evaluated_at})
         cleanup_script = f"labs/{lab}/cleanup.sh"
         cleanup_outputs = sorted(path for path in evidence_files if "cleanup" in Path(path).name.lower())
         cleanup_rows = []
