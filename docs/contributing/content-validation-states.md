@@ -176,22 +176,15 @@ description: A page-specific description appropriate to this document.
 Scratch copies exercised against the current validators confirm these blocking checks:
 
 - `scripts/generate_content_validation_status.py` rejects an in-scope claim containing the phrase `primary source basis`. A core claim must assert Azure behavior rather than describe the documentation process.
-- `scripts/validate_doc_quality.py` rejects `status: verified` when an explicitly listed claim has `verified: false`.
-
-These are narrow checks. For example, the current verified-state check does not reject an empty claim list or a claim with a missing source.
+- `scripts/validate_doc_quality.py` rejects unknown statuses and non-boolean claim results.
+- For `verified` and `pending_review`, the validator requires a valid, non-future ISO review date and a non-placeholder reviewer of `human` or `agent`.
+- Every in-scope block must list 2-5 claims. Every listed claim must have a non-placeholder source. A claim marked `verified: true` must cite an `https://learn.microsoft.com/en-us/` URL.
+- `status: verified` is rejected when an explicitly listed claim has `verified: false`.
+- `unverified` remains an honest state with YAML `null` review date and reviewer; the same null values are rejected when a review is claimed.
 
 ### Planned for Issue #574
 
-Scratch-copy tests with both validators confirm that the following invalid states are **not currently enforced**:
-
-- A future `last_reviewed` date.
-- Placeholder reviewer or source values such as `TBD`.
-- A reviewer value outside the documented `human` and `agent` values.
-- A listed claim with a missing source.
-- A `verified: true` claim with a non-Microsoft Learn source.
-- A claim whose cited Microsoft Learn page does not support the assertion.
-
-[Issue #574](https://github.com/yeongseon/azure-container-apps-practical-guide/issues/574) proposes enforcement for these gaps. Until then, reviewers must apply the repository contract directly; validator acceptance is not evidence that a value is truthful or valid.
+[Issue #574](https://github.com/yeongseon/azure-container-apps-practical-guide/issues/574) adds the fail-closed structural checks listed above to the existing changed-document quality gate. The validator does not fetch or interpret cited pages, so it still cannot prove that a Microsoft Learn page supports the assertion. Reviewers must continue to verify claim-to-source support directly; validator acceptance is not evidence that a claim is truthful.
 
 ## Adoption Denominator
 
