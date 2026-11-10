@@ -176,22 +176,19 @@ description: A page-specific description appropriate to this document.
 Scratch copies exercised against the current validators confirm these blocking checks:
 
 - `scripts/generate_content_validation_status.py` rejects an in-scope claim containing the phrase `primary source basis`. A core claim must assert Azure behavior rather than describe the documentation process.
-- `scripts/validate_doc_quality.py` rejects `status: verified` when an explicitly listed claim has `verified: false`.
+- `scripts/validate_doc_quality.py` requires each `core_claims[].claim` to be a non-empty, non-placeholder string and rejects the same tautological `primary source basis` marker. Placeholder checks apply to the whole value, so `example` or `todo` may appear inside a concrete factual sentence.
+- `scripts/validate_doc_quality.py` rejects unknown statuses and non-boolean claim results.
+- For `verified` and `pending_review`, the validator requires a valid, non-future ISO review date and a non-placeholder reviewer of `human` or `agent`.
+- Every in-scope block must list 2-5 claims. Every listed claim, regardless of its `verified` value, must cite a locale-qualified `https://learn.microsoft.com/en-us/` URL.
+- Placeholder review metadata and sources are rejected, including empty values; `tbd`, `todo`, `placeholder`, `example`, `none`, `n-a`, `n/a`, `unknown`, `foo`, `bar`, `xxx`, `lorem`, and bracketed, angle-bracketed, or braced placeholder syntax. These checks apply to whole values, so words such as `example` remain valid inside a real Microsoft Learn URL path.
+- `status: verified` requires every listed claim to have `verified: true`.
+- `status: pending_review` requires a real review date and reviewer plus at least one listed claim with `verified: false`.
+- `status: unverified` requires YAML `null` for both review fields and rejects any claim with `verified: true`.
+- Metadata is required exactly when `scripts.lib.content_scope.is_in_scope()` returns `True`; factual subsection `index.md` pages are included unless they are listed in `NAVIGATION_INDEXES`.
 
-These are narrow checks. For example, the current verified-state check does not reject an empty claim list or a claim with a missing source.
+### Enforcement Boundary
 
-### Planned for Issue #574
-
-Scratch-copy tests with both validators confirm that the following invalid states are **not currently enforced**:
-
-- A future `last_reviewed` date.
-- Placeholder reviewer or source values such as `TBD`.
-- A reviewer value outside the documented `human` and `agent` values.
-- A listed claim with a missing source.
-- A `verified: true` claim with a non-Microsoft Learn source.
-- A claim whose cited Microsoft Learn page does not support the assertion.
-
-[Issue #574](https://github.com/yeongseon/azure-container-apps-practical-guide/issues/574) proposes enforcement for these gaps. Until then, reviewers must apply the repository contract directly; validator acceptance is not evidence that a value is truthful or valid.
+[Issue #574](https://github.com/yeongseon/azure-container-apps-practical-guide/issues/574) added the structural checks listed above to the existing changed-document quality gate. They check shape, dates, placeholders, reviewer values, and the form of each cited URL. The validator does not fetch or interpret cited pages, so semantic claim-to-source support remains a manual review responsibility: validator acceptance is not evidence that a claim is truthful or that the cited Microsoft Learn page supports it.
 
 ## Adoption Denominator
 

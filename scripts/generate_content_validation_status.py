@@ -335,13 +335,20 @@ def generate_dashboard(
     lines.append("content_validation:")
     lines.append("  status: verified")
     lines.append("  last_reviewed: 2026-04-12")
-    lines.append("  reviewer: ai-agent")
+    lines.append("  reviewer: agent")
     lines.append("  core_claims:")
     lines.append(
         '    - claim: "Container Apps supports KEDA-based autoscaling on HTTP traffic, CPU, memory, and custom metrics."'
     )
     lines.append(
         "      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app"
+    )
+    lines.append("      verified: true")
+    lines.append(
+        '    - claim: "Container Apps revisions are immutable snapshots of each application version."'
+    )
+    lines.append(
+        "      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions"
     )
     lines.append("      verified: true")
     lines.append("---")
