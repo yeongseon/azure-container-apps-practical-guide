@@ -442,96 +442,6 @@
       "cost_class": "low-to-moderate",
       "discrepancy_type": "missing-execution-anchor",
       "labs": [
-        "appgw-to-internal-aca-nsg-mismatch"
-      ],
-      "prerequisites": "Azure subscription access, per-lab prerequisites, and a plan to retain raw capture plus teardown output.",
-      "size": 1
-    },
-    {
-      "batch": 45,
-      "cost_class": "low-to-moderate",
-      "discrepancy_type": "missing-execution-anchor",
-      "labs": [
-        "cd-reconnect-rbac-conflict"
-      ],
-      "prerequisites": "Azure subscription access, per-lab prerequisites, and a plan to retain raw capture plus teardown output.",
-      "size": 1
-    },
-    {
-      "batch": 46,
-      "cost_class": "low-to-moderate",
-      "discrepancy_type": "missing-execution-anchor",
-      "labs": [
-        "image-size-startup-delay"
-      ],
-      "prerequisites": "Azure subscription access, per-lab prerequisites, and a plan to retain raw capture plus teardown output.",
-      "size": 1
-    },
-    {
-      "batch": 47,
-      "cost_class": "low-to-moderate",
-      "discrepancy_type": "missing-execution-anchor",
-      "labs": [
-        "keda-no-metrics-returned"
-      ],
-      "prerequisites": "Azure subscription access, per-lab prerequisites, and a plan to retain raw capture plus teardown output.",
-      "size": 1
-    },
-    {
-      "batch": 48,
-      "cost_class": "low-to-moderate",
-      "discrepancy_type": "missing-execution-anchor",
-      "labs": [
-        "memory-leak-oomkilled"
-      ],
-      "prerequisites": "Azure subscription access, per-lab prerequisites, and a plan to retain raw capture plus teardown output.",
-      "size": 1
-    },
-    {
-      "batch": 49,
-      "cost_class": "low-to-moderate",
-      "discrepancy_type": "missing-execution-anchor",
-      "labs": [
-        "memory-percentage-vs-keda-utilization"
-      ],
-      "prerequisites": "Azure subscription access, per-lab prerequisites, and a plan to retain raw capture plus teardown output.",
-      "size": 1
-    },
-    {
-      "batch": 50,
-      "cost_class": "low-to-moderate",
-      "discrepancy_type": "missing-execution-anchor",
-      "labs": [
-        "replica-node-spread"
-      ],
-      "prerequisites": "Azure subscription access, per-lab prerequisites, and a plan to retain raw capture plus teardown output.",
-      "size": 1
-    },
-    {
-      "batch": 51,
-      "cost_class": "low-to-moderate",
-      "discrepancy_type": "missing-execution-anchor",
-      "labs": [
-        "revision-provisioning-failure"
-      ],
-      "prerequisites": "Azure subscription access, per-lab prerequisites, and a plan to retain raw capture plus teardown output.",
-      "size": 1
-    },
-    {
-      "batch": 52,
-      "cost_class": "low-to-moderate",
-      "discrepancy_type": "missing-execution-anchor",
-      "labs": [
-        "scale-rule-mismatch"
-      ],
-      "prerequisites": "Azure subscription access, per-lab prerequisites, and a plan to retain raw capture plus teardown output.",
-      "size": 1
-    },
-    {
-      "batch": 53,
-      "cost_class": "low-to-moderate",
-      "discrepancy_type": "missing-execution-anchor",
-      "labs": [
         "zone-redundancy-best-effort"
       ],
       "prerequisites": "Azure subscription access, per-lab prerequisites, and a plan to retain raw capture plus teardown output.",
@@ -2087,13 +1997,8 @@
         "labs/appgw-to-internal-aca-nsg-mismatch/verify.sh",
         "labs/appgw-to-internal-aca-nsg-mismatch/workload/README.md"
       ],
-      "discrepancies": [
-        {
-          "detail": "The reviewed sources do not provide a citation-safe exact UTC for the last Azure observation.",
-          "type": "missing-execution-anchor"
-        }
-      ],
-      "evidence_basis": "Curated status citations record a live Azure reproduction; no exact final observation UTC is cited where the execution anchor remains unknown.",
+      "discrepancies": [],
+      "evidence_basis": "Curated status citations record the re-executed live Azure reproduction; no exact final observation UTC is cited where the execution anchor remains unknown.",
       "execution_anchor": null,
       "execution_anchor_reason": "unknown",
       "lab_path": "labs/appgw-to-internal-aca-nsg-mismatch",
@@ -2522,17 +2427,17 @@
         "labs/cd-reconnect-rbac-conflict/trigger.sh",
         "labs/cd-reconnect-rbac-conflict/verify.sh"
       ],
-      "discrepancies": [
-        {
-          "detail": "The reviewed sources do not provide a citation-safe exact UTC for the last Azure observation.",
-          "type": "missing-execution-anchor"
-        }
-      ],
-      "evidence_basis": "Curated status citations record a live Azure reproduction; no exact final observation UTC is cited where the execution anchor remains unknown.",
-      "execution_anchor": null,
-      "execution_anchor_reason": "unknown",
+      "discrepancies": [],
+      "evidence_basis": "Committed raw deployment evidence records the recovery deployment timestamp; curated status citations record the live Azure reproduction.",
+      "execution_anchor": {
+        "field_or_line": "$.properties.timestamp",
+        "file": "labs/cd-reconnect-rbac-conflict/evidence/11-deployment-recovery.json",
+        "kind": "capture_window_end",
+        "utc": "2026-06-23T12:32:56.311469Z"
+      },
+      "execution_anchor_reason": null,
       "lab_path": "labs/cd-reconnect-rbac-conflict",
-      "last_azure_run_utc": "unknown",
+      "last_azure_run_utc": "2026-06-23T12:32:56.311469Z",
       "raw_outputs": [
         "labs/cd-reconnect-rbac-conflict/evidence/01-sp-resolve.json",
         "labs/cd-reconnect-rbac-conflict/evidence/02-deployment-initial-output.json",
@@ -3263,17 +3168,17 @@
         "labs/image-size-startup-delay/trigger.sh",
         "labs/image-size-startup-delay/verify.sh"
       ],
-      "discrepancies": [
-        {
-          "detail": "The reviewed sources do not provide a citation-safe exact UTC for the last Azure observation.",
-          "type": "missing-execution-anchor"
-        }
-      ],
-      "evidence_basis": "Curated status citations record a live Azure reproduction; no exact final observation UTC is cited where the execution anchor remains unknown.",
-      "execution_anchor": null,
-      "execution_anchor_reason": "unknown",
+      "discrepancies": [],
+      "evidence_basis": "Committed raw KQL evidence records the cited final event observation; curated status citations record the live Azure reproduction.",
+      "execution_anchor": {
+        "field_or_line": 227,
+        "file": "labs/image-size-startup-delay/evidence/09-kql-event-summary.json",
+        "kind": "capture_window_end",
+        "utc": "2026-06-22T02:28:03.376224Z"
+      },
+      "execution_anchor_reason": null,
       "lab_path": "labs/image-size-startup-delay",
-      "last_azure_run_utc": "unknown",
+      "last_azure_run_utc": "2026-06-22T02:28:03.376224Z",
       "raw_outputs": [
         "labs/image-size-startup-delay/evidence/01-trigger-large-image.txt",
         "labs/image-size-startup-delay/evidence/02-verify-small-image.txt",
@@ -3305,11 +3210,6 @@
           "file": "docs/troubleshooting/lab-guides/image-size-startup-delay.md",
           "line": 147,
           "quote": "Reproduced end-to-end in `koreacentral`. All raw evidence is committed under [`labs/image-size-startup-delay/evidence/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/image-size-startup-delay/evidence):"
-        },
-        {
-          "file": "docs/troubleshooting/lab-guides/image-size-startup-delay.md",
-          "line": 212,
-          "quote": "The Gate 12 speedup-ratio threshold is intentionally **lower** than the observed 3.08× (set to ≥ 2.5×) to absorb pull-time variance on re-runs while still falsifying the case where the two image sizes converge. The Gate 13 sub-gates intentionally key off the `ContainerTerminated` event count and the `exec` error signature, NOT the revision-level `healthState` field — because Azure Container Apps marks revisions `Healthy` at deploy time and does not always update that field when later container terminations occur. See [`labs/image-size-startup-delay/evidence/README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/image-size-startup-delay/evidence/README.md) \"Honest disclosure\" section for the full empirical platform behavior documented during the 2026-06-22 live run."
         },
         {
           "file": "labs/image-size-startup-delay/evidence/README.md",
@@ -3719,17 +3619,17 @@
         "labs/keda-no-metrics-returned/workload/Dockerfile",
         "labs/keda-no-metrics-returned/workload/app.py"
       ],
-      "discrepancies": [
-        {
-          "detail": "The reviewed sources do not provide a citation-safe exact UTC for the last Azure observation.",
-          "type": "missing-execution-anchor"
-        }
-      ],
+      "discrepancies": [],
       "evidence_basis": "Committed non-gate evidence records capture timestamps; derived verifier gates are listed separately.",
-      "execution_anchor": null,
-      "execution_anchor_reason": "unknown",
+      "execution_anchor": {
+        "field_or_line": 159,
+        "file": "labs/keda-no-metrics-returned/evidence/ca-nometrics-healthy/report-20260620T005025Z.txt",
+        "kind": "capture_window_end",
+        "utc": "2026-06-20T00:50:51Z"
+      },
+      "execution_anchor_reason": null,
       "lab_path": "labs/keda-no-metrics-returned",
-      "last_azure_run_utc": "unknown",
+      "last_azure_run_utc": "2026-06-20T00:50:51Z",
       "raw_outputs": [
         "labs/keda-no-metrics-returned/evidence/ca-nometrics-crash/az-version-20260620T004905Z.json",
         "labs/keda-no-metrics-returned/evidence/ca-nometrics-crash/containerapp-extension-20260620T004905Z.json",
@@ -3766,11 +3666,6 @@
           "file": "docs/troubleshooting/lab-guides/keda-no-metrics-returned.md",
           "line": 16,
           "quote": "status: reproduced"
-        },
-        {
-          "file": "docs/troubleshooting/lab-guides/keda-no-metrics-returned.md",
-          "line": 303,
-          "quote": "The Gate 13 cross-scenario ratio threshold is intentionally **lower** than the observed 4.44× (set to ≥ 3.0×) to absorb run-to-run variance while still falsifying the case where crash-loop duration converges with the healthy/slow baselines. The Gate 11 sub-gate (b) intentionally keys off the §2 inline JSON `runningState` and `provisioningState` fields rather than the sidecar `revisions-*.json` (which carries only `healthState`, `name`, `replicas`, `trafficWeight`) because `runningState` and `provisioningState` are the authoritative platform-observed state for a failing revision. See [`labs/keda-no-metrics-returned/evidence/README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/keda-no-metrics-returned/evidence/README.md) \"Honest disclosure\" section for the full empirical platform behavior documented during the 2026-06-20 live run, including the sidecar `replicas` semantics (DESIRED replica count from the revision spec, NOT the count of replicas that successfully reached Running)."
         },
         {
           "file": "labs/keda-no-metrics-returned/evidence/README.md",
@@ -4190,17 +4085,17 @@
         "labs/memory-leak-oomkilled/workload/Dockerfile",
         "labs/memory-leak-oomkilled/workload/app.py"
       ],
-      "discrepancies": [
-        {
-          "detail": "The reviewed sources do not provide a citation-safe exact UTC for the last Azure observation.",
-          "type": "missing-execution-anchor"
-        }
-      ],
+      "discrepancies": [],
       "evidence_basis": "Committed non-gate evidence records capture timestamps; derived verifier gates are listed separately.",
-      "execution_anchor": null,
-      "execution_anchor_reason": "unknown",
+      "execution_anchor": {
+        "field_or_line": "filename",
+        "file": "labs/memory-leak-oomkilled/evidence/ca-oom-hard/report-20260620T060257Z.txt",
+        "kind": "filename_timestamp",
+        "utc": "2026-06-20T06:02:57Z"
+      },
+      "execution_anchor_reason": null,
       "lab_path": "labs/memory-leak-oomkilled",
-      "last_azure_run_utc": "unknown",
+      "last_azure_run_utc": "2026-06-20T06:02:57Z",
       "raw_outputs": [
         "labs/memory-leak-oomkilled/evidence/ca-oom-hard/az-version-20260620T041900Z.json",
         "labs/memory-leak-oomkilled/evidence/ca-oom-hard/az-version-20260620T042113Z.json",
@@ -4260,11 +4155,6 @@
           "file": "docs/troubleshooting/lab-guides/memory-leak-oomkilled.md",
           "line": 21,
           "quote": "notes: \"All three scenarios reproduced in Korea Central (rg-aca-memleak-lab). Scenario A (hard-oom) produced 76 exit-code-137 events on revision ca-oom-hard--18xosgl within the first 60 seconds after deployment, then CrashLoopBackOff. Scenario B (leak) produced progressive [leak] tick console-log entries climbing by 30 MiB every 20 seconds. Scenario C (healthy) stayed under 50 MiB working set the entire run. Fix (MODE=healthy + memory 1Gi) created revision ca-oom-hard--0000001 which reached HealthState=Healthy within 90 seconds, and the failing revision was retained as inactive evidence. Portal Diagnose-and-Solve / Availability-and-Performance / Container Exit Events detector independently confirmed exit code 137 as SIGKILL from OOM (the Portal text reads 'Resource exhaustion - containers terminated with SIGKILL (exit code 137) ... This is commonly caused by Out of Memory (OOM) conditions').\""
-        },
-        {
-          "file": "docs/troubleshooting/lab-guides/memory-leak-oomkilled.md",
-          "line": 297,
-          "quote": "The Gate 12 sub-gate (a) Fallback path is **intentionally `false` and documented as such in the gate JSON's `section_6_bins_note`**: the §6 5-minute bin histogram uses a KQL `has_any('memory')` filter that produces false-positives on the healthy scenario (14 events in the 04:10 bin that are platform \"memory\" mentions unrelated to OOM). Only the Strong path (§5 record-scoped 2-form predicate, which returned 0) is authoritative for Gate 12. This is intentional defensive design — letting the fallback path silently mask a regression would defeat the purpose of the gate. The Gate 13 sub-gate (b) Strong path keys off §7 leak-tick count (not §6 bins) for the leak signature for the same reason. See [`labs/memory-leak-oomkilled/evidence/README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/memory-leak-oomkilled/evidence/README.md) \"Honest disclosure\" section for the full empirical platform behavior documented during the 2026-06-20 live run, including the three-timestamps-for-hard pattern (two PRE-fix at 04:19:00Z + 04:21:13Z plus one POST-fix at 06:02:57Z), the leak scenario's 1-OOM cross-cycle overlap, and the §10c PTY-failure-on-macOS that motivated using `runningState: RunningAtMaxScale` as the Gate 12 sub-gate (c) substitute for restart count."
         },
         {
           "file": "labs/memory-leak-oomkilled/evidence/README.md",
@@ -4448,17 +4338,17 @@
         "labs/memory-percentage-vs-keda-utilization/workload/Dockerfile",
         "labs/memory-percentage-vs-keda-utilization/workload/app.py"
       ],
-      "discrepancies": [
-        {
-          "detail": "The reviewed sources do not provide a citation-safe exact UTC for the last Azure observation.",
-          "type": "missing-execution-anchor"
-        }
-      ],
+      "discrepancies": [],
       "evidence_basis": "Committed non-gate evidence records capture timestamps; derived verifier gates are listed separately.",
-      "execution_anchor": null,
-      "execution_anchor_reason": "unknown",
+      "execution_anchor": {
+        "field_or_line": "$.captured_at_utc",
+        "file": "labs/memory-percentage-vs-keda-utilization/evidence/10-scenario-a-cgroup.json",
+        "kind": "captured_at",
+        "utc": "2026-06-24T02:31:25Z"
+      },
+      "execution_anchor_reason": null,
       "lab_path": "labs/memory-percentage-vs-keda-utilization",
-      "last_azure_run_utc": "unknown",
+      "last_azure_run_utc": "2026-06-24T02:31:25Z",
       "raw_outputs": [
         "labs/memory-percentage-vs-keda-utilization/evidence/01-infra-resolve.json",
         "labs/memory-percentage-vs-keda-utilization/evidence/02-image-manifest.json",
@@ -4513,11 +4403,6 @@
           "file": "labs/memory-percentage-vs-keda-utilization/evidence/README.md",
           "line": 7,
           "quote": "The lab evidence was captured in a single live-Azure window on **2026-06-24** against three side-by-side Container Apps in RG `rg-aca-lab-mempct2` (Korea Central):"
-        },
-        {
-          "file": "labs/memory-percentage-vs-keda-utilization/evidence/README.md",
-          "line": 28,
-          "quote": "- **Async cleanup (02:37:45 UTC, before verify completion).** `cleanup.sh` was kicked off with `az group delete --no-wait --yes`; the resource group entered `Deleting` state before `verify.sh` finished, confirming that `verify.sh` operates on the disk-captured evidence only and does not require live Azure access."
         },
         {
           "file": "labs/memory-percentage-vs-keda-utilization/evidence/README.md",
@@ -5336,11 +5221,6 @@
           "file": "docs/troubleshooting/lab-guides/probe-and-port-mismatch.md",
           "line": 498,
           "quote": "A second end-to-end live Azure run executed on **2026-06-23** with `az` CLI version **2.79.0** (see `labs/probe-and-port-mismatch/evidence/19-cli-versions.json`) against resource group `rg-aca-lab-port` (subscription redacted to placeholder `00000000-0000-0000-0000-000000000000`). The run produced 25 raw evidence files under `labs/probe-and-port-mismatch/evidence/` covering H1 (failure-state reproduction) and H2 (same-revision recovery). All 11 sub-gates across both hypotheses passed."
-        },
-        {
-          "file": "labs/probe-and-port-mismatch/evidence/README.md",
-          "line": 19,
-          "quote": "`06-wait-provisioning.log` is a **single-line snapshot** from the original 14:05–14:06 UTC fault-injection phase that pre-dates the Phase 5 strengthening (which moved from 1 attempt to 30 attempts). It is preserved as honest historical evidence of the polling-window variance described in the lab guide's `### Observed Evidence (Live Azure Test — 2026-06-23)` subsection, but it is **explicitly non-gating**:"
         }
       ],
       "verify_sh_present": true
@@ -5497,17 +5377,17 @@
         "labs/replica-node-spread/verify.sh",
         "labs/replica-node-spread/verify_helpers.py"
       ],
-      "discrepancies": [
-        {
-          "detail": "The reviewed sources do not provide a citation-safe exact UTC for the last Azure observation.",
-          "type": "missing-execution-anchor"
-        }
-      ],
-      "evidence_basis": "Curated status citations record a live Azure reproduction; no exact final observation UTC is cited where the execution anchor remains unknown.",
-      "execution_anchor": null,
-      "execution_anchor_reason": "unknown",
+      "discrepancies": [],
+      "evidence_basis": "Committed raw JSONL records the cited final client sample; curated status citations record the live Azure reproduction.",
+      "execution_anchor": {
+        "field_or_line": 69,
+        "file": "labs/replica-node-spread/evidence/dedicated-d8-scale-10-run-3.jsonl",
+        "kind": "capture_window_end",
+        "utc": "2026-06-14T14:52:07Z"
+      },
+      "execution_anchor_reason": null,
       "lab_path": "labs/replica-node-spread",
-      "last_azure_run_utc": "unknown",
+      "last_azure_run_utc": "2026-06-14T14:52:07Z",
       "raw_outputs": [
         "labs/replica-node-spread/evidence/analysis-summary.json",
         "labs/replica-node-spread/evidence/analysis-summary.md",
@@ -5770,11 +5650,6 @@
           "file": "docs/troubleshooting/lab-guides/revision-failover.md",
           "line": 515,
           "quote": "[Inferred] The 2026-06-23 reproduction confirms the 2026-06-03 Portal capture sequence with quantified measurements: the same revision (`ca-labrevision-zfnp6h--0000001`) transitioned from `Healthy` to `Unhealthy` after 261 s of accumulated probe failures, then recovered to `Healthy` within ~21 s of the fix command, without any new revision being created. The control plane accepted both the break and the fix at admission time; the platform's probe loop is the controlling mechanism for the health-state transition in both directions. For operators, this means the cheapest recovery path for an ingress-port misconfiguration is a simple `az containerapp ingress update --target-port <correct-port>` — there is no need to ship a new image, suffix a new revision, or perform a traffic shift, provided the underlying container is healthy and listening on the correct port."
-        },
-        {
-          "file": "labs/revision-failover/README.md",
-          "line": 59,
-          "quote": "These commands assume the working directory is the repository root. All `az` invocations pin `--subscription` explicitly to immunize the run against Azure CLI default-subscription drift, and the deployment is given the explicit name `main` so the deployment resource itself can be inspected deterministically (its `properties.outputs` is populated by Bicep with all six resource names). Total wall-clock runtime is approximately 10-18 minutes (3 min Bicep deploy + 4-9 min trigger including the variable wait for non-Healthy transition under the 420 s budget + 1-2 min verify including 240 s Healthy-poll budget for in-place recovery + 1 min cleanup initiation). The 2026-06-23 reproduction ran end-to-end in ~10 minutes (3 min deploy + 6 min trigger including a 261 s wait for non-Healthy + 1 min verify with 21 s wait for Healthy + 1 min cleanup), but the break time is platform-variable so plan for the longer end of the range."
         }
       ],
       "verify_sh_present": true
@@ -6092,17 +5967,17 @@
         "labs/revision-provisioning-failure/workload/app.py",
         "labs/revision-provisioning-failure/workload/requirements.txt"
       ],
-      "discrepancies": [
-        {
-          "detail": "The reviewed sources do not provide a citation-safe exact UTC for the last Azure observation.",
-          "type": "missing-execution-anchor"
-        }
-      ],
-      "evidence_basis": "Curated status citations record a live Azure reproduction; no exact final observation UTC is cited where the execution anchor remains unknown.",
-      "execution_anchor": null,
-      "execution_anchor_reason": "unknown",
+      "discrepancies": [],
+      "evidence_basis": "Committed raw revision evidence records the recovered revision creation time; curated status citations record the live Azure reproduction.",
+      "execution_anchor": {
+        "field_or_line": "$[0].properties.createdTime",
+        "file": "labs/revision-provisioning-failure/evidence/12-revision-list-recovered.json",
+        "kind": "captured_at",
+        "utc": "2026-06-20T14:26:09Z"
+      },
+      "execution_anchor_reason": null,
       "lab_path": "labs/revision-provisioning-failure",
-      "last_azure_run_utc": "unknown",
+      "last_azure_run_utc": "2026-06-20T14:26:09Z",
       "raw_outputs": [
         "labs/revision-provisioning-failure/evidence/01-revision-list.json",
         "labs/revision-provisioning-failure/evidence/02-failed-revision-detail.json",
@@ -6303,17 +6178,17 @@
         "labs/scale-rule-mismatch/workload/app.py",
         "labs/scale-rule-mismatch/workload/requirements.txt"
       ],
-      "discrepancies": [
-        {
-          "detail": "The reviewed sources do not provide a citation-safe exact UTC for the last Azure observation.",
-          "type": "missing-execution-anchor"
-        }
-      ],
+      "discrepancies": [],
       "evidence_basis": "Committed non-gate evidence records capture timestamps; derived verifier gates are listed separately.",
-      "execution_anchor": null,
-      "execution_anchor_reason": "unknown",
+      "execution_anchor": {
+        "field_or_line": 86,
+        "file": "labs/scale-rule-mismatch/evidence/00-verify-run.txt",
+        "kind": "capture_window_end",
+        "utc": "2026-06-22T15:15:39Z"
+      },
+      "execution_anchor_reason": null,
       "lab_path": "labs/scale-rule-mismatch",
-      "last_azure_run_utc": "unknown",
+      "last_azure_run_utc": "2026-06-22T15:15:39Z",
       "raw_outputs": [
         "labs/scale-rule-mismatch/evidence/00-cleanup-run.txt",
         "labs/scale-rule-mismatch/evidence/00-trigger-run.txt",
@@ -7555,7 +7430,7 @@
       ],
       "discrepancies": [
         {
-          "detail": "The reviewed sources do not provide a citation-safe exact UTC for the last Azure observation.",
+          "detail": "The cited deployment-outputs.json value is an expiresAt deadline, not an explicit capture, completion, or observation timestamp; no citation-safe exact final Azure observation UTC was verified.",
           "type": "missing-execution-anchor"
         }
       ],
@@ -7640,14 +7515,14 @@
   ],
   "schema_version": 2,
   "scope": "Static repository inventory only; no Azure resources were queried or changed.",
-  "source_commit_sha": "929140fab5651c9d5b9c17fd9c7cb27e9be0cf75",
+  "source_commit_sha": "3d4ad0784e93510eb8168bf3977e41d4b7bb9cc7",
   "summary": {
     "classifications": {
       "blocked": 7,
       "live-azure-evidence": 29
     },
-    "execution_anchors": 19,
+    "execution_anchors": 27,
     "labs": 36,
-    "status_claims": 106
+    "status_claims": 100
   }
 }
