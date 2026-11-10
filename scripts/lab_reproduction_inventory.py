@@ -47,6 +47,22 @@ CLASSIFICATIONS = {"live-azure-evidence", "offline-replay-only", "documentation-
 ANCHOR_KINDS = {"captured_at", "capture_window_end", "run_log", "http_date", "filename_timestamp", "readme_declared"}
 CLEANUP_STATES = {"confirmed", "initiated-not-confirmed", "absent", "not-applicable"}
 IMPERATIVE_STATUS_CLAIM = re.compile(r"^(?:Record|Run|Confirm)\b", re.IGNORECASE)
+STATUS_MECHANICS = (
+    "authoritative platform-observed state",
+    "defensive design",
+    "explicitly non-gating",
+    "gate or workflow mechanics",
+    "intentionally false",
+    "intentionally key",
+    "keys off",
+    "pin --subscription",
+    "pin `--subscription`",
+    "pure file processor",
+    "re-evaluated offline",
+    "replay-only",
+    "threshold is intentionally",
+    "this split is deliberate",
+)
 MARKDOWN_QUOTE_LIMIT = 240
 MARKDOWN_CLAIM_COUNT_LIMIT = 3
 MARKDOWN_CLAIM_CELL_LIMIT = 600
@@ -107,6 +123,13 @@ def normalize_utc(value: str) -> str:
     return parsed.astimezone(dt.timezone.utc).isoformat().replace("+00:00", "Z")
 
 
+def line_has_utc(line: str, expected: str) -> bool:
+    if expected in line:
+        return True
+    candidates = re.findall(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})", line)
+    return any(normalize_utc(candidate) == expected for candidate in candidates)
+
+
 def load_curated(root: Path) -> dict[str, Any]:
     path = root / CURATED_PATH.relative_to(ROOT)
     try:
@@ -138,15 +161,19 @@ def cited_line(root: Path, commit: str, citation: dict[str, Any], tracked: set[s
 
 def json_field(document: Any, selector: str) -> Any:
     value = document
-    for part in selector.removeprefix("$.").split("."):
-        match = re.fullmatch(r"([^\[]+)(?:\[(\d+)\])?", part)
-        if not match or not isinstance(value, dict) or match.group(1) not in value:
-            raise InventoryError(f"JSON field does not exist: {selector}")
-        value = value[match.group(1)]
-        if match.group(2) is not None:
-            if not isinstance(value, list) or int(match.group(2)) >= len(value):
+    expression = selector.removeprefix("$").removeprefix(".")
+    parts = re.findall(r"(?:^|\.)([^.\[]+)|\[(\d+)\]", expression)
+    if not parts or "".join((name or f"[{index}]") for name, index in parts).replace("[", "").replace("]", "") == "":
+        raise InventoryError(f"JSON field does not exist: {selector}")
+    for name, index in parts:
+        if name:
+            if not isinstance(value, dict) or name not in value:
                 raise InventoryError(f"JSON field does not exist: {selector}")
-            value = value[int(match.group(2))]
+            value = value[name]
+        elif not isinstance(value, list) or int(index) >= len(value):
+            raise InventoryError(f"JSON field does not exist: {selector}")
+        else:
+            value = value[int(index)]
     return value
 
 
@@ -157,7 +184,7 @@ def status_claim_problem(quote: str) -> str | None:
         return "heading"
     if IMPERATIVE_STATUS_CLAIM.match(stripped):
         return "imperative instruction"
-    if any(marker in lowered for marker in ("re-evaluated offline", "pure file processor", "replay-only", "this split is deliberate")):
+    if any(marker in lowered for marker in STATUS_MECHANICS):
         return "gate or workflow mechanics"
     if ("should" in lowered or "expected" in lowered) and not re.search(r"\b(?:observed|returned|produced|completed|reproduced|captured|measured)\b", lowered):
         return "expectation without a recorded result"
@@ -166,7 +193,47 @@ def status_claim_problem(quote: str) -> str | None:
 
 def validate_curated(root: Path, commit: str, current: list[str], tracked: set[str], data: dict[str, Any]) -> dict[str, dict[str, Any]]:
     rows: dict[str, dict[str, Any]] = {}
-    citations: set[tuple[str, int]] = set()
+    citations: dict[tuple[str, int], str] = {}
+
+    def register(citation: dict[str, Any], label: str) -> None:
+        cited_line(root, commit, citation, tracked, label)
+        key = (citation["file"], citation["line"])
+        if key in citations:
+            raise InventoryError(f"duplicated citation: {citation['file']}:{citation['line']} ({citations[key]} and {label})")
+        citations[key] = label
+
+    def register_anchor(anchor: dict[str, Any], label: str, content: str) -> None:
+        field_or_line = anchor["field_or_line"]
+        if isinstance(field_or_line, int):
+            line = field_or_line
+        elif field_or_line == "filename":
+            return
+        else:
+            field_value = str(json_field(json.loads(content), field_or_line))
+            selector_parts = re.findall(r"(?:^|\.)([^.\[]+)|\[(\d+)\]", field_or_line.removeprefix("$").removeprefix("."))
+            final_name = selector_parts[-1][0] or None
+            matching = [
+                number for number, text in enumerate(content.splitlines(), 1)
+                if (str(anchor["utc"]) in text or field_value in text)
+                and (final_name is None or f'"{final_name}"' in text)
+            ]
+            if len(matching) != 1:
+                raise InventoryError(f"{label}: anchor field must resolve to one source line")
+            line = matching[0]
+        key = (anchor["file"], line)
+        if key in citations:
+            raise InventoryError(f"duplicated citation: {anchor['file']}:{line} ({citations[key]} and {label})")
+        citations[key] = label
+
+    def output_files(output: dict[str, Any], label: str) -> list[str]:
+        has_file = "file" in output
+        has_files = "files" in output
+        if has_file == has_files:
+            raise InventoryError(f"{label} requires exactly one of file or files")
+        values = [output["file"]] if has_file else output["files"]
+        if not isinstance(values, list) or not values or any(not isinstance(value, str) for value in values):
+            raise InventoryError(f"{label} files must be a non-empty string array")
+        return values
     for index, row in enumerate(data["labs"]):
         if not isinstance(row, dict) or not isinstance(row.get("lab"), str):
             raise InventoryError(f"curated labs[{index}] has no lab name")
@@ -182,14 +249,11 @@ def validate_curated(root: Path, commit: str, current: list[str], tracked: set[s
         if not isinstance(claims, list):
             raise InventoryError(f"{lab}: status_claims must be an array")
         for claim_index, claim in enumerate(claims):
-            cited_line(root, commit, claim, tracked, f"{lab} status_claims[{claim_index}]")
+            label = f"{lab} status_claims[{claim_index}]"
+            register(claim, label)
             problem = status_claim_problem(claim["quote"])
             if problem:
                 raise InventoryError(f"{lab} status_claims[{claim_index}] is not a declarative result: {problem}")
-            key = (claim["file"], claim["line"])
-            if key in citations:
-                raise InventoryError(f"duplicated citation: {claim['file']}:{claim['line']}")
-            citations.add(key)
         anchor = row.get("execution_anchor")
         if anchor is None:
             if row.get("execution_anchor_reason") != "unknown":
@@ -207,7 +271,7 @@ def validate_curated(root: Path, commit: str, current: list[str], tracked: set[s
             content = snapshot_bytes(root, commit, path).decode("utf-8", errors="replace")
             if isinstance(field_or_line, int):
                 lines = content.splitlines()
-                if field_or_line < 1 or field_or_line > len(lines) or str(anchor["utc"]) not in lines[field_or_line - 1]:
+                if field_or_line < 1 or field_or_line > len(lines) or not line_has_utc(lines[field_or_line - 1], str(anchor["utc"])):
                     raise InventoryError(f"{lab}: anchor UTC is not present at {path}:{field_or_line}")
             elif field_or_line == "filename":
                 compact = str(anchor["utc"]).replace("-", "").replace(":", "")
@@ -227,6 +291,7 @@ def validate_curated(root: Path, commit: str, current: list[str], tracked: set[s
                     raise InventoryError(f"{lab}: anchor UTC is not present in {path} {field_or_line}")
             else:
                 raise InventoryError(f"{lab}: invalid anchor field_or_line")
+            register_anchor(anchor, f"{lab} execution_anchor", content)
         lab_prefix = f"labs/{lab}/"
         for kind in ("derived_outputs", "raw_outputs"):
             values = row.get(kind)
@@ -234,25 +299,34 @@ def validate_curated(root: Path, commit: str, current: list[str], tracked: set[s
                 raise InventoryError(f"{lab}: {kind} must be an array")
             seen: set[str] = set()
             for output_index, output in enumerate(values):
-                if not isinstance(output, dict) or output.get("file") not in tracked or not str(output.get("file", "")).startswith(lab_prefix):
-                    raise InventoryError(f"{lab}: {kind}[{output_index}] refers to a missing lab file")
-                if output["file"] in seen:
-                    raise InventoryError(f"{lab}: duplicate {kind} file: {output['file']}")
-                seen.add(output["file"])
+                if not isinstance(output, dict):
+                    raise InventoryError(f"{lab}: {kind}[{output_index}] must be an object")
+                files = output_files(output, f"{lab} {kind}[{output_index}]")
+                for path in files:
+                    if path not in tracked or not path.startswith(lab_prefix):
+                        raise InventoryError(f"{lab}: {kind}[{output_index}] refers to a missing lab file")
+                    if path in seen:
+                        raise InventoryError(f"{lab}: duplicate {kind} file: {path}")
+                    seen.add(path)
                 justification = output.get("justification")
                 if not isinstance(justification, dict):
                     raise InventoryError(f"{lab}: {kind}[{output_index}] requires a cited justification")
-                cited_line(root, commit, justification, tracked, f"{lab} {kind}[{output_index}]")
-        overlap = {item["file"] for item in row["derived_outputs"]} & {item["file"] for item in row["raw_outputs"]}
+                register(justification, f"{lab} {kind}[{output_index}]")
+        overlap = {path for item in row["derived_outputs"] for path in output_files(item, f"{lab} derived_outputs")} & {path for item in row["raw_outputs"] for path in output_files(item, f"{lab} raw_outputs")}
         if overlap:
             raise InventoryError(f"{lab}: output classified as both raw and derived: {sorted(overlap)[0]}")
         cleanup = row.get("cleanup")
         if not isinstance(cleanup, dict) or cleanup.get("state") not in CLEANUP_STATES or not isinstance(cleanup.get("evidence"), dict):
             raise InventoryError(f"{lab}: invalid cleanup record")
-        cited_line(root, commit, cleanup["evidence"], tracked, f"{lab} cleanup")
+        register(cleanup["evidence"], f"{lab} cleanup")
         discrepancies = row.get("discrepancies")
         if not isinstance(discrepancies, list) or any(not isinstance(item, dict) or not item.get("type") or not item.get("detail") for item in discrepancies):
             raise InventoryError(f"{lab}: discrepancies must contain typed details")
+        for discrepancy_index, discrepancy in enumerate(discrepancies):
+            if "evidence" in discrepancy:
+                if not isinstance(discrepancy["evidence"], dict):
+                    raise InventoryError(f"{lab}: discrepancies[{discrepancy_index}] evidence must be a citation")
+                register(discrepancy["evidence"], f"{lab} discrepancies[{discrepancy_index}]")
     missing = sorted(set(current) - set(rows))
     extra = sorted(set(rows) - set(current))
     if missing:
@@ -308,8 +382,8 @@ def build_inventory(root: Path, commit: str, as_of: dt.date) -> dict[str, Any]:
         lab_files = sorted(path for path in files if path.startswith(prefix))
         evidence_files = sorted(path for path in lab_files if path.startswith(prefix + "evidence/") and not path.endswith("/README.md"))
         mechanical_gates = [row for path in evidence_files if (row := gate_row(root, commit, path)) is not None]
-        derived_overrides = {row["file"] for row in semantic["derived_outputs"]}
-        raw_overrides = {row["file"] for row in semantic["raw_outputs"]}
+        derived_overrides = {path for row in semantic["derived_outputs"] for path in ([row["file"]] if "file" in row else row["files"])}
+        raw_overrides = {path for row in semantic["raw_outputs"] for path in ([row["file"]] if "file" in row else row["files"])}
         mechanical_gate_paths = {row["path"] for row in mechanical_gates}
         derived = sorted(mechanical_gate_paths | derived_overrides)
         raw = sorted((set(evidence_files) - set(derived)) | raw_overrides)
