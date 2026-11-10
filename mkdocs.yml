@@ -99,6 +99,7 @@ validation:
     unrecognized_links: warn
 
 not_in_nav: |
+  /contributing/content-validation-states.md
   /reference/metrics.md
   /reference/diagram-inventory.md
   /reference/portal-capture-inventory.md
