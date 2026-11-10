@@ -90,6 +90,14 @@ jobs:
         run: |
           python scripts/portal_capture_inventory.py --check
 
+      - name: Run lab reproduction inventory tests
+        run: |
+          python scripts/test_lab_reproduction_inventory.py
+
+      - name: Validate lab reproduction inventory
+        run: |
+          python scripts/lab_reproduction_inventory.py --check
+
       - name: Validate changed documentation quality
         run: |
           python scripts/validate_doc_quality.py --changed-only --base-ref "${{ github.event.pull_request.base.sha || 'HEAD~1' }}"
