@@ -25,7 +25,7 @@ except ImportError:  # pragma: no cover - CI installs pyyaml.
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from lib.content_scope import is_in_scope  # noqa: E402
+from lib.content_scope import is_in_scope, is_tautological_text  # noqa: E402
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -357,6 +357,19 @@ def validate_content_validation(
         if not isinstance(claim, dict):
             add(findings, path, 1, f"content_validation.core_claims[{index}] must be a mapping")
             continue
+        claim_text = claim.get("claim")
+        if not isinstance(claim_text, str) or not claim_text.strip():
+            add(findings, path, 1, f"content_validation.core_claims[{index}].claim is required")
+        elif is_placeholder(claim_text):
+            add(findings, path, 1, f"content_validation.core_claims[{index}].claim must not be a placeholder")
+        elif is_tautological_text(claim_text):
+            add(
+                findings,
+                path,
+                1,
+                f"content_validation.core_claims[{index}].claim must assert Azure behavior, not describe the sourcing process",
+            )
+
         source = claim.get("source")
         if source is None or (isinstance(source, str) and not source.strip()):
             add(findings, path, 1, f"content_validation.core_claims[{index}].source is required")

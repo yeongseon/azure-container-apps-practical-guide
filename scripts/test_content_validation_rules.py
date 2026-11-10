@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import re
 import tempfile
 import unittest
 from collections.abc import Iterator
@@ -12,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 import validate_doc_quality as validator
+import generate_content_validation_status as status_generator
 
 
 TODAY = date(2026, 11, 10)
@@ -155,6 +157,53 @@ class ContentValidationRuleTests(unittest.TestCase):
             messages(metadata(claims=[claim(source=None), claim()])),
         )
 
+    def test_missing_claim_text_is_rejected(self) -> None:
+        invalid_claim = claim()
+        del invalid_claim["claim"]
+        self.assertIn(
+            "content_validation.core_claims[0].claim is required",
+            messages(metadata(claims=[invalid_claim, claim()])),
+        )
+
+    def test_empty_or_whitespace_claim_text_is_rejected(self) -> None:
+        for value in ("", "   "):
+            with self.subTest(value=value):
+                invalid_claim = claim()
+                invalid_claim["claim"] = value
+                self.assertIn(
+                    "content_validation.core_claims[0].claim is required",
+                    messages(metadata(claims=[invalid_claim, claim()])),
+                )
+
+    def test_placeholder_claim_text_is_rejected(self) -> None:
+        for placeholder in ("TODO", "placeholder", "<claim>", "[claim]", "{claim}"):
+            with self.subTest(placeholder=placeholder):
+                invalid_claim = claim()
+                invalid_claim["claim"] = placeholder
+                self.assertIn(
+                    "content_validation.core_claims[0].claim must not be a placeholder",
+                    messages(metadata(claims=[invalid_claim, claim()])),
+                )
+
+    def test_tautological_claim_text_is_rejected(self) -> None:
+        invalid_claim = claim()
+        invalid_claim["claim"] = "This page uses Microsoft Learn as the primary source basis."
+        self.assertIn(
+            "content_validation.core_claims[0].claim must assert Azure behavior, not describe the sourcing process",
+            messages(metadata(claims=[invalid_claim, claim()])),
+        )
+
+    def test_placeholder_words_inside_real_claims_are_allowed(self) -> None:
+        example_claim = claim()
+        example_claim["claim"] = (
+            "For example, Container Apps can keep the prior revision active until a new revision is ready."
+        )
+        todo_claim = claim()
+        todo_claim["claim"] = (
+            "A todo application can use HTTP scaling based on concurrent requests."
+        )
+        self.assertEqual(messages(metadata(claims=[example_claim, todo_claim])), [])
+
     def test_placeholder_claim_source_is_rejected(self) -> None:
         for placeholder in (
             "TODO",
@@ -240,6 +289,20 @@ class ContentValidationRuleTests(unittest.TestCase):
             "content_validation.core_claims must contain 2 to 5 claims",
             messages(metadata(claims=[])),
         )
+
+    def test_generated_validation_example_passes_validator(self) -> None:
+        dashboard = status_generator.generate_dashboard([], Path("docs"), TODAY)
+        match = re.search(
+            r"## How to Add Validation.*?```yaml\n(.*?)\n```",
+            dashboard,
+            re.DOTALL,
+        )
+        if match is None:
+            self.fail("generated dashboard does not contain a validation YAML example")
+        import yaml
+
+        frontmatter = yaml.safe_load(match.group(1).removeprefix("---\n").removesuffix("\n---"))
+        self.assertEqual(messages(frontmatter), [])
 
 
 if __name__ == "__main__":
