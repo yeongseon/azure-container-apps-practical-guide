@@ -186,9 +186,9 @@ Scratch copies exercised against the current validators confirm these blocking c
 - `status: unverified` requires YAML `null` for both review fields and rejects any claim with `verified: true`.
 - Metadata is required exactly when `scripts.lib.content_scope.is_in_scope()` returns `True`; factual subsection `index.md` pages are included unless they are listed in `NAVIGATION_INDEXES`.
 
-### Planned for Issue #574
+### Enforcement Boundary
 
-[Issue #574](https://github.com/yeongseon/azure-container-apps-practical-guide/issues/574) adds the fail-closed structural checks listed above to the existing changed-document quality gate. The validator does not fetch or interpret cited pages, so it still cannot prove that a Microsoft Learn page supports the assertion. Reviewers must continue to verify claim-to-source support directly; validator acceptance is not evidence that a claim is truthful.
+[Issue #574](https://github.com/yeongseon/azure-container-apps-practical-guide/issues/574) added the structural checks listed above to the existing changed-document quality gate. They check shape, dates, placeholders, reviewer values, and the form of each cited URL. The validator does not fetch or interpret cited pages, so semantic claim-to-source support remains a manual review responsibility: validator acceptance is not evidence that a claim is truthful or that the cited Microsoft Learn page supports it.
 
 ## Adoption Denominator
 

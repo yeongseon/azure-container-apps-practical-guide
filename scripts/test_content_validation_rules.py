@@ -202,6 +202,7 @@ class ContentValidationRuleTests(unittest.TestCase):
         todo_claim["claim"] = (
             "A todo application can use HTTP scaling based on concurrent requests."
         )
+        todo_claim["source"] = "https://learn.microsoft.com/en-us/azure/container-apps/scale-app"
         self.assertEqual(messages(metadata(claims=[example_claim, todo_claim])), [])
 
     def test_placeholder_claim_source_is_rejected(self) -> None:
