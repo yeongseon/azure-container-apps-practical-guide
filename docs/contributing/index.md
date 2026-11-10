@@ -232,6 +232,8 @@ NEVER include real Azure identifiers in documentation or examples:
 
 ## Build and Validate
 
+Before changing lab status or reproduction claims, consult the source-pinned [Lab Reproduction Inventory](../reference/lab-reproduction-inventory.md). It distinguishes committed raw Azure capture times from offline gate evaluation times and records absent cleanup proof.
+
 ```bash
 # Install dependencies
 pip install mkdocs-material mkdocs-minify-plugin
