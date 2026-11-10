@@ -18,23 +18,20 @@
         "aca-secret-kv-ref-mi-network-path-h4d",
         "aca-secret-kv-ref-mi-network-path-h4e",
         "aca-secret-kv-ref-mi-network-path-h4f",
-        "aca-secret-kv-ref-mi-network-path-h4g",
-        "managed-identity-key-vault-failure"
+        "aca-secret-kv-ref-mi-network-path-h4g"
       ],
       "prerequisites": "Policy-free subscription or a Key Vault Private Endpoint redesign; explicit authorization before deployment.",
-      "size": 8
+      "size": 7
     },
     {
       "batch": 2,
       "cost_class": "high",
       "discrepancy_type": "missing-live-run-proof",
       "labs": [
-        "acr-network-path-firewall-allowlist",
-        "acr-network-path-pe-direct",
-        "acr-network-path-pe-forced-inspection"
+        "acr-network-path-pe-direct"
       ],
       "prerequisites": "Explicit cost and cleanup approval; Azure Firewall/Private Endpoint prerequisites.",
-      "size": 3
+      "size": 1
     },
     {
       "batch": 3,
@@ -44,27 +41,17 @@
         "appgw-to-internal-aca-nsg-mismatch",
         "appinsights-connection-string-missing",
         "cd-reconnect-rbac-conflict",
-        "dapr-integration",
         "image-size-startup-delay",
         "probe-and-port-mismatch",
         "replica-node-spread",
-        "revision-provisioning-failure"
+        "revision-provisioning-failure",
+        "traffic-routing-canary"
       ],
       "prerequisites": "Azure subscription access, per-lab prerequisites, and a plan to retain raw capture plus teardown output.",
       "size": 8
     },
     {
       "batch": 4,
-      "cost_class": "low-to-moderate",
-      "discrepancy_type": "missing-live-run-proof",
-      "labs": [
-        "traffic-routing-canary"
-      ],
-      "prerequisites": "Azure subscription access, per-lab prerequisites, and a plan to retain raw capture plus teardown output.",
-      "size": 1
-    },
-    {
-      "batch": 5,
       "cost_class": "blocked-no-run",
       "discrepancy_type": "missing-teardown-proof",
       "labs": [
@@ -81,7 +68,7 @@
       "size": 8
     },
     {
-      "batch": 6,
+      "batch": 5,
       "cost_class": "high",
       "discrepancy_type": "missing-teardown-proof",
       "labs": [
@@ -95,7 +82,7 @@
       "size": 5
     },
     {
-      "batch": 7,
+      "batch": 6,
       "cost_class": "low-to-moderate",
       "discrepancy_type": "missing-teardown-proof",
       "labs": [
@@ -112,7 +99,7 @@
       "size": 8
     },
     {
-      "batch": 8,
+      "batch": 7,
       "cost_class": "low-to-moderate",
       "discrepancy_type": "missing-teardown-proof",
       "labs": [
@@ -129,7 +116,7 @@
       "size": 8
     },
     {
-      "batch": 9,
+      "batch": 8,
       "cost_class": "low-to-moderate",
       "discrepancy_type": "missing-teardown-proof",
       "labs": [
@@ -141,53 +128,31 @@
       "size": 3
     },
     {
-      "batch": 10,
-      "cost_class": "blocked-no-run",
-      "discrepancy_type": "raw-evidence-without-explicit-capture-anchor",
-      "labs": [
-        "managed-identity-key-vault-failure"
-      ],
-      "prerequisites": "Policy-free subscription or a Key Vault Private Endpoint redesign; explicit authorization before deployment.",
-      "size": 1
-    },
-    {
-      "batch": 11,
+      "batch": 9,
       "cost_class": "high",
       "discrepancy_type": "raw-evidence-without-explicit-capture-anchor",
       "labs": [
-        "acr-network-path-firewall-allowlist",
-        "acr-network-path-pe-direct",
-        "acr-network-path-pe-forced-inspection"
+        "acr-network-path-pe-direct"
       ],
       "prerequisites": "Explicit cost and cleanup approval; Azure Firewall/Private Endpoint prerequisites.",
-      "size": 3
+      "size": 1
     },
     {
-      "batch": 12,
+      "batch": 10,
       "cost_class": "low-to-moderate",
       "discrepancy_type": "raw-evidence-without-explicit-capture-anchor",
       "labs": [
         "appgw-to-internal-aca-nsg-mismatch",
         "appinsights-connection-string-missing",
         "cd-reconnect-rbac-conflict",
-        "dapr-integration",
         "image-size-startup-delay",
         "probe-and-port-mismatch",
         "replica-node-spread",
-        "revision-provisioning-failure"
-      ],
-      "prerequisites": "Azure subscription access, per-lab prerequisites, and a plan to retain raw capture plus teardown output.",
-      "size": 8
-    },
-    {
-      "batch": 13,
-      "cost_class": "low-to-moderate",
-      "discrepancy_type": "raw-evidence-without-explicit-capture-anchor",
-      "labs": [
+        "revision-provisioning-failure",
         "traffic-routing-canary"
       ],
       "prerequisites": "Azure subscription access, per-lab prerequisites, and a plan to retain raw capture plus teardown output.",
-      "size": 1
+      "size": 8
     }
   ],
   "historical_reconciliation": {
@@ -546,6 +511,18 @@
       ],
       "status_claimed_in_docs": [
         {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/acr-network-path-dns-forwarder-bypass.md",
+          "line": 16,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-05; cli_version: 2.79.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/acr-network-path-dns-forwarder-bypass.md",
+          "line": 19,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-05)"
+        },
+        {
           "file": "docs/troubleshooting/lab-guides/acr-network-path-dns-forwarder-bypass.md",
           "line": 57,
           "quote": "This behavior was reproduced in **Korea Central on 2026-06-05** with the specific topology described above (ACR Premium PE, dnsmasq on Ubuntu B1s VM as the VNet's custom DNS server with the upstream toggled between `168.63.129.16` and `8.8.8.8`, `privatelink.azurecr.io` linked zone, Container Apps Consumption profile, managed-identity auth). Treat it as **validated for this lab's specific topology and timing** — not as a universal statement for every Azure Container Apps + ACR deployment. A different custom-DNS topology (Azure Private DNS Resolver, Windows DNS, on-prem caching DNS, etc.) with a correctly configured forwarding rule for `privatelink.azurecr.io` → `168.63.129.16` avoids the failure mode entirely."
@@ -564,7 +541,7 @@
       "verify_sh_present": true
     },
     {
-      "classification": "unknown",
+      "classification": "live-azure-evidence",
       "cleanup_evidence": {
         "completion": "absent",
         "recorded_teardown_outputs": [],
@@ -590,24 +567,28 @@
         }
       ],
       "discrepancies": [
-        "Raw evidence is committed, but no capture timestamp was found; last Azure run remains unknown.",
-        "A cleanup script exists, but no committed teardown output proves cleanup ran or completed.",
-        "Committed artifacts do not contain an explicit capture anchor that establishes a live Azure run time."
+        "A cleanup script exists, but no committed teardown output proves cleanup ran or completed."
       ],
       "discrepancy_types": [
-        "raw-evidence-without-explicit-capture-anchor",
-        "missing-teardown-proof",
-        "missing-live-run-proof"
+        "missing-teardown-proof"
       ],
-      "evidence_basis": "Repository artifacts do not establish a timestamped live Azure capture or a gate-only replay cohort.",
+      "evidence_basis": "Committed non-gate evidence records capture timestamps; derived verifier gates are listed separately.",
       "lab_path": "labs/acr-network-path-firewall-allowlist",
-      "last_azure_run_anchor_kinds": [],
-      "last_azure_run_utc": "unknown",
+      "last_azure_run_anchor_kinds": [
+        "http-date-header"
+      ],
+      "last_azure_run_utc": "2026-06-29T08:53:35Z",
       "raw_evidence": [
         {
-          "capture_anchors": [],
-          "capture_time_first_utc": "unknown",
-          "capture_time_last_utc": "unknown",
+          "capture_anchors": [
+            {
+              "anchor_kind": "http-date-header",
+              "location": "$.capture_metadata.baseline_http_response.headers[1]",
+              "timestamp_utc": "2026-06-29T08:48:57Z"
+            }
+          ],
+          "capture_time_first_utc": "2026-06-29T08:48:57Z",
+          "capture_time_last_utc": "2026-06-29T08:48:57Z",
           "path": "labs/acr-network-path-firewall-allowlist/evidence/01-app-spec-pre-fix.json"
         },
         {
@@ -647,9 +628,15 @@
           "path": "labs/acr-network-path-firewall-allowlist/evidence/07-containerapp-spec-pre-fix.yaml"
         },
         {
-          "capture_anchors": [],
-          "capture_time_first_utc": "unknown",
-          "capture_time_last_utc": "unknown",
+          "capture_anchors": [
+            {
+              "anchor_kind": "http-date-header",
+              "location": "$.http_response.headers[1]",
+              "timestamp_utc": "2026-06-29T08:51:13Z"
+            }
+          ],
+          "capture_time_first_utc": "2026-06-29T08:51:13Z",
+          "capture_time_last_utc": "2026-06-29T08:51:13Z",
           "path": "labs/acr-network-path-firewall-allowlist/evidence/08-h1-failure-window.json"
         },
         {
@@ -671,9 +658,15 @@
           "path": "labs/acr-network-path-firewall-allowlist/evidence/11-app-spec-post-fix.json"
         },
         {
-          "capture_anchors": [],
-          "capture_time_first_utc": "unknown",
-          "capture_time_last_utc": "unknown",
+          "capture_anchors": [
+            {
+              "anchor_kind": "http-date-header",
+              "location": "$.http_response.headers[1]",
+              "timestamp_utc": "2026-06-29T08:53:35Z"
+            }
+          ],
+          "capture_time_first_utc": "2026-06-29T08:53:35Z",
+          "capture_time_last_utc": "2026-06-29T08:53:35Z",
           "path": "labs/acr-network-path-firewall-allowlist/evidence/12-h2-recovery-window.json"
         }
       ],
@@ -692,6 +685,18 @@
           "file": "docs/troubleshooting/lab-guides/acr-network-path-firewall-allowlist.md",
           "line": 17,
           "quote": "status: reproduced"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/acr-network-path-firewall-allowlist.md",
+          "line": 68,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-29; cli_version: 2.79.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/acr-network-path-firewall-allowlist.md",
+          "line": 71,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-29)"
         },
         {
           "file": "docs/troubleshooting/lab-guides/acr-network-path-firewall-allowlist.md",
@@ -852,6 +857,18 @@
       ],
       "status_claimed_in_docs": [
         {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/acr-network-path-pe-direct.md",
+          "line": 16,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-05; cli_version: 2.79.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/acr-network-path-pe-direct.md",
+          "line": 19,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-05)"
+        },
+        {
           "file": "docs/troubleshooting/lab-guides/acr-network-path-pe-direct.md",
           "line": 54,
           "quote": "This behavior was reproduced in **Korea Central on 2026-06-05** with the specific topology described above (ACR Premium with Private Endpoint, `privatelink.azurecr.io` linked DNS zone, Container Apps Consumption profile, managed-identity auth, no firewall on the image-data path). Treat it as **validated for this lab's specific topology, auth mode, and timing** — not as a universal statement for every Azure Container Apps + ACR deployment. Different ACR SKUs (Basic/Standard cannot host a Private Endpoint), different DNS topologies (custom DNS server without proper forwarding — see sibling Scenario E lab), missing zone records (see sibling Scenario D lab), and different Container Apps platform versions can change the observed behavior."
@@ -875,7 +892,7 @@
       "verify_sh_present": true
     },
     {
-      "classification": "unknown",
+      "classification": "live-azure-evidence",
       "cleanup_evidence": {
         "completion": "absent",
         "recorded_teardown_outputs": [],
@@ -901,19 +918,17 @@
         }
       ],
       "discrepancies": [
-        "Raw evidence is committed, but no capture timestamp was found; last Azure run remains unknown.",
-        "A cleanup script exists, but no committed teardown output proves cleanup ran or completed.",
-        "Committed artifacts do not contain an explicit capture anchor that establishes a live Azure run time."
+        "A cleanup script exists, but no committed teardown output proves cleanup ran or completed."
       ],
       "discrepancy_types": [
-        "raw-evidence-without-explicit-capture-anchor",
-        "missing-teardown-proof",
-        "missing-live-run-proof"
+        "missing-teardown-proof"
       ],
-      "evidence_basis": "Repository artifacts do not establish a timestamped live Azure capture or a gate-only replay cohort.",
+      "evidence_basis": "Committed non-gate evidence records capture timestamps; derived verifier gates are listed separately.",
       "lab_path": "labs/acr-network-path-pe-forced-inspection",
-      "last_azure_run_anchor_kinds": [],
-      "last_azure_run_utc": "unknown",
+      "last_azure_run_anchor_kinds": [
+        "http-date-header"
+      ],
+      "last_azure_run_utc": "2026-06-29T00:39:19Z",
       "raw_evidence": [
         {
           "capture_anchors": [],
@@ -958,9 +973,15 @@
           "path": "labs/acr-network-path-pe-forced-inspection/evidence/07-containerapp-spec-pre-fix.yaml"
         },
         {
-          "capture_anchors": [],
-          "capture_time_first_utc": "unknown",
-          "capture_time_last_utc": "unknown",
+          "capture_anchors": [
+            {
+              "anchor_kind": "http-date-header",
+              "location": "$.http_response.headers[2]",
+              "timestamp_utc": "2026-06-29T00:28:31Z"
+            }
+          ],
+          "capture_time_first_utc": "2026-06-29T00:28:31Z",
+          "capture_time_last_utc": "2026-06-29T00:28:31Z",
           "path": "labs/acr-network-path-pe-forced-inspection/evidence/08-h1-silence-window.json"
         },
         {
@@ -982,9 +1003,15 @@
           "path": "labs/acr-network-path-pe-forced-inspection/evidence/11-app-spec-post-fix.json"
         },
         {
-          "capture_anchors": [],
-          "capture_time_first_utc": "unknown",
-          "capture_time_last_utc": "unknown",
+          "capture_anchors": [
+            {
+              "anchor_kind": "http-date-header",
+              "location": "$.http_response.headers[2]",
+              "timestamp_utc": "2026-06-29T00:39:19Z"
+            }
+          ],
+          "capture_time_first_utc": "2026-06-29T00:39:19Z",
+          "capture_time_last_utc": "2026-06-29T00:39:19Z",
           "path": "labs/acr-network-path-pe-forced-inspection/evidence/12-h2-recovery-window.json"
         }
       ],
@@ -994,6 +1021,18 @@
         "labs/acr-network-path-pe-forced-inspection/trigger.sh"
       ],
       "status_claimed_in_docs": [
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/acr-network-path-pe-forced-inspection.md",
+          "line": 18,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-06; cli_version: 2.79.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/acr-network-path-pe-forced-inspection.md",
+          "line": 21,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-06)"
+        },
         {
           "file": "docs/troubleshooting/lab-guides/acr-network-path-pe-forced-inspection.md",
           "line": 59,
@@ -1174,6 +1213,18 @@
       ],
       "status_claimed_in_docs": [
         {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/acr-network-path-record-split-brain.md",
+          "line": 17,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-06; cli_version: 2.79.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/acr-network-path-record-split-brain.md",
+          "line": 20,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-06)"
+        },
+        {
           "file": "docs/troubleshooting/lab-guides/acr-network-path-record-split-brain.md",
           "line": 61,
           "quote": "This behavior was reproduced in **Korea Central on 2026-06-06** with the specific topology described above (ACR Premium PE, default Azure DNS at `168.63.129.16` in the VNet, `privatelink.azurecr.io` linked through a VNet link that omits `resolutionPolicy` and therefore uses `Default`, deliberate single-record deletion of the regional data endpoint, Container Apps Consumption profile, managed-identity auth). Treat it as **validated for this lab's specific topology and timing** — not as a universal statement for every Azure Container Apps + ACR deployment. A VNet link using native `NxDomainRedirect`, or custom DNS configured for public fallback, can produce `topology_class=split_brain` instead of `topology_class=data_nxdomain`; see the [§1 Background](#1-background) taxonomy table."
@@ -1213,6 +1264,42 @@
         {
           "evaluated_at_utc": "unknown",
           "path": "labs/acr-pull-failure/evidence/06-h1-gate.json"
+        },
+        {
+          "evaluated_at_utc": "unknown",
+          "path": "labs/acr-pull-failure/evidence/07-acr-build-result.json"
+        },
+        {
+          "evaluated_at_utc": "unknown",
+          "path": "labs/acr-pull-failure/evidence/08-containerapp-update-result.json"
+        },
+        {
+          "evaluated_at_utc": "unknown",
+          "path": "labs/acr-pull-failure/evidence/09-containerapp-show-after-fix.json"
+        },
+        {
+          "evaluated_at_utc": "unknown",
+          "path": "labs/acr-pull-failure/evidence/10-revisions-list-after-fix.json"
+        },
+        {
+          "evaluated_at_utc": "unknown",
+          "path": "labs/acr-pull-failure/evidence/11-acr-repository-list-after-fix.json"
+        },
+        {
+          "evaluated_at_utc": "unknown",
+          "path": "labs/acr-pull-failure/evidence/11-acr-repository-show-tags-after-fix.json"
+        },
+        {
+          "evaluated_at_utc": "unknown",
+          "path": "labs/acr-pull-failure/evidence/12-curl-after-fix.json"
+        },
+        {
+          "evaluated_at_utc": "unknown",
+          "path": "labs/acr-pull-failure/evidence/13-kql-after-fix-raw.txt"
+        },
+        {
+          "evaluated_at_utc": "unknown",
+          "path": "labs/acr-pull-failure/evidence/13-kql-after-fix.json"
         },
         {
           "evaluated_at_utc": "unknown",
@@ -1318,60 +1405,6 @@
           "capture_anchors": [],
           "capture_time_first_utc": "unknown",
           "capture_time_last_utc": "unknown",
-          "path": "labs/acr-pull-failure/evidence/07-acr-build-result.json"
-        },
-        {
-          "capture_anchors": [],
-          "capture_time_first_utc": "unknown",
-          "capture_time_last_utc": "unknown",
-          "path": "labs/acr-pull-failure/evidence/08-containerapp-update-result.json"
-        },
-        {
-          "capture_anchors": [],
-          "capture_time_first_utc": "unknown",
-          "capture_time_last_utc": "unknown",
-          "path": "labs/acr-pull-failure/evidence/09-containerapp-show-after-fix.json"
-        },
-        {
-          "capture_anchors": [],
-          "capture_time_first_utc": "unknown",
-          "capture_time_last_utc": "unknown",
-          "path": "labs/acr-pull-failure/evidence/10-revisions-list-after-fix.json"
-        },
-        {
-          "capture_anchors": [],
-          "capture_time_first_utc": "unknown",
-          "capture_time_last_utc": "unknown",
-          "path": "labs/acr-pull-failure/evidence/11-acr-repository-list-after-fix.json"
-        },
-        {
-          "capture_anchors": [],
-          "capture_time_first_utc": "unknown",
-          "capture_time_last_utc": "unknown",
-          "path": "labs/acr-pull-failure/evidence/11-acr-repository-show-tags-after-fix.json"
-        },
-        {
-          "capture_anchors": [],
-          "capture_time_first_utc": "unknown",
-          "capture_time_last_utc": "unknown",
-          "path": "labs/acr-pull-failure/evidence/12-curl-after-fix.json"
-        },
-        {
-          "capture_anchors": [],
-          "capture_time_first_utc": "unknown",
-          "capture_time_last_utc": "unknown",
-          "path": "labs/acr-pull-failure/evidence/13-kql-after-fix-raw.txt"
-        },
-        {
-          "capture_anchors": [],
-          "capture_time_first_utc": "unknown",
-          "capture_time_last_utc": "unknown",
-          "path": "labs/acr-pull-failure/evidence/13-kql-after-fix.json"
-        },
-        {
-          "capture_anchors": [],
-          "capture_time_first_utc": "unknown",
-          "capture_time_last_utc": "unknown",
           "path": "labs/acr-pull-failure/evidence/20-cli-versions.json"
         },
         {
@@ -1409,9 +1442,31 @@
           "quote": "status: reproduced"
         },
         {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/acr-pull-failure.md",
+          "line": 30,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-22; cli_version: 2.79.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/acr-pull-failure.md",
+          "line": 33,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-22)"
+        },
+        {
           "file": "docs/troubleshooting/lab-guides/acr-pull-failure.md",
           "line": 377,
           "quote": "### Observed Evidence (Live Azure Test — 2026-05-01)"
+        },
+        {
+          "file": "docs/troubleshooting/lab-guides/acr-pull-failure.md",
+          "line": 409,
+          "quote": "A second live reproduction was executed on **2026-06-03** with the lab Bicep template as-is (image tag `:does-not-exist`) to validate the Portal evidence path end-to-end. This run held the following variables constant relative to the first run, so any difference in observed signals can be attributed to the image reference alone:"
+        },
+        {
+          "file": "docs/troubleshooting/lab-guides/acr-pull-failure.md",
+          "line": 477,
+          "quote": "A third live reproduction was executed on **2026-06-22** in `koreacentral` using the scripted `trigger.sh` + `fix-and-capture.sh` flow added in [`labs/acr-pull-failure/`](https://github.com/yeongseon/azure-container-apps-practical-guide/tree/main/labs/acr-pull-failure) with structured H1 / H2 gate emission. The run produced two new platform observations that the 2026-05-01 and 2026-06-03 reproductions did not surface, both of which materially change how operators should derive resource names and locate the smoking-gun error string when responding to this failure mode in production."
         },
         {
           "file": "labs/acr-pull-failure/README.md",
@@ -1427,6 +1482,16 @@
           "file": "labs/acr-pull-failure/evidence/README.md",
           "line": 3,
           "quote": "This directory contains the raw evidence artifacts for the `acr-pull-failure` lab. The lab is a **deployment-level failure attribution + recovery validation** test of the Azure Container Apps behavior when a Container App is provisioned with an image tag that does not exist in its referenced Azure Container Registry. A single Container App is provisioned via `az deployment group create` with `image: '${ACR_LOGIN_SERVER}/labacr:does-not-exist'`, the Bicep deployment exits `Failed` with a per-operation error message containing `MANIFEST_UNKNOWN: manifest tagged by \"does-not-exist\" is not found`, the Container App resource is left in `provisioningState=Failed` with `latestRevisionName=null` and zero revisions, and the failed-deployment cohort is captured in 6 deployment-level evidence files by `trigger.sh`. The lab then issues `az acr build --image labacr:v1` followed by `az containerapp update --image <acr>/labacr:v1`, polls revision health until `Healthy + trafficWeight=100`, and captures the post-fix cohort plus 10 HTTPS probes against the recovered FQDN in 9 more evidence files by `fix-and-capture.sh`. The cohort was captured in a single live-Azure window on **2026-06-22** against RG `rg-aca-lab-acr` (Korea Central, azure-cli 2.79.0, containerapp extension 1.3.0b4 preview). All files are PII-scrubbed (subscription/tenant GUIDs replaced with the zero-GUID placeholder, employee aliases replaced with `demouser`, employee emails replaced with `<email>`, Log Analytics workspace customerId replaced with the zero-GUID placeholder); the demo correlation ID `<identifier>` and the ACR Tasks build volume ID `<identifier>` are retained as synthetic example identifiers per AGENTS.md."
+        },
+        {
+          "file": "labs/acr-pull-failure/evidence/README.md",
+          "line": 29,
+          "quote": "Total cohort: **24 canonical Phase A files + 4 Phase B-emitted gate JSONs + this README = 29 physical files** under `evidence/`. The cohort spans the deployment attempt at 13:20:46Z (per `01-deployment-result.timestamp`), the trigger.sh start at 13:25:49Z, the fix-and-capture.sh start at 13:26:42Z, and the curl completion at 13:28:23Z — a total of ~7 minutes 37 seconds of wall-clock for the live-Azure portion plus an additional ~6 minutes for cleanup queue and metadata captures."
+        },
+        {
+          "file": "labs/acr-pull-failure/evidence/README.md",
+          "line": 144,
+          "quote": "The Phase B `verify.sh` is a pure file processor — it reads `evidence/*.json` and `evidence/*.txt` from disk and emits `evidence/{30,31,32,33}-*-gate.json`. It does NOT call Azure, which is why the resource group can be deleted (via `cleanup.sh`) before `verify.sh` finishes the gate-emission phases. The pre-Phase-B `verify.sh` was the Phase A live-Azure recovery + capture script (Phases 7-16); the Phase B refactor in this commit **renamed that script to `fix-and-capture.sh`** (so Phase A operators still have the same recovery orchestration under a more semantically accurate name — the script actually FIXES the failure rather than just observing it) and reassigned the `verify.sh` name to the new gate-emission processor. `trigger.sh` performs Phases 1-6 (deployment-level capture) and is unchanged."
         }
       ],
       "verify_sh_present": true
@@ -1439,7 +1504,12 @@
         "script": "labs/appgw-to-internal-aca-nsg-mismatch/cleanup.sh",
         "script_present": true
       },
-      "committed_gate_files": [],
+      "committed_gate_files": [
+        {
+          "evaluated_at_utc": "unknown",
+          "path": "labs/appgw-to-internal-aca-nsg-mismatch/evidence/verify-result.json"
+        }
+      ],
       "discrepancies": [
         "Raw evidence is committed, but no capture timestamp was found; last Azure run remains unknown.",
         "A cleanup script exists, but no committed teardown output proves cleanup ran or completed.",
@@ -1514,12 +1584,6 @@
           "capture_time_first_utc": "unknown",
           "capture_time_last_utc": "unknown",
           "path": "labs/appgw-to-internal-aca-nsg-mismatch/evidence/fixed-nsg-rules.json"
-        },
-        {
-          "capture_anchors": [],
-          "capture_time_first_utc": "unknown",
-          "capture_time_last_utc": "unknown",
-          "path": "labs/appgw-to-internal-aca-nsg-mismatch/evidence/verify-result.json"
         }
       ],
       "reproduction_scripts": [
@@ -1527,6 +1591,18 @@
         "labs/appgw-to-internal-aca-nsg-mismatch/trigger.sh"
       ],
       "status_claimed_in_docs": [
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/appgw-to-internal-aca-nsg-mismatch.md",
+          "line": 17,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-07-04; cli_version: 2.79.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/appgw-to-internal-aca-nsg-mismatch.md",
+          "line": 20,
+          "quote": "validation.bicep result: pass (last_tested: 2026-07-04)"
+        },
         {
           "file": "docs/troubleshooting/lab-guides/appgw-to-internal-aca-nsg-mismatch.md",
           "line": 50,
@@ -1753,6 +1829,18 @@
       ],
       "status_claimed_in_docs": [
         {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/appinsights-connection-string-missing.md",
+          "line": 21,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-22; cli_version: 2.79.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/appinsights-connection-string-missing.md",
+          "line": 24,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-22)"
+        },
+        {
           "file": "labs/appinsights-connection-string-missing/README.md",
           "line": 117,
           "quote": "# 5) Run the falsification experiment (Phase A — Live-Azure reproduction)."
@@ -1934,6 +2022,18 @@
           "quote": "status: reproduced"
         },
         {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/cd-reconnect-rbac-conflict.md",
+          "line": 33,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-23; cli_version: 2.79.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/cd-reconnect-rbac-conflict.md",
+          "line": 37,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-23)"
+        },
+        {
           "file": "docs/troubleshooting/lab-guides/cd-reconnect-rbac-conflict.md",
           "line": 313,
           "quote": "### Observed Evidence (Live Azure Test — 2026-06-23)"
@@ -2109,6 +2209,18 @@
       ],
       "status_claimed_in_docs": [
         {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/cpu-throttling.md",
+          "line": 22,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-22; cli_version: 2.79.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/cpu-throttling.md",
+          "line": 25,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-22)"
+        },
+        {
           "file": "labs/cpu-throttling/README.md",
           "line": 88,
           "quote": "# 4) Run the experiment (Phase A — Live-Azure reproduction)."
@@ -2137,7 +2249,7 @@
       "verify_sh_present": true
     },
     {
-      "classification": "unknown",
+      "classification": "live-azure-evidence",
       "cleanup_evidence": {
         "completion": "absent",
         "recorded_teardown_outputs": [],
@@ -2163,19 +2275,17 @@
         }
       ],
       "discrepancies": [
-        "Raw evidence is committed, but no capture timestamp was found; last Azure run remains unknown.",
-        "A cleanup script exists, but no committed teardown output proves cleanup ran or completed.",
-        "Committed artifacts do not contain an explicit capture anchor that establishes a live Azure run time."
+        "A cleanup script exists, but no committed teardown output proves cleanup ran or completed."
       ],
       "discrepancy_types": [
-        "raw-evidence-without-explicit-capture-anchor",
-        "missing-teardown-proof",
-        "missing-live-run-proof"
+        "missing-teardown-proof"
       ],
-      "evidence_basis": "Repository artifacts do not establish a timestamped live Azure capture or a gate-only replay cohort.",
+      "evidence_basis": "Committed non-gate evidence records capture timestamps; derived verifier gates are listed separately.",
       "lab_path": "labs/dapr-integration",
-      "last_azure_run_anchor_kinds": [],
-      "last_azure_run_utc": "unknown",
+      "last_azure_run_anchor_kinds": [
+        "http-date-header"
+      ],
+      "last_azure_run_utc": "2026-06-26T10:32:48Z",
       "raw_evidence": [
         {
           "capture_anchors": [],
@@ -2196,9 +2306,15 @@
           "path": "labs/dapr-integration/evidence/03-dapr-config-pre-fix.json"
         },
         {
-          "capture_anchors": [],
-          "capture_time_first_utc": "unknown",
-          "capture_time_last_utc": "unknown",
+          "capture_anchors": [
+            {
+              "anchor_kind": "http-date-header",
+              "location": "$.headers[2]",
+              "timestamp_utc": "2026-06-26T10:30:27Z"
+            }
+          ],
+          "capture_time_first_utc": "2026-06-26T10:30:27Z",
+          "capture_time_last_utc": "2026-06-26T10:30:27Z",
           "path": "labs/dapr-integration/evidence/04-http-response-pre-fix.json"
         },
         {
@@ -2232,9 +2348,15 @@
           "path": "labs/dapr-integration/evidence/09-dapr-config-post-fix.json"
         },
         {
-          "capture_anchors": [],
-          "capture_time_first_utc": "unknown",
-          "capture_time_last_utc": "unknown",
+          "capture_anchors": [
+            {
+              "anchor_kind": "http-date-header",
+              "location": "$.headers[2]",
+              "timestamp_utc": "2026-06-26T10:32:48Z"
+            }
+          ],
+          "capture_time_first_utc": "2026-06-26T10:32:48Z",
+          "capture_time_last_utc": "2026-06-26T10:32:48Z",
           "path": "labs/dapr-integration/evidence/10-http-response-post-fix.json"
         },
         {
@@ -2255,6 +2377,18 @@
         "labs/dapr-integration/trigger.sh"
       ],
       "status_claimed_in_docs": [
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/dapr-integration.md",
+          "line": 14,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-26; cli_version: 2.71.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/dapr-integration.md",
+          "line": 17,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-26)"
+        },
         {
           "file": "docs/troubleshooting/lab-guides/dapr-integration.md",
           "line": 368,
@@ -2453,6 +2587,18 @@
       ],
       "status_claimed_in_docs": [
         {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/diagnostic-settings-missing.md",
+          "line": 19,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-22; cli_version: 2.79.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/diagnostic-settings-missing.md",
+          "line": 22,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-22)"
+        },
+        {
           "file": "docs/troubleshooting/lab-guides/diagnostic-settings-missing.md",
           "line": 29,
           "quote": "This lab now uses a two-phase evidence model: Phase A (`trigger.sh` + `fix-and-capture.sh`) captures the live Azure reproduction, and Phase B (`verify.sh`) re-reads the committed evidence pack and emits four derived falsification gates without making any Azure calls."
@@ -2596,6 +2742,18 @@
           "file": "docs/troubleshooting/lab-guides/image-size-startup-delay.md",
           "line": 16,
           "quote": "status: reproduced"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/image-size-startup-delay.md",
+          "line": 31,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-22; cli_version: 2.83.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/image-size-startup-delay.md",
+          "line": 34,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-22)"
         },
         {
           "file": "docs/troubleshooting/lab-guides/image-size-startup-delay.md",
@@ -2827,6 +2985,18 @@
         "labs/ingress-target-port-mismatch/trigger.sh"
       ],
       "status_claimed_in_docs": [
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/ingress-target-port-mismatch.md",
+          "line": 14,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-22; cli_version: 2.79.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/ingress-target-port-mismatch.md",
+          "line": 17,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-22)"
+        },
         {
           "file": "docs/troubleshooting/lab-guides/ingress-target-port-mismatch.md",
           "line": 315,
@@ -3075,6 +3245,18 @@
           "quote": "notes: 'All three scenarios reproduced in Korea Central against canonical infra rg-aca-no-metrics-lab (azure-cli 2.79.0, containerapp extension 1.3.0b4). Per-scenario evidence captured 2026-06-20T00:48-00:50Z: Scenario A (slow-start, revision ca-nometrics-slow--gd2u817) → 20 \"no metrics returned\" lines in §5 spanning 136s, 30 \"Probe of StartUp failed\" events in §9 spanning 29s with the probe window sitting INSIDE the §5 window proving startup-correlation, eventually reaches Healthy/Running. Scenario B (crash-loop, revision ca-nometrics-crash--xfn3h34) → 27 \"no metrics returned\" lines in §5 spanning 603s, §6 5-min bin histogram has 3 bins (25/1/1), §2 inline JSON reports healthState:Unhealthy + runningState:Failed + provisioningState:Failed. Scenario C (healthy baseline, revision ca-nometrics-healthy--9ovm8cn) → 16 \"no metrics returned\" lines in §5 spanning 106s, §6 has 1 bin (16), §9 has 0 probe failures, reaches Healthy/Running. Cross-scenario falsification: crash duration is 4.44× the max of healthy/slow (above the 3.0× threshold), bin-count ordering healthy=1 = slow=1 < crash=3, health-state pattern Healthy/Healthy/Unhealthy. The DEPRECATED warning appeared exactly once per app at scaler init time. Phase B refactor in this commit: trigger.sh now owns ALL live-Azure orchestration (Bicep deploy → ACR build → sequential scenario A/B/C deploy → Log Analytics ingestion wait → per-scenario report generation), verify.sh is a pure file processor that emits four falsifiable gate JSONs (10/11/12/13). All 12 sub-gates (4 gates × 3 sub-gates) PASS: 11 on both the Strong and Fallback tiers and Gate 10(b) on its only path. Full evidence pack under labs/keda-no-metrics-returned/evidence/ — 18 historical-capture artifacts (6 files × 3 scenarios) PLUS 4 verify.sh-emitted gate JSONs. See labs/keda-no-metrics-returned/evidence/README.md for capture timeline, cross-scenario differential proof, and honest-disclosure notes on empirical platform behavior (empty summary-*.md, empty §12 cgroup sections, §7 DEPRECATED warning scope, sidecar replicas field semantics, mutable image tags).'"
         },
         {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/keda-no-metrics-returned.md",
+          "line": 37,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-20; cli_version: 2.79.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/keda-no-metrics-returned.md",
+          "line": 40,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-20)"
+        },
+        {
           "file": "docs/troubleshooting/lab-guides/keda-no-metrics-returned.md",
           "line": 303,
           "quote": "The Gate 13 cross-scenario ratio threshold is intentionally **lower** than the observed 4.44× (set to ≥ 3.0×) to absorb run-to-run variance while still falsifying the case where crash-loop duration converges with the healthy/slow baselines. The Gate 11 sub-gate (b) intentionally keys off the §2 inline JSON `runningState` and `provisioningState` fields rather than the sidecar `revisions-*.json` (which carries only `healthState`, `name`, `replicas`, `trafficWeight`) because `runningState` and `provisioningState` are the authoritative platform-observed state for a failing revision. See [`labs/keda-no-metrics-returned/evidence/README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/keda-no-metrics-returned/evidence/README.md) \"Honest disclosure\" section for the full empirical platform behavior documented during the 2026-06-20 live run, including the sidecar `replicas` semantics (DESIRED replica count from the revision spec, NOT the count of replicas that successfully reached Running)."
@@ -3093,7 +3275,7 @@
       "verify_sh_present": true
     },
     {
-      "classification": "unknown",
+      "classification": "live-azure-evidence",
       "cleanup_evidence": {
         "completion": "absent",
         "recorded_teardown_outputs": [],
@@ -3119,19 +3301,17 @@
         }
       ],
       "discrepancies": [
-        "Raw evidence is committed, but no capture timestamp was found; last Azure run remains unknown.",
-        "A cleanup script exists, but no committed teardown output proves cleanup ran or completed.",
-        "Committed artifacts do not contain an explicit capture anchor that establishes a live Azure run time."
+        "A cleanup script exists, but no committed teardown output proves cleanup ran or completed."
       ],
       "discrepancy_types": [
-        "raw-evidence-without-explicit-capture-anchor",
-        "missing-teardown-proof",
-        "missing-live-run-proof"
+        "missing-teardown-proof"
       ],
-      "evidence_basis": "Repository artifacts do not establish a timestamped live Azure capture or a gate-only replay cohort.",
+      "evidence_basis": "Committed non-gate evidence records capture timestamps; derived verifier gates are listed separately.",
       "lab_path": "labs/managed-identity-key-vault-failure",
-      "last_azure_run_anchor_kinds": [],
-      "last_azure_run_utc": "unknown",
+      "last_azure_run_anchor_kinds": [
+        "http-date-header"
+      ],
+      "last_azure_run_utc": "2026-06-26T08:26:59Z",
       "raw_evidence": [
         {
           "capture_anchors": [],
@@ -3158,9 +3338,15 @@
           "path": "labs/managed-identity-key-vault-failure/evidence/04-revision-list-pre-fix.json"
         },
         {
-          "capture_anchors": [],
-          "capture_time_first_utc": "unknown",
-          "capture_time_last_utc": "unknown",
+          "capture_anchors": [
+            {
+              "anchor_kind": "http-date-header",
+              "location": "$.headers[2]",
+              "timestamp_utc": "2026-06-26T08:20:53Z"
+            }
+          ],
+          "capture_time_first_utc": "2026-06-26T08:20:53Z",
+          "capture_time_last_utc": "2026-06-26T08:20:53Z",
           "path": "labs/managed-identity-key-vault-failure/evidence/05-http-response-pre-fix.json"
         },
         {
@@ -3188,9 +3374,15 @@
           "path": "labs/managed-identity-key-vault-failure/evidence/09-role-assignment-post-fix.json"
         },
         {
-          "capture_anchors": [],
-          "capture_time_first_utc": "unknown",
-          "capture_time_last_utc": "unknown",
+          "capture_anchors": [
+            {
+              "anchor_kind": "http-date-header",
+              "location": "$.headers[2]",
+              "timestamp_utc": "2026-06-26T08:26:59Z"
+            }
+          ],
+          "capture_time_first_utc": "2026-06-26T08:26:59Z",
+          "capture_time_last_utc": "2026-06-26T08:26:59Z",
           "path": "labs/managed-identity-key-vault-failure/evidence/10-http-response-post-fix.json"
         },
         {
@@ -3210,6 +3402,18 @@
         "labs/managed-identity-key-vault-failure/fix-and-capture.sh"
       ],
       "status_claimed_in_docs": [
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/managed-identity-key-vault-failure.md",
+          "line": 14,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-03; cli_version: 2.71.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/managed-identity-key-vault-failure.md",
+          "line": 17,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-03)"
+        },
         {
           "file": "docs/troubleshooting/lab-guides/managed-identity-key-vault-failure.md",
           "line": 370,
@@ -3617,6 +3821,18 @@
           "quote": "notes: \"All three scenarios reproduced in Korea Central (rg-aca-memleak-lab). Scenario A (hard-oom) produced 76 exit-code-137 events on revision ca-oom-hard--18xosgl within the first 60 seconds after deployment, then CrashLoopBackOff. Scenario B (leak) produced progressive [leak] tick console-log entries climbing by 30 MiB every 20 seconds. Scenario C (healthy) stayed under 50 MiB working set the entire run. Fix (MODE=healthy + memory 1Gi) created revision ca-oom-hard--0000001 which reached HealthState=Healthy within 90 seconds, and the failing revision was retained as inactive evidence. Portal Diagnose-and-Solve / Availability-and-Performance / Container Exit Events detector independently confirmed exit code 137 as SIGKILL from OOM (the Portal text reads 'Resource exhaustion - containers terminated with SIGKILL (exit code 137) ... This is commonly caused by Out of Memory (OOM) conditions').\""
         },
         {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/memory-leak-oomkilled.md",
+          "line": 36,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-20; cli_version: 2.79.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/memory-leak-oomkilled.md",
+          "line": 39,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-20)"
+        },
+        {
           "file": "docs/troubleshooting/lab-guides/memory-leak-oomkilled.md",
           "line": 297,
           "quote": "The Gate 12 sub-gate (a) Fallback path is **intentionally `false` and documented as such in the gate JSON's `section_6_bins_note`**: the §6 5-minute bin histogram uses a KQL `has_any('memory')` filter that produces false-positives on the healthy scenario (14 events in the 04:10 bin that are platform \"memory\" mentions unrelated to OOM). Only the Strong path (§5 record-scoped 2-form predicate, which returned 0) is authoritative for Gate 12. This is intentional defensive design — letting the fallback path silently mask a regression would defeat the purpose of the gate. The Gate 13 sub-gate (b) Strong path keys off §7 leak-tick count (not §6 bins) for the leak signature for the same reason. See [`labs/memory-leak-oomkilled/evidence/README.md`](https://github.com/yeongseon/azure-container-apps-practical-guide/blob/main/labs/memory-leak-oomkilled/evidence/README.md) \"Honest disclosure\" section for the full empirical platform behavior documented during the 2026-06-20 live run, including the three-timestamps-for-hard pattern (two PRE-fix at 04:19:00Z + 04:21:13Z plus one POST-fix at 06:02:57Z), the leak scenario's 1-OOM cross-cycle overlap, and the §10c PTY-failure-on-macOS that motivated using `runningState: RunningAtMaxScale` as the Gate 12 sub-gate (c) substitute for restart count."
@@ -3839,6 +4055,18 @@
           "file": "docs/troubleshooting/lab-guides/memory-percentage-vs-keda-utilization.md",
           "line": 18,
           "quote": "notes: \"Re-reproduced in Korea Central on 2026-06-24 with az-cli 2.79.0 and containerapp extension 1.3.0b4, in addition to the original 2026-06-02 run. Scenario A held at replicas_max=2 with mempct=40.0; Scenario B walked to replicas_max=20 with mempct=56.0; Scenario C held at replicas_max=2 with mempct=72.0 and cgroup composition cache=734MB vs rss=18MB (cache-to-rss ratio 39.4x), confirming the cache-dominant behavior. Evidence pack under labs/memory-percentage-vs-keda-utilization/evidence/ contains 21 trigger snapshots and 4 verify gates (H1 per-scenario plus H2 cross-scenario differential), all PII-scrubbed. Strict 2-path predicate (Strong + Fallback) - all 21 H1 sub-gates and 6 H2 sub-gates pass on the Strong path. Portal screenshots from the 2026-06-02 run preserved as the visual evidence of record.\""
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/memory-percentage-vs-keda-utilization.md",
+          "line": 30,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-24; cli_version: 2.79.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/memory-percentage-vs-keda-utilization.md",
+          "line": 33,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-24)"
         },
         {
           "file": "docs/troubleshooting/lab-guides/memory-percentage-vs-keda-utilization.md",
@@ -4424,6 +4652,18 @@
           "quote": "notes: 'Reproduced end-to-end in rg-aca-lab-observability (koreacentral); baseline secretRef → invalid literal → secretRef restored across revisions 0m6ek7p → 0000001 → 0000002; six Portal captures attached with PII-replacement masking. Telemetry-count claim left [Not Proven] because the baseline helloworld image ships no Application Insights SDK. The three env-var anchor captures (02-baseline-secretref on revision 0m6ek7p, 03-after-trigger-literal on revision 0000001, 06-restored-secretref on revision 0000002) directly falsify the env-var-source half of the hypothesis: Source flips Reference a secret → Manual entry → Reference a secret, with the literal value exactly matching the trigger.sh invalid connection string. Second live Azure run completed 2026-06-24 with az CLI 2.79.0 (containerapp extension 1.3.0b4) against rg-aca-lab-observability2 (subscription redacted to placeholder zero-GUID, koreacentral), producing the Phase B-style evidence pack at labs/observability-tracing/evidence/ (24 numbered prefixes totaling 26 physical files including JSON, .stderr companions, and .log waits). H1 (telemetry_misconfiguration_env_var_source_flipped_to_literal) and H2 (telemetry_configuration_restored_to_secretref_app_intact) both PASS with all 11 sub-gates true. Empirical curl: 5/5 HTTP 200 across baseline, post-trigger, pre-fix, and post-fix windows (data plane unaffected by env-var Source flip). Three-distinct-revision progression triangulated via createdTime lookups from per-stage snapshots (baseline from 02-*, post-trigger from 09-*, post-fix from 18-*) because Container Apps single-revision-mode pruning removed the baseline from the post-fix revisions snapshot — the lab requires running trigger.sh and verify.sh in sequence without an intervening manual revision update. Secret-store PII safety: 05/10/19 snapshots redact the connection-string value to REDACTED_NEVER_LOG_REAL_CONNECTION_STRINGS, raw secret-store output captured to a -raw.json temp file and immediately deleted; H1 sub-gate d and H2 sub-gate d compare only name + keyVaultUrl + identity + value_present, never the resolved value. PII scrubbed: subscription/tenant GUIDs replaced with zero-GUID placeholder, customDomainVerificationId replaced with AAAA placeholder, employee email replaced with <email>, local user paths replaced with /Users/demouser.'"
         },
         {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/observability-tracing.md",
+          "line": 31,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-24; cli_version: 2.79.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/observability-tracing.md",
+          "line": 34,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-24)"
+        },
+        {
           "file": "docs/troubleshooting/lab-guides/observability-tracing.md",
           "line": 394,
           "quote": "### Observed Evidence (Live Azure Reproduction — 2026-06-03)"
@@ -4650,6 +4890,18 @@
           "quote": "notes: 'Reproduced end-to-end on 2026-06-03 against rg-aca-lab-probe (subscription and resource names redacted). PR-A failure-state captures (2026-06-03 08:47 +0900) confirm: TargetPort 8000 vs gunicorn :3000, --0000001 Failed at 100% traffic, --coxh910 Degraded, repeated ProbeFailed System events with Count incrementing into the thousands across both revisions. PR-B after-fix captures (2026-06-03 10:39 +0900) confirm same-revision recovery via three independent signals: (1) revision name --0000001 preserved across failure and recovery captures, (2) identical Created timestamp 6/3/2026 8:17:46 AM in capture 02 and capture 08, (3) controller event \"No revision restart or provisioning was needed.\" in capture 11. Re-reviewed 2026-06-21 with all 11 PNGs verified visually — no PII leaks, no 401/403, no wrong-blade captures, evidence stronger than caption claims in captures 06, 08, 11. Tracked in issue #227. Second live Azure run completed 2026-06-23 with az CLI 2.79.0 against rg-aca-lab-port (subscription redacted to placeholder zero-GUID), producing the Phase B-style evidence pack at labs/probe-and-port-mismatch/evidence/ (25 raw artifacts including JSON, logs, and gate files). H1 (port_mismatch_probe_failure_reproduced) and H2 (port_mismatch_recovered_on_same_revision) both PASS with all 11 sub-gates true. Platform behavior variance noted: the 2026-06-23 run captured runningState=Degraded (not the historical Failed) with platform-emitted runningStateDetails text \"Deployment Progress Deadline Exceeded. 0/1 replicas ready. The TargetPort 8000 does not match the listening port 3000.\", and the H1/H2 gates were strengthened to accept either runningState in (Failed, Degraded) OR a runningStateDetails text containing TargetPort/listening port/ProbeFailed. See the new \"Observed Evidence (Live Azure Test — 2026-06-23)\" subsection in this guide for the H1+H2 sub-gate tables and the honest disclosure of platform behavior differences. Same-revision recovery is triangulated via three independent signals: createdTime=2026-06-23T14:06:19+00:00 unchanged pre/post fix, image unchanged, name --0000001 unchanged. Reviewer iteration 2026-06-23 (PR #270): H1 sub-gate c and H2 sub-gate a strengthened to require port-specific corroboration on either of two acceptance paths (strong: runningStateDetails text matches TargetPort/listening port/ProbeFailed; fallback: non-healthy state PAIRED with system_log_capture.probe_failed_lines_in_tail > 0). A bare Failed/Degraded label with no port-specific corroboration is now explicitly insufficient. H2 same_revision_proof.name_unchanged is computed from JSON evidence (12-revision-pre-fix.json.name vs 16-revision-post-fix.json.name) instead of hard-coded True. 11-h1-gate.json and 22-h2-gate.json regenerated under strict logic; all 11 sub-gates still PASS. customDomainVerificationId in 05-containerapp-update-image.json scrubbed to AAAA placeholder. Added labs/probe-and-port-mismatch/evidence/README.md documenting 06-wait-provisioning.log as non-gating pre-strengthening snapshot.'"
         },
         {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/probe-and-port-mismatch.md",
+          "line": 30,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-23; cli_version: 2.79.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/probe-and-port-mismatch.md",
+          "line": 33,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-23)"
+        },
+        {
           "file": "docs/troubleshooting/lab-guides/probe-and-port-mismatch.md",
           "line": 328,
           "quote": "### Observed Evidence (Live Azure Test — 2026-05-01)"
@@ -4701,6 +4953,14 @@
         {
           "evaluated_at_utc": "2026-11-07T02:47:31Z",
           "path": "labs/replica-node-spread/evidence/13-packaging-gate.json"
+        },
+        {
+          "evaluated_at_utc": "unknown",
+          "path": "labs/replica-node-spread/evidence/analysis-summary.json"
+        },
+        {
+          "evaluated_at_utc": "unknown",
+          "path": "labs/replica-node-spread/evidence/analysis-summary.md"
         }
       ],
       "discrepancies": [
@@ -4718,18 +4978,6 @@
       "last_azure_run_anchor_kinds": [],
       "last_azure_run_utc": "unknown",
       "raw_evidence": [
-        {
-          "capture_anchors": [],
-          "capture_time_first_utc": "unknown",
-          "capture_time_last_utc": "unknown",
-          "path": "labs/replica-node-spread/evidence/analysis-summary.json"
-        },
-        {
-          "capture_anchors": [],
-          "capture_time_first_utc": "unknown",
-          "capture_time_last_utc": "unknown",
-          "path": "labs/replica-node-spread/evidence/analysis-summary.md"
-        },
         {
           "capture_anchors": [],
           "capture_time_first_utc": "unknown",
@@ -4833,6 +5081,18 @@
           "file": "docs/troubleshooting/lab-guides/replica-node-spread.md",
           "line": 31,
           "quote": "notes: \"Phase A live-Azure reproduction on 2026-06-14 in koreacentral (rg-aca-rns-lab) produced the H3 PASS verdict, H1 [Strongly Suggested] confirmed (Consumption scale-30 produced [27, 27, 27] boot_time clusters across 3 top-scale repeats with concurrence yes), and H2 [Strongly Suggested] confirmed (Dedicated D8 scale-10 produced [1, 1, 1] boot_time clusters across 3 top-scale repeats with concurrence yes). Phase B verifier (2026-06-24) re-verifies the cohort with 4 falsifiable gates (16 sub-gates, all PASS on admissible paths, including single-path Gate 12(a)/(d)) under labs/replica-node-spread/verify.sh, treating analysis-summary as advisory and raw JSONL as authoritative per Oracle Lab 19 directive.\""
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/replica-node-spread.md",
+          "line": 46,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-14; cli_version: 2.83.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/replica-node-spread.md",
+          "line": 49,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-14)"
         },
         {
           "file": "docs/troubleshooting/lab-guides/replica-node-spread.md",
@@ -5043,6 +5303,18 @@
           "quote": "status: reproduced"
         },
         {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/revision-failover.md",
+          "line": 30,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-23; cli_version: 2.79.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/revision-failover.md",
+          "line": 33,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-23)"
+        },
+        {
           "file": "docs/troubleshooting/lab-guides/revision-failover.md",
           "line": 356,
           "quote": "### Observed Evidence (Live Azure Test — 2026-05-01)"
@@ -5056,6 +5328,11 @@
           "file": "docs/troubleshooting/lab-guides/revision-failover.md",
           "line": 461,
           "quote": "Gates 11 and 17 were originally emitted during the live run and were later re-evaluated offline from the unchanged raw evidence. Each replay writes its invocation time as top-level `evaluated_at_utc`; this is not a capture or current validation date. Capture-script, revision, traffic, and log timestamps remain the original observation times."
+        },
+        {
+          "file": "labs/revision-failover/README.md",
+          "line": 59,
+          "quote": "These commands assume the working directory is the repository root. All `az` invocations pin `--subscription` explicitly to immunize the run against Azure CLI default-subscription drift, and the deployment is given the explicit name `main` so the deployment resource itself can be inspected deterministically (its `properties.outputs` is populated by Bicep with all six resource names). Total wall-clock runtime is approximately 10-18 minutes (3 min Bicep deploy + 4-9 min trigger including the variable wait for non-Healthy transition under the 420 s budget + 1-2 min verify including 240 s Healthy-poll budget for in-place recovery + 1 min cleanup initiation). The 2026-06-23 reproduction ran end-to-end in ~10 minutes (3 min deploy + 6 min trigger including a 261 s wait for non-Healthy + 1 min verify with 21 s wait for Healthy + 1 min cleanup), but the break time is platform-variable so plan for the longer end of the range."
         },
         {
           "file": "labs/revision-failover/README.md",
@@ -5212,6 +5489,18 @@
       ],
       "status_claimed_in_docs": [
         {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/revision-history-limit.md",
+          "line": 19,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-22; cli_version: 2.79.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/revision-history-limit.md",
+          "line": 22,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-22)"
+        },
+        {
           "file": "labs/revision-history-limit/README.md",
           "line": 85,
           "quote": "- **Phase A — Live-Azure reproduction.** The original lab that deploys real infrastructure to Azure, runs the 10-update env-var burst, and samples the live revision list at t+0, t+5m, and t+15m. Phase A produced the canonical cohort that lives under `evidence/` (anchored on `burst-20260622-080146`). Scripts: `trigger.sh` (Phases 1-4), `capture-window.sh` (Phases 5-7, formerly `verify.sh`), `cleanup.sh`. Cost: well under USD $0.05 per full run."
@@ -5220,6 +5509,16 @@
           "file": "labs/revision-history-limit/evidence/README.md",
           "line": 3,
           "quote": "This directory contains the raw evidence artifacts for the `revision-history-limit` lab. The lab is a **bounded-observation** test of the Azure Container Apps preview setting `maxInactiveRevisions` (CLI alias `--revision-history-limit`) — a single Container App is provisioned with `maxInactiveRevisions: 2`, then driven through a 10-update env-var-only burst, and the live revision list is captured at three fixed offsets after the burst (**t+0, t+5m, t+15m**). The lab does NOT claim a generalized pruning SLA; it captures one 15-minute observation window from one reproduction and tests only that (a) the configured value persists across the window and (b) pruning was not prompt within that window. The cohort was captured in a single live-Azure window on **2026-06-22** against RG `rg-aca-lab-revhist` (Korea Central, azure-cli 2.79.0, containerapp extension 1.3.0b4 preview). All files are PII-scrubbed (subscription/tenant GUIDs replaced with the zero-GUID placeholder, employee aliases replaced with `demouser`, employee emails replaced with `<email>`)."
+        },
+        {
+          "file": "labs/revision-history-limit/evidence/README.md",
+          "line": 35,
+          "quote": "Total cohort: **14 canonical Phase A files + 4 Phase B-emitted gate JSONs + this README = 19 physical files** under `evidence/`. The cohort spans Phase 1-7 plus the burst anchor (epoch + ISO), and the entire 2026-06-22 capture window from 07:58:26Z (trigger start) to 08:16:46Z (t+15m capture) — a total of ~18 minutes of wall-clock for the live-Azure portion."
+        },
+        {
+          "file": "labs/revision-history-limit/evidence/README.md",
+          "line": 133,
+          "quote": "The Phase B `verify.sh` is a pure file processor — it reads `evidence/*.json` and `evidence/*.txt` from disk and emits `evidence/{20,21,22,23}-*-gate.json`. It does NOT call Azure, which is why the resource group can be deleted (via `cleanup.sh`) before `verify.sh` finishes the gate-emission phases. The pre-Phase-B `verify.sh` was the Phase A live-Azure t+5m / t+15m capture script; the Phase B refactor in this commit **renamed that script to `capture-window.sh`** (so Phase A operators still have the same capture orchestration under a more semantically accurate name) and reassigned the `verify.sh` name to the new gate-emission processor. `trigger.sh` performs Phases 1-4 (config + initial revisions + burst + t+0 capture) and is unchanged."
         }
       ],
       "verify_sh_present": true
@@ -5342,6 +5641,18 @@
         "labs/revision-provisioning-failure/fix-and-capture.sh"
       ],
       "status_claimed_in_docs": [
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/revision-provisioning-failure.md",
+          "line": 14,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-20)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/revision-provisioning-failure.md",
+          "line": 17,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-20)"
+        },
         {
           "file": "docs/troubleshooting/lab-guides/revision-provisioning-failure.md",
           "line": 360,
@@ -5556,6 +5867,18 @@
           "file": "docs/troubleshooting/lab-guides/scale-rule-mismatch.md",
           "line": 14,
           "quote": "status: reproduced"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/scale-rule-mismatch.md",
+          "line": 29,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-22; cli_version: 2.79.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/scale-rule-mismatch.md",
+          "line": 32,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-22)"
         },
         {
           "file": "docs/troubleshooting/lab-guides/scale-rule-mismatch.md",
@@ -6212,6 +6535,18 @@
           "quote": "status: reproduced"
         },
         {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/startup-degraded-transient-failure.md",
+          "line": 51,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-13; cli_version: 2.83.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/startup-degraded-transient-failure.md",
+          "line": 54,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-13)"
+        },
+        {
           "file": "docs/troubleshooting/lab-guides/startup-degraded-transient-failure.md",
           "line": 161,
           "quote": "`trigger.sh --preflight` is the live deployment sanity gate before proceeding to Section 3. The historical `verify.sh` that produced `evidence/verify-001.log` ran 9 live Azure health checks, but the current Phase B `verify.sh` is a replay-only evidence classifier over committed qA-qG files."
@@ -6223,8 +6558,18 @@
         },
         {
           "file": "labs/startup-degraded-transient-failure/evidence/README.md",
+          "line": 22,
+          "quote": "This split is deliberate. The historical Phase A `verify.sh` owned live Azure health checks. The Phase B `verify.sh` owns derived evidence classification only."
+        },
+        {
+          "file": "labs/startup-degraded-transient-failure/evidence/README.md",
           "line": 105,
           "quote": "- **Phase A `verify.sh` was a live-Azure health-check script and has been replaced.** The original 102-line `verify.sh` executed nine live Azure checks against a deployed RG. That responsibility now belongs to the trigger/orchestration workflow and the historical evidence logs. The new Phase B `verify.sh` is a replay-only classifier over committed files."
+        },
+        {
+          "file": "labs/startup-degraded-transient-failure/evidence/README.md",
+          "line": 147,
+          "quote": "| `verify-001.log` | Supporting | 12 KB | Historical 9-check live-Azure verify output. |"
         }
       ],
       "verify_sh_present": true
@@ -6431,6 +6776,18 @@
           "file": "docs/troubleshooting/lab-guides/traffic-routing-canary.md",
           "line": 19,
           "quote": "notes: 'Live 50/50 split reproduced via image-swap workaround. The original trigger.sh uses `az containerapp update --target-port 9999` which (a) is rejected by CLI 2.71.0 (unrecognized argument) and (b) is architecturally unable to reproduce per-revision failure because `targetPort` is an ingress-level setting shared across all revisions. Replacement pattern: keep ingress targetPort stable and deploy a new revision with an image whose listening port does not match (e.g. aspnetapp on :8080 with ingress targetPort=80). Empirical curl loop: 15/30 success, 15/30 timeout — exactly 50/50. Six 2026-06-03 Portal captures (rg `ca-labtraffic-l6uluw`, koreacentral) preserve the reproduced workaround path: revisions blade showing the 50/50 split, the bad revision \"Failed\" status with the verbatim \"TargetPort 80 does not match the listening port 8080\" message, and the stable ingress targetPort=80. Second live Azure run completed 2026-06-24 with az CLI 2.79.0 against rg-aca-lab-traffic2 (subscription redacted to placeholder zero-GUID, koreacentral), producing the Phase B-style evidence pack at labs/traffic-routing-canary/evidence/ (22 raw artifacts including JSON, logs, and gate files). H1 (canary_failure_reproduced_50_50_traffic_split) and H2 (canary_rolled_back_to_good_revision_intact) both PASS with all 11 sub-gates true. Empirical 30-request curl on 50/50 split: 17 HTTP 200, 13 timeouts (within [8, 22] tolerance band for weighted-random routing); 18 ProbeFailed syslog lines tailed within the trigger window. Same-revision rollback proof triangulated via three signals: name unchanged (ca-labtraffic-ve2wnr--w3daylh), createdTime unchanged (2026-06-24T00:12:40+00:00), image unchanged (mcr.microsoft.com/azuredocs/containerapps-helloworld:latest) between trigger-time and post-fix captures. Two platform-behavior observations from this run are disclosed in the new \"Observed Evidence (Live Azure Test — 2026-06-24)\" subsection: (1) BAD revision surface state transitioned Activating → Degraded across the trigger and verify windows for the same revision (gates accept either when paired with port-specific corroboration via strong path runningStateDetails text match OR fallback path non-healthy state + non-zero ProbeFailed count), (2) `az containerapp ingress traffic set --revision-weight rev=100` returns only the entries it explicitly assigned (top-level list of {revisionName, weight}, NOT the full Container App resource), with unmentioned revisions implicitly weight=0 and absent from the response — the H2 b_traffic_set_rollback_succeeded sub-gate accepts both shapes defensively. Verify script logic bug-fix: the initial b sub-gate predicate required `bad_weight == 0` which failed against the actual platform response shape; the fix accepts BAD as absent from the response OR explicitly weight=0, corroborated independently via sub-gate f against 17-revision-list-post-fix.json. PII scrubbed: subscription/tenant GUIDs replaced with zero-GUID placeholder, customDomainVerificationId replaced with AAAA placeholder, employee email replaced with <email>, local user paths replaced with /Users/demouser.'"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/traffic-routing-canary.md",
+          "line": 31,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-24; cli_version: 2.79.0)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/traffic-routing-canary.md",
+          "line": 34,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-24)"
         },
         {
           "file": "docs/troubleshooting/lab-guides/traffic-routing-canary.md",
@@ -6835,6 +7192,18 @@
           "quote": "status: reproduced"
         },
         {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/zone-redundancy-best-effort.md",
+          "line": 41,
+          "quote": "validation.az_cli result: pass (last_tested: 2026-06-14)"
+        },
+        {
+          "claim_kind": "validation-result",
+          "file": "docs/troubleshooting/lab-guides/zone-redundancy-best-effort.md",
+          "line": 44,
+          "quote": "validation.bicep result: pass (last_tested: 2026-06-14)"
+        },
+        {
           "file": "docs/troubleshooting/lab-guides/zone-redundancy-best-effort.md",
           "line": 341,
           "quote": "### Observed Evidence (Live Azure Reproduction)"
@@ -6845,12 +7214,12 @@
   ],
   "schema_version": 1,
   "scope": "Static repository inventory only; no Azure resources were queried or changed.",
-  "source_commit_sha": "a9223c0130129de3947898849e02d11820ed615c",
+  "source_commit_sha": "5a2a0d98c4d8de3a3ec38906fcc54770b0b603eb",
   "summary": {
     "classifications": {
       "blocked": 7,
-      "live-azure-evidence": 16,
-      "unknown": 13
+      "live-azure-evidence": 20,
+      "unknown": 9
     },
     "labs": 36
   }
