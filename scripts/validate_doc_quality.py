@@ -95,8 +95,29 @@ ACA_HOST_RE = re.compile(
 )
 AZ_SHORT_FLAG_RE = re.compile(r"(?<!\S)(-g|-n|-o|-l)(?![A-Za-z0-9_-])")
 ISO_DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
-MSLEARN_SOURCE_RE = re.compile(r"^https://learn\.microsoft\.com/en-us/")
-PLACEHOLDER_VALUES = frozenset({"", "...", "example", "foo", "n/a", "none", "tbd", "todo"})
+MSLEARN_SOURCE_RE = re.compile(
+    r"^https://learn\.microsoft\.com/en-us/(?:[^\s?#]+)(?:\?[^\s#]*)?(?:#[^\s]*)?$",
+    re.IGNORECASE,
+)
+PLACEHOLDER_VALUES = frozenset(
+    {
+        "",
+        "...",
+        "bar",
+        "example",
+        "foo",
+        "lorem",
+        "n-a",
+        "n/a",
+        "none",
+        "placeholder",
+        "tbd",
+        "todo",
+        "unknown",
+        "xxx",
+    }
+)
+PLACEHOLDER_WRAPPER_RE = re.compile(r"^(?:<[^<>]+>|\[[^\[\]]+\]|\{[^{}]+\})$")
 REVIEWED_STATUSES = frozenset({"verified", "pending_review"})
 VALID_REVIEWERS = frozenset({"human", "agent"})
 VALID_STATUSES = frozenset({"verified", "pending_review", "unverified"})
@@ -287,18 +308,12 @@ def validate_content_validation(
     today: date | None = None,
 ) -> None:
     relative = path.relative_to(DOCS)
-    parts = path.relative_to(ROOT).parts
-    requires_existing_metadata = (
-        not should_skip_policy(path)
-        and not is_index(path)
-        and len(parts) > 2
-        and parts[1] in {"platform", "best-practices", "operations"}
-    )
     content_validation = frontmatter.get("content_validation")
-    if requires_existing_metadata and not isinstance(content_validation, dict):
-        add(findings, path, 1, "platform/best-practices/operations docs require content_validation metadata")
+    in_scope = is_in_scope(relative)
+    if in_scope and not isinstance(content_validation, dict):
+        add(findings, path, 1, "in-scope factual-claim docs require content_validation metadata")
         return
-    if not is_in_scope(relative) or not isinstance(content_validation, dict):
+    if not in_scope or not isinstance(content_validation, dict):
         return
 
     status = content_validation.get("status")
@@ -327,6 +342,11 @@ def validate_content_validation(
             add(findings, path, 1, "content_validation.reviewer must not be a placeholder")
         elif reviewer not in VALID_REVIEWERS:
             add(findings, path, 1, f"content_validation.reviewer must be 'human' or 'agent' for status {status}")
+    elif status == "unverified":
+        if review_date is not None:
+            add(findings, path, 1, "content_validation.last_reviewed must be null for status unverified")
+        if reviewer is not None:
+            add(findings, path, 1, "content_validation.reviewer must be null for status unverified")
 
     claims_value = content_validation.get("core_claims")
     claims = claims_value if isinstance(claims_value, list) else []
@@ -346,12 +366,12 @@ def validate_content_validation(
         verified = claim.get("verified")
         if not isinstance(verified, bool):
             add(findings, path, 1, f"content_validation.core_claims[{index}].verified must be true or false")
-        elif verified and (not isinstance(source, str) or not MSLEARN_SOURCE_RE.match(source)):
+        elif not isinstance(source, str) or not MSLEARN_SOURCE_RE.fullmatch(source.strip()):
             add(
                 findings,
                 path,
                 1,
-                f"content_validation.core_claims[{index}] with verified: true must cite an https://learn.microsoft.com/en-us/ URL",
+                f"content_validation.core_claims[{index}].source must be an https://learn.microsoft.com/en-us/ URL",
             )
 
     if status == "verified":
@@ -359,10 +379,24 @@ def validate_content_validation(
             if isinstance(claim, dict) and claim.get("verified") is False:
                 add(findings, path, 1, "status is verified but at least one core_claim has verified: false")
                 break
+    elif status == "pending_review":
+        if not any(isinstance(claim, dict) and claim.get("verified") is False for claim in claims):
+            add(findings, path, 1, "status is pending_review but no core_claim has verified: false")
+    elif status == "unverified":
+        if any(isinstance(claim, dict) and claim.get("verified") is True for claim in claims):
+            add(findings, path, 1, "status is unverified but at least one core_claim has verified: true")
 
 
 def is_placeholder(value: Any) -> bool:
-    return value is None or (isinstance(value, str) and value.strip().casefold() in PLACEHOLDER_VALUES)
+    if value is None:
+        return True
+    if not isinstance(value, str):
+        return False
+    normalized = value.strip()
+    return (
+        normalized.casefold() in PLACEHOLDER_VALUES
+        or PLACEHOLDER_WRAPPER_RE.fullmatch(normalized) is not None
+    )
 
 
 def diagram_metadata(frontmatter: dict[str, Any]) -> tuple[set[str], bool]:

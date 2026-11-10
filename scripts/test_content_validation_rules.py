@@ -44,10 +44,12 @@ def metadata(
 
 
 @contextmanager
-def parsed_fixture(frontmatter: dict[str, Any]) -> Iterator[tuple[Path, dict[str, Any]]]:
+def parsed_fixture(
+    frontmatter: dict[str, Any], *, relative_path: str = "platform/fixture.md"
+) -> Iterator[tuple[Path, dict[str, Any]]]:
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory)
-        path = root / "docs/platform/fixture.md"
+        path = root / "docs" / relative_path
         path.parent.mkdir(parents=True)
         import yaml
 
@@ -61,14 +63,25 @@ def parsed_fixture(frontmatter: dict[str, Any]) -> Iterator[tuple[Path, dict[str
             validator.ROOT, validator.DOCS = previous_root, previous_docs
 
 
-def messages(frontmatter: dict[str, Any]) -> list[str]:
-    with parsed_fixture(frontmatter) as (path, parsed):
+def messages(
+    frontmatter: dict[str, Any], *, relative_path: str = "platform/fixture.md"
+) -> list[str]:
+    with parsed_fixture(frontmatter, relative_path=relative_path) as (path, parsed):
         findings: list[validator.Finding] = []
         validator.validate_content_validation(findings, path, parsed, today=TODAY)
     return [finding.message for finding in findings]
 
 
 class ContentValidationRuleTests(unittest.TestCase):
+    def test_factual_subsection_index_requires_metadata(self) -> None:
+        self.assertIn(
+            "in-scope factual-claim docs require content_validation metadata",
+            messages({}, relative_path="platform/new/index.md"),
+        )
+
+    def test_navigation_index_does_not_require_metadata(self) -> None:
+        self.assertEqual(messages({}, relative_path="platform/index.md"), [])
+
     def test_valid_verified_state_passes(self) -> None:
         self.assertEqual(messages(metadata()), [])
 
@@ -101,10 +114,34 @@ class ContentValidationRuleTests(unittest.TestCase):
         )
 
     def test_placeholder_reviewer_is_rejected(self) -> None:
-        self.assertIn(
-            "content_validation.reviewer must not be a placeholder",
-            messages(metadata(reviewer="TBD")),
-        )
+        for placeholder in (
+            "TBD",
+            "todo",
+            "placeholder",
+            "example",
+            "none",
+            "n-a",
+            "unknown",
+            "foo",
+            "bar",
+            "xxx",
+            "lorem",
+            "<reviewer>",
+            "[reviewer]",
+            "{reviewer}",
+            "...",
+            "   ",
+        ):
+            with self.subTest(placeholder=placeholder):
+                self.assertIn(
+                    "content_validation.reviewer must not be a placeholder",
+                    messages(metadata(reviewer=placeholder)),
+                )
+
+    def test_valid_reviewer_values_are_not_placeholders(self) -> None:
+        for reviewer in ("agent", "human"):
+            with self.subTest(reviewer=reviewer):
+                self.assertEqual(messages(metadata(reviewer=reviewer)), [])
 
     def test_unknown_reviewer_is_rejected(self) -> None:
         self.assertIn(
@@ -119,15 +156,71 @@ class ContentValidationRuleTests(unittest.TestCase):
         )
 
     def test_placeholder_claim_source_is_rejected(self) -> None:
+        for placeholder in (
+            "TODO",
+            "placeholder",
+            "<source>",
+            "[source]",
+            "{source}",
+            "xxx",
+            "...",
+        ):
+            with self.subTest(placeholder=placeholder):
+                self.assertIn(
+                    "content_validation.core_claims[0].source must not be a placeholder",
+                    messages(metadata(claims=[claim(source=placeholder), claim()])),
+                )
+
+    def test_every_claim_requires_locale_qualified_learn_source(self) -> None:
         self.assertIn(
-            "content_validation.core_claims[0].source must not be a placeholder",
-            messages(metadata(claims=[claim(source="TODO"), claim()])),
+            "content_validation.core_claims[0].source must be an https://learn.microsoft.com/en-us/ URL",
+            messages(
+                metadata(
+                    status="pending_review",
+                    claims=[claim(source="https://example.com/source", verified=False), claim()],
+                )
+            ),
         )
 
-    def test_verified_claim_with_non_learn_source_is_rejected(self) -> None:
+    def test_learn_source_host_is_case_insensitive_and_allows_query_fragment(self) -> None:
+        source = "HTTPS://LEARN.MICROSOFT.COM/en-us/azure/container-apps/example?view=azure#section"
+        self.assertEqual(messages(metadata(claims=[claim(source=source), claim()])), [])
+
+    def test_example_in_real_learn_path_is_not_a_placeholder(self) -> None:
+        source = "https://learn.microsoft.com/en-us/azure/container-apps/example-configuration"
+        self.assertEqual(messages(metadata(claims=[claim(source=source), claim()])), [])
+
+    def test_unverified_requires_null_review_metadata(self) -> None:
+        state = metadata(
+            status="unverified",
+            claims=[claim(verified=False), claim(verified=False)],
+        )
+        result = messages(state)
+        self.assertIn("content_validation.last_reviewed must be null for status unverified", result)
+        self.assertIn("content_validation.reviewer must be null for status unverified", result)
+
+    def test_unverified_rejects_verified_claim(self) -> None:
+        state = metadata(
+            status="unverified",
+            last_reviewed=None,
+            reviewer=None,
+            claims=[claim(verified=True), claim(verified=False)],
+        )
         self.assertIn(
-            "content_validation.core_claims[0] with verified: true must cite an https://learn.microsoft.com/en-us/ URL",
-            messages(metadata(claims=[claim(source="https://example.com/source"), claim()])),
+            "status is unverified but at least one core_claim has verified: true",
+            messages(state),
+        )
+
+    def test_pending_review_requires_an_unverified_claim(self) -> None:
+        self.assertIn(
+            "status is pending_review but no core_claim has verified: false",
+            messages(metadata(status="pending_review")),
+        )
+
+    def test_verified_rejects_unverified_claim(self) -> None:
+        self.assertIn(
+            "status is verified but at least one core_claim has verified: false",
+            messages(metadata(claims=[claim(), claim(verified=False)])),
         )
 
     def test_unknown_status_is_rejected(self) -> None:
