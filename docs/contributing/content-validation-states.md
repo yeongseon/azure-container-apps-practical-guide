@@ -38,7 +38,7 @@ Navigation-only indexes and generated dashboards are also out of scope. A legacy
 The statuses mean:
 
 - `verified`: every listed core claim has `verified: true` and a supporting Microsoft Learn URL.
-- `pending_review`: a source review has begun but at least one claim with a Microsoft Learn citation remains unverified, or no claims have yet been recorded.
+- `pending_review`: a source review has begun but at least one listed claim with a Microsoft Learn citation remains unverified. Like every in-scope state it still lists 2-5 cited claims.
 - `unverified`: no source review has been performed. Use `null` for unknown review metadata and list 2-5 cited core claims with `verified: false`; never omit the Microsoft Learn citation.
 
 ### Source Review Is Not Azure Execution
@@ -203,7 +203,7 @@ Report adoption as both a numerator and denominator, with an as-of date and comm
 | Published pages | Markdown inputs published by the current MkDocs configuration, including pages omitted from navigation but excluding configured build exclusions | Reader-visible inventory; currently equal to All Markdown because no Markdown pages are excluded from the build |
 | In-scope factual-claim pages | Files for which `scripts.lib.content_scope.is_in_scope()` returns `True` | Canonical `content_validation` adoption denominator |
 
-Run this read-only measurement from the repository root:
+Run this read-only measurement from the repository root. It inspects only the opening YAML frontmatter block, so a page that merely mentions the key in its body is not counted:
 
 ```bash
 python3 - <<'PY'
@@ -215,7 +215,8 @@ pages = sorted(Path("docs").rglob("*.md"))
 
 def has_metadata(path: Path) -> bool:
     text = path.read_text(encoding="utf-8")
-    return bool(re.search(r"^content_validation:\s*$", text, re.MULTILINE))
+    match = re.match(r"---\n(.*?)\n---(?:\n|$)", text, re.DOTALL)
+    return bool(match and re.search(r"^content_validation:\s*$", match.group(1), re.MULTILINE))
 
 in_scope = [path for path in pages if is_in_scope(path.relative_to("docs"))]
 print("all_markdown", sum(map(has_metadata, pages)), len(pages))
@@ -224,12 +225,12 @@ print("in_scope", sum(map(has_metadata, in_scope)), len(in_scope))
 PY
 ```
 
-Measured on **2026-11-10** at commit **`5a712e819c5895e9c18e0b5f9c0b152e895b6418`**:
+Measured on **2026-11-10** at commit **`5a712e819c5895e9c18e0b5f9c0b152e895b6418`** (the commit before this page was added; running the command on a tree that contains this page reports one more Markdown file and the same `content_validation` counts):
 
 | Denominator | Pages with `content_validation` | Total pages | Interpretation |
 |---|---:|---:|---|
-| All Markdown | 256 | 395 | Token presence across the docs tree, not review completeness |
-| Published pages | 256 | 395 | Same count under the current no-exclusion MkDocs configuration |
+| All Markdown | 255 | 395 | Token presence across the docs tree, not review completeness |
+| Published pages | 255 | 395 | Same count under the current no-exclusion MkDocs configuration |
 | In-scope factual-claim pages | 161 | 164 | Canonical adoption count; status and claim integrity still require separate evaluation |
 
 These numbers are a repository-local snapshot, not a rollout claim for other repositories. Re-run the command whenever the commit or build configuration changes.
