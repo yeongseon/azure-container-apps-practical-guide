@@ -178,9 +178,12 @@ Scratch copies exercised against the current validators confirm these blocking c
 - `scripts/generate_content_validation_status.py` rejects an in-scope claim containing the phrase `primary source basis`. A core claim must assert Azure behavior rather than describe the documentation process.
 - `scripts/validate_doc_quality.py` rejects unknown statuses and non-boolean claim results.
 - For `verified` and `pending_review`, the validator requires a valid, non-future ISO review date and a non-placeholder reviewer of `human` or `agent`.
-- Every in-scope block must list 2-5 claims. Every listed claim must have a non-placeholder source. A claim marked `verified: true` must cite an `https://learn.microsoft.com/en-us/` URL.
-- `status: verified` is rejected when an explicitly listed claim has `verified: false`.
-- `unverified` remains an honest state with YAML `null` review date and reviewer; the same null values are rejected when a review is claimed.
+- Every in-scope block must list 2-5 claims. Every listed claim, regardless of its `verified` value, must cite a locale-qualified `https://learn.microsoft.com/en-us/` URL.
+- Placeholder review metadata and sources are rejected, including empty values; `tbd`, `todo`, `placeholder`, `example`, `none`, `n-a`, `n/a`, `unknown`, `foo`, `bar`, `xxx`, `lorem`, and bracketed, angle-bracketed, or braced placeholder syntax. These checks apply to whole values, so words such as `example` remain valid inside a real Microsoft Learn URL path.
+- `status: verified` requires every listed claim to have `verified: true`.
+- `status: pending_review` requires a real review date and reviewer plus at least one listed claim with `verified: false`.
+- `status: unverified` requires YAML `null` for both review fields and rejects any claim with `verified: true`.
+- Metadata is required exactly when `scripts.lib.content_scope.is_in_scope()` returns `True`; factual subsection `index.md` pages are included unless they are listed in `NAVIGATION_INDEXES`.
 
 ### Planned for Issue #574
 
