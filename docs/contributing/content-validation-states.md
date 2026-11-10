@@ -39,7 +39,7 @@ The statuses mean:
 
 - `verified`: every listed core claim has `verified: true` and a supporting Microsoft Learn URL.
 - `pending_review`: a source review has begun but at least one claim with a Microsoft Learn citation remains unverified, or no claims have yet been recorded.
-- `unverified`: no source review has been performed. Use `null` for unknown review metadata and omit `core_claims` until claims with Microsoft Learn citations are ready to record.
+- `unverified`: no source review has been performed. Use `null` for unknown review metadata and list 2-5 cited core claims with `verified: false`; never omit the Microsoft Learn citation.
 
 ### Source Review Is Not Azure Execution
 
@@ -86,7 +86,7 @@ content_validation:
 
 ### In-Scope: Pending Review
 
-Use this state when a real review has started but is incomplete. A listed claim still cites the Microsoft Learn page to be checked; keep `verified: false` until that page has been read and found to support the claim. If no claim has an acceptable Microsoft Learn citation yet, omit `core_claims` instead of adding a null source.
+Use this state when a real review has started but is incomplete. A listed claim still cites the Microsoft Learn page to be checked; keep `verified: false` until that page has been read and found to support the claim. Every listed claim must still cite a Microsoft Learn page; never add a null source.
 
 ```yaml
 ---
@@ -106,7 +106,7 @@ content_validation:
 
 ### In-Scope: Unverified
 
-Use an honest unknown state for a new in-scope page when no source review has occurred. The current validators accept an omitted `core_claims` key, which avoids inventing claims or violating the requirement that every listed claim cite Microsoft Learn.
+Use an honest unknown state for an in-scope page whose source review has not happened yet. `AGENTS.md` requires 2-5 core claims per in-scope page, each citing Microsoft Learn, so list the claims the page makes with the Microsoft Learn page that should support each one and keep every `verified` value `false`. Leave `last_reviewed` and `reviewer` null because no review has occurred.
 
 ```yaml
 ---
@@ -114,6 +114,13 @@ content_validation:
   status: unverified
   last_reviewed: null
   reviewer: null
+  core_claims:
+    - claim: Container Apps revisions are immutable snapshots of an application version.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: false
+    - claim: Container Apps supports scale rules based on HTTP traffic, CPU, memory, and event sources.
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
+      verified: false
 ---
 ```
 
