@@ -176,6 +176,7 @@ description: A page-specific description appropriate to this document.
 Scratch copies exercised against the current validators confirm these blocking checks:
 
 - `scripts/generate_content_validation_status.py` rejects an in-scope claim containing the phrase `primary source basis`. A core claim must assert Azure behavior rather than describe the documentation process.
+- `scripts/validate_doc_quality.py` requires each `core_claims[].claim` to be a non-empty, non-placeholder string and rejects the same tautological `primary source basis` marker. Placeholder checks apply to the whole value, so `example` or `todo` may appear inside a concrete factual sentence.
 - `scripts/validate_doc_quality.py` rejects unknown statuses and non-boolean claim results.
 - For `verified` and `pending_review`, the validator requires a valid, non-future ISO review date and a non-placeholder reviewer of `human` or `agent`.
 - Every in-scope block must list 2-5 claims. Every listed claim, regardless of its `verified` value, must cite a locale-qualified `https://learn.microsoft.com/en-us/` URL.
