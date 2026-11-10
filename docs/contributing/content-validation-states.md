@@ -32,14 +32,14 @@ Navigation-only indexes and generated dashboards are also out of scope. A legacy
 | `reviewer` | `human` or `agent` when a review occurred, or YAML `null` for an unreviewed state |
 | `core_claims` | Two to five concrete, falsifiable assertions that represent the page's important Azure behavior claims |
 | `core_claims[].claim` | The factual assertion being checked; never a statement about the page or its sourcing process |
-| `core_claims[].source` | Direct, locale-qualified Microsoft Learn URL supporting the claim, or YAML `null` until a source is identified |
+| `core_claims[].source` | Direct, locale-qualified Microsoft Learn URL supporting the claim; every listed claim must cite one |
 | `core_claims[].verified` | `true` only after the cited source was read and found to support that claim; otherwise `false` |
 
 The statuses mean:
 
 - `verified`: every listed core claim has `verified: true` and a supporting Microsoft Learn URL.
-- `pending_review`: a source review has begun but at least one core claim remains unverified, unsupported, or unresolved.
-- `unverified`: no source review has been performed. Use `null` for unknown review metadata and `false` for every claim.
+- `pending_review`: a source review has begun but at least one claim with a Microsoft Learn citation remains unverified, or no claims have yet been recorded.
+- `unverified`: no source review has been performed. Use `null` for unknown review metadata and omit `core_claims` until claims with Microsoft Learn citations are ready to record.
 
 ### Source Review Is Not Azure Execution
 
@@ -86,7 +86,7 @@ content_validation:
 
 ### In-Scope: Pending Review
 
-Use this state when a real review has started but is incomplete. Keep unresolved claims false and use `null` when no acceptable source has been identified.
+Use this state when a real review has started but is incomplete. A listed claim still cites the Microsoft Learn page to be checked; keep `verified: false` until that page has been read and found to support the claim. If no claim has an acceptable Microsoft Learn citation yet, omit `core_claims` instead of adding a null source.
 
 ```yaml
 ---
@@ -99,14 +99,14 @@ content_validation:
       source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
       verified: true
     - claim: Container Apps applies a default cooldown period to event-driven scale rules.
-      source: null
+      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
       verified: false
 ---
 ```
 
 ### In-Scope: Unverified
 
-Use an honest unknown state for a new in-scope page when no source review has occurred. The claim text must still identify what will be checked.
+Use an honest unknown state for a new in-scope page when no source review has occurred. The current validators accept an omitted `core_claims` key, which avoids inventing claims or violating the requirement that every listed claim cite Microsoft Learn.
 
 ```yaml
 ---
@@ -114,15 +114,10 @@ content_validation:
   status: unverified
   last_reviewed: null
   reviewer: null
-  core_claims:
-    - claim: Container Apps revisions are immutable snapshots of an application version.
-      source: null
-      verified: false
-    - claim: A Container Apps scale rule can use an HTTP, TCP, or custom event-driven trigger.
-      source: null
-      verified: false
 ---
 ```
+
+Allowing `core_claims[].source: null` would require a deliberate change to the repository contract in `AGENTS.md`; it is a proposal for [issue #574](https://github.com/yeongseon/azure-container-apps-practical-guide/issues/574) and the cross-repository work tracked by [issue #380](https://github.com/yeongseon/azure-container-apps-practical-guide/issues/380), not a valid state today.
 
 ### Tutorial: Tested and Not Tested
 
@@ -169,17 +164,27 @@ description: A page-specific description appropriate to this document.
 
 ## Invalid Values and Claims
 
-The enforcement work tracked by [issue #574](https://github.com/yeongseon/azure-container-apps-practical-guide/issues/574) should reject these cases:
+### Enforced Today
+
+Scratch copies exercised against the current validators confirm these blocking checks:
+
+- `scripts/generate_content_validation_status.py` rejects an in-scope claim containing the phrase `primary source basis`. A core claim must assert Azure behavior rather than describe the documentation process.
+- `scripts/validate_doc_quality.py` rejects `status: verified` when an explicitly listed claim has `verified: false`.
+
+These are narrow checks. For example, the current verified-state check does not reject an empty claim list or a claim with a missing source.
+
+### Planned for Issue #574
+
+Scratch-copy tests with both validators confirm that the following invalid states are **not currently enforced**:
 
 - A future `last_reviewed` date.
-- A date copied from build time, file modification time, commit time, or dashboard generation time.
-- Placeholder reviewer or source values such as `TBD`, `example`, `none`, an empty string, or a fabricated URL. Use YAML `null` only in an honest unverified or unresolved field.
-- A reviewer value other than `human`, `agent`, or `null` where allowed by the state.
-- `status: verified` when any claim is missing, has `verified: false`, or lacks a direct Microsoft Learn URL.
-- `verified: true` with a non-Learn URL, a locale-less Learn URL, or a URL that does not support the stated claim.
-- A future, fabricated, or overwritten tutorial test, lab evidence, or screenshot capture date.
-- Tautological claims about documentation process, including claims that a page uses Microsoft Learn as its source basis. A core claim must assert Azure behavior.
-- Treating metadata presence, a successful build, or generated dashboard inclusion as proof that review occurred.
+- Placeholder reviewer or source values such as `TBD`.
+- A reviewer value outside the documented `human` and `agent` values.
+- A listed claim with a missing source.
+- A `verified: true` claim with a non-Microsoft Learn source.
+- A claim whose cited Microsoft Learn page does not support the assertion.
+
+[Issue #574](https://github.com/yeongseon/azure-container-apps-practical-guide/issues/574) proposes enforcement for these gaps. Until then, reviewers must apply the repository contract directly; validator acceptance is not evidence that a value is truthful or valid.
 
 ## Adoption Denominator
 
