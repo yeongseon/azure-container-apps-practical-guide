@@ -14,6 +14,7 @@ import re
 import subprocess
 import sys
 from dataclasses import dataclass
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -21,6 +22,10 @@ try:
     import yaml
 except ImportError:  # pragma: no cover - CI installs pyyaml.
     yaml = None
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from lib.content_scope import is_in_scope, is_tautological_text  # noqa: E402
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -89,6 +94,33 @@ ACA_HOST_RE = re.compile(
     re.IGNORECASE,
 )
 AZ_SHORT_FLAG_RE = re.compile(r"(?<!\S)(-g|-n|-o|-l)(?![A-Za-z0-9_-])")
+ISO_DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
+MSLEARN_SOURCE_RE = re.compile(
+    r"^https://learn\.microsoft\.com/en-us/(?:[^\s?#]+)(?:\?[^\s#]*)?(?:#[^\s]*)?$",
+    re.IGNORECASE,
+)
+PLACEHOLDER_VALUES = frozenset(
+    {
+        "",
+        "...",
+        "bar",
+        "example",
+        "foo",
+        "lorem",
+        "n-a",
+        "n/a",
+        "none",
+        "placeholder",
+        "tbd",
+        "todo",
+        "unknown",
+        "xxx",
+    }
+)
+PLACEHOLDER_WRAPPER_RE = re.compile(r"^(?:<[^<>]+>|\[[^\[\]]+\]|\{[^{}]+\})$")
+REVIEWED_STATUSES = frozenset({"verified", "pending_review"})
+VALID_REVIEWERS = frozenset({"human", "agent"})
+VALID_STATUSES = frozenset({"verified", "pending_review", "unverified"})
 
 
 @dataclass
@@ -268,29 +300,116 @@ def validate_templates(findings: list[Finding], path: Path, text: str) -> None:
 
 
 def validate_content_validation(
-    findings: list[Finding], path: Path, frontmatter: dict[str, Any], text: str
+    findings: list[Finding],
+    path: Path,
+    frontmatter: dict[str, Any],
+    text: str = "",
+    *,
+    today: date | None = None,
 ) -> None:
-    if should_skip_policy(path) or is_index(path):
-        return
-    parts = path.relative_to(ROOT).parts
-    needs_validation = len(parts) > 2 and parts[1] in {
-        "platform",
-        "best-practices",
-        "operations",
-    }
+    relative = path.relative_to(DOCS)
     content_validation = frontmatter.get("content_validation")
-    if needs_validation and not isinstance(content_validation, dict):
-        add(findings, path, 1, "platform/best-practices/operations docs require content_validation metadata")
+    in_scope = is_in_scope(relative)
+    if in_scope and not isinstance(content_validation, dict):
+        add(findings, path, 1, "in-scope factual-claim docs require content_validation metadata")
         return
-    if not isinstance(content_validation, dict):
+    if not in_scope or not isinstance(content_validation, dict):
         return
+
     status = content_validation.get("status")
-    claims = content_validation.get("core_claims") or []
+    if status not in VALID_STATUSES:
+        add(findings, path, 1, "content_validation.status must be verified, pending_review, or unverified")
+
+    review_date = content_validation.get("last_reviewed")
+    reviewer = content_validation.get("reviewer")
+    if status in REVIEWED_STATUSES:
+        parsed_date: date | None = None
+        if isinstance(review_date, datetime):
+            parsed_date = None
+        elif isinstance(review_date, date):
+            parsed_date = review_date
+        elif isinstance(review_date, str) and ISO_DATE_RE.fullmatch(review_date):
+            try:
+                parsed_date = date.fromisoformat(review_date)
+            except ValueError:
+                parsed_date = None
+        if parsed_date is None:
+            add(findings, path, 1, f"content_validation.last_reviewed must be a valid ISO date for status {status}")
+        elif parsed_date > (today or datetime.now(timezone.utc).date()):
+            add(findings, path, 1, "content_validation.last_reviewed must not be in the future")
+
+        if is_placeholder(reviewer):
+            add(findings, path, 1, "content_validation.reviewer must not be a placeholder")
+        elif reviewer not in VALID_REVIEWERS:
+            add(findings, path, 1, f"content_validation.reviewer must be 'human' or 'agent' for status {status}")
+    elif status == "unverified":
+        if review_date is not None:
+            add(findings, path, 1, "content_validation.last_reviewed must be null for status unverified")
+        if reviewer is not None:
+            add(findings, path, 1, "content_validation.reviewer must be null for status unverified")
+
+    claims_value = content_validation.get("core_claims")
+    claims = claims_value if isinstance(claims_value, list) else []
+    if not 2 <= len(claims) <= 5:
+        add(findings, path, 1, "content_validation.core_claims must contain 2 to 5 claims")
+
+    for index, claim in enumerate(claims):
+        if not isinstance(claim, dict):
+            add(findings, path, 1, f"content_validation.core_claims[{index}] must be a mapping")
+            continue
+        claim_text = claim.get("claim")
+        if not isinstance(claim_text, str) or not claim_text.strip():
+            add(findings, path, 1, f"content_validation.core_claims[{index}].claim is required")
+        elif is_placeholder(claim_text):
+            add(findings, path, 1, f"content_validation.core_claims[{index}].claim must not be a placeholder")
+        elif is_tautological_text(claim_text):
+            add(
+                findings,
+                path,
+                1,
+                f"content_validation.core_claims[{index}].claim must assert Azure behavior, not describe the sourcing process",
+            )
+
+        source = claim.get("source")
+        if source is None or (isinstance(source, str) and not source.strip()):
+            add(findings, path, 1, f"content_validation.core_claims[{index}].source is required")
+        elif is_placeholder(source):
+            add(findings, path, 1, f"content_validation.core_claims[{index}].source must not be a placeholder")
+
+        verified = claim.get("verified")
+        if not isinstance(verified, bool):
+            add(findings, path, 1, f"content_validation.core_claims[{index}].verified must be true or false")
+        elif not isinstance(source, str) or not MSLEARN_SOURCE_RE.fullmatch(source.strip()):
+            add(
+                findings,
+                path,
+                1,
+                f"content_validation.core_claims[{index}].source must be an https://learn.microsoft.com/en-us/ URL",
+            )
+
     if status == "verified":
         for claim in claims:
             if isinstance(claim, dict) and claim.get("verified") is False:
                 add(findings, path, 1, "status is verified but at least one core_claim has verified: false")
                 break
+    elif status == "pending_review":
+        if not any(isinstance(claim, dict) and claim.get("verified") is False for claim in claims):
+            add(findings, path, 1, "status is pending_review but no core_claim has verified: false")
+    elif status == "unverified":
+        if any(isinstance(claim, dict) and claim.get("verified") is True for claim in claims):
+            add(findings, path, 1, "status is unverified but at least one core_claim has verified: true")
+
+
+def is_placeholder(value: Any) -> bool:
+    if value is None:
+        return True
+    if not isinstance(value, str):
+        return False
+    normalized = value.strip()
+    return (
+        normalized.casefold() in PLACEHOLDER_VALUES
+        or PLACEHOLDER_WRAPPER_RE.fullmatch(normalized) is not None
+    )
 
 
 def diagram_metadata(frontmatter: dict[str, Any]) -> tuple[set[str], bool]:
@@ -299,11 +418,12 @@ def diagram_metadata(frontmatter: dict[str, Any]) -> tuple[set[str], bool]:
         diagrams = sources.get("diagrams") or []
     else:
         diagrams = []
-    ids = {
-        item.get("id")
-        for item in diagrams
-        if isinstance(item, dict) and isinstance(item.get("id"), str)
-    }
+    ids: set[str] = set()
+    for item in diagrams:
+        if isinstance(item, dict):
+            diagram_id = item.get("id")
+            if isinstance(diagram_id, str):
+                ids.add(diagram_id)
     has_top_level_diagrams = isinstance(frontmatter.get("diagrams"), list)
     return ids, has_top_level_diagrams
 
