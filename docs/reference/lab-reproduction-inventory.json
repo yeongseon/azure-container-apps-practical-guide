@@ -3083,6 +3083,11 @@
           "file": "labs/keda-no-metrics-returned/evidence/README.md",
           "line": 3,
           "quote": "This directory contains the raw evidence artifacts for the `keda-no-metrics-returned` lab. The lab has three independently-deployed scenarios (`ca-nometrics-slow`, `ca-nometrics-crash`, `ca-nometrics-healthy`) that were captured in a single live-Azure window on **2026-06-20** against RG `rg-aca-no-metrics-lab` (Korea Central, az-cli 2.79.0, containerapp extension 1.3.0b4). All files are PII-scrubbed (subscription/tenant GUIDs replaced with the zero-GUID placeholder, employee aliases replaced with `demouser`, employee emails replaced with `<email>`, Log Analytics workspace IDs replaced with the zero-GUID placeholder, local user paths replaced with `/Users/demouser`)."
+        },
+        {
+          "file": "labs/keda-no-metrics-returned/evidence/README.md",
+          "line": 132,
+          "quote": "**Note on `verify.sh` and `trigger.sh` boundaries.** The historical `verify.sh` from the 2026-06-20 capture also performed the live-Azure data collection (the `az monitor log-analytics query` calls that populate the report). The Phase B refactor in this commit split those two responsibilities cleanly: `trigger.sh` owns ALL live-Azure orchestration (Bicep deploy, ACR build, scenario A→B→C sequential deploy, Log Analytics ingestion wait, per-scenario report generation), and `verify.sh` is a pure file processor that emits the four gate JSONs by reading committed evidence. The committed 2026-06-20 evidence under `ca-nometrics-*/` remains the canonical baseline; re-running `trigger.sh` against a fresh subscription will overwrite these files with new timestamps."
         }
       ],
       "verify_sh_present": true
@@ -3620,6 +3625,11 @@
           "file": "labs/memory-leak-oomkilled/evidence/README.md",
           "line": 3,
           "quote": "This directory contains the raw evidence artifacts for the `memory-leak-oomkilled` lab. The lab has three independently-deployed scenarios (`ca-oom-hard`, `ca-oom-leak`, `ca-oom-healthy`) plus a post-fix re-capture of `ca-oom-hard`, all captured in a single live-Azure window on **2026-06-20** against RG `rg-aca-memleak-lab` (Korea Central, az-cli 2.79.0, containerapp extension 1.3.0b4). All files are PII-scrubbed (subscription/tenant GUIDs replaced with the zero-GUID placeholder, employee aliases replaced with `demouser`, employee emails replaced with `<email>`, Log Analytics workspace IDs replaced with the zero-GUID placeholder, local user paths replaced with `/Users/demouser`)."
+        },
+        {
+          "file": "labs/memory-leak-oomkilled/evidence/README.md",
+          "line": 151,
+          "quote": "**Note on `verify.sh` and `trigger.sh` boundaries.** The historical `verify.sh` from the 2026-06-20 capture also performed the live-Azure data collection (the `az monitor log-analytics query` calls that populate the report). The Phase B refactor in this commit split those two responsibilities cleanly: `trigger.sh` owns ALL live-Azure orchestration (Bicep deploy, ACR build, scenario A→B→C sequential deploy, Log Analytics ingestion wait, per-scenario report generation, fix application, POST-fix re-capture), and `verify.sh` is a pure file processor that emits the four gate JSONs by reading committed evidence. The committed 2026-06-20 evidence under `ca-oom-*/` remains the canonical baseline; re-running `trigger.sh` against a fresh subscription will overwrite these files with new timestamps."
         }
       ],
       "verify_sh_present": true
@@ -6835,7 +6845,7 @@
   ],
   "schema_version": 1,
   "scope": "Static repository inventory only; no Azure resources were queried or changed.",
-  "source_commit_sha": "HEAD",
+  "source_commit_sha": "a9223c0130129de3947898849e02d11820ed615c",
   "summary": {
     "classifications": {
       "blocked": 7,
