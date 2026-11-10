@@ -93,6 +93,41 @@ class LabReproductionInventoryTests(unittest.TestCase):
             with self.assertRaisesRegex(inventory.InventoryError, "anchor UTC"):
                 inventory.build_inventory(root, commit, dt.date(2026, 11, 10))
 
+    def test_duplicate_citation_location_is_rejected_even_with_different_quote(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            self.make_fixture(root)
+            path = root / inventory.CURATED_PATH.relative_to(inventory.ROOT)
+            curated = json.loads(path.read_text())
+            curated["labs"][0]["status_claims"].append({
+                "file": "labs/demo/README.md", "line": 2, "quote": "live on 2026-01-02"
+            })
+            path.write_text(json.dumps(curated))
+            commit = self.commit_fixture(root)
+            with self.assertRaisesRegex(inventory.InventoryError, "duplicated citation"):
+                inventory.build_inventory(root, commit, dt.date(2026, 11, 10))
+
+    def test_status_claim_hygiene_rejects_procedures_and_accepts_results(self) -> None:
+        rejected = {
+            "### Observed Evidence": "heading",
+            "Record the UTC timestamp.": "imperative instruction",
+            "Run the verifier.": "imperative instruction",
+            "Confirm that the revision is healthy.": "imperative instruction",
+            "Expected output: revision should be Healthy.": "expectation without a recorded result",
+            "The gates were re-evaluated offline from the same raw files.": "gate or workflow mechanics",
+        }
+        for quote, problem in rejected.items():
+            with self.subTest(quote=quote):
+                self.assertEqual(inventory.status_claim_problem(quote), problem)
+        accepted = [
+            "The live run reproduced the failure.",
+            "The query returned the expected three rows.",
+            "The captured result should be treated as one cohort; the run completed successfully.",
+        ]
+        for quote in accepted:
+            with self.subTest(quote=quote):
+                self.assertIsNone(inventory.status_claim_problem(quote))
+
     def test_full_sha_serialization_determinism_and_scratch_mutation(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -131,9 +166,12 @@ class LabReproductionInventoryTests(unittest.TestCase):
         }
         for lab, timestamp in expected_anchors.items():
             self.assertEqual(labs[lab]["last_azure_run_utc"], timestamp)
+        for row in labs.values():
+            for claim in row["status_claims"]:
+                self.assertIsNone(inventory.status_claim_problem(claim["quote"]))
         appgw_locations = {(row["file"], row["line"]) for row in labs["appgw-to-internal-aca-nsg-mismatch"]["status_claims"]}
         self.assertTrue({("docs/troubleshooting/lab-guides/appgw-to-internal-aca-nsg-mismatch.md", line) for line in (50, 52, 53, 161, 186)} <= appgw_locations)
-        self.assertTrue({("labs/appgw-to-internal-aca-nsg-mismatch/evidence/README.md", line) for line in (32, 34, 36)} <= appgw_locations)
+        self.assertTrue({("labs/appgw-to-internal-aca-nsg-mismatch/evidence/README.md", line) for line in (34, 36)} <= appgw_locations)
         for lab in ("cd-reconnect-rbac-conflict", "probe-and-port-mismatch", "revision-failover", "scale-rule-mismatch"):
             self.assertEqual(labs[lab]["cleanup"]["state"], "initiated-not-confirmed")
 

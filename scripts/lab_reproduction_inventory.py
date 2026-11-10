@@ -46,6 +46,7 @@ EXPENSIVE = {
 CLASSIFICATIONS = {"live-azure-evidence", "offline-replay-only", "documentation-only", "blocked", "unknown"}
 ANCHOR_KINDS = {"captured_at", "capture_window_end", "run_log", "http_date", "filename_timestamp", "readme_declared"}
 CLEANUP_STATES = {"confirmed", "initiated-not-confirmed", "absent", "not-applicable"}
+IMPERATIVE_STATUS_CLAIM = re.compile(r"^(?:Record|Run|Confirm)\b", re.IGNORECASE)
 MARKDOWN_QUOTE_LIMIT = 240
 MARKDOWN_CLAIM_COUNT_LIMIT = 3
 MARKDOWN_CLAIM_CELL_LIMIT = 600
@@ -149,9 +150,23 @@ def json_field(document: Any, selector: str) -> Any:
     return value
 
 
+def status_claim_problem(quote: str) -> str | None:
+    stripped = quote.lstrip()
+    lowered = stripped.lower()
+    if stripped.startswith("#"):
+        return "heading"
+    if IMPERATIVE_STATUS_CLAIM.match(stripped):
+        return "imperative instruction"
+    if any(marker in lowered for marker in ("re-evaluated offline", "pure file processor", "replay-only", "this split is deliberate")):
+        return "gate or workflow mechanics"
+    if ("should" in lowered or "expected" in lowered) and not re.search(r"\b(?:observed|returned|produced|completed|reproduced|captured|measured)\b", lowered):
+        return "expectation without a recorded result"
+    return None
+
+
 def validate_curated(root: Path, commit: str, current: list[str], tracked: set[str], data: dict[str, Any]) -> dict[str, dict[str, Any]]:
     rows: dict[str, dict[str, Any]] = {}
-    citations: set[tuple[str, int, str]] = set()
+    citations: set[tuple[str, int]] = set()
     for index, row in enumerate(data["labs"]):
         if not isinstance(row, dict) or not isinstance(row.get("lab"), str):
             raise InventoryError(f"curated labs[{index}] has no lab name")
@@ -168,7 +183,10 @@ def validate_curated(root: Path, commit: str, current: list[str], tracked: set[s
             raise InventoryError(f"{lab}: status_claims must be an array")
         for claim_index, claim in enumerate(claims):
             cited_line(root, commit, claim, tracked, f"{lab} status_claims[{claim_index}]")
-            key = (claim["file"], claim["line"], claim["quote"])
+            problem = status_claim_problem(claim["quote"])
+            if problem:
+                raise InventoryError(f"{lab} status_claims[{claim_index}] is not a declarative result: {problem}")
+            key = (claim["file"], claim["line"])
             if key in citations:
                 raise InventoryError(f"duplicated citation: {claim['file']}:{claim['line']}")
             citations.add(key)
