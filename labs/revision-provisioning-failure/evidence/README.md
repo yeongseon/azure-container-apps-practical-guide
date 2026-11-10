@@ -8,7 +8,7 @@ The claim ceiling is deliberately narrow: this pack proves only what this single
 
 1. **Baseline / H1 surface.** `01-revision-list.json`, `02-failed-revision-detail.json`, `03-containerapp-spec.yaml`, `04-system-logs.json`, `05-replicas-failed.json`, `06-console-logs.json`, `07-kql-probefailed-rows.json`, `08-kql-event-correlation.json`, `09-kql-summary-by-reason.json`, and `10-kql-console-logs.json` capture the failing `badpath2` revision.
 2. **H2 recovery surface.** `11-kql-postfix-verification.json` and `12-revision-list-recovered.json` capture the recovered `badpath3` revision after the probe path is corrected to `/`.
-3. **Phase B overlay.** `verify.sh` writes Gate 14 through Gate 17 JSONs over the raw cohort without touching Azure.
+3. **Phase B overlay.** `verify.sh` writes Gate 14 through Gate 17 JSONs over the raw cohort without touching Azure. The gates were originally emitted on 2026-06-26 and can be re-evaluated later offline from unchanged raw files. Every replay writes its invocation time as top-level `evaluated_at_utc`; this is not a capture date and does not establish a current Azure replay or validation date.
 
 ## Gate overview
 
@@ -23,6 +23,7 @@ The claim ceiling is deliberately narrow: this pack proves only what this single
 - `04-system-logs.json` and `06-console-logs.json` are JSONL/NDJSON files, not JSON arrays; `verify.sh` parses them one record per line.
 - The pack does not capture image digests, pod UIDs, or direct socket inspection; those gaps are carried explicitly in Gate 17 `cohort_binding_note.explicit_drops`.
 - The full baseline-to-fix cohort spans ~53 minutes, so Gate 14 uses the documented `5400`-second fallback ceiling instead of the `1800`-second strong ceiling.
+- Gate 14 derives its temporal bounds directly from raw revision, system-log, and KQL payload timestamps. It does not depend on file birth time, modification time, or existing gate content, so a direct replay is stable in a fresh copy without `GATE_REPLAY_BASELINE_DIR`.
 
 ## File index
 

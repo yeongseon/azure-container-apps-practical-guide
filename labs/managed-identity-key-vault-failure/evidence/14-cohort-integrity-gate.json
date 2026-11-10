@@ -75,128 +75,139 @@
         "path_satisfied": "strong",
         "post_anchor_timestamps": {
           "08-kql-console-logs-pre-fix.json": {
-            "timestamp_utc": "2026-06-26T08:23:06.764223+00:00",
-            "time_source": "birthtime",
-            "raw_epoch": 1782462186.7642229
+            "timestamp_utc": "2026-06-26T08:24:00.292625+00:00",
+            "time_source": "cohort.post.roleAssignment.createdOn",
+            "raw_epoch": "2026-06-26T08:24:00.292625+00:00",
+            "anchor_kind": "phase_proxy"
           },
           "09-role-assignment-post-fix.json": {
-            "timestamp_utc": "2026-06-26T08:26:59.980493+00:00",
-            "time_source": "birthtime",
-            "raw_epoch": 1782462419.980493
+            "timestamp_utc": "2026-06-26T08:24:00.292625+00:00",
+            "time_source": "roleAssignment.createdOn",
+            "raw_epoch": "2026-06-26T08:24:00.292625+00:00",
+            "anchor_kind": "direct_payload"
           },
           "10-http-response-post-fix.json": {
-            "timestamp_utc": "2026-06-26T08:27:03.315545+00:00",
-            "time_source": "birthtime",
-            "raw_epoch": 1782462423.315545
+            "timestamp_utc": "2026-06-26T08:26:59+00:00",
+            "time_source": "http.Date",
+            "raw_epoch": "2026-06-26T08:26:59+00:00",
+            "anchor_kind": "direct_payload"
           },
           "11-revision-list-post-fix.json": {
-            "timestamp_utc": "2026-06-26T08:27:03.327379+00:00",
-            "time_source": "birthtime",
-            "raw_epoch": 1782462423.3273792
+            "timestamp_utc": "2026-06-26T08:25:19+00:00",
+            "time_source": "revision.createdTime",
+            "raw_epoch": "2026-06-26T08:25:19+00:00",
+            "anchor_kind": "direct_payload"
           },
           "12-kql-recovery-summary-post-fix.json": {
-            "timestamp_utc": "2026-06-26T08:27:06.877544+00:00",
-            "time_source": "birthtime",
-            "raw_epoch": 1782462426.8775444
+            "timestamp_utc": "2026-06-26T08:26:59+00:00",
+            "time_source": "cohort.post.http.Date",
+            "raw_epoch": "2026-06-26T08:26:59+00:00",
+            "anchor_kind": "phase_proxy"
           }
         },
         "pre_anchor_timestamps": {
           "01-app-identity-pre-fix.json": {
-            "timestamp_utc": "2026-06-26T08:22:46.708343+00:00",
-            "time_source": "birthtime",
-            "raw_epoch": 1782462166.708343
+            "timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "time_source": "cohort.pre.revision.createdTime",
+            "raw_epoch": "2026-06-26T08:18:50+00:00",
+            "anchor_kind": "phase_proxy"
           },
           "02-role-assignments-pre-fix.json": {
-            "timestamp_utc": "2026-06-26T08:22:50.060410+00:00",
-            "time_source": "birthtime",
-            "raw_epoch": 1782462170.06041
+            "timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "time_source": "cohort.pre.revision.createdTime",
+            "raw_epoch": "2026-06-26T08:18:50+00:00",
+            "anchor_kind": "phase_proxy"
           },
           "03-kv-rbac-config.json": {
-            "timestamp_utc": "2026-06-26T08:22:53.068597+00:00",
-            "time_source": "birthtime",
-            "raw_epoch": 1782462173.0685968
+            "timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "time_source": "cohort.pre.revision.createdTime",
+            "raw_epoch": "2026-06-26T08:18:50+00:00",
+            "anchor_kind": "phase_proxy"
           },
           "04-revision-list-pre-fix.json": {
-            "timestamp_utc": "2026-06-26T08:22:54.571442+00:00",
-            "time_source": "birthtime",
-            "raw_epoch": 1782462174.5714424
+            "timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "time_source": "revision.createdTime",
+            "raw_epoch": "2026-06-26T08:18:50+00:00",
+            "anchor_kind": "direct_payload"
           },
           "05-http-response-pre-fix.json": {
-            "timestamp_utc": "2026-06-26T08:22:58.110677+00:00",
-            "time_source": "birthtime",
-            "raw_epoch": 1782462178.1106768
+            "timestamp_utc": "2026-06-26T08:20:53+00:00",
+            "time_source": "http.Date",
+            "raw_epoch": "2026-06-26T08:20:53+00:00",
+            "anchor_kind": "direct_payload"
           },
           "07-containerapp-spec-pre-fix.yaml": {
-            "timestamp_utc": "2026-06-26T08:23:02.563979+00:00",
-            "time_source": "birthtime",
-            "raw_epoch": 1782462182.563979
+            "timestamp_utc": "2026-06-26T08:18:43.551296+00:00",
+            "time_source": "systemData.lastModifiedAt",
+            "raw_epoch": "2026-06-26T08:18:43.5512961",
+            "anchor_kind": "direct_payload"
           }
         },
         "sorted_anchor_sequence": [
           {
+            "file": "07-containerapp-spec-pre-fix.yaml",
+            "timestamp_utc": "2026-06-26T08:18:43.551296+00:00",
+            "time_source": "systemData.lastModifiedAt",
+            "anchor_class": "pre"
+          },
+          {
             "file": "01-app-identity-pre-fix.json",
-            "timestamp_utc": "2026-06-26T08:22:46.708343+00:00",
-            "time_source": "birthtime",
+            "timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "time_source": "cohort.pre.revision.createdTime",
             "anchor_class": "pre"
           },
           {
             "file": "02-role-assignments-pre-fix.json",
-            "timestamp_utc": "2026-06-26T08:22:50.060410+00:00",
-            "time_source": "birthtime",
+            "timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "time_source": "cohort.pre.revision.createdTime",
             "anchor_class": "pre"
           },
           {
             "file": "03-kv-rbac-config.json",
-            "timestamp_utc": "2026-06-26T08:22:53.068597+00:00",
-            "time_source": "birthtime",
+            "timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "time_source": "cohort.pre.revision.createdTime",
             "anchor_class": "pre"
           },
           {
             "file": "04-revision-list-pre-fix.json",
-            "timestamp_utc": "2026-06-26T08:22:54.571442+00:00",
-            "time_source": "birthtime",
+            "timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "time_source": "revision.createdTime",
             "anchor_class": "pre"
           },
           {
             "file": "05-http-response-pre-fix.json",
-            "timestamp_utc": "2026-06-26T08:22:58.110677+00:00",
-            "time_source": "birthtime",
-            "anchor_class": "pre"
-          },
-          {
-            "file": "07-containerapp-spec-pre-fix.yaml",
-            "timestamp_utc": "2026-06-26T08:23:02.563979+00:00",
-            "time_source": "birthtime",
+            "timestamp_utc": "2026-06-26T08:20:53+00:00",
+            "time_source": "http.Date",
             "anchor_class": "pre"
           },
           {
             "file": "08-kql-console-logs-pre-fix.json",
-            "timestamp_utc": "2026-06-26T08:23:06.764223+00:00",
-            "time_source": "birthtime",
+            "timestamp_utc": "2026-06-26T08:24:00.292625+00:00",
+            "time_source": "cohort.post.roleAssignment.createdOn",
             "anchor_class": "post"
           },
           {
             "file": "09-role-assignment-post-fix.json",
-            "timestamp_utc": "2026-06-26T08:26:59.980493+00:00",
-            "time_source": "birthtime",
-            "anchor_class": "post"
-          },
-          {
-            "file": "10-http-response-post-fix.json",
-            "timestamp_utc": "2026-06-26T08:27:03.315545+00:00",
-            "time_source": "birthtime",
+            "timestamp_utc": "2026-06-26T08:24:00.292625+00:00",
+            "time_source": "roleAssignment.createdOn",
             "anchor_class": "post"
           },
           {
             "file": "11-revision-list-post-fix.json",
-            "timestamp_utc": "2026-06-26T08:27:03.327379+00:00",
-            "time_source": "birthtime",
+            "timestamp_utc": "2026-06-26T08:25:19+00:00",
+            "time_source": "revision.createdTime",
+            "anchor_class": "post"
+          },
+          {
+            "file": "10-http-response-post-fix.json",
+            "timestamp_utc": "2026-06-26T08:26:59+00:00",
+            "time_source": "http.Date",
             "anchor_class": "post"
           },
           {
             "file": "12-kql-recovery-summary-post-fix.json",
-            "timestamp_utc": "2026-06-26T08:27:06.877544+00:00",
-            "time_source": "birthtime",
+            "timestamp_utc": "2026-06-26T08:26:59+00:00",
+            "time_source": "cohort.post.http.Date",
             "anchor_class": "post"
           }
         ],
@@ -211,312 +222,312 @@
         "strict_pairwise_order_checks": [
           {
             "pre_file": "01-app-identity-pre-fix.json",
-            "pre_timestamp_utc": "2026-06-26T08:22:46.708343+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "pre_time_source": "cohort.pre.revision.createdTime",
             "post_file": "08-kql-console-logs-pre-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:23:06.764223+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 20.05588,
+            "post_timestamp_utc": "2026-06-26T08:24:00.292625+00:00",
+            "post_time_source": "cohort.post.roleAssignment.createdOn",
+            "delta_seconds": 310.292625,
             "holds": true
           },
           {
             "pre_file": "01-app-identity-pre-fix.json",
-            "pre_timestamp_utc": "2026-06-26T08:22:46.708343+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "pre_time_source": "cohort.pre.revision.createdTime",
             "post_file": "09-role-assignment-post-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:26:59.980493+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 253.27215,
+            "post_timestamp_utc": "2026-06-26T08:24:00.292625+00:00",
+            "post_time_source": "roleAssignment.createdOn",
+            "delta_seconds": 310.292625,
             "holds": true
           },
           {
             "pre_file": "01-app-identity-pre-fix.json",
-            "pre_timestamp_utc": "2026-06-26T08:22:46.708343+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "pre_time_source": "cohort.pre.revision.createdTime",
             "post_file": "10-http-response-post-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:27:03.315545+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 256.607202,
+            "post_timestamp_utc": "2026-06-26T08:26:59+00:00",
+            "post_time_source": "http.Date",
+            "delta_seconds": 489.0,
             "holds": true
           },
           {
             "pre_file": "01-app-identity-pre-fix.json",
-            "pre_timestamp_utc": "2026-06-26T08:22:46.708343+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "pre_time_source": "cohort.pre.revision.createdTime",
             "post_file": "11-revision-list-post-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:27:03.327379+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 256.619036,
+            "post_timestamp_utc": "2026-06-26T08:25:19+00:00",
+            "post_time_source": "revision.createdTime",
+            "delta_seconds": 389.0,
             "holds": true
           },
           {
             "pre_file": "01-app-identity-pre-fix.json",
-            "pre_timestamp_utc": "2026-06-26T08:22:46.708343+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "pre_time_source": "cohort.pre.revision.createdTime",
             "post_file": "12-kql-recovery-summary-post-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:27:06.877544+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 260.169201,
+            "post_timestamp_utc": "2026-06-26T08:26:59+00:00",
+            "post_time_source": "cohort.post.http.Date",
+            "delta_seconds": 489.0,
             "holds": true
           },
           {
             "pre_file": "02-role-assignments-pre-fix.json",
-            "pre_timestamp_utc": "2026-06-26T08:22:50.060410+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "pre_time_source": "cohort.pre.revision.createdTime",
             "post_file": "08-kql-console-logs-pre-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:23:06.764223+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 16.703813,
+            "post_timestamp_utc": "2026-06-26T08:24:00.292625+00:00",
+            "post_time_source": "cohort.post.roleAssignment.createdOn",
+            "delta_seconds": 310.292625,
             "holds": true
           },
           {
             "pre_file": "02-role-assignments-pre-fix.json",
-            "pre_timestamp_utc": "2026-06-26T08:22:50.060410+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "pre_time_source": "cohort.pre.revision.createdTime",
             "post_file": "09-role-assignment-post-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:26:59.980493+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 249.920083,
+            "post_timestamp_utc": "2026-06-26T08:24:00.292625+00:00",
+            "post_time_source": "roleAssignment.createdOn",
+            "delta_seconds": 310.292625,
             "holds": true
           },
           {
             "pre_file": "02-role-assignments-pre-fix.json",
-            "pre_timestamp_utc": "2026-06-26T08:22:50.060410+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "pre_time_source": "cohort.pre.revision.createdTime",
             "post_file": "10-http-response-post-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:27:03.315545+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 253.255135,
+            "post_timestamp_utc": "2026-06-26T08:26:59+00:00",
+            "post_time_source": "http.Date",
+            "delta_seconds": 489.0,
             "holds": true
           },
           {
             "pre_file": "02-role-assignments-pre-fix.json",
-            "pre_timestamp_utc": "2026-06-26T08:22:50.060410+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "pre_time_source": "cohort.pre.revision.createdTime",
             "post_file": "11-revision-list-post-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:27:03.327379+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 253.266969,
+            "post_timestamp_utc": "2026-06-26T08:25:19+00:00",
+            "post_time_source": "revision.createdTime",
+            "delta_seconds": 389.0,
             "holds": true
           },
           {
             "pre_file": "02-role-assignments-pre-fix.json",
-            "pre_timestamp_utc": "2026-06-26T08:22:50.060410+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "pre_time_source": "cohort.pre.revision.createdTime",
             "post_file": "12-kql-recovery-summary-post-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:27:06.877544+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 256.817134,
+            "post_timestamp_utc": "2026-06-26T08:26:59+00:00",
+            "post_time_source": "cohort.post.http.Date",
+            "delta_seconds": 489.0,
             "holds": true
           },
           {
             "pre_file": "03-kv-rbac-config.json",
-            "pre_timestamp_utc": "2026-06-26T08:22:53.068597+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "pre_time_source": "cohort.pre.revision.createdTime",
             "post_file": "08-kql-console-logs-pre-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:23:06.764223+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 13.695626,
+            "post_timestamp_utc": "2026-06-26T08:24:00.292625+00:00",
+            "post_time_source": "cohort.post.roleAssignment.createdOn",
+            "delta_seconds": 310.292625,
             "holds": true
           },
           {
             "pre_file": "03-kv-rbac-config.json",
-            "pre_timestamp_utc": "2026-06-26T08:22:53.068597+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "pre_time_source": "cohort.pre.revision.createdTime",
             "post_file": "09-role-assignment-post-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:26:59.980493+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 246.911896,
+            "post_timestamp_utc": "2026-06-26T08:24:00.292625+00:00",
+            "post_time_source": "roleAssignment.createdOn",
+            "delta_seconds": 310.292625,
             "holds": true
           },
           {
             "pre_file": "03-kv-rbac-config.json",
-            "pre_timestamp_utc": "2026-06-26T08:22:53.068597+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "pre_time_source": "cohort.pre.revision.createdTime",
             "post_file": "10-http-response-post-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:27:03.315545+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 250.246948,
+            "post_timestamp_utc": "2026-06-26T08:26:59+00:00",
+            "post_time_source": "http.Date",
+            "delta_seconds": 489.0,
             "holds": true
           },
           {
             "pre_file": "03-kv-rbac-config.json",
-            "pre_timestamp_utc": "2026-06-26T08:22:53.068597+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "pre_time_source": "cohort.pre.revision.createdTime",
             "post_file": "11-revision-list-post-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:27:03.327379+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 250.258782,
+            "post_timestamp_utc": "2026-06-26T08:25:19+00:00",
+            "post_time_source": "revision.createdTime",
+            "delta_seconds": 389.0,
             "holds": true
           },
           {
             "pre_file": "03-kv-rbac-config.json",
-            "pre_timestamp_utc": "2026-06-26T08:22:53.068597+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "pre_time_source": "cohort.pre.revision.createdTime",
             "post_file": "12-kql-recovery-summary-post-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:27:06.877544+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 253.808947,
+            "post_timestamp_utc": "2026-06-26T08:26:59+00:00",
+            "post_time_source": "cohort.post.http.Date",
+            "delta_seconds": 489.0,
             "holds": true
           },
           {
             "pre_file": "04-revision-list-pre-fix.json",
-            "pre_timestamp_utc": "2026-06-26T08:22:54.571442+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "pre_time_source": "revision.createdTime",
             "post_file": "08-kql-console-logs-pre-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:23:06.764223+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 12.192781,
+            "post_timestamp_utc": "2026-06-26T08:24:00.292625+00:00",
+            "post_time_source": "cohort.post.roleAssignment.createdOn",
+            "delta_seconds": 310.292625,
             "holds": true
           },
           {
             "pre_file": "04-revision-list-pre-fix.json",
-            "pre_timestamp_utc": "2026-06-26T08:22:54.571442+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "pre_time_source": "revision.createdTime",
             "post_file": "09-role-assignment-post-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:26:59.980493+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 245.409051,
+            "post_timestamp_utc": "2026-06-26T08:24:00.292625+00:00",
+            "post_time_source": "roleAssignment.createdOn",
+            "delta_seconds": 310.292625,
             "holds": true
           },
           {
             "pre_file": "04-revision-list-pre-fix.json",
-            "pre_timestamp_utc": "2026-06-26T08:22:54.571442+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "pre_time_source": "revision.createdTime",
             "post_file": "10-http-response-post-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:27:03.315545+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 248.744103,
+            "post_timestamp_utc": "2026-06-26T08:26:59+00:00",
+            "post_time_source": "http.Date",
+            "delta_seconds": 489.0,
             "holds": true
           },
           {
             "pre_file": "04-revision-list-pre-fix.json",
-            "pre_timestamp_utc": "2026-06-26T08:22:54.571442+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "pre_time_source": "revision.createdTime",
             "post_file": "11-revision-list-post-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:27:03.327379+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 248.755937,
+            "post_timestamp_utc": "2026-06-26T08:25:19+00:00",
+            "post_time_source": "revision.createdTime",
+            "delta_seconds": 389.0,
             "holds": true
           },
           {
             "pre_file": "04-revision-list-pre-fix.json",
-            "pre_timestamp_utc": "2026-06-26T08:22:54.571442+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:18:50+00:00",
+            "pre_time_source": "revision.createdTime",
             "post_file": "12-kql-recovery-summary-post-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:27:06.877544+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 252.306102,
+            "post_timestamp_utc": "2026-06-26T08:26:59+00:00",
+            "post_time_source": "cohort.post.http.Date",
+            "delta_seconds": 489.0,
             "holds": true
           },
           {
             "pre_file": "05-http-response-pre-fix.json",
-            "pre_timestamp_utc": "2026-06-26T08:22:58.110677+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:20:53+00:00",
+            "pre_time_source": "http.Date",
             "post_file": "08-kql-console-logs-pre-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:23:06.764223+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 8.653546,
+            "post_timestamp_utc": "2026-06-26T08:24:00.292625+00:00",
+            "post_time_source": "cohort.post.roleAssignment.createdOn",
+            "delta_seconds": 187.292625,
             "holds": true
           },
           {
             "pre_file": "05-http-response-pre-fix.json",
-            "pre_timestamp_utc": "2026-06-26T08:22:58.110677+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:20:53+00:00",
+            "pre_time_source": "http.Date",
             "post_file": "09-role-assignment-post-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:26:59.980493+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 241.869816,
+            "post_timestamp_utc": "2026-06-26T08:24:00.292625+00:00",
+            "post_time_source": "roleAssignment.createdOn",
+            "delta_seconds": 187.292625,
             "holds": true
           },
           {
             "pre_file": "05-http-response-pre-fix.json",
-            "pre_timestamp_utc": "2026-06-26T08:22:58.110677+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:20:53+00:00",
+            "pre_time_source": "http.Date",
             "post_file": "10-http-response-post-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:27:03.315545+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 245.204868,
+            "post_timestamp_utc": "2026-06-26T08:26:59+00:00",
+            "post_time_source": "http.Date",
+            "delta_seconds": 366.0,
             "holds": true
           },
           {
             "pre_file": "05-http-response-pre-fix.json",
-            "pre_timestamp_utc": "2026-06-26T08:22:58.110677+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:20:53+00:00",
+            "pre_time_source": "http.Date",
             "post_file": "11-revision-list-post-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:27:03.327379+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 245.216702,
+            "post_timestamp_utc": "2026-06-26T08:25:19+00:00",
+            "post_time_source": "revision.createdTime",
+            "delta_seconds": 266.0,
             "holds": true
           },
           {
             "pre_file": "05-http-response-pre-fix.json",
-            "pre_timestamp_utc": "2026-06-26T08:22:58.110677+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:20:53+00:00",
+            "pre_time_source": "http.Date",
             "post_file": "12-kql-recovery-summary-post-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:27:06.877544+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 248.766867,
+            "post_timestamp_utc": "2026-06-26T08:26:59+00:00",
+            "post_time_source": "cohort.post.http.Date",
+            "delta_seconds": 366.0,
             "holds": true
           },
           {
             "pre_file": "07-containerapp-spec-pre-fix.yaml",
-            "pre_timestamp_utc": "2026-06-26T08:23:02.563979+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:18:43.551296+00:00",
+            "pre_time_source": "systemData.lastModifiedAt",
             "post_file": "08-kql-console-logs-pre-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:23:06.764223+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 4.200244,
+            "post_timestamp_utc": "2026-06-26T08:24:00.292625+00:00",
+            "post_time_source": "cohort.post.roleAssignment.createdOn",
+            "delta_seconds": 316.741329,
             "holds": true
           },
           {
             "pre_file": "07-containerapp-spec-pre-fix.yaml",
-            "pre_timestamp_utc": "2026-06-26T08:23:02.563979+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:18:43.551296+00:00",
+            "pre_time_source": "systemData.lastModifiedAt",
             "post_file": "09-role-assignment-post-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:26:59.980493+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 237.416514,
+            "post_timestamp_utc": "2026-06-26T08:24:00.292625+00:00",
+            "post_time_source": "roleAssignment.createdOn",
+            "delta_seconds": 316.741329,
             "holds": true
           },
           {
             "pre_file": "07-containerapp-spec-pre-fix.yaml",
-            "pre_timestamp_utc": "2026-06-26T08:23:02.563979+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:18:43.551296+00:00",
+            "pre_time_source": "systemData.lastModifiedAt",
             "post_file": "10-http-response-post-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:27:03.315545+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 240.751566,
+            "post_timestamp_utc": "2026-06-26T08:26:59+00:00",
+            "post_time_source": "http.Date",
+            "delta_seconds": 495.448704,
             "holds": true
           },
           {
             "pre_file": "07-containerapp-spec-pre-fix.yaml",
-            "pre_timestamp_utc": "2026-06-26T08:23:02.563979+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:18:43.551296+00:00",
+            "pre_time_source": "systemData.lastModifiedAt",
             "post_file": "11-revision-list-post-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:27:03.327379+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 240.7634,
+            "post_timestamp_utc": "2026-06-26T08:25:19+00:00",
+            "post_time_source": "revision.createdTime",
+            "delta_seconds": 395.448704,
             "holds": true
           },
           {
             "pre_file": "07-containerapp-spec-pre-fix.yaml",
-            "pre_timestamp_utc": "2026-06-26T08:23:02.563979+00:00",
-            "pre_time_source": "birthtime",
+            "pre_timestamp_utc": "2026-06-26T08:18:43.551296+00:00",
+            "pre_time_source": "systemData.lastModifiedAt",
             "post_file": "12-kql-recovery-summary-post-fix.json",
-            "post_timestamp_utc": "2026-06-26T08:27:06.877544+00:00",
-            "post_time_source": "birthtime",
-            "delta_seconds": 244.313565,
+            "post_timestamp_utc": "2026-06-26T08:26:59+00:00",
+            "post_time_source": "cohort.post.http.Date",
+            "delta_seconds": 495.448704,
             "holds": true
           }
         ],
         "time_source_summary": {
-          "birthtime_count": 11,
+          "birthtime_count": 0,
           "mtime_count": 0,
           "fallback_used": false
         }
       },
-      "predicate": "All configured post-fix capture-order anchor file birth-times (falling back to mtime when birth-time is unavailable) are strictly later than all configured pre-fix anchor file birth-times, and the total span is <= 1800 seconds on the strong path or <= 5400 seconds on the fallback path.",
+      "predicate": "Every post-fix direct payload timestamp or phase-boundary proxy is strictly later than every pre-fix anchor; guarded historical fallback is eligible only through an explicitly supplied replay baseline, and the total span is <= 1800 seconds on the strong path or <= 5400 seconds on the fallback path.",
       "result": "pass",
       "sub_gate": "b_temporal_cohort_is_monotonic_and_bounded"
     },
@@ -624,5 +635,5 @@
     "temporal_span_fallback_seconds_max": 5400,
     "temporal_span_strong_seconds_max": 1800
   },
-  "utc_captured": "2026-06-26T08:38:34Z"
+  "evaluated_at_utc": "2026-11-09T15:54:02Z"
 }

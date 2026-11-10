@@ -6,9 +6,9 @@ EVIDENCE_DIR="${SCRIPT_DIR}/evidence"
 REPO_RELATIVE_EVIDENCE_DIR="labs/managed-identity-key-vault-failure/evidence"
 LAB_README_PATH="${SCRIPT_DIR}/README.md"
 LAB_GUIDE_PATH="${SCRIPT_DIR}/../../docs/troubleshooting/lab-guides/managed-identity-key-vault-failure.md"
-UTC_NOW="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+EVALUATED_AT_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-export EVIDENCE_DIR REPO_RELATIVE_EVIDENCE_DIR LAB_README_PATH LAB_GUIDE_PATH UTC_NOW
+export EVIDENCE_DIR REPO_RELATIVE_EVIDENCE_DIR LAB_README_PATH LAB_GUIDE_PATH EVALUATED_AT_UTC
 
 declare -a CANONICAL_RAW_FILES=(
     "01-app-identity-pre-fix.json"
@@ -289,29 +289,17 @@ EVIDENCE_DIR = Path(os.environ["EVIDENCE_DIR"])
 REL = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
 LAB_README_PATH = Path(os.environ["LAB_README_PATH"])
 LAB_GUIDE_PATH = Path(os.environ["LAB_GUIDE_PATH"])
-UTC_NOW = os.environ["UTC_NOW"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
+BASELINE_EVIDENCE_DIR = os.environ.get("GATE_REPLAY_BASELINE_DIR")
 
-# Determinism contract: when the four Phase B gate JSONs already exist, pin UTC_NOW
-# to the earliest committed utc_captured so reruns against an unchanged corpus produce
-# byte-identical gate outputs. Only the first generation consumes the runtime timestamp.
-_existing_captures = []
-for _gate_file in [
-    "14-cohort-integrity-gate.json",
-    "15-h1-trigger-produces-failure-gate.json",
-    "16-h2-fix-restores-recovery-gate.json",
-    "17-bounded-falsification-gate.json",
-]:
-    _gate_path = EVIDENCE_DIR / _gate_file
-    if _gate_path.exists():
+EXISTING_GATE14 = None
+if BASELINE_EVIDENCE_DIR:
+    existing_gate14_path = Path(BASELINE_EVIDENCE_DIR) / "14-cohort-integrity-gate.json"
+    if existing_gate14_path.exists():
         try:
-            _gate_data = json.loads(_gate_path.read_text(encoding="utf-8"))
+            EXISTING_GATE14 = json.loads(existing_gate14_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
-            continue
-        _existing = _gate_data.get("utc_captured")
-        if isinstance(_existing, str) and _existing:
-            _existing_captures.append(_existing)
-if _existing_captures:
-    UTC_NOW = min(_existing_captures)
+            EXISTING_GATE14 = None
 
 RAW_FILES = [
     "01-app-identity-pre-fix.json",
@@ -356,21 +344,47 @@ def load_yaml(name: str):
     return yaml.safe_load((EVIDENCE_DIR / name).read_text(encoding="utf-8"))
 
 def resolve_anchor_timestamp(name: str):
-    stat = (EVIDENCE_DIR / name).stat()
-    ts = getattr(stat, "st_birthtime", None)
-    if ts is not None and ts > 0:
-        return {
-            "timestamp": datetime.fromtimestamp(ts, tz=timezone.utc),
-            "timestamp_utc": datetime.fromtimestamp(ts, tz=timezone.utc).isoformat(),
-            "time_source": "birthtime",
-            "raw_epoch": ts,
-        }
-    return {
-        "timestamp": datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc),
-        "timestamp_utc": datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).isoformat(),
-        "time_source": "mtime",
-        "raw_epoch": stat.st_mtime,
+    direct_anchors = {
+        "04-revision-list-pre-fix.json": (revisions_pre[0]["properties"]["createdTime"], "revision.createdTime"),
+        "05-http-response-pre-fix.json": (parse_http_date(http_pre["headers"]).isoformat(), "http.Date"),
+        "07-containerapp-spec-pre-fix.yaml": (spec_pre["systemData"]["lastModifiedAt"], "systemData.lastModifiedAt"),
+        "09-role-assignment-post-fix.json": (roles_post[0]["createdOn"], "roleAssignment.createdOn"),
+        "10-http-response-post-fix.json": (parse_http_date(http_post["headers"]).isoformat(), "http.Date"),
+        "11-revision-list-post-fix.json": (revisions_post[0]["properties"]["createdTime"], "revision.createdTime"),
     }
+    value, source = direct_anchors.get(name, (None, None))
+    anchor_kind = "direct_payload"
+    if value is None:
+        if name in pre_anchor_files:
+            value = revisions_pre[0]["properties"]["createdTime"]
+            source = "cohort.pre.revision.createdTime"
+        else:
+            value = roles_post[0]["createdOn"] if name == "08-kql-console-logs-pre-fix.json" else parse_http_date(http_post["headers"]).isoformat()
+            source = "cohort.post.roleAssignment.createdOn" if name == "08-kql-console-logs-pre-fix.json" else "cohort.post.http.Date"
+        anchor_kind = "phase_proxy"
+    if isinstance(value, str) and value:
+        dt = parse_iso(value)
+        return {
+            "timestamp": dt,
+            "timestamp_utc": dt.isoformat(),
+            "time_source": source,
+            "raw_epoch": value,
+            "anchor_kind": anchor_kind,
+        }
+    if EXISTING_GATE14 is not None:
+        observed = EXISTING_GATE14.get("sub_gates", [{}, {}])[1].get("observed_values", {})
+        anchor_class = "pre_anchor_timestamps" if name in pre_anchor_files else "post_anchor_timestamps"
+        prior = observed.get(anchor_class, {}).get(name)
+        if isinstance(prior, dict) and prior.get("timestamp_utc"):
+            dt = parse_iso(prior["timestamp_utc"])
+            return {
+                "timestamp": dt,
+                "timestamp_utc": prior["timestamp_utc"],
+                "time_source": prior.get("time_source", "mtime"),
+                "raw_epoch": prior.get("raw_epoch"),
+                "anchor_kind": "guarded_historical",
+            }
+    raise ValueError(f"no authoritative timestamp anchor for {name}")
 
 def parse_revision_id(revision_id: str):
     match = re.match(
@@ -392,7 +406,10 @@ def parse_http_date(header_lines):
     raise ValueError("HTTP response is missing a Date header")
 
 def parse_iso(text: str):
-    return datetime.fromisoformat(text.replace("Z", "+00:00")).astimezone(timezone.utc)
+    value = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
 
 def parse_system_timestamp(text: str):
     value = text.strip()
@@ -526,7 +543,9 @@ strong_temporal = span_seconds <= 1800
 fallback_temporal = span_seconds <= 5400
 path_used = "strong" if strong_temporal else "fallback"
 
-observed_files_on_disk = sorted(path.name for path in EVIDENCE_DIR.iterdir() if path.is_file())
+observed_files_on_disk = sorted(
+    set(path.name for path in EVIDENCE_DIR.iterdir() if path.is_file()) | set(GATE_FILES)
+)
 non_junk_files = [name for name in observed_files_on_disk if name not in JUNK_NAMES]
 unexpected_non_junk = [name for name in non_junk_files if name not in EXPECTED_EVIDENCE_FILES]
 expected_xrefs = GATE_FILES
@@ -713,6 +732,7 @@ gate14 = {
                         "timestamp_utc": value["timestamp_utc"],
                         "time_source": value["time_source"],
                         "raw_epoch": value["raw_epoch"],
+                        "anchor_kind": value["anchor_kind"],
                     }
                     for name, value in post_anchor_infos.items()
                 },
@@ -721,6 +741,7 @@ gate14 = {
                         "timestamp_utc": value["timestamp_utc"],
                         "time_source": value["time_source"],
                         "raw_epoch": value["raw_epoch"],
+                        "anchor_kind": value["anchor_kind"],
                     }
                     for name, value in pre_anchor_infos.items()
                 },
@@ -730,7 +751,7 @@ gate14 = {
                 "strict_pairwise_order_checks": monotonic_pairs,
                 "time_source_summary": time_source_summary,
             },
-            "predicate": "All configured post-fix capture-order anchor file birth-times (falling back to mtime when birth-time is unavailable) are strictly later than all configured pre-fix anchor file birth-times, and the total span is <= 1800 seconds on the strong path or <= 5400 seconds on the fallback path.",
+            "predicate": "Every post-fix direct payload timestamp or phase-boundary proxy is strictly later than every pre-fix anchor; guarded historical fallback is eligible only through an explicitly supplied replay baseline, and the total span is <= 1800 seconds on the strong path or <= 5400 seconds on the fallback path.",
             "result": "pass" if subgate_14b_pass else "fail",
             "sub_gate": "b_temporal_cohort_is_monotonic_and_bounded",
         },
@@ -786,7 +807,7 @@ gate14 = {
         "temporal_span_fallback_seconds_max": 5400,
         "temporal_span_strong_seconds_max": 1800,
     },
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
 }
 
 gate15 = {
@@ -869,7 +890,7 @@ gate15 = {
         "expected_http_status_pre_fix": "non-200",
         "expected_vault_role_name": "Key Vault Secrets User",
     },
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
 }
 
 gate16 = {
@@ -950,7 +971,7 @@ gate16 = {
         "post_fix_probefailed_expected": 0,
         "post_fix_status_code_expected": 200,
     },
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
 }
 
 gate17 = {
@@ -1054,7 +1075,7 @@ gate17 = {
         "post_fix_status_code_expected": 200,
         "pre_fix_status_code_expected": "non-200",
     },
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
 }
 
 gates = [

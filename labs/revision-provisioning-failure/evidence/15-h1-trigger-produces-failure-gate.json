@@ -1,6 +1,7 @@
 {
   "claim": "The H1 trigger produced the documented failure on ca-labrevprov-e2upm2--badpath2: the revision surface is Unhealthy/Failed with provisioningError='Container crashing: app', raw system logs show a repeated ProbeFailed -> ContainerTerminated(ProbeFailure) loop, KQL rows bind the failure to badpath2, and nginx console evidence shows 404 responses on /nonexistent-health-endpoint.",
   "claim_level": "Observed",
+  "evaluated_at_utc": "2026-11-09T13:06:01Z",
   "gate_classification": "H1 gate: confirms the bad-path startup probe produced a revision-scoped restart loop and nginx 404 evidence on the probe target.",
   "hypothesis": "H1_trigger_produces_failure",
   "path_used": "single",
@@ -87,6 +88,5 @@
     "kql_probefailed_rows_min": 20,
     "raw_system_containerterminated_min": 4,
     "raw_system_probefailed_min": 9
-  },
-  "utc_captured": "2026-06-26T06:14:47Z"
+  }
 }

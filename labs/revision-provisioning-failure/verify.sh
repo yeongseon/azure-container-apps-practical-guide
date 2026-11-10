@@ -4,9 +4,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EVIDENCE_DIR="${SCRIPT_DIR}/evidence"
 REPO_RELATIVE_EVIDENCE_DIR="labs/revision-provisioning-failure/evidence"
-UTC_NOW="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+EVALUATED_AT_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-export EVIDENCE_DIR REPO_RELATIVE_EVIDENCE_DIR UTC_NOW
+export EVIDENCE_DIR REPO_RELATIVE_EVIDENCE_DIR EVALUATED_AT_UTC
 
 declare -a CANONICAL_RAW_FILES=(
     "01-revision-list.json"
@@ -317,7 +317,7 @@ fi
 
 echo "===== Phase B falsification gates -- revision-provisioning-failure ====="
 echo "Evidence directory: ${EVIDENCE_DIR}"
-echo "Phase B run UTC:    ${UTC_NOW}"
+echo "Phase B evaluated:  ${EVALUATED_AT_UTC}"
 echo
 
 run_python_gate 1 "evidence_directory_exists"
@@ -344,7 +344,7 @@ import yaml
 
 EVIDENCE_DIR = Path(os.environ["EVIDENCE_DIR"])
 REL = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
-UTC_NOW = os.environ["UTC_NOW"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 
 APP_NAME = "ca-labrevprov-e2upm2"
 RESOURCE_GROUP = "rg-aca-lab-revprov"
@@ -471,7 +471,9 @@ lineage_ok = (
 )
 
 allowed = set(CANONICAL) | set(GATE_OUTPUTS) | {"README.md"}
-on_disk = sorted(path.name for path in EVIDENCE_DIR.iterdir() if path.is_file())
+on_disk = sorted(
+    set(path.name for path in EVIDENCE_DIR.iterdir() if path.is_file()) | set(GATE_OUTPUTS)
+)
 ignored_junk = [name for name in on_disk if name in JUNK_NAMES or name.startswith(".") or name.endswith(JUNK_SUFFIXES)]
 extras = [name for name in on_disk if name not in allowed and name not in ignored_junk]
 d_pass = len(extras) == 0
@@ -551,7 +553,7 @@ sub_gates = [
 ]
 
 payload = {
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "revision_provisioning_failure",
     "hypothesis": "H_cohort_integrity",
     "claim": "The 12-file revision-provisioning-failure raw cohort is internally consistent: every file is present and parseable, the identity and lineage bind to ca-labrevprov-e2upm2 / rg-aca-lab-revprov, the temporal span uses the documented <=5400-second fallback ceiling, and evidence/README.md cross-references all four Phase B gate JSON files.",
@@ -595,7 +597,7 @@ from pathlib import Path
 
 EVIDENCE_DIR = Path(os.environ["EVIDENCE_DIR"])
 REL = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
-UTC_NOW = os.environ["UTC_NOW"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 
 FAILED_REVISION = "ca-labrevprov-e2upm2--badpath2"
 BAD_PATH = "/nonexistent-health-endpoint"
@@ -706,7 +708,7 @@ sub_gates = [
 ]
 
 payload = {
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "revision_provisioning_failure",
     "hypothesis": "H1_trigger_produces_failure",
     "claim": "The H1 trigger produced the documented failure on ca-labrevprov-e2upm2--badpath2: the revision surface is Unhealthy/Failed with provisioningError='Container crashing: app', raw system logs show a repeated ProbeFailed -> ContainerTerminated(ProbeFailure) loop, KQL rows bind the failure to badpath2, and nginx console evidence shows 404 responses on /nonexistent-health-endpoint.",
@@ -749,7 +751,7 @@ from pathlib import Path
 
 EVIDENCE_DIR = Path(os.environ["EVIDENCE_DIR"])
 REL = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
-UTC_NOW = os.environ["UTC_NOW"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 
 FAILED_REVISION = "ca-labrevprov-e2upm2--badpath2"
 RECOVERED_REVISION = "ca-labrevprov-e2upm2--badpath3"
@@ -872,7 +874,7 @@ sub_gates = [
 ]
 
 payload = {
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "revision_provisioning_failure",
     "hypothesis": "H2_fix_restores_recovery",
     "claim": "The H2 fix restored recovery: ca-labrevprov-e2upm2--badpath3 is Healthy/Provisioned with startup probe path=/ on port 80, and the post-fix KQL verification shows badpath3 with startup success events but zero ProbeFailed / zero ContainerTerminated while the historical H1 failures remain isolated to badpath2.",
@@ -914,7 +916,7 @@ import yaml
 
 EVIDENCE_DIR = Path(os.environ["EVIDENCE_DIR"])
 REL = os.environ["REPO_RELATIVE_EVIDENCE_DIR"]
-UTC_NOW = os.environ["UTC_NOW"]
+EVALUATED_AT_UTC = os.environ["EVALUATED_AT_UTC"]
 
 APP_NAME = "ca-labrevprov-e2upm2"
 BASELINE_REVISION = "ca-labrevprov-e2upm2--badpath"
@@ -1102,7 +1104,7 @@ sub_gates = [
 ]
 
 payload = {
-    "utc_captured": UTC_NOW,
+    "evaluated_at_utc": EVALUATED_AT_UTC,
     "scenario": "revision_provisioning_failure",
     "hypothesis": "H3_bounded_falsification",
     "claim": "This evidence pack falsifies the startup-probe failure hypothesis within a bounded scope. Gate 17 demonstrates that probe-path reachability is the mechanically observable trigger field while held-constant fields remain byte-identical on the bounded surface. The pack does not claim single-variable falsification because non-path probe fields also changed and are documented as explicit confounders.",

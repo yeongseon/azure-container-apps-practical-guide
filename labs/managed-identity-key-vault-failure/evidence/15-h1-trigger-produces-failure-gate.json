@@ -87,5 +87,5 @@
     "expected_http_status_pre_fix": "non-200",
     "expected_vault_role_name": "Key Vault Secrets User"
   },
-  "utc_captured": "2026-06-26T08:38:34Z"
+  "evaluated_at_utc": "2026-11-09T15:54:02Z"
 }

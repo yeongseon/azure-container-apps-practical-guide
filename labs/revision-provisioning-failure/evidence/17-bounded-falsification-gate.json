@@ -22,6 +22,7 @@
       }
     ]
   },
+  "evaluated_at_utc": "2026-11-09T13:06:01Z",
   "gate_classification": "Bounded falsification gate: isolates the path reachability claim while explicitly documenting the confounding probe-field deltas and other unsupported inferences.",
   "hypothesis": "H3_bounded_falsification",
   "path_used": "bounded",
@@ -224,6 +225,5 @@
     "h1_path_expected": "/nonexistent-health-endpoint",
     "h2_path_expected": "/",
     "held_constant_field_count": 9
-  },
-  "utc_captured": "2026-06-26T06:43:52Z"
+  }
 }
