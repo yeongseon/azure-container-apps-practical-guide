@@ -258,6 +258,14 @@ def validate_curated(root: Path, commit: str, current: list[str], tracked: set[s
         if anchor is None:
             if row.get("execution_anchor_reason") != "unknown":
                 raise InventoryError(f"{lab}: null execution_anchor requires reason 'unknown'")
+            discrepancies = row.get("discrepancies")
+            if not isinstance(discrepancies, list) or not any(
+                isinstance(item, dict) and item.get("type") == "missing-execution-anchor"
+                for item in discrepancies
+            ):
+                raise InventoryError(
+                    f"{lab}: null execution_anchor requires a missing-execution-anchor discrepancy"
+                )
         else:
             if not isinstance(anchor, dict) or anchor.get("kind") not in ANCHOR_KINDS:
                 raise InventoryError(f"{lab}: invalid execution anchor")

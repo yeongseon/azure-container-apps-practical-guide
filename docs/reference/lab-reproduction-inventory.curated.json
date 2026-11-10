@@ -563,7 +563,12 @@
       },
       "classification": "live-azure-evidence",
       "evidence_basis": "Curated status citations record the re-executed live Azure reproduction; no exact final observation UTC is cited where the execution anchor remains unknown.",
-      "discrepancies": []
+      "discrepancies": [
+        {
+          "type": "missing-execution-anchor",
+          "detail": "The reviewed evidence records a 2026-07-04 live re-execution but no citation-safe exact UTC for the final capture, completion, or observation."
+        }
+      ]
     },
     {
       "lab": "appinsights-connection-string-missing",
@@ -1130,7 +1135,27 @@
         "utc": "2026-06-14T14:52:07Z",
         "kind": "capture_window_end"
       },
-      "derived_outputs": [],
+      "derived_outputs": [
+        {
+          "files": [
+            "labs/replica-node-spread/evidence/analysis-summary.json",
+            "labs/replica-node-spread/evidence/analysis-summary.md"
+          ],
+          "justification": {
+            "file": "labs/replica-node-spread/evidence/README.md",
+            "line": 89,
+            "quote": "`analyze.py`"
+          }
+        },
+        {
+          "file": "labs/replica-node-spread/evidence/h3-20260614-143432.verdict.txt",
+          "justification": {
+            "file": "labs/replica-node-spread/evidence/README.md",
+            "line": 92,
+            "quote": "`falsify.sh`"
+          }
+        }
+      ],
       "raw_outputs": [],
       "cleanup": {
         "state": "absent",
@@ -1236,12 +1261,8 @@
           "quote": "Reproduced in `rg-aca-lab-revprov` / `cae-labrevprov-e2upm2`, `koreacentral`, Consumption plan. App: `ca-labrevprov-e2upm2`. This second reproduction exercises the **wrong-path (HTTP 404)** variant: startup probe set to `httpGet.path=/nonexistent-health-endpoint`, `port=80`, `failureThreshold=3`, `periodSeconds=5`, against an `nginx:alpine` container that correctly responds 404 for unknown paths. Failed revision: `ca-labrevprov-e2upm2--badpath2`. Recovery applied via `az containerapp update --yaml` with corrected probe `path=/`, producing healthy revision `ca-labrevprov-e2upm2--badpath3`."
         }
       ],
-      "execution_anchor": {
-        "file": "labs/revision-provisioning-failure/evidence/12-revision-list-recovered.json",
-        "field_or_line": "$[0].properties.createdTime",
-        "utc": "2026-06-20T14:26:09Z",
-        "kind": "captured_at"
-      },
+      "execution_anchor": null,
+      "execution_anchor_reason": "unknown",
       "derived_outputs": [],
       "raw_outputs": [],
       "cleanup": {
@@ -1253,8 +1274,13 @@
         }
       },
       "classification": "live-azure-evidence",
-      "evidence_basis": "Committed raw revision evidence records the recovered revision creation time; curated status citations record the live Azure reproduction.",
-      "discrepancies": []
+      "evidence_basis": "Curated status citations and committed raw evidence record the live Azure reproduction, but the recovered revision createdTime is resource metadata rather than a capture or completion anchor.",
+      "discrepancies": [
+        {
+          "type": "missing-execution-anchor",
+          "detail": "The recovered revision createdTime is a resource-creation timestamp, not an explicit capture, completion, or observation timestamp; no citation-safe exact final Azure observation UTC was verified."
+        }
+      ]
     },
     {
       "lab": "scale-rule-mismatch",
@@ -1270,12 +1296,8 @@
           "quote": "status: reproduced"
         }
       ],
-      "execution_anchor": {
-        "file": "labs/scale-rule-mismatch/evidence/00-verify-run.txt",
-        "field_or_line": 86,
-        "utc": "2026-06-22T15:15:39Z",
-        "kind": "capture_window_end"
-      },
+      "execution_anchor": null,
+      "execution_anchor_reason": "unknown",
       "derived_outputs": [],
       "raw_outputs": [],
       "cleanup": {
@@ -1287,8 +1309,13 @@
         }
       },
       "classification": "live-azure-evidence",
-      "evidence_basis": "Committed non-gate evidence records capture timestamps; derived verifier gates are listed separately.",
-      "discrepancies": []
+      "evidence_basis": "Committed evidence records the live run, but its strict load-window end is calculated before load execution and is not an observed completion timestamp; derived verifier gates are listed separately.",
+      "discrepancies": [
+        {
+          "type": "missing-execution-anchor",
+          "detail": "The cited strict load-window end was calculated and printed before the load ran, not recorded after completion or observation; no citation-safe exact final Azure observation UTC was verified."
+        }
+      ]
     },
     {
       "lab": "startup-degraded-transient-failure",

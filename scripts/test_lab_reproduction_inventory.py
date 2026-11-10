@@ -93,6 +93,37 @@ class LabReproductionInventoryTests(unittest.TestCase):
             with self.assertRaisesRegex(inventory.InventoryError, "anchor UTC"):
                 inventory.build_inventory(root, commit, dt.date(2026, 11, 10))
 
+    def test_null_anchor_requires_discrepancy_and_follow_up_batch(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            self.make_fixture(root)
+            path = root / inventory.CURATED_PATH.relative_to(inventory.ROOT)
+            curated = json.loads(path.read_text())
+            row = curated["labs"][0]
+            row["execution_anchor"] = None
+            row["execution_anchor_reason"] = "unknown"
+            row["discrepancies"] = [{
+                "type": "missing-execution-anchor",
+                "detail": "No exact final Azure observation UTC was verified.",
+            }]
+            path.write_text(json.dumps(curated))
+            commit = self.commit_fixture(root)
+
+            data = inventory.build_inventory(root, commit, dt.date(2026, 11, 10))
+            batches = [
+                batch for batch in data["follow_up_batches"]
+                if batch["discrepancy_type"] == "missing-execution-anchor"
+                and batch["labs"] == ["demo"]
+            ]
+            self.assertEqual(len(batches), 1)
+
+            row["discrepancies"] = []
+            path.write_text(json.dumps(curated))
+            subprocess.run(["git", "add", "."], cwd=root, check=True)
+            subprocess.run(["git", "commit", "-m", "remove discrepancy"], cwd=root, check=True, capture_output=True)
+            with self.assertRaisesRegex(inventory.InventoryError, "missing-execution-anchor discrepancy"):
+                inventory.build_inventory(root, "HEAD", dt.date(2026, 11, 10))
+
     def test_duplicate_citation_location_is_rejected_even_with_different_quote(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -221,9 +252,7 @@ class LabReproductionInventoryTests(unittest.TestCase):
             "memory-leak-oomkilled": "2026-06-20T06:02:57Z",
             "memory-percentage-vs-keda-utilization": "2026-06-24T02:31:25Z",
             "replica-node-spread": "2026-06-14T14:52:07Z",
-            "revision-provisioning-failure": "2026-06-20T14:26:09Z",
             "revision-history-limit": "2026-06-22T08:16:46Z",
-            "scale-rule-mismatch": "2026-06-22T15:15:39Z",
             "startup-degraded-transient-failure": "2026-06-20T22:51:43Z",
             "appinsights-connection-string-missing": "2026-06-22T05:09:45Z",
             "managed-identity-key-vault-failure": "2026-06-26T08:26:59Z",
@@ -235,6 +264,12 @@ class LabReproductionInventoryTests(unittest.TestCase):
                 self.assertIsNone(inventory.status_claim_problem(claim["quote"]))
         self.assertEqual(labs["zone-redundancy-best-effort"]["last_azure_run_utc"], "unknown")
         self.assertIn("expiresAt deadline", labs["zone-redundancy-best-effort"]["discrepancies"][0]["detail"])
+        for lab in ("appgw-to-internal-aca-nsg-mismatch", "revision-provisioning-failure", "scale-rule-mismatch"):
+            self.assertEqual(labs[lab]["last_azure_run_utc"], "unknown")
+            self.assertEqual(
+                [item["type"] for item in labs[lab]["discrepancies"]].count("missing-execution-anchor"),
+                1,
+            )
         appgw_locations = {(row["file"], row["line"]) for row in labs["appgw-to-internal-aca-nsg-mismatch"]["status_claims"]}
         self.assertTrue({("docs/troubleshooting/lab-guides/appgw-to-internal-aca-nsg-mismatch.md", line) for line in (50, 52, 53, 161, 186)} <= appgw_locations)
         self.assertTrue({("labs/appgw-to-internal-aca-nsg-mismatch/evidence/README.md", line) for line in (34, 36)} <= appgw_locations)
@@ -249,6 +284,16 @@ class LabReproductionInventoryTests(unittest.TestCase):
             if state in {"absent", "initiated-not-confirmed"}:
                 lab = Path(row["lab_path"]).name
                 self.assertEqual(assignments.count((f"cleanup-{state}", lab)), 1)
+
+    def test_each_unknown_anchor_has_one_follow_up_batch(self) -> None:
+        data = inventory.build_inventory(inventory.ROOT, inventory.current_head(inventory.ROOT), dt.date(2026, 11, 10))
+        assignments = [(batch["discrepancy_type"], batch["labs"][0]) for batch in data["follow_up_batches"]]
+        for row in data["labs"]:
+            if row["execution_anchor"] is None:
+                lab = Path(row["lab_path"]).name
+                discrepancy_types = [item["type"] for item in row["discrepancies"]]
+                self.assertEqual(discrepancy_types.count("missing-execution-anchor"), 1)
+                self.assertEqual(assignments.count(("missing-execution-anchor", lab)), 1)
 
 
 if __name__ == "__main__":
