@@ -50,11 +50,14 @@ STATUS_RE = re.compile(
     r"|live[- ]azure (?:capture|cohort|deployment|environment|evidence|experiment|reproduction|run|test|window)"
     r"|live (?:azure )?run|live-executed"
     r"|(?:captured|executed|ran|validated)[^.\n]{0,120}live[- ]azure"
+    r"|historical[^\n]{0,160}performed the live[- ]azure data collection"
     r"|re-executed(?: live)? run|executed end-to-end against a live Azure subscription"
     r"|committed evidence pack captured)",
     re.I,
 )
 MARKDOWN_QUOTE_LIMIT = 240
+MARKDOWN_CLAIM_COUNT_LIMIT = 3
+MARKDOWN_CLAIM_CELL_LIMIT = 600
 CAPTURE_KEYS = {
     "captured_at_utc", "captured_before_utc", "captured_after_utc", "utc_captured",
 }
@@ -72,10 +75,18 @@ class InventoryError(Exception):
     pass
 
 
+def resolve_revision(root: Path, revision: str) -> str:
+    result = subprocess.run(
+        ["git", "rev-parse", "--verify", f"{revision}^{{commit}}"],
+        cwd=root, capture_output=True, text=True,
+    )
+    commit = result.stdout.strip()
+    if result.returncode or not re.fullmatch(r"[0-9a-f]{40}", commit):
+        raise InventoryError(f"source commit does not exist: {revision}")
+    return commit
+
+
 def git_snapshot(root: Path, commit: str) -> None:
-    result = subprocess.run(["git", "cat-file", "-e", f"{commit}^{{commit}}"], cwd=root)
-    if result.returncode:
-        raise InventoryError(f"source commit does not exist: {commit}")
     result = subprocess.run(["git", "merge-base", "--is-ancestor", commit, "HEAD"], cwd=root)
     if result.returncode:
         raise InventoryError(f"source commit is not an ancestor of HEAD: {commit}")
@@ -212,7 +223,31 @@ def markdown_claim_quote(text: str) -> str:
     return markdown_table_text(text)
 
 
+def markdown_claim_cell(claims: list[dict[str, Any]]) -> str:
+    if not claims:
+        return "No explicit status line found"
+    displayed: list[str] = []
+    candidates = claims[:MARKDOWN_CLAIM_COUNT_LIMIT]
+    for row in candidates:
+        item = f"`{row['file']}:{row['line']}` — {markdown_claim_quote(row['quote'])}"
+        omitted = len(claims) - len(displayed) - 1
+        suffix = f"<br>_{omitted} more in JSON_" if omitted else ""
+        separator = "<br>" if displayed else ""
+        available = MARKDOWN_CLAIM_CELL_LIMIT - len("<br>".join(displayed)) - len(separator) - len(suffix)
+        if available <= 1:
+            break
+        if len(item) > available:
+            item = item[:available - 1].rstrip() + "…"
+        displayed.append(item)
+        if len(item) >= available:
+            break
+    omitted = len(claims) - len(displayed)
+    suffix = f"<br>_{omitted} more in JSON_" if omitted else ""
+    return "<br>".join(displayed) + suffix
+
+
 def build_inventory(root: Path, commit: str, as_of: dt.date) -> dict[str, Any]:
+    commit = resolve_revision(root, commit)
     files = tracked_files(root, commit)
     tracked = set(files)
     current = sorted({Path(path).parts[1] for path in files if path.startswith("labs/") and len(Path(path).parts) > 2})
@@ -329,10 +364,7 @@ def render_page(data: dict[str, Any]) -> str:
     counts = "\n".join(f"| `{name}` | {count} |" for name, count in data["summary"]["classifications"].items())
     rows = []
     for lab in data["labs"]:
-        claims = "<br>".join(
-            f"`{row['file']}:{row['line']}` — {markdown_claim_quote(row['quote'])}"
-            for row in lab["status_claimed_in_docs"]
-        ) or "No explicit status line found"
+        claims = markdown_claim_cell(lab["status_claimed_in_docs"])
         rows.append(f"| `{lab['lab_path']}` | `{lab['classification']}` | `{lab['last_azure_run_utc']}` | {claims} | {len(lab['raw_evidence'])} | {len(lab['committed_gate_files'])} | `{lab['cleanup_evidence']['completion']}` |")
     batch_rows = "\n".join(
         f"| {batch['batch']} | `{batch['discrepancy_type']}` | {', '.join(f'`{name}`' for name in batch['labs'])} | {batch['size']} | `{batch['cost_class']}` | {batch['prerequisites']} |"

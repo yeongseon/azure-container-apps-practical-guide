@@ -91,6 +91,14 @@ class LabReproductionInventoryTests(unittest.TestCase):
             with self.subTest(prose=prose):
                 self.assertIsNone(inventory.STATUS_RE.search(prose))
 
+    def test_status_pattern_accepts_historical_live_azure_collection_claims(self) -> None:
+        for claim in (
+            "The historical `verify.sh` from the 2026-06-20 capture also performed the live-Azure data collection (the queries that populate the report).",
+            "The historical verifier also performed the live Azure data collection before the refactor.",
+        ):
+            with self.subTest(claim=claim):
+                self.assertIsNotNone(inventory.STATUS_RE.search(claim))
+
     def test_status_pattern_accepts_repository_execution_claims(self) -> None:
         for claim in (
             "status: reproduced",
@@ -117,6 +125,68 @@ class LabReproductionInventoryTests(unittest.TestCase):
         self.assertIn("&#91;Observed&#93;", rendered)
         self.assertNotIn(" | ", rendered)
         self.assertEqual(quote, "[Observed] " + "x" * 400 + " | [verified]")
+
+    def test_markdown_claim_cell_bounds_many_claims_and_points_to_json(self) -> None:
+        claims = [
+            {"file": f"docs/troubleshooting/lab-guides/example-{index}.md", "line": index, "quote": "x" * 400}
+            for index in range(11)
+        ]
+
+        rendered = inventory.markdown_claim_cell(claims)
+
+        self.assertLessEqual(len(rendered), inventory.MARKDOWN_CLAIM_CELL_LIMIT)
+        self.assertIn("more in JSON", rendered)
+        self.assertLessEqual(rendered.count("` — "), inventory.MARKDOWN_CLAIM_COUNT_LIMIT)
+
+        page = inventory.render_page({
+            "inventory_as_of": "2026-11-10",
+            "source_commit_sha": "a" * 40,
+            "historical_reconciliation": {
+                "historical_count": 1, "current_count": 1,
+                "added": [], "removed": [], "rename_note": "None.",
+            },
+            "summary": {"classifications": {"unknown": 1}},
+            "labs": [{
+                "lab_path": "labs/example", "classification": "unknown",
+                "last_azure_run_utc": "unknown", "status_claimed_in_docs": claims,
+                "raw_evidence": [], "committed_gate_files": [],
+                "cleanup_evidence": {"completion": "absent"}, "discrepancies": [],
+            }],
+            "follow_up_batches": [],
+        })
+        matrix_row = next(line for line in page.splitlines() if line.startswith("| `labs/example`"))
+        claim_cell = matrix_row.split(" | ")[3]
+        self.assertLessEqual(len(claim_cell), inventory.MARKDOWN_CLAIM_CELL_LIMIT)
+
+    def test_symbolic_source_revision_is_pinned_and_check_uses_recorded_tree(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "labs/demo").mkdir(parents=True)
+            (root / "docs/reference").mkdir(parents=True)
+            (root / "docs/troubleshooting/lab-guides").mkdir(parents=True)
+            (root / "labs/demo/README.md").write_text("# Demo\n")
+            commit = self.commit_fixture(root)
+            branch = subprocess.run(
+                ["git", "branch", "--show-current"], cwd=root, check=True,
+                capture_output=True, text=True,
+            ).stdout.strip()
+
+            for revision in ("HEAD", branch):
+                with self.subTest(revision=revision):
+                    self.assertEqual(
+                        inventory.build_inventory(root, revision, dt.date(2026, 11, 10))["source_commit_sha"],
+                        commit,
+                    )
+
+            self.assertEqual(inventory.run([
+                "--write", "--source-commit", "HEAD", "--as-of", "2026-11-10",
+            ], root=root), 0)
+            saved = json.loads((root / "docs/reference/lab-reproduction-inventory.json").read_text())
+            self.assertRegex(saved["source_commit_sha"], r"^[0-9a-f]{40}$")
+            self.assertEqual(saved["source_commit_sha"], commit)
+
+            (root / "labs/demo/README.md").write_text("# Uncommitted mutation\n")
+            self.assertEqual(inventory.run(["--check"], root=root), 0)
 
     def test_appgw_live_run_claims_preserve_repository_file_lines_and_quotes(self) -> None:
         commit = inventory.current_head(inventory.ROOT)
@@ -149,6 +219,18 @@ class LabReproductionInventoryTests(unittest.TestCase):
             36,
             "The `2026-07-04` re-executed run yielded `verify-result.json` with all seven gates `true`, `verdict = HYPOTHESIS_CONFIRMED`, `falsification = FIX_VERIFIED`, and `verify.sh` exit `0`. The lab guide's `## 4) Experiment Log` cites each committed file above by name.",
         ), selected)
+
+    def test_historical_collectors_remain_status_claims_in_repository_inventory(self) -> None:
+        commit = inventory.current_head(inventory.ROOT)
+        tracked = set(inventory.tracked_files(inventory.ROOT, commit))
+
+        for lab, line in (("keda-no-metrics-returned", 132), ("memory-leak-oomkilled", 151)):
+            with self.subTest(lab=lab):
+                locations = {
+                    (row["file"], row["line"])
+                    for row in inventory.claim_rows(inventory.ROOT, commit, lab, tracked)
+                }
+                self.assertIn((f"labs/{lab}/evidence/README.md", line), locations)
 
     def test_only_explicit_capture_anchors_can_set_last_azure_run(self) -> None:
         negative = json.dumps({
