@@ -254,6 +254,9 @@ content_validation:
     - claim: "Container Apps supports KEDA-based autoscaling on HTTP traffic, CPU, memory, and custom metrics."
       source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app
       verified: true
+    - claim: "Container Apps revisions are immutable snapshots of each application version."
+      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions
+      verified: true
 ---
 ```
 

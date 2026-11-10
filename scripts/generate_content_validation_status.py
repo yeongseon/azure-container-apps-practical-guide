@@ -344,6 +344,13 @@ def generate_dashboard(
         "      source: https://learn.microsoft.com/en-us/azure/container-apps/scale-app"
     )
     lines.append("      verified: true")
+    lines.append(
+        '    - claim: "Container Apps revisions are immutable snapshots of each application version."'
+    )
+    lines.append(
+        "      source: https://learn.microsoft.com/en-us/azure/container-apps/revisions"
+    )
+    lines.append("      verified: true")
     lines.append("---")
     lines.append("```")
     lines.append("")
