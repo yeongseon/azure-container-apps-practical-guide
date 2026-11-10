@@ -49,6 +49,7 @@ STATUS_RE = re.compile(
     r"|reproduced (?:live|in|on|against)"
     r"|live[- ]azure (?:capture|cohort|deployment|environment|evidence|experiment|reproduction|run|test|window)"
     r"|live (?:azure )?run|live-executed"
+    r"|(?:captured|executed|ran|validated)[^.\n]{0,120}live[- ]azure"
     r"|re-executed(?: live)? run|executed end-to-end against a live Azure subscription"
     r"|committed evidence pack captured)",
     re.I,

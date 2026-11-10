@@ -98,6 +98,7 @@ class LabReproductionInventoryTests(unittest.TestCase):
             "### Observed Evidence (Live Azure Test — 2026-06-06)",
             "The cohort was captured in a single live-Azure window.",
             "This subsection validates the lab against a live Azure environment.",
+            "The historical verifier executed nine live Azure checks against the deployment.",
             "The evidence pack was captured on the re-executed live run.",
             "Live-executed on 2026-07-04.",
             "The full lab was executed end-to-end against a live Azure subscription.",
