@@ -1,0 +1,366 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import collections
+import datetime as dt
+import json
+import re
+import subprocess
+import sys
+from pathlib import Path
+from typing import Any
+
+ROOT = Path(__file__).resolve().parents[1]
+JSON_PATH = ROOT / "docs/reference/lab-reproduction-inventory.json"
+PAGE_PATH = ROOT / "docs/reference/lab-reproduction-inventory.md"
+
+HISTORICAL_LABS = {
+    "aca-secret-kv-ref-mi-network-path", "aca-secret-kv-ref-mi-network-path-h4b",
+    "aca-secret-kv-ref-mi-network-path-h4c", "aca-secret-kv-ref-mi-network-path-h4d",
+    "aca-secret-kv-ref-mi-network-path-h4e", "aca-secret-kv-ref-mi-network-path-h4f",
+    "aca-secret-kv-ref-mi-network-path-h4g", "acr-network-path-dns-forwarder-bypass",
+    "acr-network-path-firewall-allowlist", "acr-network-path-pe-direct",
+    "acr-network-path-pe-forced-inspection", "acr-network-path-record-split-brain",
+    "acr-pull-failure", "appgw-to-internal-aca-nsg-mismatch",
+    "appinsights-connection-string-missing", "cd-reconnect-rbac-conflict",
+    "cpu-throttling", "dapr-integration", "diagnostic-settings-missing",
+    "image-size-startup-delay", "ingress-target-port-mismatch",
+    "keda-no-metrics-returned", "managed-identity-key-vault-failure",
+    "memory-leak-oomkilled", "memory-percentage-vs-keda-utilization",
+    "metrics-load-test", "observability-tracing", "probe-and-port-mismatch",
+    "replica-node-spread", "revision-failover", "revision-history-limit",
+    "revision-provisioning-failure", "scale-rule-mismatch",
+    "startup-degraded-transient-failure", "traffic-routing-canary",
+    "zone-redundancy-best-effort",
+}
+POLICY_BLOCKED = {name for name in HISTORICAL_LABS if name.startswith("aca-secret-kv-ref-mi-network-path")}
+POLICY_BLOCKED.add("managed-identity-key-vault-failure")
+EXPENSIVE = {
+    "aca-secret-kv-ref-mi-network-path-h4d", "acr-network-path-dns-forwarder-bypass",
+    "acr-network-path-firewall-allowlist", "acr-network-path-pe-direct",
+    "acr-network-path-pe-forced-inspection", "acr-network-path-record-split-brain",
+}
+
+ISO_RE = re.compile(r"\b20\d\d-\d\d-\d\d[T ][0-2]\d:[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)?\b")
+FILENAME_TS_RE = re.compile(r"(?<!\d)(20\d{6})[T_-]?(\d{6})Z?(?!\d)")
+STATUS_RE = re.compile(r"(?:status:\s*(?:verified|reproduced|pending_review|blocked)|reproduced live|live reproduction)", re.I)
+EMAIL_RE = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
+GUID_RE = re.compile(r"(?<![0-9a-f])[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}(?![0-9a-f])", re.I)
+IPV4_RE = re.compile(r"(?<!\d)(?:10|192\.168|172\.(?:1[6-9]|2\d|3[01]))(?:\.\d{1,3}){2}(?!\d)")
+
+
+class InventoryError(Exception):
+    pass
+
+
+def git_snapshot(root: Path, commit: str) -> None:
+    result = subprocess.run(["git", "cat-file", "-e", f"{commit}^{{commit}}"], cwd=root)
+    if result.returncode:
+        raise InventoryError(f"source commit does not exist: {commit}")
+    result = subprocess.run(["git", "merge-base", "--is-ancestor", commit, "HEAD"], cwd=root)
+    if result.returncode:
+        raise InventoryError(f"source commit is not an ancestor of HEAD: {commit}")
+
+
+def tracked_files(root: Path, commit: str) -> list[str]:
+    git_snapshot(root, commit)
+    result = subprocess.run(
+        ["git", "ls-tree", "-r", "--name-only", "-z", commit, "--", "labs", "docs/troubleshooting/lab-guides"],
+        cwd=root, check=True, capture_output=True,
+    )
+    return sorted(path for path in result.stdout.decode().split("\0") if path)
+
+
+def snapshot_bytes(root: Path, commit: str, path: str) -> bytes:
+    return subprocess.run(
+        ["git", "show", f"{commit}:{path}"], cwd=root, check=True, capture_output=True
+    ).stdout
+
+
+def safe_quote(text: str) -> str:
+    text = IPV4_RE.sub("<private-ip>", GUID_RE.sub("<identifier>", EMAIL_RE.sub("<email>", text.strip())))
+    return text if len(text) <= 300 else text[:297] + "..."
+
+
+def normalized_timestamp(value: str) -> str | None:
+    candidate = value.replace(" ", "T")
+    if candidate.endswith("Z"):
+        candidate = candidate[:-1] + "+00:00"
+    try:
+        parsed = dt.datetime.fromisoformat(candidate)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=dt.timezone.utc)
+    return parsed.astimezone(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def timestamps(path: str, content: bytes) -> list[str]:
+    found: set[str] = set()
+    text = content.decode("utf-8", errors="ignore")
+    for match in ISO_RE.finditer(text):
+        value = normalized_timestamp(match.group(0))
+        if value:
+            found.add(value)
+    name_match = FILENAME_TS_RE.search(Path(path).name)
+    if name_match:
+        raw = name_match.group(1) + "T" + name_match.group(2) + "Z"
+        found.add(dt.datetime.strptime(raw, "%Y%m%dT%H%M%SZ").replace(tzinfo=dt.timezone.utc).isoformat().replace("+00:00", "Z"))
+    return sorted(found)
+
+
+def claim_rows(root: Path, commit: str, lab: str, tracked: set[str]) -> list[dict[str, Any]]:
+    candidates = [f"docs/troubleshooting/lab-guides/{lab}.md", f"labs/{lab}/README.md"]
+    rows: list[dict[str, Any]] = []
+    for path in candidates:
+        if path not in tracked:
+            continue
+        for line_number, line in enumerate(snapshot_bytes(root, commit, path).decode(errors="replace").splitlines(), 1):
+            if STATUS_RE.search(line):
+                rows.append({"file": path, "line": line_number, "quote": safe_quote(line)})
+                if len(rows) == 3:
+                    return rows
+    return rows
+
+
+def build_inventory(root: Path, commit: str, as_of: dt.date) -> dict[str, Any]:
+    files = tracked_files(root, commit)
+    tracked = set(files)
+    current = sorted({Path(path).parts[1] for path in files if path.startswith("labs/") and len(Path(path).parts) > 2})
+    records: list[dict[str, Any]] = []
+    for lab in current:
+        prefix = f"labs/{lab}/"
+        lab_files = [path for path in files if path.startswith(prefix)]
+        shell = sorted(path for path in lab_files if path.endswith(".sh"))
+        verify = f"labs/{lab}/verify.sh" in tracked
+        reproduction = [path for path in shell if Path(path).name not in {"verify.sh", "cleanup.sh"}]
+        evidence_files = [path for path in lab_files if path.startswith(prefix + "evidence/") and not path.endswith("/README.md")]
+        gate_files = [path for path in evidence_files if path.endswith(".json") and "gate" in Path(path).stem.lower()]
+        raw_files = [path for path in evidence_files if path not in gate_files and "cleanup" not in Path(path).name.lower()]
+        raw_rows = []
+        all_raw_times: list[str] = []
+        for path in raw_files:
+            values = timestamps(path, snapshot_bytes(root, commit, path))
+            all_raw_times.extend(values)
+            raw_rows.append({
+                "path": path,
+                "capture_time_first_utc": values[0] if values else "unknown",
+                "capture_time_last_utc": values[-1] if values else "unknown",
+            })
+        gate_rows = []
+        for path in gate_files:
+            try:
+                document = json.loads(snapshot_bytes(root, commit, path))
+            except json.JSONDecodeError:
+                document = {}
+            gate_rows.append({"path": path, "evaluated_at_utc": document.get("evaluated_at_utc", "unknown")})
+        cleanup_script = f"labs/{lab}/cleanup.sh"
+        cleanup_outputs = sorted(path for path in evidence_files if "cleanup" in Path(path).name.lower())
+        cleanup_rows = []
+        for path in cleanup_outputs:
+            values = timestamps(path, snapshot_bytes(root, commit, path))
+            cleanup_rows.append({"path": path, "recorded_times_utc": values})
+        claims = claim_rows(root, commit, lab, tracked)
+        claim_text = " ".join(row["quote"] for row in claims).lower()
+        if raw_rows and all_raw_times:
+            classification = "live-azure-evidence"
+            basis = "Committed non-gate evidence records capture timestamps; derived verifier gates are listed separately."
+        elif gate_rows and not raw_rows:
+            classification = "offline-replay-only"
+            basis = "Committed derived gates exist without a committed non-gate raw cohort; replay is not a live Azure run."
+        elif lab in POLICY_BLOCKED and not raw_rows:
+            classification = "blocked"
+            basis = "The historical #375 baseline identifies a Key Vault public-endpoint policy blocker, and no timestamped raw cohort is committed."
+        elif not reproduction and not raw_rows:
+            classification = "documentation-only"
+            basis = "No reproduction orchestration or committed raw evidence is present."
+        else:
+            classification = "unknown"
+            basis = "Repository artifacts do not establish a timestamped live Azure capture or a gate-only replay cohort."
+        discrepancies = []
+        if ("verified" in claim_text or "reproduced" in claim_text) and not raw_rows:
+            discrepancies.append("Documentation claims verified or reproduced status, but no committed non-gate raw evidence is present.")
+        if raw_rows and not all_raw_times:
+            discrepancies.append("Raw evidence is committed, but no capture timestamp was found; last Azure run remains unknown.")
+        if cleanup_script in tracked and not cleanup_outputs:
+            discrepancies.append("A cleanup script exists, but no committed teardown output proves cleanup ran or completed.")
+        records.append({
+            "lab_path": f"labs/{lab}",
+            "reproduction_scripts": reproduction,
+            "verify_sh_present": verify,
+            "status_claimed_in_docs": claims,
+            "raw_evidence": raw_rows,
+            "committed_gate_files": gate_rows,
+            "last_azure_run_utc": max(all_raw_times) if all_raw_times else "unknown",
+            "cleanup_evidence": {
+                "script_present": cleanup_script in tracked,
+                "script": cleanup_script if cleanup_script in tracked else None,
+                "recorded_teardown_outputs": cleanup_rows,
+                "completion": "recorded-output-present-not-assumed-complete" if cleanup_rows else "absent",
+            },
+            "classification": classification,
+            "evidence_basis": basis,
+            "discrepancies": discrepancies,
+        })
+    counts = collections.Counter(row["classification"] for row in records)
+    missing_proof = [Path(row["lab_path"]).name for row in records if row["classification"] != "live-azure-evidence"]
+    batches = []
+    batch_number = 1
+    for cost_class, names, prerequisite in (
+        ("blocked-no-run", [name for name in missing_proof if name in POLICY_BLOCKED], "Policy-free subscription or a Key Vault Private Endpoint redesign; explicit authorization before deployment."),
+        ("high", [name for name in missing_proof if name in EXPENSIVE and name not in POLICY_BLOCKED], "Explicit cost and cleanup approval; Azure Firewall/Private Endpoint prerequisites."),
+        ("low-to-moderate", [name for name in missing_proof if name not in POLICY_BLOCKED | EXPENSIVE], "Azure subscription access, per-lab prerequisites, and a plan to retain raw capture plus teardown output."),
+    ):
+        for offset in range(0, len(names), 8):
+            subset = names[offset:offset + 8]
+            if subset:
+                batches.append({"batch": batch_number, "labs": subset, "prerequisites": prerequisite, "cost_class": cost_class})
+                batch_number += 1
+    return {
+        "schema_version": 1,
+        "source_commit_sha": commit,
+        "inventory_as_of": as_of.isoformat(),
+        "scope": "Static repository inventory only; no Azure resources were queried or changed.",
+        "classification_values": ["live-azure-evidence", "offline-replay-only", "documentation-only", "blocked", "unknown"],
+        "historical_reconciliation": {
+            "issue": 375,
+            "historical_count": len(HISTORICAL_LABS),
+            "current_count": len(current),
+            "added": sorted(set(current) - HISTORICAL_LABS),
+            "removed": sorted(HISTORICAL_LABS - set(current)),
+            "renamed": [],
+            "rename_note": "No rename is asserted without repository evidence linking an old and new directory.",
+        },
+        "summary": {"labs": len(records), "classifications": dict(sorted(counts.items()))},
+        "follow_up_batches": batches,
+        "labs": records,
+    }
+
+
+def render_page(data: dict[str, Any]) -> str:
+    reconciliation = data["historical_reconciliation"]
+    counts = "\n".join(f"| `{name}` | {count} |" for name, count in data["summary"]["classifications"].items())
+    rows = []
+    for lab in data["labs"]:
+        claims = "<br>".join(f"`{row['file']}:{row['line']}` — {row['quote']}" for row in lab["status_claimed_in_docs"]) or "No explicit status line found"
+        rows.append(f"| `{lab['lab_path']}` | `{lab['classification']}` | `{lab['last_azure_run_utc']}` | {claims} | {len(lab['raw_evidence'])} | {len(lab['committed_gate_files'])} | `{lab['cleanup_evidence']['completion']}` |")
+    batch_rows = "\n".join(
+        f"| {batch['batch']} | {', '.join(f'`{name}`' for name in batch['labs'])} | `{batch['cost_class']}` | {batch['prerequisites']} |"
+        for batch in data["follow_up_batches"]
+    ) or "| — | _None_ | — | — |"
+    discrepancies = []
+    for lab in data["labs"]:
+        discrepancies.extend(f"- `{lab['lab_path']}`: {item}" for item in lab["discrepancies"])
+    discrepancy_text = "\n".join(discrepancies) or "- No deterministic discrepancy was found."
+    return f"""---
+description: Source-pinned inventory of Azure Container Apps lab reproduction scripts, raw evidence, replay gates, run timestamps, cleanup proof, and gaps.
+---
+# Lab Reproduction Inventory
+
+This static inventory is dated **{data['inventory_as_of']}** and pinned to source commit `{data['source_commit_sha']}`. It queried no Azure resource and incurred no Azure cost. A passing offline `verify.sh` replay is never treated as a fresh Azure reproduction, and cleanup script presence is never treated as cleanup completion.
+
+The machine-readable record is [`lab-reproduction-inventory.json`](lab-reproduction-inventory.json). Regenerate both files intentionally with `python3 scripts/lab_reproduction_inventory.py --write --source-commit <sha> --as-of <date>`; detect drift with `python3 scripts/lab_reproduction_inventory.py --check`.
+
+## Historical reconciliation
+
+Issue #375 named {reconciliation['historical_count']} historical labs. The pinned tree contains {reconciliation['current_count']} `labs/` directories.
+
+- Added: {', '.join(f'`{name}`' for name in reconciliation['added']) or 'none'}
+- Removed: {', '.join(f'`{name}`' for name in reconciliation['removed']) or 'none'}
+- Renamed: none. {reconciliation['rename_note']}
+
+## Classification summary
+
+| Classification | Labs |
+|---|---:|
+{counts}
+
+`live-azure-evidence` means the committed non-gate cohort records a capture timestamp; it does not mean this inventory reran the lab. `offline-replay-only` is gate evidence without a raw cohort. `blocked`, `documentation-only`, and `unknown` preserve missing proof rather than promoting claims.
+
+## Current lab matrix
+
+| Lab | Classification | Last raw Azure time | Status claimed in docs | Raw files | Gate files | Cleanup proof |
+|---|---|---|---|---:|---:|---|
+{chr(10).join(rows)}
+
+Per-file raw capture ranges, gate `evaluated_at_utc` values, reproduction scripts, exact status quotes, evidence bases, and discrepancy arrays are retained in the JSON.
+
+## Discrepancies
+
+{discrepancy_text}
+
+## Bounded follow-up batches
+
+These are proof-collection queues, not authorization to deploy. This inventory PR has cost class **none** because it performs no Azure work.
+
+| Batch | Labs | Future cost class | Prerequisites |
+|---:|---|---|---|
+{batch_rows}
+
+## See Also
+
+- [Contributing Guide](../contributing/index.md)
+- [Lab Gate Evaluation-Time Audit](../contributing/lab-gate-evaluation-time-audit.md)
+- [Troubleshooting Labs](../troubleshooting/lab-guides/index.md)
+
+## Sources
+
+- [Issue #422](https://github.com/yeongseon/azure-container-apps-practical-guide/issues/422)
+- [Historical issue #375](https://github.com/yeongseon/azure-container-apps-practical-guide/issues/375)
+"""
+
+
+def encoded(data: dict[str, Any]) -> str:
+    return json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+
+
+def current_head(root: Path) -> str:
+    return subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, check=True, capture_output=True, text=True).stdout.strip()
+
+
+def run(argv: list[str] | None = None, root: Path = ROOT) -> int:
+    parser = argparse.ArgumentParser()
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--write", action="store_true")
+    mode.add_argument("--check", action="store_true")
+    parser.add_argument("--source-commit")
+    parser.add_argument("--as-of", type=dt.date.fromisoformat)
+    args = parser.parse_args(argv)
+    if args.write and (not args.source_commit or not args.as_of):
+        parser.error("--write requires --source-commit and --as-of")
+    json_path = root / JSON_PATH.relative_to(ROOT)
+    page_path = root / PAGE_PATH.relative_to(ROOT)
+    if args.check:
+        if not json_path.exists():
+            print(f"missing {JSON_PATH.relative_to(ROOT)}", file=sys.stderr)
+            return 1
+        saved = json.loads(json_path.read_text())
+        commit = saved["source_commit_sha"]
+        as_of = dt.date.fromisoformat(saved["inventory_as_of"])
+    else:
+        commit = args.source_commit or current_head(root)
+        as_of = args.as_of or dt.date.today()
+    try:
+        data = build_inventory(root, commit, as_of)
+    except InventoryError as error:
+        print(error, file=sys.stderr)
+        return 1
+    json_text, page_text = encoded(data), render_page(data)
+    if args.write:
+        json_path.write_text(json_text)
+        page_path.write_text(page_text)
+        return 0
+    failures = []
+    if json_path.read_text() != json_text:
+        failures.append(str(JSON_PATH.relative_to(ROOT)))
+    if page_path.read_text() != page_text:
+        failures.append(str(PAGE_PATH.relative_to(ROOT)))
+    if failures:
+        print("lab reproduction inventory drift: " + ", ".join(failures), file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(run())
